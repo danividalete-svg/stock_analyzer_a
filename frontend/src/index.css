@@ -172,7 +172,11 @@ button:active:not(:disabled) { transform: scale(0.97); }
     inset -1px   0 0 hsl(0 0% 0%   / 0.05);  /* right dark edge  */
 
   position: relative;
-  overflow: hidden;
+  /* overflow:clip clips content (border-radius, pseudo-elements) like
+     overflow:hidden, but does NOT create a scroll container — so
+     position:sticky thead elements correctly stick to the viewport
+     instead of to this panel. Fixes first-row-hidden bug. */
+  overflow: clip;
   transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 0.22s ease;
 }
