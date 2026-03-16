@@ -1116,6 +1116,111 @@ tr[class*="cursor-pointer"]:hover td:first-child {
 .dark .border-primary { border-color: hsl(194 100% 48% / 0.6); }
 
 /* ═══════════════════════════════════════════════════════════════════
+   CYBERTRUCK — PHASE 3: Neon glow, grid, text fx + sticky fix
+   The filter:brightness() in cyberFadeIn created a stacking context
+   that broke position:sticky thead (first row disappeared). Fixed by
+   removing filter from the animation entirely.
+════════════════════════════════════════════════════════════════════ */
+
+/* ── BUG FIX: redefine cyberFadeIn without filter ────────────── */
+/* filter:brightness(x)≠none creates a stacking context → breaks  */
+/* position:sticky inside the panel → first table row invisible.  */
+@keyframes cyberFadeIn {
+  from { opacity: 0; transform: translateY(18px) skewX(-0.8deg); }
+  to   { opacity: 1; transform: translateY(0)    skewX(0); }
+}
+
+/* ── Neon power grid — cyberpunk background texture ─────────── */
+.dark body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(hsl(194 100% 55% / 0.030) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(194 100% 55% / 0.030) 1px, transparent 1px);
+  background-size: 52px 52px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Glass cards: cyan ambient outer neon glow ───────────────── */
+.dark .glass {
+  box-shadow:
+    0 8px 32px hsl(0 0% 0% / 0.60),
+    0 2px  8px hsl(0 0% 0% / 0.40),
+    0 0   35px hsl(194 100% 48% / 0.07),
+    inset 0  1.5px 0 hsl(0 0% 88% / 0.16),
+    inset 0 -1px   0 hsl(0 0% 0%   / 0.14),
+    inset  1.5px 0 0 hsl(0 0% 78% / 0.09),
+    inset -1px   0 0 hsl(0 0% 0%   / 0.07);
+}
+
+/* ── Neon top border on glass panels ─────────────────────────── */
+.dark .glass::before {
+  background: linear-gradient(
+    135deg,
+    hsl(194 100% 70% / 0.65)  0%,
+    hsl(194 100% 55% / 0.40) 20%,
+    hsl(0   0%  80% / 0.12)  48%,
+    hsl(194 100% 55% / 0.30) 76%,
+    hsl(194 100% 72% / 0.55) 100%
+  );
+}
+
+/* Hover: stronger neon halo */
+.dark .glass:not(:has(table)):hover {
+  box-shadow:
+    0 20px 52px hsl(0 0% 0% / 0.65),
+    0  6px 18px hsl(0 0% 0% / 0.45),
+    0  0   55px hsl(194 100% 48% / 0.14),
+    inset 0  1.5px 0 hsl(0 0% 90% / 0.24),
+    inset 0 -1px   0 hsl(0 0% 0%   / 0.14),
+    inset  1.5px 0 0 hsl(0 0% 80% / 0.14),
+    inset -1px   0 0 hsl(0 0% 0%   / 0.07);
+}
+
+/* ── Ticker text — neon cyan glow ────────────────────────────── */
+.dark .glass .text-primary,
+.dark .glass [class*="text-primary"] {
+  text-shadow:
+    0 0  8px hsl(194 100% 55% / 0.70),
+    0 0 18px hsl(194 100% 55% / 0.35);
+}
+
+/* ── Positive percentage gains — neon green ─────────────────── */
+.dark .glass .text-emerald-400,
+.dark .glass [class*="text-emerald"] {
+  text-shadow:
+    0 0  8px hsl(152 100% 45% / 0.65),
+    0 0 18px hsl(152 100% 45% / 0.28);
+}
+
+/* ── Negative/red values — neon red ─────────────────────────── */
+.dark .glass .text-red-400,
+.dark .glass [class*="text-red-4"] {
+  text-shadow:
+    0 0  7px hsl(0 100% 58% / 0.55),
+    0 0 16px hsl(0 100% 58% / 0.22);
+}
+
+/* ── Score bar — glowing fill edge ──────────────────────────── */
+.dark .glass [style*="width"] {
+  box-shadow: 1px 0 8px hsl(194 100% 55% / 0.55), 0 0 4px hsl(194 100% 55% / 0.30);
+}
+
+/* ── Buttons — neon glow on hover ────────────────────────────── */
+.dark button:not([disabled]):hover {
+  box-shadow: 0 0 14px hsl(194 100% 48% / 0.22), 0 0 4px hsl(194 100% 48% / 0.12);
+}
+
+/* ── Nav section labels — electric cyan ──────────────────────── */
+.dark aside nav > div[class*="tracking"] {
+  color: hsl(194 100% 52% / 0.60);
+  text-shadow: 0 0 12px hsl(194 100% 52% / 0.35);
+  letter-spacing: 0.16em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    MOBILE / iOS FIXES
 ════════════════════════════════════════════════════════════════════ */
 
