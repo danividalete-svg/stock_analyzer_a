@@ -160,15 +160,7 @@ export default function TechnicalSignals() {
   const [tfFilter, setTfFilter] = useState<'ALL' | 'DAILY' | 'WEEKLY'>('ALL')
   const [strengthFilter, setStrengthFilter] = useState<number>(1)
 
-  if (loading) return <Loading />
-  if (error) return (
-    <ErrorState message={
-      error.includes('not available')
-        ? 'Los datos técnicos se generan una vez al día. Estarán disponibles después del próximo ciclo de análisis.'
-        : error
-    } />
-  )
-
+  // All hooks must be called unconditionally — before any early returns
   const { signals = [], summary = [] } = (data as { signals: TechnicalSignal[]; summary: TechnicalSummary[] }) ?? {}
 
   const sources = ['ALL', ...Array.from(new Set(summary.map(r => r.source))).filter(Boolean)]
@@ -200,6 +192,15 @@ export default function TechnicalSignals() {
   const portfolioTickers = summary.filter(r => r.source === 'portfolio')
   const portfolioBullish = portfolioTickers.filter(r => r.bias === 'BULLISH').length
   const generatedAt = summary[0]?.generated_at ?? ''
+
+  if (loading) return <Loading />
+  if (error) return (
+    <ErrorState message={
+      error.includes('not available')
+        ? 'Los datos técnicos se generan una vez al día. Estarán disponibles después del próximo ciclo de análisis.'
+        : error
+    } />
+  )
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
