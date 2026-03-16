@@ -1,0 +1,1459 @@
+{
+  "timestamp": "2026-03-16T09:40:26.398937",
+  "date": "2026-03-16",
+  "total_scanned": 139,
+  "traps_high": 46,
+  "traps_medium": 22,
+  "safe_count": 71,
+  "traps": [
+    {
+      "ticker": "MNR",
+      "company": "Mach Natural Resources LP",
+      "sector": "Energy",
+      "current_price": 13.69,
+      "dividend_yield": 14.39,
+      "payout_ratio": 241.5,
+      "fcf_yield": -18.59,
+      "fundamental_score": 62.3,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 14.4% \u2014 extremo, mercado descuenta recorte",
+        "Payout 242% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield negativo (-18.6%) \u2014 empresa consume caja",
+        "Interest coverage 2.5x \u2014 ajustado"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "GOOD",
+      "company": "Gladstone Commercial Corporatio",
+      "sector": "Real Estate",
+      "current_price": 12.05,
+      "dividend_yield": 9.95,
+      "payout_ratio": 857.1,
+      "fcf_yield": 12.06,
+      "fundamental_score": 58.3,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 9.9% \u2014 extremo, mercado descuenta recorte",
+        "Payout 857% \u2014 dividendo > beneficios (insostenible)",
+        "Deuda/equity 2.5x \u2014 apalancamiento alto, presi\u00f3n en dividendo",
+        "Interest coverage 1.5x \u2014 earnings apenas cubren deuda"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "MRP",
+      "company": "Millrose Properties, Inc.",
+      "sector": "Real Estate",
+      "current_price": 28.3,
+      "dividend_yield": 9.01,
+      "payout_ratio": 104.5,
+      "fcf_yield": -76.19,
+      "fundamental_score": 57.5,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 9.0% \u2014 extremo, mercado descuenta recorte",
+        "Payout 104% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield negativo (-76.2%) \u2014 empresa consume caja",
+        "Interest coverage -2.6x \u2014 earnings apenas cubren deuda"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "LMNR",
+      "company": "Limoneira Co",
+      "sector": "Consumer Defensive",
+      "current_price": 13.2,
+      "dividend_yield": 2.27,
+      "payout_ratio": 69.8,
+      "fcf_yield": -7.44,
+      "fundamental_score": 54.2,
+      "trap_score": 100,
+      "reasons": [
+        "Payout 70% \u2014 moderadamente elevado",
+        "FCF yield negativo (-7.4%) \u2014 empresa consume caja",
+        "ROE negativo (-12.0%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage -12.5x \u2014 earnings apenas cubren deuda",
+        "Margen operativo -57.6% \u2014 muy comprimido",
+        "Margen neto negativo (-15.6%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "MDRR",
+      "company": "Medalist Diversified, Inc.",
+      "sector": "Real Estate",
+      "current_price": 11.6,
+      "dividend_yield": 2.33,
+      "payout_ratio": 708.3,
+      "fcf_yield": -53.72,
+      "fundamental_score": 53.7,
+      "trap_score": 100,
+      "reasons": [
+        "Payout 708% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield negativo (-53.7%) \u2014 empresa consume caja",
+        "ROE negativo (-8.6%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage 0.3x \u2014 earnings apenas cubren deuda",
+        "Margen neto negativo (-23.0%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "VKI",
+      "company": "9268",
+      "sector": "Financial Services",
+      "current_price": 9.33,
+      "dividend_yield": 7.19,
+      "payout_ratio": 190.6,
+      "fcf_yield": 1.98,
+      "fundamental_score": 52.3,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 7.2% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 191% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (2.0%) < dividend yield (7.2%) \u2014 dividendo sin respaldo de caja",
+        "ROE negativo (-5.6%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Margen neto negativo (-72.7%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "IFF",
+      "company": "International Flavors & Fragran",
+      "sector": "Basic Materials",
+      "current_price": 69.61,
+      "dividend_yield": 2.3,
+      "payout_ratio": 168.4,
+      "fcf_yield": 17.36,
+      "fundamental_score": 48.5,
+      "trap_score": 100,
+      "reasons": [
+        "Payout 168% \u2014 dividendo > beneficios (insostenible)",
+        "ROE negativo (-2.6%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage -0.7x \u2014 earnings apenas cubren deuda",
+        "Margen operativo 4.6% \u2014 muy comprimido",
+        "Margen neto negativo (-3.3%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "VSTS",
+      "company": "Vestis Corporation",
+      "sector": "Industrials",
+      "current_price": 7.59,
+      "dividend_yield": 1.75,
+      "payout_ratio": 175.0,
+      "fcf_yield": 0.64,
+      "fundamental_score": 46.7,
+      "trap_score": 100,
+      "reasons": [
+        "Payout 175% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (0.6%) < dividend yield (1.8%) \u2014 dividendo sin respaldo de caja",
+        "ROE negativo (-5.4%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Deuda/equity 1.6x \u2014 moderado",
+        "Interest coverage 0.4x \u2014 earnings apenas cubren deuda",
+        "Margen operativo 3.3% \u2014 muy comprimido",
+        "Margen neto negativo (-1.7%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "ARE",
+      "company": "Alexandria Real Estate Equities",
+      "sector": "Real Estate",
+      "current_price": 48.41,
+      "dividend_yield": 8.43,
+      "payout_ratio": 689.5,
+      "fcf_yield": 16.03,
+      "fundamental_score": 43.8,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 8.4% \u2014 extremo, mercado descuenta recorte",
+        "Payout 690% \u2014 dividendo > beneficios (insostenible)",
+        "ROE negativo (-5.9%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage -4.4x \u2014 earnings apenas cubren deuda",
+        "Margen neto negativo (-47.4%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "PK",
+      "company": "Park Hotels & Resorts Inc.",
+      "sector": "Real Estate",
+      "current_price": 10.19,
+      "dividend_yield": 9.81,
+      "payout_ratio": 538.5,
+      "fcf_yield": 46.67,
+      "fundamental_score": 43.5,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 9.8% \u2014 extremo, mercado descuenta recorte",
+        "Payout 538% \u2014 dividendo > beneficios (insostenible)",
+        "ROE negativo (-8.3%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage -0.0x \u2014 earnings apenas cubren deuda",
+        "Margen neto negativo (-11.1%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "CRWS",
+      "company": "Crown Crafts, Inc.",
+      "sector": "Consumer Cyclical",
+      "current_price": 2.75,
+      "dividend_yield": 11.72,
+      "payout_ratio": 133.3,
+      "fcf_yield": 43.2,
+      "fundamental_score": 42.7,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 11.7% \u2014 extremo, mercado descuenta recorte",
+        "Payout 133% \u2014 dividendo > beneficios (insostenible)",
+        "ROE negativo (-20.4%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage 0.2x \u2014 earnings apenas cubren deuda",
+        "Margen operativo -0.2% \u2014 muy comprimido",
+        "Margen neto negativo (-11.1%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "MNRO",
+      "company": "Monro, Inc.",
+      "sector": "Consumer Cyclical",
+      "current_price": 15.305,
+      "dividend_yield": 7.32,
+      "payout_ratio": 175.0,
+      "fcf_yield": 17.44,
+      "fundamental_score": 41.6,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 7.3% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 175% \u2014 dividendo > beneficios (insostenible)",
+        "ROE negativo (-2.0%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage 0.1x \u2014 earnings apenas cubren deuda",
+        "Margen operativo 1.9% \u2014 muy comprimido",
+        "Margen neto negativo (-1.1%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "OXM",
+      "company": "Oxford Industries, Inc.",
+      "sector": "Consumer Cyclical",
+      "current_price": 35.83,
+      "dividend_yield": 7.7,
+      "payout_ratio": 73.3,
+      "fcf_yield": 2.31,
+      "fundamental_score": 40.3,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 7.7% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 73% \u2014 moderadamente elevado",
+        "FCF yield (2.3%) < dividend yield (7.7%) \u2014 dividendo sin respaldo de caja",
+        "ROE negativo (-0.5%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage -0.5x \u2014 earnings apenas cubren deuda",
+        "Margen operativo -7.2% \u2014 muy comprimido",
+        "Margen neto negativo (-0.2%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "MERC",
+      "company": "Mercer International Inc.",
+      "sector": "Basic Materials",
+      "current_price": 1.49,
+      "dividend_yield": 16.04,
+      "payout_ratio": 15.7,
+      "fcf_yield": -41.88,
+      "fundamental_score": 35.5,
+      "trap_score": 100,
+      "reasons": [
+        "Yield 16.0% \u2014 extremo, mercado descuenta recorte",
+        "FCF yield negativo (-41.9%) \u2014 empresa consume caja",
+        "ROE negativo (-200.0%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Deuda/equity 23.9x \u2014 apalancamiento alto, presi\u00f3n en dividendo",
+        "Interest coverage -3.5x \u2014 earnings apenas cubren deuda",
+        "Margen operativo -13.9% \u2014 muy comprimido",
+        "Margen neto negativo (-26.7%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "AFCG",
+      "company": "Advanced Flower Capital Inc.",
+      "sector": "Real Estate",
+      "current_price": 2.63,
+      "dividend_yield": 21.97,
+      "payout_ratio": 152.2,
+      "fcf_yield": null,
+      "fundamental_score": 56.8,
+      "trap_score": 95,
+      "reasons": [
+        "Yield 22.0% \u2014 extremo, mercado descuenta recorte",
+        "Payout 152% \u2014 dividendo > beneficios (insostenible)",
+        "ROE negativo (-11.0%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Margen operativo -44.0% \u2014 muy comprimido"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "NOG",
+      "company": "Northern Oil and Gas, Inc.",
+      "sector": "Energy",
+      "current_price": 27.51,
+      "dividend_yield": 6.54,
+      "payout_ratio": 461.5,
+      "fcf_yield": 0.22,
+      "fundamental_score": 55.5,
+      "trap_score": 95,
+      "reasons": [
+        "Yield 6.5% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 462% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (0.2%) < dividend yield (6.5%) \u2014 dividendo sin respaldo de caja",
+        "Interest coverage 1.4x \u2014 earnings apenas cubren deuda"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "GRNT",
+      "company": "Granite Ridge Resources, Inc.",
+      "sector": "Energy",
+      "current_price": 5.18,
+      "dividend_yield": 8.49,
+      "payout_ratio": 151.7,
+      "fcf_yield": -23.96,
+      "fundamental_score": 55.3,
+      "trap_score": 95,
+      "reasons": [
+        "Yield 8.5% \u2014 extremo, mercado descuenta recorte",
+        "Payout 152% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield negativo (-24.0%) \u2014 empresa consume caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "GLP",
+      "company": "Global Partners LP",
+      "sector": "Energy",
+      "current_price": 46.48,
+      "dividend_yield": 6.54,
+      "payout_ratio": 141.7,
+      "fcf_yield": 11.28,
+      "fundamental_score": 49.3,
+      "trap_score": 95,
+      "reasons": [
+        "Yield 6.5% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 142% \u2014 dividendo > beneficios (insostenible)",
+        "Deuda/equity 3.1x \u2014 apalancamiento alto, presi\u00f3n en dividendo",
+        "Interest coverage 1.7x \u2014 earnings apenas cubren deuda",
+        "Margen operativo 1.2% \u2014 muy comprimido"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "JACK",
+      "company": "Jack In The Box Inc.",
+      "sector": "Consumer Cyclical",
+      "current_price": 12.66,
+      "dividend_yield": 13.87,
+      "payout_ratio": 31.0,
+      "fcf_yield": -10.59,
+      "fundamental_score": 45.8,
+      "trap_score": 95,
+      "reasons": [
+        "Yield 13.9% \u2014 extremo, mercado descuenta recorte",
+        "FCF yield negativo (-10.6%) \u2014 empresa consume caja",
+        "Interest coverage -0.6x \u2014 earnings apenas cubren deuda",
+        "Margen neto negativo (-8.1%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "SXC",
+      "company": "SunCoke Energy, Inc.",
+      "sector": "Basic Materials",
+      "current_price": 6.02,
+      "dividend_yield": 7.97,
+      "payout_ratio": 64.0,
+      "fcf_yield": 5.89,
+      "fundamental_score": 49.3,
+      "trap_score": 90,
+      "reasons": [
+        "Yield 8.0% \u2014 elevado, vigilar sostenibilidad",
+        "FCF yield (5.9%) < dividend yield (8.0%) \u2014 dividendo sin respaldo de caja",
+        "ROE negativo (-5.8%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage -1.6x \u2014 earnings apenas cubren deuda",
+        "Margen operativo -1.3% \u2014 muy comprimido",
+        "Margen neto negativo (-2.4%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "MSBI",
+      "company": "Midland States Bancorp, Inc.",
+      "sector": "Financial Services",
+      "current_price": 20.59,
+      "dividend_yield": 6.17,
+      "payout_ratio": 124.8,
+      "fcf_yield": null,
+      "fundamental_score": 50.1,
+      "trap_score": 85,
+      "reasons": [
+        "Yield 6.2% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 125% \u2014 dividendo > beneficios (insostenible)",
+        "ROE negativo (-19.5%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Margen neto negativo (-46.9%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "WY",
+      "company": "Weyerhaeuser Company",
+      "sector": "Real Estate",
+      "current_price": 23.46,
+      "dividend_yield": 3.58,
+      "payout_ratio": 186.7,
+      "fcf_yield": -0.87,
+      "fundamental_score": 46.2,
+      "trap_score": 85,
+      "reasons": [
+        "Payout 187% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield negativo (-0.9%) \u2014 empresa consume caja",
+        "Interest coverage 2.0x \u2014 ajustado",
+        "Margen operativo -11.4% \u2014 muy comprimido"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "UTZ",
+      "company": "Utz Brands Inc",
+      "sector": "Consumer Defensive",
+      "current_price": 7.56,
+      "dividend_yield": 3.25,
+      "payout_ratio": 2460.0,
+      "fcf_yield": 3.43,
+      "fundamental_score": 40.8,
+      "trap_score": 85,
+      "reasons": [
+        "Payout 2460% \u2014 dividendo > beneficios (insostenible)",
+        "ROE negativo (-0.6%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage 1.0x \u2014 earnings apenas cubren deuda",
+        "Margen operativo -1.7% \u2014 muy comprimido"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "IIPR",
+      "company": "Innovative Industrial Propertie",
+      "sector": "Real Estate",
+      "current_price": 52.66,
+      "dividend_yield": 14.43,
+      "payout_ratio": 193.4,
+      "fcf_yield": 10.48,
+      "fundamental_score": 54.6,
+      "trap_score": 84,
+      "reasons": [
+        "Yield 14.4% \u2014 extremo, mercado descuenta recorte",
+        "Payout 193% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (10.5%) < dividend yield (14.4%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "ABR",
+      "company": "Arbor Realty Trust",
+      "sector": "Real Estate",
+      "current_price": 7.67,
+      "dividend_yield": 15.65,
+      "payout_ratio": 237.5,
+      "fcf_yield": null,
+      "fundamental_score": 46.5,
+      "trap_score": 80,
+      "reasons": [
+        "Yield 15.7% \u2014 extremo, mercado descuenta recorte",
+        "Payout 238% \u2014 dividendo > beneficios (insostenible)",
+        "Deuda/equity 3.6x \u2014 apalancamiento alto, presi\u00f3n en dividendo"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "LFT",
+      "company": "Lument Finance Trust, Inc.",
+      "sector": "Real Estate",
+      "current_price": 1.43,
+      "dividend_yield": 15.38,
+      "payout_ratio": 260.0,
+      "fcf_yield": null,
+      "fundamental_score": 42.8,
+      "trap_score": 80,
+      "reasons": [
+        "Yield 15.4% \u2014 extremo, mercado descuenta recorte",
+        "Payout 260% \u2014 dividendo > beneficios (insostenible)",
+        "Deuda/equity 3.1x \u2014 apalancamiento alto, presi\u00f3n en dividendo"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "CLPR",
+      "company": "Clipper Realty Inc.",
+      "sector": "Real Estate",
+      "current_price": 3.05,
+      "dividend_yield": 12.46,
+      "payout_ratio": null,
+      "fcf_yield": 9.58,
+      "fundamental_score": 44.5,
+      "trap_score": 79,
+      "reasons": [
+        "Yield 12.5% \u2014 extremo, mercado descuenta recorte",
+        "FCF yield (9.6%) < dividend yield (12.5%) \u2014 dividendo sin respaldo de caja",
+        "Interest coverage 0.0x \u2014 earnings apenas cubren deuda",
+        "Margen neto negativo (-13.0%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "NLCP",
+      "company": "NewLake Capital Partners, Inc.",
+      "sector": "Real Estate",
+      "current_price": 15.43,
+      "dividend_yield": 11.15,
+      "payout_ratio": 135.4,
+      "fcf_yield": 8.75,
+      "fundamental_score": 61.8,
+      "trap_score": 77,
+      "reasons": [
+        "Yield 11.2% \u2014 extremo, mercado descuenta recorte",
+        "Payout 135% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (8.8%) < dividend yield (11.2%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "SUNS",
+      "company": "Sunrise Realty Trust, Inc.",
+      "sector": "Real Estate",
+      "current_price": 8.53,
+      "dividend_yield": 14.07,
+      "payout_ratio": 121.1,
+      "fcf_yield": null,
+      "fundamental_score": 61.0,
+      "trap_score": 75,
+      "reasons": [
+        "Yield 14.1% \u2014 extremo, mercado descuenta recorte",
+        "Payout 121% \u2014 dividendo > beneficios (insostenible)",
+        "Interest coverage 2.0x \u2014 ajustado"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "UMH",
+      "company": "UMH Properties, Inc.",
+      "sector": "Real Estate",
+      "current_price": 14.65,
+      "dividend_yield": 6.14,
+      "payout_ratio": 1271.4,
+      "fcf_yield": 5.1,
+      "fundamental_score": 53.7,
+      "trap_score": 75,
+      "reasons": [
+        "Yield 6.1% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 1271% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (5.1%) < dividend yield (6.1%) \u2014 dividendo sin respaldo de caja",
+        "Interest coverage 1.9x \u2014 earnings apenas cubren deuda"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "DMLP",
+      "company": "Dorchester Minerals, L.P.",
+      "sector": "Energy",
+      "current_price": 26.97,
+      "dividend_yield": 10.35,
+      "payout_ratio": 239.2,
+      "fcf_yield": 8.47,
+      "fundamental_score": 61.3,
+      "trap_score": 74,
+      "reasons": [
+        "Yield 10.3% \u2014 extremo, mercado descuenta recorte",
+        "Payout 239% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (8.5%) < dividend yield (10.3%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "NMZ",
+      "company": "Nuveen Municipal High Income Op",
+      "sector": "Financial Services",
+      "current_price": 10.43,
+      "dividend_yield": 7.54,
+      "payout_ratio": 374.3,
+      "fcf_yield": 2.86,
+      "fundamental_score": 53.0,
+      "trap_score": 73,
+      "reasons": [
+        "Yield 7.5% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 374% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (2.9%) < dividend yield (7.5%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "NAD",
+      "company": "Nuveen Quality Municipal Income",
+      "sector": "Financial Services",
+      "current_price": 11.96,
+      "dividend_yield": 7.07,
+      "payout_ratio": 318.2,
+      "fcf_yield": 2.79,
+      "fundamental_score": 56.1,
+      "trap_score": 71,
+      "reasons": [
+        "Yield 7.1% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 318% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (2.8%) < dividend yield (7.1%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "OWL",
+      "company": "Blue Owl Capital Inc.",
+      "sector": "Financial Services",
+      "current_price": 8.75,
+      "dividend_yield": 10.29,
+      "payout_ratio": 855.0,
+      "fcf_yield": 9.91,
+      "fundamental_score": 56.2,
+      "trap_score": 66,
+      "reasons": [
+        "Yield 10.3% \u2014 extremo, mercado descuenta recorte",
+        "Payout 855% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (9.9%) < dividend yield (10.3%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "NFJ",
+      "company": "AllianzGI NFJ Dividend, Interes",
+      "sector": "Financial Services",
+      "current_price": 12.7,
+      "dividend_yield": 9.61,
+      "payout_ratio": 176.8,
+      "fcf_yield": null,
+      "fundamental_score": 54.6,
+      "trap_score": 65,
+      "reasons": [
+        "Yield 9.6% \u2014 extremo, mercado descuenta recorte",
+        "Payout 177% \u2014 dividendo > beneficios (insostenible)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "DHC",
+      "company": "Diversified Healthcare Trust",
+      "sector": "Real Estate",
+      "current_price": 7.23,
+      "dividend_yield": 0.55,
+      "payout_ratio": 2.3,
+      "fcf_yield": 25.47,
+      "fundamental_score": 53.0,
+      "trap_score": 65,
+      "reasons": [
+        "ROE negativo (-15.8%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage -0.6x \u2014 earnings apenas cubren deuda",
+        "Margen operativo -2.9% \u2014 muy comprimido",
+        "Margen neto negativo (-18.6%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "SEVN",
+      "company": "Seven Hills Realty Trust",
+      "sector": "Real Estate",
+      "current_price": 8.27,
+      "dividend_yield": 13.54,
+      "payout_ratio": 122.8,
+      "fcf_yield": null,
+      "fundamental_score": 48.8,
+      "trap_score": 65,
+      "reasons": [
+        "Yield 13.5% \u2014 extremo, mercado descuenta recorte",
+        "Payout 123% \u2014 dividendo > beneficios (insostenible)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "APLE",
+      "company": "Apple Hospitality REIT, Inc.",
+      "sector": "Real Estate",
+      "current_price": 11.69,
+      "dividend_yield": 8.21,
+      "payout_ratio": 129.7,
+      "fcf_yield": 10.95,
+      "fundamental_score": 45.2,
+      "trap_score": 65,
+      "reasons": [
+        "Yield 8.2% \u2014 extremo, mercado descuenta recorte",
+        "Payout 130% \u2014 dividendo > beneficios (insostenible)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "NEWT",
+      "company": "NewtekOne, Inc.",
+      "sector": "Financial Services",
+      "current_price": 11.785,
+      "dividend_yield": 6.45,
+      "payout_ratio": 33.9,
+      "fcf_yield": -164.3,
+      "fundamental_score": 59.1,
+      "trap_score": 60,
+      "reasons": [
+        "Yield 6.5% \u2014 elevado, vigilar sostenibilidad",
+        "FCF yield negativo (-164.3%) \u2014 empresa consume caja",
+        "Deuda/equity 2.1x \u2014 apalancamiento alto, presi\u00f3n en dividendo"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "NMCO",
+      "company": "NMCO",
+      "sector": "Financial Services",
+      "current_price": 10.6,
+      "dividend_yield": 7.75,
+      "payout_ratio": 4110.0,
+      "fcf_yield": 6.42,
+      "fundamental_score": 53.1,
+      "trap_score": 56,
+      "reasons": [
+        "Yield 7.8% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 4110% \u2014 dividendo > beneficios (insostenible)",
+        "FCF yield (6.4%) < dividend yield (7.8%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "STRW",
+      "company": "Strawberry Fields REIT, Inc.",
+      "sector": "Real Estate",
+      "current_price": 12.88,
+      "dividend_yield": 4.81,
+      "payout_ratio": 100.0,
+      "fcf_yield": null,
+      "fundamental_score": 65.3,
+      "trap_score": 55,
+      "reasons": [
+        "Payout 100% \u2014 poco margen de seguridad",
+        "Deuda/equity 15.7x \u2014 apalancamiento alto, presi\u00f3n en dividendo",
+        "Interest coverage 1.7x \u2014 earnings apenas cubren deuda"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "LINE",
+      "company": "Lineage, Inc.",
+      "sector": "Real Estate",
+      "current_price": 36.43,
+      "dividend_yield": 5.79,
+      "payout_ratio": null,
+      "fcf_yield": 12.1,
+      "fundamental_score": 45.5,
+      "trap_score": 55,
+      "reasons": [
+        "ROE negativo (-1.2%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Interest coverage 0.7x \u2014 earnings apenas cubren deuda",
+        "Margen neto negativo (-1.9%)"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "LPG",
+      "company": "Dorian LPG Ltd.",
+      "sector": "Energy",
+      "current_price": 29.15,
+      "dividend_yield": 8.4,
+      "payout_ratio": 86.6,
+      "fcf_yield": 8.15,
+      "fundamental_score": 69.1,
+      "trap_score": 51,
+      "reasons": [
+        "Yield 8.4% \u2014 extremo, mercado descuenta recorte",
+        "Payout 87% \u2014 poco margen de seguridad",
+        "FCF yield (8.2%) < dividend yield (8.4%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "ESOA",
+      "company": "Energy Services of America Corp",
+      "sector": "Industrials",
+      "current_price": 12.56,
+      "dividend_yield": 0.96,
+      "payout_ratio": 92.3,
+      "fcf_yield": 3.1,
+      "fundamental_score": 64.2,
+      "trap_score": 50,
+      "reasons": [
+        "Payout 92% \u2014 poco margen de seguridad",
+        "Interest coverage 1.9x \u2014 earnings apenas cubren deuda",
+        "Margen operativo 4.3% \u2014 muy comprimido"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "WMG",
+      "company": "Warner Music Group Corp.",
+      "sector": "Communication Services",
+      "current_price": 27.32,
+      "dividend_yield": 2.78,
+      "payout_ratio": 129.8,
+      "fcf_yield": 5.12,
+      "fundamental_score": 54.0,
+      "trap_score": 50,
+      "reasons": [
+        "Payout 130% \u2014 dividendo > beneficios (insostenible)",
+        "Deuda/equity 5.6x \u2014 apalancamiento alto, presi\u00f3n en dividendo"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "LOAN",
+      "company": "Manhattan Bridge Capital, Inc",
+      "sector": "Real Estate",
+      "current_price": 4.34,
+      "dividend_yield": 10.16,
+      "payout_ratio": 97.9,
+      "fcf_yield": null,
+      "fundamental_score": 49.7,
+      "trap_score": 50,
+      "reasons": [
+        "Yield 10.2% \u2014 extremo, mercado descuenta recorte",
+        "Payout 98% \u2014 poco margen de seguridad"
+      ],
+      "risk_level": "HIGH"
+    },
+    {
+      "ticker": "FTAI",
+      "company": "FTAI Aviation Ltd.",
+      "sector": "Industrials",
+      "current_price": 222.24,
+      "dividend_yield": 0.61,
+      "payout_ratio": 27.2,
+      "fcf_yield": -3.39,
+      "fundamental_score": 70.8,
+      "trap_score": 45,
+      "reasons": [
+        "FCF yield negativo (-3.4%) \u2014 empresa consume caja",
+        "Deuda/equity 10.5x \u2014 apalancamiento alto, presi\u00f3n en dividendo"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "EPD",
+      "company": "Enterprise Products Partners L.",
+      "sector": "Energy",
+      "current_price": 36.99,
+      "dividend_yield": 5.88,
+      "payout_ratio": 81.2,
+      "fcf_yield": 0.03,
+      "fundamental_score": 61.4,
+      "trap_score": 45,
+      "reasons": [
+        "Payout 81% \u2014 poco margen de seguridad",
+        "FCF yield (0.0%) < dividend yield (5.9%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "ADC",
+      "company": "Agree Realty Corporation",
+      "sector": "Real Estate",
+      "current_price": 79.2,
+      "dividend_yield": 3.92,
+      "payout_ratio": 174.1,
+      "fcf_yield": 4.55,
+      "fundamental_score": 58.0,
+      "trap_score": 45,
+      "reasons": [
+        "Payout 174% \u2014 dividendo > beneficios (insostenible)",
+        "Interest coverage 2.5x \u2014 ajustado"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "SAMG",
+      "company": "Silvercrest Asset Management Gr",
+      "sector": "Financial Services",
+      "current_price": 14.22,
+      "dividend_yield": 5.84,
+      "payout_ratio": 112.5,
+      "fcf_yield": 11.95,
+      "fundamental_score": 49.5,
+      "trap_score": 45,
+      "reasons": [
+        "Payout 112% \u2014 dividendo > beneficios (insostenible)",
+        "Margen operativo 4.4% \u2014 muy comprimido"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "NGS",
+      "company": "Natural Gas Services Group, Inc",
+      "sector": "Energy",
+      "current_price": 35.59,
+      "dividend_yield": 0.59,
+      "payout_ratio": 6.8,
+      "fcf_yield": -9.97,
+      "fundamental_score": 64.3,
+      "trap_score": 40,
+      "reasons": [
+        "FCF yield negativo (-10.0%) \u2014 empresa consume caja",
+        "Interest coverage 2.9x \u2014 ajustado"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "ENR",
+      "company": "Energizer Holdings, Inc.",
+      "sector": "Industrials",
+      "current_price": 17.01,
+      "dividend_yield": 7.05,
+      "payout_ratio": 40.4,
+      "fcf_yield": 15.07,
+      "fundamental_score": 49.8,
+      "trap_score": 40,
+      "reasons": [
+        "Yield 7.0% \u2014 elevado, vigilar sostenibilidad",
+        "Deuda/equity 24.2x \u2014 apalancamiento alto, presi\u00f3n en dividendo",
+        "Interest coverage 2.6x \u2014 ajustado"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "SEI",
+      "company": "Solaris Energy Infrastructure, ",
+      "sector": "Energy",
+      "current_price": 52.0,
+      "dividend_yield": 0.92,
+      "payout_ratio": 72.7,
+      "fcf_yield": -7.29,
+      "fundamental_score": 68.5,
+      "trap_score": 38,
+      "reasons": [
+        "Payout 73% \u2014 moderadamente elevado",
+        "FCF yield negativo (-7.3%) \u2014 empresa consume caja"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "BBT",
+      "company": "Beacon Financial Corporation",
+      "sector": "Financial Services",
+      "current_price": 28.66,
+      "dividend_yield": 4.49,
+      "payout_ratio": 124.9,
+      "fcf_yield": null,
+      "fundamental_score": 71.3,
+      "trap_score": 35,
+      "reasons": [
+        "Payout 125% \u2014 dividendo > beneficios (insostenible)"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "NWBI",
+      "company": "Northwest Bancshares, Inc.",
+      "sector": "Financial Services",
+      "current_price": 12.26,
+      "dividend_yield": 6.53,
+      "payout_ratio": 87.0,
+      "fcf_yield": null,
+      "fundamental_score": 56.3,
+      "trap_score": 35,
+      "reasons": [
+        "Yield 6.5% \u2014 elevado, vigilar sostenibilidad",
+        "Payout 87% \u2014 poco margen de seguridad"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "CNK",
+      "company": "Cinemark Holdings Inc Cinemark ",
+      "sector": "Communication Services",
+      "current_price": 25.78,
+      "dividend_yield": 1.4,
+      "payout_ratio": 31.7,
+      "fcf_yield": 4.82,
+      "fundamental_score": 55.8,
+      "trap_score": 35,
+      "reasons": [
+        "Deuda/equity 7.2x \u2014 apalancamiento alto, presi\u00f3n en dividendo",
+        "Interest coverage 1.9x \u2014 earnings apenas cubren deuda"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "SELF",
+      "company": "Global Self Storage, Inc.",
+      "sector": "Real Estate",
+      "current_price": 5.09,
+      "dividend_yield": 5.71,
+      "payout_ratio": 181.2,
+      "fcf_yield": 6.44,
+      "fundamental_score": 54.2,
+      "trap_score": 35,
+      "reasons": [
+        "Payout 181% \u2014 dividendo > beneficios (insostenible)"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "QNTO",
+      "company": "Quaint Oak Bancorp, Inc.",
+      "sector": "Financial Services",
+      "current_price": 15.26,
+      "dividend_yield": 1.05,
+      "payout_ratio": 283.3,
+      "fcf_yield": null,
+      "fundamental_score": 53.2,
+      "trap_score": 35,
+      "reasons": [
+        "Payout 283% \u2014 dividendo > beneficios (insostenible)"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "AMH",
+      "company": "American Homes 4 Rent",
+      "sector": "Real Estate",
+      "current_price": 28.37,
+      "dividend_yield": 4.34,
+      "payout_ratio": 101.7,
+      "fcf_yield": 6.01,
+      "fundamental_score": 50.5,
+      "trap_score": 35,
+      "reasons": [
+        "Payout 102% \u2014 dividendo > beneficios (insostenible)"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "MMLP",
+      "company": "Martin Midstream Partners L.P.",
+      "sector": "Energy",
+      "current_price": 2.76,
+      "dividend_yield": 0.72,
+      "payout_ratio": 18.2,
+      "fcf_yield": 31.09,
+      "fundamental_score": 47.6,
+      "trap_score": 35,
+      "reasons": [
+        "Interest coverage 0.8x \u2014 earnings apenas cubren deuda",
+        "Margen neto negativo (-2.0%)"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "DLX",
+      "company": "Deluxe Corporation",
+      "sector": "Industrials",
+      "current_price": 26.56,
+      "dividend_yield": 4.52,
+      "payout_ratio": 66.7,
+      "fcf_yield": 15.76,
+      "fundamental_score": 52.5,
+      "trap_score": 33,
+      "reasons": [
+        "Payout 67% \u2014 moderadamente elevado",
+        "Deuda/equity 2.2x \u2014 apalancamiento alto, presi\u00f3n en dividendo",
+        "Interest coverage 2.0x \u2014 ajustado"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "FPI",
+      "company": "Farmland Partners Inc.",
+      "sector": "Real Estate",
+      "current_price": 11.59,
+      "dividend_yield": 3.11,
+      "payout_ratio": 39.3,
+      "fcf_yield": -9.07,
+      "fundamental_score": 71.1,
+      "trap_score": 30,
+      "reasons": [
+        "FCF yield negativo (-9.1%) \u2014 empresa consume caja"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "LTC",
+      "company": "LTC Properties, Inc.",
+      "sector": "Real Estate",
+      "current_price": 39.1,
+      "dividend_yield": 5.83,
+      "payout_ratio": 90.5,
+      "fcf_yield": 7.04,
+      "fundamental_score": 69.0,
+      "trap_score": 30,
+      "reasons": [
+        "Payout 90% \u2014 poco margen de seguridad",
+        "Margen operativo -8.9% \u2014 muy comprimido"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "AEBI",
+      "company": "Aebi Schmidt Holding AG",
+      "sector": "Industrials",
+      "current_price": 13.36,
+      "dividend_yield": 0.75,
+      "payout_ratio": 18.4,
+      "fcf_yield": null,
+      "fundamental_score": 66.6,
+      "trap_score": 30,
+      "reasons": [
+        "Interest coverage 1.3x \u2014 earnings apenas cubren deuda",
+        "Margen operativo 3.9% \u2014 muy comprimido"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "CR",
+      "company": "Crane Company",
+      "sector": "Industrials",
+      "current_price": 171.22,
+      "dividend_yield": 0.55,
+      "payout_ratio": 16.2,
+      "fcf_yield": -7.84,
+      "fundamental_score": 54.0,
+      "trap_score": 30,
+      "reasons": [
+        "FCF yield negativo (-7.8%) \u2014 empresa consume caja"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "CWT",
+      "company": "California Water Service Group",
+      "sector": "Utilities",
+      "current_price": 45.2,
+      "dividend_yield": 2.73,
+      "payout_ratio": 55.8,
+      "fcf_yield": -10.69,
+      "fundamental_score": 50.7,
+      "trap_score": 30,
+      "reasons": [
+        "FCF yield negativo (-10.7%) \u2014 empresa consume caja"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "EGBN",
+      "company": "Eagle Bancorp, Inc.",
+      "sector": "Financial Services",
+      "current_price": 24.26,
+      "dividend_yield": 1.44,
+      "payout_ratio": 53.6,
+      "fcf_yield": null,
+      "fundamental_score": 48.8,
+      "trap_score": 30,
+      "reasons": [
+        "ROE negativo (-11.7%) \u2014 empresa pierde dinero mientras paga dividendo",
+        "Margen operativo 4.2% \u2014 muy comprimido"
+      ],
+      "risk_level": "MEDIUM"
+    },
+    {
+      "ticker": "MSM",
+      "company": "MSC Industrial Direct Company, ",
+      "sector": "Industrials",
+      "current_price": 91.23,
+      "dividend_yield": 3.81,
+      "payout_ratio": 93.2,
+      "fcf_yield": 2.81,
+      "fundamental_score": 58.1,
+      "trap_score": 25,
+      "reasons": [
+        "Payout 93% \u2014 poco margen de seguridad",
+        "FCF yield (2.8%) < dividend yield (3.8%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "MEDIUM"
+    }
+  ],
+  "safe_dividends": [
+    {
+      "ticker": "SGU",
+      "company": "Star Group L.P.",
+      "sector": "Energy",
+      "current_price": 12.4,
+      "dividend_yield": 5.97,
+      "payout_ratio": 37.9,
+      "fcf_yield": 9.88,
+      "fundamental_score": 50.8,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "FKYS",
+      "company": "First Keystone Corp.",
+      "sector": "Financial Services",
+      "current_price": 19.5,
+      "dividend_yield": 5.74,
+      "payout_ratio": 76.2,
+      "fcf_yield": null,
+      "fundamental_score": 58.2,
+      "trap_score": 8,
+      "reasons": [
+        "Payout 76% \u2014 moderadamente elevado"
+      ],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "PEBO",
+      "company": "Peoples Bancorp Inc.",
+      "sector": "Financial Services",
+      "current_price": 31.6,
+      "dividend_yield": 5.19,
+      "payout_ratio": 54.5,
+      "fcf_yield": null,
+      "fundamental_score": 61.6,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "CZNC",
+      "company": "Citizens & Northern Corp",
+      "sector": "Financial Services",
+      "current_price": 21.73,
+      "dividend_yield": 5.15,
+      "payout_ratio": 76.7,
+      "fcf_yield": null,
+      "fundamental_score": 58.0,
+      "trap_score": 8,
+      "reasons": [
+        "Payout 77% \u2014 moderadamente elevado"
+      ],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "GBLI",
+      "company": "Global Indemnity Group, LLC",
+      "sector": "Financial Services",
+      "current_price": 29.0,
+      "dividend_yield": 4.83,
+      "payout_ratio": 72.2,
+      "fcf_yield": 65.16,
+      "fundamental_score": 54.5,
+      "trap_score": 8,
+      "reasons": [
+        "Payout 72% \u2014 moderadamente elevado"
+      ],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "FG",
+      "company": "F&G Annuities & Life, Inc.",
+      "sector": "Financial Services",
+      "current_price": 20.94,
+      "dividend_yield": 4.78,
+      "payout_ratio": 48.4,
+      "fcf_yield": 97.37,
+      "fundamental_score": 52.2,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "SPG",
+      "company": "Simon Property Group, Inc.",
+      "sector": "Real Estate",
+      "current_price": 186.82,
+      "dividend_yield": 4.63,
+      "payout_ratio": 60.3,
+      "fcf_yield": 3.85,
+      "fundamental_score": 66.1,
+      "trap_score": 18,
+      "reasons": [
+        "FCF yield (3.9%) < dividend yield (4.6%) \u2014 dividendo sin respaldo de caja",
+        "Deuda/equity 4.3x \u2014 apalancamiento alto, presi\u00f3n en dividendo"
+      ],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "NWFL",
+      "company": "Norwood Financial Corp.",
+      "sector": "Financial Services",
+      "current_price": 28.3,
+      "dividend_yield": 4.52,
+      "payout_ratio": 41.2,
+      "fcf_yield": null,
+      "fundamental_score": 59.8,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "RMBI",
+      "company": "Richmond Mutual Bancorporation,",
+      "sector": "Financial Services",
+      "current_price": 13.33,
+      "dividend_yield": 4.51,
+      "payout_ratio": 51.3,
+      "fcf_yield": null,
+      "fundamental_score": 59.2,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "DGICA",
+      "company": "Donegal Group, Inc.",
+      "sector": "Financial Services",
+      "current_price": 16.97,
+      "dividend_yield": 4.3,
+      "payout_ratio": 33.0,
+      "fcf_yield": 5.68,
+      "fundamental_score": 45.2,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "CNS",
+      "company": "Cohen & Steers Inc",
+      "sector": "Financial Services",
+      "current_price": 62.51,
+      "dividend_yield": 4.29,
+      "payout_ratio": 83.5,
+      "fcf_yield": 3.71,
+      "fundamental_score": 58.0,
+      "trap_score": 22,
+      "reasons": [
+        "Payout 84% \u2014 poco margen de seguridad",
+        "FCF yield (3.7%) < dividend yield (4.3%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "QNBC",
+      "company": "QNB Corp.",
+      "sector": "Financial Services",
+      "current_price": 36.95,
+      "dividend_yield": 4.22,
+      "payout_ratio": 40.2,
+      "fcf_yield": null,
+      "fundamental_score": 58.5,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "BPRN",
+      "company": "Princeton Bancorp, Inc.",
+      "sector": "Financial Services",
+      "current_price": 33.51,
+      "dividend_yield": 4.17,
+      "payout_ratio": 46.1,
+      "fcf_yield": null,
+      "fundamental_score": 58.5,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "FMFG",
+      "company": "Farmers and Merchants Bancshare",
+      "sector": "Financial Services",
+      "current_price": 17.55,
+      "dividend_yield": 3.87,
+      "payout_ratio": 37.6,
+      "fcf_yield": null,
+      "fundamental_score": 64.6,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "FULT",
+      "company": "Fulton Financial Corporation",
+      "sector": "Financial Services",
+      "current_price": 19.65,
+      "dividend_yield": 3.87,
+      "payout_ratio": 35.1,
+      "fcf_yield": null,
+      "fundamental_score": 58.8,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "RGCO",
+      "company": "RGC Resources Inc.",
+      "sector": "Utilities",
+      "current_price": 21.69,
+      "dividend_yield": 3.86,
+      "payout_ratio": 66.4,
+      "fcf_yield": 2.74,
+      "fundamental_score": 50.7,
+      "trap_score": 13,
+      "reasons": [
+        "Payout 66% \u2014 moderadamente elevado",
+        "FCF yield (2.7%) < dividend yield (3.9%) \u2014 dividendo sin respaldo de caja"
+      ],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "UBSI",
+      "company": "United Bankshares, Inc.",
+      "sector": "Financial Services",
+      "current_price": 39.18,
+      "dividend_yield": 3.83,
+      "payout_ratio": 45.6,
+      "fcf_yield": null,
+      "fundamental_score": 59.6,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "AROW",
+      "company": "Arrow Financial Corporation",
+      "sector": "Financial Services",
+      "current_price": 32.48,
+      "dividend_yield": 3.69,
+      "payout_ratio": 43.0,
+      "fcf_yield": null,
+      "fundamental_score": 67.4,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "ATLO",
+      "company": "Ames National Corporation",
+      "sector": "Financial Services",
+      "current_price": 26.65,
+      "dividend_yield": 3.6,
+      "payout_ratio": 37.4,
+      "fcf_yield": null,
+      "fundamental_score": 64.7,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    },
+    {
+      "ticker": "WAFD",
+      "company": "WaFd, Inc.",
+      "sector": "Financial Services",
+      "current_price": 31.04,
+      "dividend_yield": 3.48,
+      "payout_ratio": 37.5,
+      "fcf_yield": null,
+      "fundamental_score": 55.8,
+      "trap_score": 0,
+      "reasons": [],
+      "risk_level": "LOW"
+    }
+  ]
+}

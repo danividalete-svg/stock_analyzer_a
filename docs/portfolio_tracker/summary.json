@@ -1,23 +1,23 @@
 {
-  "total_signals": 862,
-  "unique_tickers": 123,
-  "date_range": "2026-02-26 to 2026-03-13",
-  "active_signals": 862,
+  "total_signals": 964,
+  "unique_tickers": 126,
+  "date_range": "2026-02-26 to 2026-03-16",
+  "active_signals": 964,
   "completed_signals": 0,
   "overall": {
     "7d": {
-      "count": 466,
-      "win_rate": 16.5,
-      "avg_return": -4.05,
-      "median_return": -4.52,
+      "count": 551,
+      "win_rate": 16.2,
+      "avg_return": -4.25,
+      "median_return": -4.42,
       "best": 35.4,
       "worst": -18.88
     },
     "14d": {
-      "count": 44,
-      "win_rate": 29.5,
-      "avg_return": -3.67,
-      "median_return": -6.34,
+      "count": 123,
+      "win_rate": 24.4,
+      "avg_return": -5.08,
+      "median_return": -6.46,
       "best": 21.85,
       "worst": -25.22
     },
@@ -31,20 +31,20 @@
     }
   },
   "value_strategy": {
-    "count": 412,
+    "count": 465,
     "7d": {
-      "count": 466,
-      "win_rate": 16.5,
-      "avg_return": -4.05,
-      "median_return": -4.52,
+      "count": 551,
+      "win_rate": 16.2,
+      "avg_return": -4.25,
+      "median_return": -4.42,
       "best": 35.4,
       "worst": -18.88
     },
     "14d": {
-      "count": 44,
-      "win_rate": 29.5,
-      "avg_return": -3.67,
-      "median_return": -6.34,
+      "count": 123,
+      "win_rate": 24.4,
+      "avg_return": -5.08,
+      "median_return": -6.46,
       "best": 21.85,
       "worst": -25.22
     },
@@ -64,25 +64,30 @@
     "30d": {}
   },
   "sector_performance": {
-    "Industrials": {
+    "Healthcare": {
       "count": 5,
-      "avg_14d": -11.06,
-      "win_rate_14d": 20.0
+      "avg_14d": -9.55,
+      "win_rate_14d": 0.0
+    },
+    "Industrials": {
+      "count": 14,
+      "avg_14d": -8.6,
+      "win_rate_14d": 21.4
     },
     "Financial Services": {
-      "count": 25,
-      "avg_14d": -4.95,
-      "win_rate_14d": 12.0
+      "count": 56,
+      "avg_14d": -5.69,
+      "win_rate_14d": 14.3
     },
     "Technology": {
-      "count": 4,
-      "avg_14d": -6.18,
-      "win_rate_14d": 50.0
+      "count": 14,
+      "avg_14d": -3.25,
+      "win_rate_14d": 42.9
     },
     "Communication Services": {
-      "count": 3,
-      "avg_14d": 3.73,
-      "win_rate_14d": 66.7
+      "count": 8,
+      "avg_14d": 3.24,
+      "win_rate_14d": 62.5
     },
     "Real Estate": {
       "count": 2,
@@ -95,12 +100,22 @@
       "win_rate_14d": 100.0
     },
     "Consumer Defensive": {
-      "count": 2,
-      "avg_14d": 8.2,
-      "win_rate_14d": 100.0
+      "count": 6,
+      "avg_14d": 1.24,
+      "win_rate_14d": 50.0
+    },
+    "Basic Materials": {
+      "count": 9,
+      "avg_14d": -10.25,
+      "win_rate_14d": 0.0
+    },
+    "Consumer Cyclical": {
+      "count": 7,
+      "avg_14d": -7.71,
+      "win_rate_14d": 28.6
     }
   },
-  "score_correlation": -0.036,
+  "score_correlation": 0.032,
   "top_performers": [
     {
       "ticker": "FIGR",
@@ -135,23 +150,15 @@
       "return_14d": 15.78
     },
     {
-      "ticker": "SEI",
-      "company_name": "SEI",
+      "ticker": "MSGM",
+      "company_name": "MSGM",
       "strategy": "VALUE",
-      "signal_date": "2026-02-26 00:00:00",
-      "signal_price": 47.955,
-      "return_14d": 11.21
+      "signal_date": "2026-02-27 00:00:00",
+      "signal_price": 3.64,
+      "return_14d": 12.09
     }
   ],
   "worst_performers": [
-    {
-      "ticker": "FCNCA",
-      "company_name": "FCNCA",
-      "strategy": "VALUE",
-      "signal_date": "2026-02-26 00:00:00",
-      "signal_price": 2054.575,
-      "return_14d": -11.28
-    },
     {
       "ticker": "FTAI",
       "company_name": "FTAI",
@@ -177,6 +184,14 @@
       "return_14d": -23.45
     },
     {
+      "ticker": "THRY",
+      "company_name": "THRY",
+      "strategy": "VALUE",
+      "signal_date": "2026-02-27 00:00:00",
+      "signal_price": 3.92,
+      "return_14d": -25.0
+    },
+    {
       "ticker": "ENR",
       "company_name": "ENR",
       "strategy": "VALUE",
@@ -190,223 +205,223 @@
       "ticker": "AGN.AS",
       "company_name": "AEGON",
       "strategy": "EU_VALUE",
-      "signal_date": "2026-03-13",
+      "signal_date": "2026-03-16",
       "signal_price": 6.51,
       "sector": "Financial Services",
       "value_score": 26.2,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
-      "ticker": "CNK",
-      "company_name": "Cinemark Holdings Inc Cinemark ",
+      "ticker": "APG",
+      "company_name": "APi Group Corporation",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 25.53,
-      "sector": "Communication Services",
-      "value_score": 51.72,
+      "signal_date": "2026-03-16",
+      "signal_price": 39.92,
+      "sector": "Industrials",
+      "value_score": 54.56,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
       "ticker": "BFST",
       "company_name": "Business First Bancshares, Inc.",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 26.29,
+      "signal_date": "2026-03-16",
+      "signal_price": 26.09,
       "sector": "Financial Services",
       "value_score": 63.92,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
-      "ticker": "STRW",
-      "company_name": "Strawberry Fields REIT, Inc.",
+      "ticker": "THFF",
+      "company_name": "First Financial Corporation",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 12.8,
-      "sector": "Real Estate",
+      "signal_date": "2026-03-16",
+      "signal_price": 60.98,
+      "sector": "Financial Services",
+      "value_score": 63.92,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "AROW",
+      "company_name": "Arrow Financial Corporation",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 32.48,
+      "sector": "Financial Services",
+      "value_score": 63.96,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "CNK",
+      "company_name": "Cinemark Holdings Inc Cinemark ",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 25.78,
+      "sector": "Communication Services",
       "value_score": 57.31999999999999,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "CWBC",
+      "company_name": "Community West Bancshares",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 22.54,
+      "sector": "Financial Services",
+      "value_score": 56.6,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "CCNE",
+      "company_name": "CNB Financial Corporation",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 27.13,
+      "sector": "Financial Services",
+      "value_score": 56.84,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "PRIM",
+      "company_name": "Primoris Services Corporation",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 133.5,
+      "sector": "Industrials",
+      "value_score": 59.64,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "BWFG",
+      "company_name": "Bankwell Financial Group, Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 46.83,
+      "sector": "Financial Services",
+      "value_score": 59.56,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "IT",
+      "company_name": "Gartner, Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 166.74,
+      "sector": "Technology",
+      "value_score": 59.52,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
     },
     {
       "ticker": "CBK",
       "company_name": "Commercial Bancgroup, Inc.",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 24.91,
+      "signal_date": "2026-03-16",
+      "signal_price": 25.01,
       "sector": "Financial Services",
       "value_score": 60.04,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "RSG",
-      "company_name": "Republic Services, Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 225.78,
-      "sector": "Industrials",
-      "value_score": 56.665,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
       "ticker": "FRST",
       "company_name": "Primis Financial Corp.",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 12.85,
+      "signal_date": "2026-03-16",
+      "signal_price": 12.78,
       "sector": "Financial Services",
       "value_score": 55.16,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
-      "ticker": "BY",
-      "company_name": "Byline Bancorp, Inc.",
+      "ticker": "MCY",
+      "company_name": "Mercury General Corporation",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 30.49,
+      "signal_date": "2026-03-16",
+      "signal_price": 88.96,
       "sector": "Financial Services",
-      "value_score": 53.12,
+      "value_score": 63.24,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "PEBO",
-      "company_name": "Peoples Bancorp Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 31.85,
-      "sector": "Financial Services",
-      "value_score": 52.64,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "LYFT",
-      "company_name": "Lyft, Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 12.95,
-      "sector": "Technology",
-      "value_score": 53.68000000000001,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "TCBI",
-      "company_name": "Texas Capital Bancshares, Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 92.34,
-      "sector": "Financial Services",
-      "value_score": 53.4,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
       "ticker": "NSC",
       "company_name": "Norfolk Southern Corporation",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 291.26,
+      "signal_date": "2026-03-16",
+      "signal_price": 289.37,
       "sector": "Industrials",
-      "value_score": 52.64,
+      "value_score": 55.64,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
-      "ticker": "ASML.AS",
-      "company_name": "ASML HOLDING",
-      "strategy": "EU_VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 1232.4,
-      "sector": "Technology",
-      "value_score": 51.1,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "BFC",
-      "company_name": "Bank First Corporation",
+      "ticker": "LB",
+      "company_name": "LandBridge Company LLC",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 134.72,
-      "sector": "Financial Services",
-      "value_score": 51.12,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "AMRZ",
-      "company_name": "Amrize Ltd",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 56.3,
-      "sector": "Basic Materials",
-      "value_score": 50.52,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "LTC",
-      "company_name": "LTC Properties, Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 39.03,
-      "sector": "Real Estate",
-      "value_score": 47.2,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "MSGM",
-      "company_name": "Motorsport Games Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 3.76,
-      "sector": "Communication Services",
-      "value_score": 47.77,
-      "days_active": 0,
-      "first_result_date": "2026-03-20"
-    },
-    {
-      "ticker": "MNR",
-      "company_name": "Mach Natural Resources LP",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 13.43,
+      "signal_date": "2026-03-16",
+      "signal_price": 74.79,
       "sector": "Energy",
-      "value_score": 41.72,
+      "value_score": 56.52,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
-      "ticker": "NEWT",
-      "company_name": "NewtekOne, Inc.",
+      "ticker": "RSG",
+      "company_name": "Republic Services, Inc.",
       "strategy": "VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 11.73,
-      "sector": "Financial Services",
-      "value_score": 40.64,
+      "signal_date": "2026-03-16",
+      "signal_price": 224.28,
+      "sector": "Industrials",
+      "value_score": 56.665,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
     },
     {
-      "ticker": "LLOY.L",
-      "company_name": "LLOYDS BANKING GROUP PLC ORD 10",
-      "strategy": "EU_VALUE",
-      "signal_date": "2026-03-13",
-      "signal_price": 104.9,
+      "ticker": "TCBI",
+      "company_name": "Texas Capital Bancshares, Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 92.52,
       "sector": "Financial Services",
-      "value_score": 59.5,
+      "value_score": 53.4,
       "days_active": 0,
-      "first_result_date": "2026-03-20"
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "TBBK",
+      "company_name": "The Bancorp, Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 53.55,
+      "sector": "Financial Services",
+      "value_score": 53.4,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
+    },
+    {
+      "ticker": "LYFT",
+      "company_name": "Lyft, Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-16",
+      "signal_price": 13.07,
+      "sector": "Technology",
+      "value_score": 53.68000000000001,
+      "days_active": 0,
+      "first_result_date": "2026-03-23"
     }
   ],
-  "avg_max_drawdown": -8.29,
-  "generated_at": "2026-03-13T08:38:04.129992"
+  "avg_max_drawdown": -8.27,
+  "generated_at": "2026-03-16T09:16:27.313677"
 }

@@ -1,300 +1,334 @@
 ticker,company_name,source,sector,bullish_count,bearish_count,net_signals,net_score,bias,top_bullish_signal,top_bearish_signal,most_recent_signal,generated_at
-ABEV3.SA,Ambev S.A.,value_global,Consumer Defensive,9,1,8,16,BULLISH,Bullish Engulfing,Extendido sobre MA200,RSI Zona Baja,2026-03-13 08:39
-RWE.DE,RWE AG                        I,value_eu,Utilities,10,3,7,14,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-ENG.MC,"ENAGAS,S.A.",value_eu,Utilities,7,1,6,14,BULLISH,Morning Star,Doji en Subida,Precio sobre MA50,2026-03-13 08:39
-NAD,Nuveen Quality Municipal Income,value_us,Financial Services,10,3,7,13,BULLISH,Toque Banda Inferior BB,MACD Cruce Bajista,RSI Zona Baja,2026-03-13 08:39
-STKL,"SunOpta, Inc.",value_us,Consumer Defensive,8,1,7,13,BULLISH,Precio sobre MA50,Shooting Star,Precio sobre MA50,2026-03-13 08:39
-BDL,"Flanigan's Enterprises, Inc.",value_us,Consumer Cyclical,9,2,7,13,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-OHI,nan,portfolio,Real Estate,9,3,6,13,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-BA.L,BAE SYSTEMS PLC ORD 2.5P,value_eu,Industrials,9,3,6,12,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-MNSB,"MainStreet Bancshares, Inc.",value_us,Financial Services,7,0,7,12,BULLISH,Rebote MA50,,Precio sobre MA50,2026-03-13 08:39
-RRBI,"Red River Bancshares, Inc.",portfolio,Financial Services,7,2,5,11,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-SEI,nan,portfolio,Energy,8,2,6,11,BULLISH,Rebote MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-UTI,Universal Technical Institute I,portfolio,Consumer Defensive,7,2,5,11,BULLISH,Golden Cross,MACD Cruce Bajista,Golden Cross,2026-03-13 08:39
-MTDR,Matador Resources Company,portfolio,Energy,6,2,4,10,BULLISH,Golden Cross,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-MWA,MUELLER WATER PRODUCTS,value_us,Industrials,7,1,6,10,BULLISH,Rebote MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-ATEX,Anterix Inc.,portfolio,Communication Services,7,3,4,10,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-GLEN.L,GLENCORE PLC ORD USD0.01,value_eu,Basic Materials,7,2,5,10,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-SUZB3.SA,Suzano S.A.,value_global,Basic Materials,5,0,5,10,BULLISH,Morning Star,,Precio sobre MA50,2026-03-13 08:39
-LREN3.SA,Lojas Renner S.A.,value_global,Consumer Cyclical,5,0,5,10,BULLISH,Golden Cross,,Precio sobre MA50,2026-03-13 08:39
-UNA.AS,UNILEVER PLC,value_eu,Consumer Defensive,6,0,6,9,BULLISH,Toque Banda Inferior BB,,RSI Zona Baja,2026-03-13 08:39
-DTE.DE,DEUTSCHE TELEKOM AG           N,value_eu,Communication Services,7,2,5,9,BULLISH,Golden Cross,Evening Star,Precio sobre MA50,2026-03-13 08:39
-BT-A.L,BT GROUP PLC ORD 5P,value_eu,Communication Services,6,1,5,9,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-NGS,"Natural Gas Services Group, Inc",value_us,Energy,7,3,4,9,BULLISH,Morning Star,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-GBLI,"Global Indemnity Group, LLC",value_us,Financial Services,6,0,6,9,BULLISH,Rebote MA50,,Precio sobre MA50,2026-03-13 08:39
-PROP,nan,portfolio,Energy,9,5,4,8,BULLISH,Volumen Extraordinario Alcista,Precio bajo MA200,Precio sobre MA50,2026-03-13 08:39
-0883.HK,CNOOC Limited,value_global,Energy,9,5,4,8,BULLISH,Volumen Extraordinario Alcista,RSI Sobrecomprado,Precio sobre MA50,2026-03-13 08:39
-ATLO,Ames National Corporation,value_us,Financial Services,7,2,5,8,BULLISH,Toque Banda Inferior BB,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-ITW,Illinois Tool Works Inc.,portfolio,Industrials,5,1,4,8,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,RSI Sobrevendido,2026-03-13 08:39
-ESOA,Energy Services of America Corp,value_us,Industrials,6,3,3,8,BULLISH,Golden Cross,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-CSBB,"CSB Bancorp, Inc.",value_us,Financial Services,6,2,4,8,BULLISH,Cerca de Máximo 52s,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-NESN.SW,NESTLE N,portfolio,Consumer Defensive,6,1,5,8,BULLISH,Golden Cross,Bearish Engulfing,Golden Cross,2026-03-13 08:39
-BP.L,BP PLC $0.25,value_eu,Energy,8,5,3,8,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-BUKS,Butler National Corp.,value_us,Industrials,11,6,5,8,BULLISH,Precio sobre MA50,RSI Sobrecomprado,Precio sobre MA50,2026-03-13 08:39
-INR,"Infinity Natural Resources, Inc",value_us,Energy,5,1,4,8,BULLISH,Precio sobre MA50,Volumen Extraordinario Bajista,Precio sobre MA50,2026-03-13 08:39
-LTC,"LTC Properties, Inc.",portfolio,Real Estate,6,2,4,8,BULLISH,Pullback Volumen Seco,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-NBBK,"NB Bancorp, Inc.",value_us,Financial Services,4,0,4,8,BULLISH,Bullish Engulfing,,Precio sobre MA50,2026-03-13 08:39
-FKYS,First Keystone Corp.,value_us,Financial Services,7,2,5,8,BULLISH,Pullback Volumen Seco,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-SRBK,"SR Bancorp, Inc.",value_us,Financial Services,6,2,4,8,BULLISH,Pullback Volumen Seco,MACD Cruce Bajista,Precio sobre MA50,2026-03-13 08:39
-NSC,Norfolk Southern Corporation,portfolio,Industrials,6,2,4,7,BULLISH,Rebote MA50,Extendido sobre MA200,RSI Zona Baja,2026-03-13 08:39
-0857.HK,PetroChina Company Limited,value_global,Energy,8,5,3,7,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-EML,Eastern Company (The),value_us,Industrials,7,2,5,7,BULLISH,Precio sobre MA50,Death Cross,Precio sobre MA50,2026-03-13 08:39
-CMTV,Community Bancorp.,value_us,Financial Services,10,6,4,7,BULLISH,Volumen Extraordinario Alcista,RSI Sobrecomprado,Precio sobre MA50,2026-03-13 08:39
-3988.HK,Bank of China Limited,value_global,Financial Services,7,4,3,7,BULLISH,Bullish Engulfing,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-13 08:39
-B3SA3.SA,"B3 S.A. - Brasil, Bolsa, Balcão",value_global,Financial Services,6,3,3,7,BULLISH,Morning Star,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-NVT,nVent Electric plc,portfolio,Industrials,5,2,3,7,BULLISH,Bullish Engulfing,Extendido sobre MA200,Bullish Engulfing,2026-03-13 08:39
-DLX,Deluxe Corporation,value_us,Industrials,6,3,3,6,BULLISH,Golden Cross,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-NRIM,Northrim BanCorp Inc,portfolio,Financial Services,7,3,4,6,BULLISH,Bullish Engulfing,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-URW.PA,UNIBAIL-RODAMCO-WESTFIELD,value_eu,Real Estate,5,1,4,6,BULLISH,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-FPI,Farmland Partners Inc.,value_us,Real Estate,6,2,4,6,BULLISH,Pullback Volumen Seco,MACD Cruce Bajista,Precio sobre MA50,2026-03-13 08:39
-EBMT,"Eagle Bancorp Montana, Inc.",value_us,Financial Services,7,2,5,6,BULLISH,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-HKHC,nan,portfolio,Financial Services,6,3,3,6,BULLISH,Precio sobre MA50,Precio bajo MA200,Precio sobre MA50,2026-03-13 08:39
-BBAS3.SA,Banco do Brasil S.A.,value_global,Financial Services,5,1,4,6,BULLISH,Pullback Volumen Seco,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-13 08:39
-SU.PA,SCHNEIDER ELECTRIC SE,value_eu,Industrials,5,2,3,6,BULLISH,Bullish Engulfing,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-13 08:39
-0388.HK,Hong Kong Exchanges and Clearing Limited,value_global,Financial Services,4,1,3,6,BULLISH,MACD Cruce Alcista,Extendido sobre MA200,Squeeze Bollinger,2026-03-13 08:39
-FUNC,First,portfolio,Financial Services,6,2,4,6,BULLISH,MACD Cruce Alcista,Shooting Star,MACD Histograma Creciente,2026-03-13 08:39
-SAMG,Silvercrest Asset Management Gr,value_us,Financial Services,6,3,3,5,BULLISH,Bullish Engulfing,Evening Star,RSI Zona Baja,2026-03-13 08:39
-EGIE3.SA,Engie Brasil Energia S.A.,value_global,Utilities,6,3,3,5,BULLISH,Toque Banda Inferior BB,Tendencia Bajista LH/LL,Toque Banda Inferior BB,2026-03-13 08:39
-NIC,Nicolet Bankshares Inc.,portfolio,Financial Services,5,2,3,5,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-13 08:39
-AMTB,Amerant Bancorp Inc.,value_us,Financial Services,4,1,3,5,BULLISH,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-VNA.DE,Vonovia SE                    N,value_eu,Real Estate,5,2,3,5,BULLISH,Divergencia RSI Alcista,Cerca de Mínimo 52s,RSI Zona Baja,2026-03-13 08:39
-HNR1.DE,HANNOVER RUECK SE NA O.N.,portfolio,Financial Services,8,4,4,5,BULLISH,Morning Star,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-MRL.MC,"MERLIN PROPERTIES SOCIMI, S.A.",value_eu,Real Estate,6,2,4,5,BULLISH,Rebote MA50,MACD Cruce Bajista,Precio sobre MA50,2026-03-13 08:39
-OVLY,Oak Valley Bancorp (CA),value_us,Financial Services,5,2,3,5,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,Toque Banda Inferior BB,2026-03-13 08:39
-MBBC,"Marathon Bancorp, Inc.",value_us,Financial Services,6,4,2,5,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-ADC,Agree Realty Corporation,value_us,Real Estate,7,4,3,5,BULLISH,Precio sobre MA50,Evening Star,Precio sobre MA50,2026-03-13 08:39
-1398.HK,Industrial and Commercial Bank of China Limited,value_global,Financial Services,6,5,1,4,BULLISH,Bullish Engulfing,Evening Star,Cerca de Máximo 52s,2026-03-13 08:39
-TOTS3.SA,TOTVS S.A.,value_global,Technology,6,4,2,4,BULLISH,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-030200.KS,KT Corporation,value_global,Communication Services,6,3,3,4,BULLISH,Bullish Engulfing,Bearish Engulfing,Precio sobre MA50,2026-03-13 08:39
-RENT3.SA,Localiza Rent a Car S.A.,value_global,Industrials,4,2,2,4,BULLISH,Toque Banda Inferior BB,MACD Cruce Bajista,RSI Zona Baja,2026-03-13 08:39
-STRW,"Strawberry Fields REIT, Inc.",portfolio,Real Estate,3,1,2,4,BULLISH,Precio sobre MA50,MACD Cruce Bajista,Precio sobre MA50,2026-03-13 08:39
-G.MI,GENERALI,value_eu,Financial Services,6,3,3,4,BULLISH,Hammer,Tendencia Bajista LH/LL,Hammer,2026-03-13 08:39
-BNP.PA,BNP PARIBAS ACT.A,value_eu,Financial Services,4,2,2,4,BULLISH,Bullish Engulfing,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-PEBO,Peoples Bancorp Inc.,portfolio,Financial Services,4,1,3,4,BULLISH,Precio sobre MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-13 08:39
-005930.KS,"Samsung Electronics Co., Ltd.",value_global,Technology,5,2,3,4,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-CWT,California Water Service Group,value_us,Utilities,5,3,2,4,BULLISH,Bullish Engulfing,MACD Cruce Bajista,Cerca de Mínimo 52s,2026-03-13 08:39
-LPG,Dorian LPG Ltd.,portfolio,Energy,4,2,2,4,BULLISH,Toque Banda Inferior BB,Extendido sobre MA200,RSI Zona Baja,2026-03-13 08:39
-9432.T,"NTT, Inc.",value_global,Communication Services,5,4,1,4,BULLISH,Morning Star,Evening Star,Toque Banda Superior BB,2026-03-13 08:39
-FMBM,F & M Bank Corp.,value_us,Financial Services,9,5,4,4,BULLISH,Rebote MA50,Volumen Extraordinario Bajista,Precio sobre MA50,2026-03-13 08:39
-MSGM,Motorsport Games Inc.,portfolio,Communication Services,5,2,3,4,BULLISH,Rebote MA50,Bearish Engulfing,Precio sobre MA50,2026-03-13 08:39
-LONN.SW,LONZA N,value_eu,Healthcare,6,4,2,3,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-ERF.PA,EUROFINS SCIENT.,value_eu,Healthcare,4,4,0,3,NEUTRAL,Golden Cross,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-RDOR3.SA,Rede D'Or São Luiz S.A.,value_global,Healthcare,6,4,2,3,NEUTRAL,Pullback Volumen Seco,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-PKBK,"Parke Bancorp, Inc.",portfolio,Financial Services,4,2,2,3,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-13 08:39
-CCFN,Muncy Columbia Financial Corpor,portfolio,Financial Services,5,4,1,3,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-FRE.DE,Fresenius SE & Co. KGaA       I,value_eu,Healthcare,5,3,2,3,NEUTRAL,Morning Star,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-IMB.L,IMPERIAL BRANDS PLC ORD 10P,portfolio,Consumer Defensive,4,2,2,3,NEUTRAL,Rebote MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-WEGE3.SA,WEG S.A.,value_global,Industrials,6,3,3,3,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-9983.T,"Fast Retailing Co., Ltd.",value_global,Consumer Cyclical,5,3,2,3,NEUTRAL,Bullish Engulfing,Bearish Engulfing,Precio sobre MA50,2026-03-13 08:39
-FTAI,FTAI Aviation Ltd.,portfolio,Industrials,5,4,1,3,NEUTRAL,Bullish Engulfing,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-BBT,Beacon Financial Corporation,value_us,Financial Services,4,2,2,3,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-13 08:39
-SGU,Star Group L.P.,value_us,Energy,4,3,1,3,NEUTRAL,Toque Banda Inferior BB,Volumen Extraordinario Bajista,RSI Zona Baja,2026-03-13 08:39
-EPD,Enterprise Products Partners L.,value_us,Energy,7,4,3,3,NEUTRAL,Precio sobre MA50,Bearish Engulfing,Precio sobre MA50,2026-03-13 08:39
-MNR,Mach Natural Resources LP,portfolio,Energy,3,3,0,3,NEUTRAL,Precio sobre MA50,Doji en Subida,Precio sobre MA50,2026-03-13 08:39
-AI.PA,AIR LIQUIDE,portfolio,Basic Materials,3,1,2,3,NEUTRAL,Rebote MA50,Cerca de Mínimo 52s,Precio sobre MA50,2026-03-13 08:39
-BBDC4.SA,Banco Bradesco S.A.,value_global,Financial Services,4,3,1,2,NEUTRAL,Toque Banda Inferior BB,Extendido sobre MA200,RSI Zona Baja,2026-03-13 08:39
-FULT,Fulton Financial Corporation,portfolio,Financial Services,6,4,2,2,NEUTRAL,Hammer,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-000270.KS,Kia Corporation,value_global,Consumer Cyclical,3,2,1,2,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-0939.HK,China Construction Bank Corporation,value_global,Financial Services,6,4,2,2,NEUTRAL,Cerca de Máximo 52s,Evening Star,Precio sobre MA50,2026-03-13 08:39
-BWFG,"Bankwell Financial Group, Inc.",portfolio,Financial Services,3,2,1,2,NEUTRAL,Squeeze Bollinger,Tendencia Bajista LH/LL,Squeeze Bollinger,2026-03-13 08:39
-SUNS,"Sunrise Realty Trust, Inc.",portfolio,Real Estate,6,6,0,2,NEUTRAL,Toque Banda Inferior BB,MACD Cruce Bajista,RSI Zona Baja,2026-03-13 08:39
-RCKY,"Rocky Brands, Inc.",value_us,Consumer Cyclical,5,6,-1,2,NEUTRAL,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-MCY,Mercury General Corporation,portfolio,Financial Services,4,4,0,2,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,MACD Histograma Cayendo,2026-03-13 08:39
-AZN.L,ASTRAZENECA PLC ORD SHS $0.25,portfolio,Healthcare,3,2,1,2,NEUTRAL,Toque Banda Inferior BB,Extendido sobre MA200,Toque Banda Inferior BB,2026-03-13 08:39
-PSON.L,PEARSON PLC ORD 25P,portfolio,Communication Services,5,4,1,2,NEUTRAL,Bullish Engulfing,Shooting Star,Precio sobre MA50,2026-03-13 08:39
-AGN.AS,AEGON,portfolio,Financial Services,5,3,2,2,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-LR.PA,LEGRAND,value_eu,Industrials,4,2,2,2,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-ULVR.L,UNILEVER PLC ORD 3.5P,value_eu,Consumer Defensive,2,1,1,2,NEUTRAL,RSI Sobrevendido,Cerca de Mínimo 52s,RSI Sobrevendido,2026-03-13 08:39
-MONC.MI,MONCLER,value_eu,Consumer Cyclical,4,2,2,2,NEUTRAL,Rebote MA50,Death Cross,MACD Histograma Cayendo,2026-03-13 08:39
-TCBI,"Texas Capital Bancshares, Inc.",portfolio,Financial Services,5,4,1,2,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-THFF,First Financial Corporation,portfolio,Financial Services,5,4,1,2,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-FCCO,First Community Corporation,portfolio,Financial Services,5,4,1,2,NEUTRAL,Bullish Engulfing,Shooting Star,RSI Zona Baja,2026-03-13 08:39
-9433.T,KDDI Corporation,value_global,Communication Services,4,4,0,2,NEUTRAL,Toque Banda Inferior BB,MACD Cruce Bajista,MACD Histograma Cayendo,2026-03-13 08:39
-RMBI,"Richmond Mutual Bancorporation,",value_us,Financial Services,5,3,2,2,NEUTRAL,Toque Banda Inferior BB,Evening Star,RSI Zona Baja,2026-03-13 08:39
-PLX,"Protalix BioTherapeutics, Inc. ",value_us,Healthcare,4,3,1,2,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-CHUC,"Charlie's Holdings, Inc.",portfolio,Consumer Defensive,6,6,0,2,NEUTRAL,Rebote MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-13 08:39
-CPG.L,COMPASS GROUP PLC ORD 11 1/20P,portfolio,Consumer Cyclical,5,3,2,2,NEUTRAL,Bullish Engulfing,Bearish Engulfing,Precio sobre MA50,2026-03-13 08:39
-CCXIU,Churchill Capital Corp XI,value_us,Financial Services,2,1,1,2,NEUTRAL,Cerca de Máximo 52s,Toque Banda Superior BB,Precio sobre MA50,2026-03-13 08:39
-BMW.DE,BAYERISCHE MOTOREN WERKE AG   S,value_eu,Consumer Cyclical,4,3,1,2,NEUTRAL,Morning Star,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-012330.KS,"Hyundai Mobis Co.,Ltd",value_global,Consumer Cyclical,3,2,1,1,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-13 08:39
-1299.HK,AIA Group Limited,value_global,Financial Services,4,5,-1,1,NEUTRAL,MACD Cruce Alcista,Extendido sobre MA200,MACD Histograma Cayendo,2026-03-13 08:39
-6690.HK,"Haier Smart Home Co., Ltd.",value_global,Consumer Cyclical,5,4,1,1,NEUTRAL,Rebote MA50,Shooting Star,RSI Zona Baja,2026-03-13 08:39
-6902.T,DENSO Corporation,value_global,Consumer Cyclical,6,5,1,1,NEUTRAL,Golden Cross,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-086790.KS,Hana Financial Group Inc.,value_global,Financial Services,4,3,1,1,NEUTRAL,Hammer,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-6758.T,Sony Group Corporation,value_global,Technology,3,2,1,1,NEUTRAL,Bullish Engulfing,Precio bajo MA50,Bullish Engulfing,2026-03-13 08:39
-1211.HK,BYD Company Limited,value_global,Consumer Cyclical,6,5,1,1,NEUTRAL,Divergencia RSI Alcista,Evening Star,Squeeze Bollinger,2026-03-13 08:39
-000660.KS,SK hynix Inc.,value_global,Technology,4,4,0,1,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-BFST,"Business First Bancshares, Inc.",portfolio,Financial Services,5,4,1,1,NEUTRAL,Hammer,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-LOB,nan,portfolio,Financial Services,4,4,0,1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-CNK,Cinemark Holdings Inc Cinemark ,portfolio,Communication Services,4,3,1,1,NEUTRAL,Tendencia Alcista HH/HL,MACD Cruce Bajista,Precio sobre MA50,2026-03-13 08:39
-8766.T,"Tokio Marine Holdings, Inc.",value_global,Financial Services,3,2,1,1,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-13 08:39
-PRX.AS,PROSUS,portfolio,Consumer Cyclical,2,3,-1,1,NEUTRAL,Bullish Engulfing,Extendido sobre MA200,Bullish Engulfing,2026-03-13 08:39
-LOGN.SW,LOGITECH N,portfolio,Technology,3,3,0,1,NEUTRAL,Squeeze Bollinger,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-13 08:39
-2020.HK,ANTA Sports Products Limited,value_global,Consumer Cyclical,5,4,1,1,NEUTRAL,MACD Cruce Alcista,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-ABN.AS,ABN AMRO BANK N.V.,value_eu,Financial Services,6,5,1,1,NEUTRAL,MACD Cruce Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-RSG,"Republic Services, Inc.",portfolio,Industrials,4,4,0,1,NEUTRAL,Rebote MA50,MACD Cruce Bajista,Precio sobre MA50,2026-03-13 08:39
-NOG,"Northern Oil and Gas, Inc.",value_us,Energy,6,6,0,1,NEUTRAL,Golden Cross,Bearish Engulfing,Precio sobre MA50,2026-03-13 08:39
-GABC,"German American Bancorp, Inc.",portfolio,Financial Services,4,3,1,1,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-HQI,"HireQuest, Inc.",portfolio,Industrials,3,2,1,1,NEUTRAL,Precio sobre MA50,Precio bajo MA200,Shooting Star,2026-03-13 08:39
-STAN.L,STANDARD CHARTERED PLC ORD USD0,value_eu,Financial Services,6,5,1,1,NEUTRAL,Toque Banda Inferior BB,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-AROW,Arrow Financial Corporation,portfolio,Financial Services,4,4,0,1,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-13 08:39
-ITUB4.SA,Itaú Unibanco Holding S.A.,value_global,Financial Services,3,2,1,1,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-PETR4.SA,Petróleo Brasileiro S.A. - Petrobras,value_global,Energy,7,7,0,1,NEUTRAL,Morning Star,RSI Sobrecomprado,Precio sobre MA50,2026-03-13 08:39
-LYFT,"Lyft, Inc.",portfolio,Technology,5,4,1,0,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-AMRZ,Amrize Ltd,portfolio,Basic Materials,2,1,1,0,NEUTRAL,Rebote MA50,Evening Star,Doji en Caída,2026-03-13 08:39
-UBSI,"United Bankshares, Inc.",portfolio,Financial Services,3,3,0,0,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-SHBI,"Shore Bancshares, Inc.",portfolio,Financial Services,4,4,0,0,NEUTRAL,Hammer,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-A2A.MI,A2A,portfolio,Utilities,3,4,-1,0,NEUTRAL,Morning Star,Extendido sobre MA200,Pullback Volumen Seco,2026-03-13 08:39
-LSEG.L,LONDON STOCK EXCHANGE GROUP PLC,value_eu,Financial Services,4,3,1,0,NEUTRAL,Bullish Engulfing,Evening Star,Precio sobre MA50,2026-03-13 08:39
-ALV.DE,Allianz SE                    v,value_eu,Financial Services,3,3,0,0,NEUTRAL,Morning Star,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-055550.KS,"Shinhan Financial Group Co., Ltd.",value_global,Financial Services,4,4,0,0,NEUTRAL,Rebote MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-BBVA.MC,BANCO BILBAO VIZCAYA ARGENTARIA,portfolio,Financial Services,5,6,-1,0,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-0941.HK,China Mobile Limited,value_global,Communication Services,5,6,-1,0,NEUTRAL,Bullish Engulfing,Cerca de Mínimo 52s,Precio sobre MA50,2026-03-13 08:39
-ASML.AS,ASML HOLDING,portfolio,Technology,3,3,0,0,NEUTRAL,Rebote MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-13 08:39
-SAF.PA,SAFRAN,value_eu,Industrials,5,4,1,0,NEUTRAL,Toque Banda Inferior BB,Bearish Engulfing,RSI Zona Baja,2026-03-13 08:39
-GOOD,Gladstone Commercial Corporatio,value_us,Real Estate,4,3,1,0,NEUTRAL,Rebote MA50,Death Cross,Precio sobre MA50,2026-03-13 08:39
-CMPR,Cimpress PLC,value_us,Industrials,4,5,-1,0,NEUTRAL,Squeeze Bollinger,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-MPB,Mid Penn Bancorp,value_us,Financial Services,4,4,0,0,NEUTRAL,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-APG,APi Group Corporation,value_us,Industrials,4,4,0,0,NEUTRAL,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-SHEL.L,SHELL PLC ORD EUR0.07,value_eu,Energy,7,7,0,0,NEUTRAL,Precio sobre MA50,RSI Sobrecomprado,Precio sobre MA50,2026-03-13 08:39
-FMFG,Farmers and Merchants Bancshare,value_us,Financial Services,3,3,0,0,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-VALE3.SA,Vale S.A.,value_global,Basic Materials,5,5,0,0,NEUTRAL,Golden Cross,Extendido sobre MA200,Extendido sobre MA200,2026-03-13 08:39
-CNS,Cohen & Steers Inc,portfolio,Financial Services,5,3,2,0,NEUTRAL,Toque Banda Inferior BB,MACD Cruce Bajista,RSI Zona Baja,2026-03-13 08:39
-BY,"Byline Bancorp, Inc.",portfolio,Financial Services,4,4,0,-1,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-105560.KS,KB Financial Group Inc.,value_global,Financial Services,3,4,-1,-1,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-0001.HK,CK Hutchison Holdings Limited,value_global,Industrials,4,4,0,-1,NEUTRAL,Toque Banda Inferior BB,Evening Star,RSI Zona Baja,2026-03-13 08:39
-316140.KS,Woori Financial Group Inc.,value_global,Financial Services,4,4,0,-1,NEUTRAL,Rebote MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-13 08:39
-TPC,Tutor Perini Corporation,portfolio,Industrials,6,6,0,-1,NEUTRAL,Hammer,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-NEWT,"NewtekOne, Inc.",portfolio,Financial Services,5,6,-1,-1,NEUTRAL,Bullish Engulfing,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-PACS,"PACS Group, Inc.",value_us,Healthcare,6,5,1,-1,NEUTRAL,Precio sobre MA50,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-J,Jacobs Solutions Inc.,value_us,Industrials,4,4,0,-1,NEUTRAL,Toque Banda Inferior BB,Evening Star,RSI Zona Baja,2026-03-13 08:39
-RBKB,"Rhinebeck Bancorp, Inc.",value_us,Financial Services,6,6,0,-1,NEUTRAL,Precio sobre MA50,Bearish Engulfing,Precio sobre MA50,2026-03-13 08:39
-6367.T,"Daikin Industries,Ltd.",value_global,Industrials,2,3,-1,-1,NEUTRAL,Squeeze Bollinger,Tendencia Bajista LH/LL,MACD Histograma Cayendo,2026-03-13 08:39
-7974.T,"Nintendo Co., Ltd.",value_global,Communication Services,3,4,-1,-1,NEUTRAL,Precio sobre MA50,Precio bajo MA50,Precio sobre MA50,2026-03-13 08:39
-WMG,Warner Music Group Corp.,portfolio,Communication Services,6,7,-1,-1,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-CWBC,nan,portfolio,Financial Services,5,5,0,-1,NEUTRAL,Precio sobre MA50,Shooting Star,RSI Zona Baja,2026-03-13 08:39
-EXEL,"Exelixis, Inc.",portfolio,Healthcare,2,3,-1,-1,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-13 08:39
-FIGR,"Figure Technology Solutions, In",portfolio,Financial Services,1,2,-1,-1,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-9999.HK,"NetEase, Inc.",value_global,Communication Services,2,2,0,-1,NEUTRAL,Hammer,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-MRP,"Millrose Properties, Inc.",value_us,Real Estate,4,4,0,-1,NEUTRAL,Toque Banda Inferior BB,Evening Star,RSI Zona Baja,2026-03-13 08:39
-FME.DE,Fresenius Medical Care AG     I,value_eu,Healthcare,3,3,0,-1,NEUTRAL,Rebote MA50,Cerca de Mínimo 52s,Precio sobre MA50,2026-03-13 08:39
-CS.PA,AXA,value_eu,Financial Services,2,2,0,-1,NEUTRAL,Doji en Caída,Extendido sobre MA200,Doji en Caída,2026-03-13 08:39
-HEIA.AS,HEINEKEN,value_eu,Consumer Defensive,2,2,0,-1,NEUTRAL,Hammer,Cerca de Mínimo 52s,RSI Zona Baja,2026-03-13 08:39
-DB1.DE,DEUTSCHE BOERSE AG            N,portfolio,Financial Services,3,5,-2,-1,NEUTRAL,Bullish Engulfing,Evening Star,Precio sobre MA50,2026-03-13 08:39
-MUV2.DE,MUENCHENER RUECKVERS.-GES. AG N,portfolio,Financial Services,2,2,0,-1,NEUTRAL,MACD Cruce Alcista,Cerca de Mínimo 52s,Precio sobre MA50,2026-03-13 08:39
-2318.HK,"Ping An Insurance (Group) Company of China, Ltd.",value_global,Financial Services,5,5,0,-1,NEUTRAL,Hammer,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-SGE.L,THE SAGE GROUP PLC ORD 1 4/77P,portfolio,Technology,6,7,-1,-1,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-CRH.L,CRH PLC ORD EUR 0.32 (DI),portfolio,Basic Materials,4,5,-1,-1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-FRST,Primis Financial Corp.,portfolio,Financial Services,4,4,0,-2,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-ABR,Arbor Realty Trust,value_us,Real Estate,5,4,1,-2,NEUTRAL,Hammer,Precio bajo MA200,Precio sobre MA50,2026-03-13 08:39
-9988.HK,Alibaba Group Holding Limited,value_global,Consumer Cyclical,2,3,-1,-2,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-DBK.DE,DEUTSCHE BANK AG              N,portfolio,Financial Services,4,5,-1,-2,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-GLE.PA,SOCIETE GENERALE,value_eu,Financial Services,5,5,0,-2,NEUTRAL,Precio sobre MA50,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-SMBK,"SmartFinancial, Inc.",value_us,Financial Services,3,4,-1,-2,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-AHT.L,ASHTEAD GROUP PLC ORD 10P,portfolio,Industrials,7,9,-2,-2,NEUTRAL,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-CBK,"Commercial Bancgroup, Inc.",portfolio,Financial Services,2,2,0,-2,NEUTRAL,Toque Banda Inferior BB,Bearish Engulfing,RSI Zona Baja,2026-03-13 08:39
-PRIM,Primoris Services Corporation,portfolio,Industrials,5,5,0,-2,NEUTRAL,Precio sobre MA50,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-INDV,"Indivior Pharmaceuticals, Inc.",portfolio,Healthcare,5,6,-1,-2,NEUTRAL,MACD Cruce Alcista,Volumen Extraordinario Bajista,Precio bajo MA50,2026-03-13 08:39
-AIR.PA,AIRBUS SE,value_eu,Industrials,3,4,-1,-3,NEUTRAL,Toque Banda Inferior BB,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-BAMI.MI,BANCO BPM,value_eu,Financial Services,3,4,-1,-3,NEUTRAL,Toque Banda Inferior BB,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-CR,Crane Company,portfolio,Industrials,2,4,-2,-3,NEUTRAL,Toque Banda Inferior BB,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-ALG,"Alamo Group, Inc.",value_us,Industrials,2,3,-1,-3,NEUTRAL,Volumen Extraordinario Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-AKZA.AS,AKZO NOBEL,value_eu,Basic Materials,6,7,-1,-3,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-FDR.MC,"FLUIDRA, S.A.",portfolio,Consumer Cyclical,3,5,-2,-3,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-ISP.MI,INTESA SANPAOLO,portfolio,Financial Services,3,4,-1,-3,NEUTRAL,Toque Banda Inferior BB,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-NP,Neptune Insurance Holdings Inc.,value_us,Financial Services,3,4,-1,-3,NEUTRAL,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-AMH,American Homes 4 Rent,value_us,Real Estate,4,6,-2,-3,NEUTRAL,Toque Banda Inferior BB,Cerca de Mínimo 52s,RSI Zona Baja,2026-03-13 08:39
-NBTB,NBT Bancorp Inc.,portfolio,Financial Services,3,4,-1,-3,NEUTRAL,Tendencia Alcista HH/HL,Shooting Star,RSI Zona Baja,2026-03-13 08:39
-0005.HK,HSBC Holdings plc,value_global,Financial Services,4,6,-2,-3,NEUTRAL,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-CCNE,CNB Financial Corporation,portfolio,Financial Services,4,5,-1,-3,NEUTRAL,Precio sobre MA50,Shooting Star,RSI Zona Baja,2026-03-13 08:39
-HOLN.SW,HOLCIM N,portfolio,Basic Materials,4,5,-1,-3,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-PRU.L,PRUDENTIAL PLC ORD 5P,portfolio,Financial Services,1,3,-2,-3,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,MACD Histograma Cayendo,2026-03-13 08:39
-FBK.MI,FINECOBANK,portfolio,Financial Services,4,6,-2,-3,NEUTRAL,MACD Cruce Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-LAND.L,LAND SECURITIES GROUP PLC ORD 1,value_eu,Real Estate,3,4,-1,-3,NEUTRAL,Hammer,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-8035.T,Tokyo Electron Limited,value_global,Technology,3,4,-1,-3,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-13 08:39
-CABK.MC,"CAIXABANK, S.A.",portfolio,Financial Services,3,5,-2,-3,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-SAB.MC,BANCO DE SABADELL,value_eu,Financial Services,2,4,-2,-3,NEUTRAL,Squeeze Bollinger,Tendencia Bajista LH/LL,MACD Histograma Cayendo,2026-03-13 08:39
-SPGI,S&P Global Inc.,portfolio,Financial Services,4,4,0,-3,NEUTRAL,Hammer,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-7203.T,Toyota Motor Corporation,value_global,Consumer Cyclical,3,5,-2,-4,BEARISH,Precio sobre MA50,Shooting Star,RSI Zona Baja,2026-03-13 08:39
-ALLY,ALLY,value_us,nan,3,4,-1,-4,BEARISH,Toque Banda Inferior BB,Evening Star,Precio bajo MA50,2026-03-13 08:39
-035420.KS,NAVER Corporation,value_global,Communication Services,1,3,-2,-4,BEARISH,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-NTGY.MC,"NATURGY ENERGY GROUP, S.A.",value_eu,Utilities,0,2,-2,-4,BEARISH,,Evening Star,Evening Star,2026-03-13 08:39
-MNDI.L,MONDI PLC ORD EUR 0.22,value_eu,Basic Materials,4,5,-1,-4,BEARISH,Morning Star,Precio bajo MA200,Tendencia Bajista LH/LL,2026-03-13 08:39
-RACE.MI,FERRARI,portfolio,Consumer Cyclical,5,5,0,-4,BEARISH,Toque Banda Inferior BB,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-BMED.MI,BANCA MEDIOLANUM,value_eu,Financial Services,4,4,0,-4,BEARISH,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-9618.HK,"JD.com, Inc.",value_global,Consumer Cyclical,2,4,-2,-4,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Doji en Subida,2026-03-13 08:39
-8306.T,"Mitsubishi UFJ Financial Group, Inc.",value_global,Financial Services,3,5,-2,-4,BEARISH,Hammer,Bearish Engulfing,Tendencia Bajista LH/LL,2026-03-13 08:39
-INGA.AS,ING GROEP N.V.,portfolio,Financial Services,3,5,-2,-4,BEARISH,Precio sobre MA50,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-RMS.PA,HERMES INTL,portfolio,Consumer Cyclical,4,7,-3,-4,BEARISH,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-UMH,"UMH Properties, Inc.",value_us,Real Estate,2,4,-2,-4,BEARISH,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-MSFT,Microsoft Corporation,portfolio,Technology,2,5,-3,-5,BEARISH,Bullish Engulfing,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-8316.T,"Sumitomo Mitsui Financial Group, Inc.",value_global,Financial Services,3,5,-2,-5,BEARISH,Precio sobre MA50,Bearish Engulfing,RSI Zona Baja,2026-03-13 08:39
-ACNB,ACNB Corporation,portfolio,Financial Services,3,5,-2,-5,BEARISH,Hammer,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-13 08:39
-6098.T,"Recruit Holdings Co., Ltd.",value_global,Communication Services,3,4,-1,-5,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-UBSG.SW,UBS GROUP N,value_eu,Financial Services,2,4,-2,-5,BEARISH,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-RHM.DE,RHEINMETALL AG                I,value_eu,Industrials,1,4,-3,-5,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-BN.PA,DANONE,portfolio,Consumer Defensive,1,3,-2,-5,BEARISH,Doji en Caída,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-13 08:39
-SY1.DE,Symrise AG                    I,portfolio,Basic Materials,3,5,-2,-5,BEARISH,Bullish Engulfing,Precio bajo MA200,Tendencia Bajista LH/LL,2026-03-13 08:39
-SCHP.SW,SCHINDLER PS,value_eu,Industrials,4,6,-2,-5,BEARISH,RSI Sobrevendido,Bearish Engulfing,Precio bajo MA50,2026-03-13 08:39
-NWG.L,NATWEST GROUP PLC ORD 107.69P,portfolio,Financial Services,3,5,-2,-5,BEARISH,Rebote MA50,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-EXPN.L,EXPERIAN PLC ORD USD0.10,portfolio,Industrials,2,3,-1,-5,BEARISH,Doji en Caída,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-9984.T,SoftBank Group Corp.,value_global,Communication Services,2,4,-2,-5,BEARISH,Rebote MA50,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-MC.PA,LVMH,portfolio,Consumer Cyclical,5,6,-1,-5,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-SIE.DE,SIEMENS AG                    N,portfolio,Industrials,2,5,-3,-6,BEARISH,Hammer,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-7267.T,"Honda Motor Co., Ltd.",value_global,Consumer Cyclical,5,8,-3,-6,BEARISH,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-LLOY.L,LLOYDS BANKING GROUP PLC ORD 10,portfolio,Financial Services,3,6,-3,-6,BEARISH,Precio sobre MA50,Evening Star,RSI Zona Baja,2026-03-13 08:39
-ACA.PA,CREDIT AGRICOLE,value_eu,Financial Services,2,5,-3,-6,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-PUB.PA,PUBLICIS GROUPE SA,portfolio,Communication Services,2,4,-2,-6,BEARISH,Doji en Caída,Bearish Engulfing,Cerca de Mínimo 52s,2026-03-13 08:39
-HEI.DE,Heidelberg Materials AG       I,portfolio,Basic Materials,3,6,-3,-6,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-6501.T,"Hitachi, Ltd.",value_global,Industrials,2,5,-3,-6,BEARISH,Precio sobre MA50,Bearish Engulfing,Tendencia Bajista LH/LL,2026-03-13 08:39
-REL.L,RELX PLC ORD 14 51/116P,portfolio,Industrials,4,5,-1,-6,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-GCBC,nan,portfolio,Financial Services,3,6,-3,-6,BEARISH,Divergencia RSI Alcista,Death Cross,Divergencia RSI Alcista,2026-03-13 08:39
-GRF.MC,GRIFOLS S.A.,value_eu,Healthcare,5,7,-2,-7,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-OR.PA,L'OREAL,value_eu,Consumer Defensive,3,6,-3,-7,BEARISH,Golden Cross,Evening Star,Precio bajo MA50,2026-03-13 08:39
-SGO.PA,SAINT GOBAIN,portfolio,Industrials,3,7,-4,-7,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-BARC.L,BARCLAYS PLC ORD 25P,value_eu,Financial Services,2,5,-3,-7,BEARISH,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-1810.HK,Xiaomi Corporation,value_global,Technology,4,6,-2,-8,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-MTX.DE,MTU Aero Engines AG           N,portfolio,Industrials,3,6,-3,-8,BEARISH,Hammer,Evening Star,Precio bajo MA50,2026-03-13 08:39
-IMCD.AS,IMCD,portfolio,Basic Materials,3,6,-3,-8,BEARISH,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-SAN.MC,BANCO SANTANDER S.A.,value_eu,Financial Services,3,7,-4,-8,BEARISH,Precio sobre MA50,Evening Star,Precio bajo MA50,2026-03-13 08:39
-ABF.L,ASSOCIATED BRITISH FOODS PLC OR,value_eu,Consumer Defensive,4,7,-3,-8,BEARISH,Toque Banda Inferior BB,Shooting Star,RSI Zona Baja,2026-03-13 08:39
-CAP.PA,CAPGEMINI,value_eu,Technology,3,6,-3,-8,BEARISH,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-TBBK,"The Bancorp, Inc.",portfolio,Financial Services,6,8,-2,-8,BEARISH,Pullback Volumen Seco,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-0700.HK,Tencent Holdings Limited,value_global,Communication Services,0,4,-4,-8,BEARISH,,Death Cross,Doji en Subida,2026-03-13 08:39
-UCG.MI,UNICREDIT,portfolio,Financial Services,3,6,-3,-8,BEARISH,Tendencia Alcista HH/HL,Evening Star,Precio bajo MA50,2026-03-13 08:39
-FCNCA,nan,portfolio,Financial Services,4,7,-3,-8,BEARISH,Toque Banda Inferior BB,Evening Star,Precio bajo MA50,2026-03-13 08:39
-DOMH,Dominari Holdings Inc.,portfolio,Financial Services,4,8,-4,-9,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-TCI,Transcontinental Realty Investo,value_us,Real Estate,3,7,-4,-9,BEARISH,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-MDLN,Medline Inc.,value_us,Healthcare,1,4,-3,-9,BEARISH,RSI Zona Baja,Bearish Engulfing,RSI Zona Baja,2026-03-13 08:39
-BFC,Bank First Corporation,portfolio,Financial Services,1,6,-5,-9,BEARISH,Precio sobre MA50,Shooting Star,Tendencia Bajista LH/LL,2026-03-13 08:39
-HHH,Howard Hughes Holdings Inc.,value_us,Real Estate,3,8,-5,-9,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-SAP.DE,SAP SE                        I,portfolio,Technology,1,5,-4,-9,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-4568.T,"Daiichi Sankyo Company, Limited",value_global,Healthcare,3,6,-3,-9,BEARISH,Morning Star,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-QIA.DE,Qiagen N.V.                   A,portfolio,Healthcare,2,7,-5,-9,BEARISH,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-13 08:39
-THRY,nan,portfolio,Technology,4,7,-3,-9,BEARISH,Pullback Volumen Seco,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-ENR,"Energizer Holdings, Inc.",portfolio,Industrials,4,9,-5,-10,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-2382.HK,Sunny Optical Technology (Group) Company Limited,value_global,Technology,4,7,-3,-10,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-SAN.PA,SANOFI,value_eu,Healthcare,3,7,-4,-10,BEARISH,RSI Zona Baja,Death Cross,RSI Zona Baja,2026-03-13 08:39
-MRK.DE,MERCK KGAA                    I,portfolio,Healthcare,3,7,-4,-10,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-P911.DE,Dr. Ing. h.c. F. Porsche AG   I,value_eu,Consumer Cyclical,4,8,-4,-11,BEARISH,Hammer,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-EXP,Eagle Materials Inc,portfolio,Basic Materials,3,8,-5,-11,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-MDBH,"MDB Capital Holdings, LLC",value_us,Financial Services,6,11,-5,-11,BEARISH,Toque Banda Inferior BB,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-IT,"Gartner, Inc.",portfolio,Technology,3,8,-5,-11,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-TBRG,"TruBridge, Inc.",value_us,Healthcare,7,9,-2,-11,BEARISH,Toque Banda Inferior BB,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-DSY.PA,DASSAULT SYSTEMES,portfolio,Technology,3,8,-5,-11,BEARISH,Morning Star,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-AMS.MC,"AMADEUS IT GROUP, S.A.",portfolio,Technology,2,6,-4,-11,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-7733.T,Olympus Corporation,value_global,Healthcare,6,9,-3,-11,BEARISH,RSI Sobrevendido,Death Cross,Precio bajo MA50,2026-03-13 08:39
-WKL.AS,WOLTERS KLUWER,value_eu,Industrials,3,8,-5,-12,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-ADMQ,ADM Endeavors Inc.,value_us,Industrials,2,6,-4,-12,BEARISH,Pullback Volumen Seco,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-PGHN.SW,PARTNERS GROUP N,portfolio,Financial Services,3,9,-6,-12,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-TEP.PA,TELEPERFORMANCE,portfolio,Industrials,3,10,-7,-12,BEARISH,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-13 08:39
-ADS.DE,adidas AG                     N,portfolio,Consumer Cyclical,6,10,-4,-12,BEARISH,Hammer,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-SIKA.SW,SIKA N,portfolio,Basic Materials,4,10,-6,-12,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-WTB.L,WHITBREAD PLC ORD 76 122/153P,value_eu,Consumer Cyclical,3,9,-6,-14,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-RI.PA,PERNOD RICARD,value_eu,Consumer Defensive,4,10,-6,-14,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-ATO.PA,ATOS,value_eu,Technology,1,6,-5,-14,BEARISH,RSI Zona Baja,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-OWL,Blue Owl Capital Inc.,value_us,Financial Services,4,12,-8,-15,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-DGE.L,DIAGEO PLC ORD 28 101/108P,portfolio,Consumer Defensive,4,10,-6,-15,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-GIVN.SW,GIVAUDAN N,portfolio,Basic Materials,4,10,-6,-16,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-INSE,"Inspired Entertainment, Inc.",value_us,Consumer Cyclical,4,14,-10,-20,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
-RAND.AS,Randstad N.V.,value_eu,Industrials,2,11,-9,-21,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-13 08:39
+NAD,Nuveen Quality Municipal Income,value_us,Financial Services,10,2,8,15,BULLISH,Toque Banda Inferior BB,MACD Cruce Bajista,Toque Banda Inferior BB,2026-03-16 09:18
+OHI,nan,portfolio,Real Estate,9,2,7,14,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+MTDR,Matador Resources Company,portfolio,Energy,7,2,5,13,BULLISH,Golden Cross,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+STKL,"SunOpta, Inc.",value_us,Consumer Defensive,8,1,7,13,BULLISH,Precio sobre MA50,Shooting Star,Precio sobre MA50,2026-03-16 09:18
+BDL,"Flanigan's Enterprises, Inc.",value_us,Consumer Cyclical,8,1,7,12,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+ENG.MC,"ENAGAS,S.A.",value_eu,Utilities,6,1,5,12,BULLISH,Morning Star,Doji en Subida,Precio sobre MA50,2026-03-16 09:18
+CGEH,Capstone Green Energy Holdings ,value_us,Industrials,8,2,6,11,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+BT-A.L,BT GROUP PLC ORD 5P,value_eu,Communication Services,7,1,6,11,BULLISH,Bullish Engulfing,Toque Banda Superior BB,Precio sobre MA50,2026-03-16 09:18
+MNSB,"MainStreet Bancshares, Inc.",value_us,Financial Services,6,0,6,11,BULLISH,Rebote MA50,,Toque Banda Inferior BB,2026-03-16 09:18
+DMLP,"Dorchester Minerals, L.P.",value_us,Energy,7,4,3,10,BULLISH,Golden Cross,MACD Cruce Bajista,Precio sobre MA50,2026-03-16 09:18
+NWPP,"New Peoples Bankshares, Inc.",value_us,Financial Services,7,2,5,10,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+SPG,"Simon Property Group, Inc.",value_us,Real Estate,7,1,6,10,BULLISH,Toque Banda Inferior BB,Extendido sobre MA200,RSI Zona Baja,2026-03-16 09:18
+BA.L,BAE SYSTEMS PLC ORD 2.5P,value_eu,Industrials,6,1,5,10,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+DTE.DE,DEUTSCHE TELEKOM AG           N,value_eu,Communication Services,5,0,5,10,BULLISH,Golden Cross,,Precio sobre MA50,2026-03-16 09:18
+CSBB,"CSB Bancorp, Inc.",value_us,Financial Services,7,2,5,10,BULLISH,Pullback Volumen Seco,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+SEI,nan,portfolio,Energy,7,2,5,10,BULLISH,Rebote MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+SUZB3.SA,Suzano S.A.,value_global,Basic Materials,5,0,5,10,BULLISH,Morning Star,,Precio sobre MA50,2026-03-16 09:18
+UTI,Universal Technical Institute I,portfolio,Consumer Defensive,8,4,4,10,BULLISH,Golden Cross,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+RRBI,"Red River Bancshares, Inc.",portfolio,Financial Services,7,2,5,10,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+HNR1.DE,HANNOVER RUECK SE NA O.N.,portfolio,Financial Services,6,1,5,9,BULLISH,Morning Star,Toque Banda Superior BB,Precio sobre MA50,2026-03-16 09:18
+CPG.L,COMPASS GROUP PLC ORD 11 1/20P,portfolio,Consumer Cyclical,6,1,5,9,BULLISH,Bullish Engulfing,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+MNR,Mach Natural Resources LP,portfolio,Energy,6,3,3,9,BULLISH,Precio sobre MA50,Toque Banda Superior BB,Precio sobre MA50,2026-03-16 09:18
+RWE.DE,RWE AG                        I,value_eu,Utilities,7,3,4,9,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+FMBM,F & M Bank Corp.,value_us,Financial Services,10,4,6,9,BULLISH,Rebote MA50,Volumen Extraordinario Bajista,Precio sobre MA50,2026-03-16 09:18
+MRL.MC,"MERLIN PROPERTIES SOCIMI, S.A.",value_eu,Real Estate,6,0,6,9,BULLISH,Rebote MA50,,Precio sobre MA50,2026-03-16 09:18
+SI,"Shoulder Innovations, Inc.",value_us,nan,6,2,4,9,BULLISH,Bullish Engulfing,Shooting Star,Precio sobre MA50,2026-03-16 09:18
+FUSB,"First US Bancshares, Inc.",value_us,Financial Services,6,2,4,8,BULLISH,Squeeze Bollinger,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+LTC,"LTC Properties, Inc.",portfolio,Real Estate,6,2,4,8,BULLISH,Pullback Volumen Seco,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+NSC,Norfolk Southern Corporation,portfolio,Industrials,6,2,4,8,BULLISH,Rebote MA50,Extendido sobre MA200,RSI Sobrevendido,2026-03-16 09:18
+QNBC,QNB Corp.,value_us,Financial Services,6,2,4,8,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+MSGM,Motorsport Games Inc.,portfolio,Communication Services,6,2,4,8,BULLISH,Bullish Engulfing,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+INR,"Infinity Natural Resources, Inc",value_us,Energy,5,1,4,8,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+GBLI,"Global Indemnity Group, LLC",value_us,Financial Services,7,2,5,8,BULLISH,Rebote MA50,Volumen Extraordinario Bajista,Precio sobre MA50,2026-03-16 09:18
+LB,LandBridge Company LLC,portfolio,Energy,6,3,3,8,BULLISH,Golden Cross,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+UWHR,Uwharrie Capital Corp,value_us,Financial Services,7,3,4,8,BULLISH,Pullback Volumen Seco,Extendido sobre MA200,MACD Histograma Cayendo,2026-03-16 09:18
+MWA,MUELLER WATER PRODUCTS,value_us,Industrials,7,2,5,7,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+CMTV,Community Bancorp.,value_us,Financial Services,10,6,4,7,BULLISH,Volumen Extraordinario Alcista,RSI Sobrecomprado,Precio sobre MA50,2026-03-16 09:18
+FPI,Farmland Partners Inc.,value_us,Real Estate,6,1,5,7,BULLISH,Precio sobre MA50,MACD Histograma Cayendo,Precio sobre MA50,2026-03-16 09:18
+NLCP,"NewLake Capital Partners, Inc.",value_us,Real Estate,5,1,4,7,BULLISH,Hammer,MACD Histograma Cayendo,Precio sobre MA50,2026-03-16 09:18
+SGU,Star Group L.P.,value_us,Energy,4,0,4,7,BULLISH,Toque Banda Inferior BB,,RSI Zona Baja,2026-03-16 09:18
+ITW,Illinois Tool Works Inc.,portfolio,Industrials,5,1,4,7,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+GLEN.L,GLENCORE PLC ORD USD0.01,value_eu,Basic Materials,5,1,4,7,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+NP,Neptune Insurance Holdings Inc.,value_us,Financial Services,5,1,4,7,BULLISH,Divergencia RSI Alcista,MACD Cruce Bajista,Divergencia RSI Alcista,2026-03-16 09:18
+CZNC,Citizens & Northern Corp,value_us,Financial Services,5,1,4,7,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+FKYS,First Keystone Corp.,value_us,Financial Services,5,1,4,7,BULLISH,Pullback Volumen Seco,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+BBAS3.SA,Banco do Brasil S.A.,value_global,Financial Services,5,1,4,6,BULLISH,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+ATEX,Anterix Inc.,portfolio,Communication Services,5,3,2,6,BULLISH,Bullish Engulfing,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+CCFN,Muncy Columbia Financial Corpor,portfolio,Financial Services,6,3,3,6,BULLISH,Pullback Volumen Seco,Shooting Star,Precio sobre MA50,2026-03-16 09:18
+ATLO,Ames National Corporation,value_us,Financial Services,6,2,4,6,BULLISH,Cerca de Máximo 52s,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+BUKS,Butler National Corp.,value_us,Industrials,10,6,4,6,BULLISH,Precio sobre MA50,RSI Sobrecomprado,Precio sobre MA50,2026-03-16 09:18
+SAMG,Silvercrest Asset Management Gr,value_us,Financial Services,6,2,4,6,BULLISH,Bullish Engulfing,Evening Star,RSI Zona Baja,2026-03-16 09:18
+NOG,"Northern Oil and Gas, Inc.",value_us,Energy,6,4,2,6,BULLISH,Golden Cross,MACD Cruce Bajista,Precio sobre MA50,2026-03-16 09:18
+EML,Eastern Company (The),value_us,Industrials,7,3,4,6,BULLISH,Precio sobre MA50,Death Cross,Precio sobre MA50,2026-03-16 09:18
+RBKB,"Rhinebeck Bancorp, Inc.",value_us,Financial Services,6,3,3,6,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+ESOA,Energy Services of America Corp,value_us,Industrials,5,2,3,6,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+STRW,"Strawberry Fields REIT, Inc.",portfolio,Real Estate,5,1,4,6,BULLISH,Precio sobre MA50,MACD Cruce Bajista,MACD Histograma Creciente,2026-03-16 09:18
+1299.HK,AIA Group Limited,value_global,Financial Services,3,1,2,6,BULLISH,Bullish Engulfing,Doji en Subida,Bullish Engulfing,2026-03-16 09:18
+LREN3.SA,Lojas Renner S.A.,value_global,Consumer Cyclical,4,1,3,6,BULLISH,Golden Cross,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+NGS,"Natural Gas Services Group, Inc",value_us,Energy,5,3,2,5,BULLISH,Morning Star,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+OVLY,Oak Valley Bancorp (CA),value_us,Financial Services,5,2,3,5,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,Toque Banda Inferior BB,2026-03-16 09:18
+AMTB,Amerant Bancorp Inc.,value_us,Financial Services,4,1,3,5,BULLISH,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+MCY,Mercury General Corporation,portfolio,Financial Services,5,2,3,5,BULLISH,Precio sobre MA50,Extendido sobre MA200,Doji en Caída,2026-03-16 09:18
+ERF.PA,EUROFINS SCIENT.,value_eu,Healthcare,4,2,2,5,BULLISH,Golden Cross,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+0388.HK,Hong Kong Exchanges and Clearing Limited,value_global,Financial Services,3,0,3,5,BULLISH,MACD Cruce Alcista,,MACD Histograma Creciente,2026-03-16 09:18
+005930.KS,"Samsung Electronics Co., Ltd.",value_global,Technology,4,1,3,5,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+PSON.L,PEARSON PLC ORD 25P,portfolio,Communication Services,4,2,2,5,BULLISH,Bullish Engulfing,Shooting Star,Precio sobre MA50,2026-03-16 09:18
+BBT,Beacon Financial Corporation,value_us,Financial Services,4,1,3,5,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+BNP.PA,BNP PARIBAS ACT.A,value_eu,Financial Services,4,1,3,5,BULLISH,Bullish Engulfing,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+A2A.MI,A2A,portfolio,Utilities,4,2,2,5,BULLISH,Morning Star,MACD Cruce Bajista,MACD Cruce Alcista,2026-03-16 09:18
+LPG,Dorian LPG Ltd.,portfolio,Energy,4,1,3,5,BULLISH,Toque Banda Inferior BB,Extendido sobre MA200,RSI Zona Baja,2026-03-16 09:18
+NWBI,"Northwest Bancshares, Inc.",value_us,Financial Services,5,1,4,5,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+HKHC,nan,portfolio,Financial Services,6,3,3,5,BULLISH,Precio sobre MA50,Precio bajo MA200,Precio sobre MA50,2026-03-16 09:18
+SY1.DE,Symrise AG                    I,portfolio,Basic Materials,4,1,3,5,BULLISH,Bullish Engulfing,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+NIC,Nicolet Bankshares Inc.,portfolio,Financial Services,5,2,3,5,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+RDOR3.SA,Rede D'Or São Luiz S.A.,value_global,Healthcare,6,4,2,4,BULLISH,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+FUNC,First,portfolio,Financial Services,5,2,3,4,BULLISH,MACD Cruce Alcista,Shooting Star,Squeeze Bollinger,2026-03-16 09:18
+DSY.PA,DASSAULT SYSTEMES,portfolio,Technology,4,2,2,4,BULLISH,Morning Star,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+NESN.SW,NESTLE N,portfolio,Consumer Defensive,2,0,2,4,BULLISH,Golden Cross,,Precio sobre MA50,2026-03-16 09:18
+CBAN,"Colony Bankcorp, Inc.",value_us,Financial Services,4,2,2,4,BULLISH,Rebote MA50,Tendencia Bajista LH/LL,Toque Banda Inferior BB,2026-03-16 09:18
+SRBK,"SR Bancorp, Inc.",value_us,Financial Services,4,3,1,4,BULLISH,Pullback Volumen Seco,MACD Cruce Bajista,MACD Histograma Cayendo,2026-03-16 09:18
+CWT,California Water Service Group,value_us,Utilities,4,1,3,4,BULLISH,Rebote MA50,Cerca de Mínimo 52s,Precio sobre MA50,2026-03-16 09:18
+MRP,"Millrose Properties, Inc.",value_us,Real Estate,4,2,2,4,BULLISH,RSI Sobrevendido,Tendencia Bajista LH/LL,RSI Sobrevendido,2026-03-16 09:18
+SGE.L,THE SAGE GROUP PLC ORD 1 4/77P,portfolio,Technology,5,3,2,4,BULLISH,Bullish Engulfing,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+THFF,First Financial Corporation,portfolio,Financial Services,6,4,2,4,BULLISH,Bullish Engulfing,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+RENT3.SA,Localiza Rent a Car S.A.,value_global,Industrials,4,2,2,4,BULLISH,Toque Banda Inferior BB,MACD Cruce Bajista,RSI Zona Baja,2026-03-16 09:18
+PROP,nan,portfolio,Energy,6,4,2,4,BULLISH,Volumen Extraordinario Alcista,Precio bajo MA200,Precio sobre MA50,2026-03-16 09:18
+NVT,nVent Electric plc,portfolio,Industrials,4,2,2,4,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+LSEG.L,LONDON STOCK EXCHANGE GROUP PLC,value_eu,Financial Services,3,1,2,4,BULLISH,Bullish Engulfing,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+BP.L,BP PLC $0.25,value_eu,Energy,4,3,1,4,BULLISH,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+RMBI,"Richmond Mutual Bancorporation,",value_us,Financial Services,6,3,3,4,BULLISH,Toque Banda Inferior BB,Evening Star,RSI Zona Baja,2026-03-16 09:18
+ABEV3.SA,Ambev S.A.,value_global,Consumer Defensive,4,2,2,4,BULLISH,Morning Star,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+NRIM,Northrim BanCorp Inc,portfolio,Financial Services,6,3,3,4,BULLISH,Bullish Engulfing,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+RGCO,RGC Resources Inc.,value_us,Utilities,5,2,3,4,BULLISH,Rebote MA50,MACD Cruce Bajista,Precio sobre MA50,2026-03-16 09:18
+EPD,Enterprise Products Partners L.,value_us,Energy,6,3,3,4,BULLISH,Precio sobre MA50,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+PEBO,Peoples Bancorp Inc.,portfolio,Financial Services,4,1,3,4,BULLISH,Precio sobre MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+EBMT,"Eagle Bancorp Montana, Inc.",value_us,Financial Services,5,2,3,4,BULLISH,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+BMW.DE,BAYERISCHE MOTOREN WERKE AG   S,value_eu,Consumer Cyclical,3,1,2,3,NEUTRAL,Morning Star,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+B3SA3.SA,"B3 S.A. - Brasil, Bolsa, Balcão",value_global,Financial Services,6,4,2,3,NEUTRAL,Morning Star,Evening Star,Precio sobre MA50,2026-03-16 09:18
+6758.T,Sony Group Corporation,value_global,Technology,3,1,2,3,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+FME.DE,Fresenius Medical Care AG     I,value_eu,Healthcare,3,1,2,3,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+RCKY,"Rocky Brands, Inc.",value_us,Consumer Cyclical,6,6,0,3,NEUTRAL,Bullish Engulfing,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+APLE,"Apple Hospitality REIT, Inc.",value_us,Real Estate,4,2,2,3,NEUTRAL,Toque Banda Inferior BB,Cerca de Mínimo 52s,RSI Zona Baja,2026-03-16 09:18
+ADC,Agree Realty Corporation,value_us,Real Estate,6,4,2,3,NEUTRAL,Precio sobre MA50,Evening Star,Precio sobre MA50,2026-03-16 09:18
+0883.HK,CNOOC Limited,value_global,Energy,4,2,2,3,NEUTRAL,Precio sobre MA50,RSI Sobrecomprado,Precio sobre MA50,2026-03-16 09:18
+WMG,Warner Music Group Corp.,portfolio,Communication Services,5,4,1,3,NEUTRAL,Divergencia RSI Alcista,Cerca de Mínimo 52s,Divergencia RSI Alcista,2026-03-16 09:18
+PKBK,"Parke Bancorp, Inc.",portfolio,Financial Services,4,2,2,3,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+9999.HK,"NetEase, Inc.",value_global,Communication Services,2,0,2,3,NEUTRAL,Hammer,,RSI Zona Baja,2026-03-16 09:18
+DB1.DE,DEUTSCHE BOERSE AG            N,portfolio,Financial Services,3,2,1,3,NEUTRAL,Bullish Engulfing,Evening Star,Precio sobre MA50,2026-03-16 09:18
+PRX.AS,PROSUS,portfolio,Consumer Cyclical,2,2,0,3,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+MUV2.DE,MUENCHENER RUECKVERS.-GES. AG N,portfolio,Financial Services,3,1,2,3,NEUTRAL,Rebote MA50,Cerca de Mínimo 52s,Precio sobre MA50,2026-03-16 09:18
+0939.HK,China Construction Bank Corporation,value_global,Financial Services,4,1,3,3,NEUTRAL,Squeeze Bollinger,Evening Star,Precio sobre MA50,2026-03-16 09:18
+1398.HK,Industrial and Commercial Bank of China Limited,value_global,Financial Services,4,2,2,3,NEUTRAL,Bullish Engulfing,Evening Star,Precio sobre MA50,2026-03-16 09:18
+DLX,Deluxe Corporation,value_us,Industrials,5,3,2,3,NEUTRAL,Golden Cross,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+0857.HK,PetroChina Company Limited,value_global,Energy,4,3,1,3,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+G.MI,GENERALI,value_eu,Financial Services,3,1,2,3,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+0941.HK,China Mobile Limited,value_global,Communication Services,5,4,1,3,NEUTRAL,Bullish Engulfing,Cerca de Mínimo 52s,Precio sobre MA50,2026-03-16 09:18
+AEBI,Aebi Schmidt Holding AG,value_us,Industrials,2,1,1,2,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+NBBK,"NB Bancorp, Inc.",value_us,Financial Services,3,3,0,2,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+BOTJ,Bank of the James Financial Gro,value_us,Financial Services,6,5,1,2,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+INDV,"Indivior Pharmaceuticals, Inc.",portfolio,Healthcare,6,5,1,2,NEUTRAL,Volumen Extraordinario Alcista,Volumen Extraordinario Bajista,Precio bajo MA50,2026-03-16 09:18
+J,Jacobs Solutions Inc.,value_us,Industrials,5,4,1,2,NEUTRAL,Divergencia RSI Alcista,Evening Star,RSI Zona Baja,2026-03-16 09:18
+AROW,Arrow Financial Corporation,portfolio,Financial Services,5,4,1,2,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,Doji en Caída,2026-03-16 09:18
+CCXIU,Churchill Capital Corp XI,value_us,Financial Services,2,1,1,2,NEUTRAL,Cerca de Máximo 52s,Toque Banda Superior BB,Precio sobre MA50,2026-03-16 09:18
+PMTS,CPI Card Group Inc.,value_us,Financial Services,5,4,1,2,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA200,Precio sobre MA50,2026-03-16 09:18
+MNDI.L,MONDI PLC ORD EUR 0.22,value_eu,Basic Materials,5,3,2,2,NEUTRAL,Morning Star,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+012330.KS,"Hyundai Mobis Co.,Ltd",value_global,Consumer Cyclical,3,1,2,2,NEUTRAL,Tendencia Alcista HH/HL,Tendencia Bajista LH/LL,Doji en Caída,2026-03-16 09:18
+3988.HK,Bank of China Limited,value_global,Financial Services,3,2,1,2,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+BBVA.MC,BANCO BILBAO VIZCAYA ARGENTARIA,portfolio,Financial Services,3,2,1,2,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+LOGN.SW,LOGITECH N,portfolio,Technology,3,2,1,2,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+9618.HK,"JD.com, Inc.",value_global,Consumer Cyclical,3,2,1,2,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+PUB.PA,PUBLICIS GROUPE SA,portfolio,Communication Services,3,2,1,2,NEUTRAL,Bullish Engulfing,Cerca de Mínimo 52s,Cerca de Mínimo 52s,2026-03-16 09:18
+CNK,Cinemark Holdings Inc Cinemark ,portfolio,Communication Services,4,2,2,2,NEUTRAL,Rebote MA50,MACD Cruce Bajista,Precio sobre MA50,2026-03-16 09:18
+CHUC,"Charlie's Holdings, Inc.",portfolio,Consumer Defensive,6,6,0,2,NEUTRAL,Rebote MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+AMRZ,Amrize Ltd,portfolio,Basic Materials,3,1,2,2,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+WEGE3.SA,WEG S.A.,value_global,Industrials,5,3,2,2,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+CDNL,Cardinal Infrastructure Group I,value_us,Industrials,1,0,1,2,NEUTRAL,Precio sobre MA50,,Precio sobre MA50,2026-03-16 09:18
+BWFG,"Bankwell Financial Group, Inc.",portfolio,Financial Services,3,2,1,2,NEUTRAL,Squeeze Bollinger,Tendencia Bajista LH/LL,Squeeze Bollinger,2026-03-16 09:18
+030200.KS,KT Corporation,value_global,Communication Services,4,2,2,2,NEUTRAL,Bullish Engulfing,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+MBBC,"Marathon Bancorp, Inc.",value_us,Financial Services,4,3,1,2,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+UNA.AS,UNILEVER PLC,value_eu,Consumer Defensive,3,1,2,2,NEUTRAL,Tendencia Alcista HH/HL,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+TCBI,"Texas Capital Bancshares, Inc.",portfolio,Financial Services,5,4,1,2,NEUTRAL,Bullish Engulfing,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+005380.KS,Hyundai Motor Company,value_global,Consumer Cyclical,3,2,1,1,NEUTRAL,Precio sobre MA50,Evening Star,Precio sobre MA50,2026-03-16 09:18
+LOB,nan,portfolio,Financial Services,4,4,0,1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+086790.KS,Hana Financial Group Inc.,value_global,Financial Services,3,2,1,1,NEUTRAL,Hammer,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+AI.PA,AIR LIQUIDE,portfolio,Basic Materials,2,1,1,1,NEUTRAL,Rebote MA50,Cerca de Mínimo 52s,Precio sobre MA50,2026-03-16 09:18
+CRH.L,CRH PLC ORD EUR 0.32 (DI),portfolio,Basic Materials,3,2,1,1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+EGIE3.SA,Engie Brasil Energia S.A.,value_global,Utilities,6,4,2,1,NEUTRAL,Toque Banda Inferior BB,Evening Star,RSI Zona Baja,2026-03-16 09:18
+ASML.AS,ASML HOLDING,portfolio,Technology,3,2,1,1,NEUTRAL,Rebote MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+FDR.MC,"FLUIDRA, S.A.",portfolio,Consumer Cyclical,3,3,0,1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+8766.T,"Tokio Marine Holdings, Inc.",value_global,Financial Services,2,1,1,1,NEUTRAL,Tendencia Alcista HH/HL,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+UBSI,"United Bankshares, Inc.",portfolio,Financial Services,4,3,1,1,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+ABN.AS,ABN AMRO BANK N.V.,value_eu,Financial Services,3,2,1,1,NEUTRAL,MACD Cruce Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+HQI,"HireQuest, Inc.",portfolio,Industrials,3,2,1,1,NEUTRAL,Precio sobre MA50,Precio bajo MA200,Shooting Star,2026-03-16 09:18
+SELF,"Global Self Storage, Inc.",value_us,Real Estate,5,3,2,1,NEUTRAL,Tendencia Alcista HH/HL,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+URW.PA,UNIBAIL-RODAMCO-WESTFIELD,value_eu,Real Estate,2,1,1,1,NEUTRAL,Hammer,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+LR.PA,LEGRAND,value_eu,Industrials,2,1,1,1,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+VNA.DE,Vonovia SE                    N,value_eu,Real Estate,3,2,1,1,NEUTRAL,Divergencia RSI Alcista,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+PLX,"Protalix BioTherapeutics, Inc. ",value_us,Healthcare,4,4,0,1,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+HLF,Herbalife Ltd.,value_us,Consumer Defensive,3,2,1,1,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+GABC,"German American Bancorp, Inc.",portfolio,Financial Services,4,3,1,1,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+ALV.DE,Allianz SE                    v,value_eu,Financial Services,1,1,0,1,NEUTRAL,Morning Star,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+WAFD,"WaFd, Inc.",value_us,Financial Services,4,3,1,1,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+ITUB4.SA,Itaú Unibanco Holding S.A.,value_global,Financial Services,3,2,1,1,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+CMPR,Cimpress PLC,value_us,Industrials,3,4,-1,0,NEUTRAL,Squeeze Bollinger,Tendencia Bajista LH/LL,Squeeze Bollinger,2026-03-16 09:18
+STAN.L,STANDARD CHARTERED PLC ORD USD0,value_eu,Financial Services,3,2,1,0,NEUTRAL,Toque Banda Inferior BB,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+FRE.DE,Fresenius SE & Co. KGaA       I,value_eu,Healthcare,2,1,1,0,NEUTRAL,RSI Zona Baja,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+CR,Crane Company,portfolio,Industrials,3,4,-1,0,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+CABK.MC,"CAIXABANK, S.A.",portfolio,Financial Services,2,2,0,0,NEUTRAL,Tendencia Alcista HH/HL,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+BBDC4.SA,Banco Bradesco S.A.,value_global,Financial Services,4,4,0,0,NEUTRAL,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+FULT,Fulton Financial Corporation,portfolio,Financial Services,5,4,1,0,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+IMB.L,IMPERIAL BRANDS PLC ORD 10P,portfolio,Consumer Defensive,2,2,0,0,NEUTRAL,Cerca de Máximo 52s,MACD Cruce Bajista,Precio sobre MA50,2026-03-16 09:18
+AGN.AS,AEGON,portfolio,Financial Services,4,2,2,0,NEUTRAL,RSI Zona Baja,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+QIA.DE,Qiagen N.V.                   A,portfolio,Healthcare,4,3,1,0,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+TEP.PA,TELEPERFORMANCE,portfolio,Industrials,4,4,0,0,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+HEIA.AS,HEINEKEN,value_eu,Consumer Defensive,2,2,0,0,NEUTRAL,Pullback Volumen Seco,Tendencia Bajista LH/LL,Pullback Volumen Seco,2026-03-16 09:18
+SHBI,"Shore Bancshares, Inc.",portfolio,Financial Services,4,4,0,0,NEUTRAL,Hammer,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+EXEL,"Exelixis, Inc.",portfolio,Healthcare,3,3,0,0,NEUTRAL,Rebote MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+9988.HK,Alibaba Group Holding Limited,value_global,Consumer Cyclical,2,2,0,0,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+CS.PA,AXA,value_eu,Financial Services,2,1,1,0,NEUTRAL,Doji en Caída,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+PACS,"PACS Group, Inc.",value_us,Healthcare,5,4,1,0,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+APG,APi Group Corporation,portfolio,Industrials,4,4,0,0,NEUTRAL,Toque Banda Inferior BB,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+NWFL,Norwood Financial Corp.,value_us,Financial Services,3,3,0,0,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+SU.PA,SCHNEIDER ELECTRIC SE,value_eu,Industrials,3,3,0,0,NEUTRAL,Bullish Engulfing,Evening Star,Tendencia Bajista LH/LL,2026-03-16 09:18
+ALLY,ALLY,value_us,nan,3,3,0,0,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+FMFG,Farmers and Merchants Bancshare,value_us,Financial Services,3,3,0,0,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+SHEL.L,SHELL PLC ORD EUR0.07,value_eu,Energy,4,4,0,0,NEUTRAL,Precio sobre MA50,RSI Sobrecomprado,Precio sobre MA50,2026-03-16 09:18
+AIR.PA,AIRBUS SE,value_eu,Industrials,2,2,0,-1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+FBK.MI,FINECOBANK,portfolio,Financial Services,3,4,-1,-1,NEUTRAL,MACD Cruce Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+2318.HK,"Ping An Insurance (Group) Company of China, Ltd.",value_global,Financial Services,4,3,1,-1,NEUTRAL,Tendencia Alcista HH/HL,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+MC.PA,LVMH,portfolio,Consumer Cyclical,4,3,1,-1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+DBK.DE,DEUTSCHE BANK AG              N,portfolio,Financial Services,2,2,0,-1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+FIGR,"Figure Technology Solutions, In",portfolio,Financial Services,1,2,-1,-1,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+CBK,"Commercial Bancgroup, Inc.",portfolio,Financial Services,1,1,0,-1,NEUTRAL,Doji en Caída,Cerca de Mínimo 52s,Doji en Caída,2026-03-16 09:18
+0005.HK,HSBC Holdings plc,value_global,Financial Services,2,2,0,-1,NEUTRAL,Tendencia Alcista HH/HL,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+AZN.L,ASTRAZENECA PLC ORD SHS $0.25,portfolio,Healthcare,1,1,0,-1,NEUTRAL,Doji en Caída,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+7267.T,"Honda Motor Co., Ltd.",value_global,Consumer Cyclical,4,4,0,-1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+035420.KS,NAVER Corporation,value_global,Communication Services,2,2,0,-1,NEUTRAL,Pullback Volumen Seco,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+6902.T,DENSO Corporation,value_global,Consumer Cyclical,4,4,0,-1,NEUTRAL,Golden Cross,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+CWBC,Community West Bancshares,portfolio,Financial Services,5,5,0,-1,NEUTRAL,Precio sobre MA50,Shooting Star,RSI Zona Baja,2026-03-16 09:18
+LAND.L,LAND SECURITIES GROUP PLC ORD 1,value_eu,Real Estate,4,3,1,-1,NEUTRAL,Pullback Volumen Seco,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+BAMI.MI,BANCO BPM,value_eu,Financial Services,1,1,0,-1,NEUTRAL,RSI Zona Baja,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+MRK.DE,MERCK KGAA                    I,portfolio,Healthcare,4,4,0,-1,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+IIPR,Innovative Industrial Propertie,value_us,Real Estate,3,4,-1,-1,NEUTRAL,Precio sobre MA50,Precio bajo MA200,Precio sobre MA50,2026-03-16 09:18
+BN.PA,DANONE,portfolio,Consumer Defensive,4,3,1,-1,NEUTRAL,MACD Cruce Alcista,Tendencia Bajista LH/LL,Precio sobre MA50,2026-03-16 09:18
+GLE.PA,SOCIETE GENERALE,value_eu,Financial Services,4,4,0,-1,NEUTRAL,Bullish Engulfing,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+MONC.MI,MONCLER,value_eu,Consumer Cyclical,4,2,2,-1,NEUTRAL,Rebote MA50,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+UBSG.SW,UBS GROUP N,value_eu,Financial Services,3,3,0,-1,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+BPRN,"Princeton Bancorp, Inc.",value_us,Financial Services,3,3,0,-1,NEUTRAL,Tendencia Alcista HH/HL,Shooting Star,RSI Zona Baja,2026-03-16 09:18
+BMNM,"Bimini Capital Management, Inc.",value_us,Financial Services,3,4,-1,-1,NEUTRAL,Pullback Volumen Seco,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+VXRT,"Vaxart, Inc.",portfolio,Healthcare,4,5,-1,-1,NEUTRAL,Morning Star,Precio bajo MA200,Precio sobre MA50,2026-03-16 09:18
+GOOD,Gladstone Commercial Corporatio,value_us,Real Estate,4,3,1,-1,NEUTRAL,Rebote MA50,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+9983.T,"Fast Retailing Co., Ltd.",value_global,Consumer Cyclical,3,3,0,-1,NEUTRAL,Bullish Engulfing,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+VALE3.SA,Vale S.A.,value_global,Basic Materials,6,6,0,-1,NEUTRAL,Golden Cross,Evening Star,Extendido sobre MA200,2026-03-16 09:18
+CNS,Cohen & Steers Inc,portfolio,Financial Services,4,3,1,-1,NEUTRAL,Toque Banda Inferior BB,Shooting Star,RSI Zona Baja,2026-03-16 09:18
+BY,"Byline Bancorp, Inc.",portfolio,Financial Services,4,4,0,-1,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+FRST,Primis Financial Corp.,portfolio,Financial Services,4,4,0,-2,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+CTTH,"CTT Pharmaceutical Holdings, In",value_us,Healthcare,2,3,-1,-2,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+9433.T,KDDI Corporation,value_global,Communication Services,1,3,-2,-2,NEUTRAL,Tendencia Alcista HH/HL,MACD Cruce Bajista,MACD Histograma Cayendo,2026-03-16 09:18
+105560.KS,KB Financial Group Inc.,value_global,Financial Services,2,4,-2,-2,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+7974.T,"Nintendo Co., Ltd.",value_global,Communication Services,2,3,-1,-2,NEUTRAL,Precio sobre MA50,Precio bajo MA200,Precio sobre MA50,2026-03-16 09:18
+BFST,"Business First Bancshares, Inc.",portfolio,Financial Services,4,4,0,-2,NEUTRAL,Tendencia Alcista HH/HL,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+AVO,"Mission Produce, Inc.",value_us,Consumer Defensive,4,5,-1,-2,NEUTRAL,Golden Cross,Volumen Extraordinario Bajista,Precio bajo MA50,2026-03-16 09:18
+RHM.DE,RHEINMETALL AG                I,value_eu,Industrials,1,2,-1,-2,NEUTRAL,Tendencia Alcista HH/HL,Shooting Star,Tendencia Bajista LH/LL,2026-03-16 09:18
+BARC.L,BARCLAYS PLC ORD 25P,value_eu,Financial Services,2,2,0,-2,NEUTRAL,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+SMBK,"SmartFinancial, Inc.",value_us,Financial Services,3,4,-1,-2,NEUTRAL,Precio sobre MA50,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+CFBK,CF Bankshares Inc.,value_us,Financial Services,4,4,0,-2,NEUTRAL,Toque Banda Inferior BB,Bearish Engulfing,RSI Zona Baja,2026-03-16 09:18
+IMCD.AS,IMCD,portfolio,Basic Materials,2,3,-1,-2,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+FCCO,First Community Corporation,portfolio,Financial Services,3,4,-1,-2,NEUTRAL,Precio sobre MA50,Shooting Star,RSI Zona Baja,2026-03-16 09:18
+316140.KS,Woori Financial Group Inc.,value_global,Financial Services,3,4,-1,-2,NEUTRAL,Rebote MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+REL.L,RELX PLC ORD 14 51/116P,portfolio,Industrials,3,3,0,-2,NEUTRAL,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+AHT.L,ASHTEAD GROUP PLC ORD 10P,portfolio,Industrials,7,9,-2,-2,NEUTRAL,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+PETR4.SA,Petróleo Brasileiro S.A. - Petrobras,value_global,Energy,5,6,-1,-2,NEUTRAL,Precio sobre MA50,RSI Sobrecomprado,Precio sobre MA50,2026-03-16 09:18
+1810.HK,Xiaomi Corporation,value_global,Technology,4,3,1,-2,NEUTRAL,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+LONN.SW,LONZA N,value_eu,Healthcare,3,3,0,-2,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+ACA.PA,CREDIT AGRICOLE,value_eu,Financial Services,3,3,0,-2,NEUTRAL,Tendencia Alcista HH/HL,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+SAF.PA,SAFRAN,value_eu,Industrials,3,3,0,-2,NEUTRAL,Toque Banda Inferior BB,Bearish Engulfing,RSI Zona Baja,2026-03-16 09:18
+9432.T,"NTT, Inc.",value_global,Communication Services,2,4,-2,-3,NEUTRAL,Cerca de Máximo 52s,Evening Star,Precio sobre MA50,2026-03-16 09:18
+GRF.MC,GRIFOLS S.A.,value_eu,Healthcare,3,3,0,-3,NEUTRAL,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+INGA.AS,ING GROEP N.V.,portfolio,Financial Services,2,3,-1,-3,NEUTRAL,Tendencia Alcista HH/HL,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+000660.KS,SK hynix Inc.,value_global,Technology,2,4,-2,-3,NEUTRAL,Precio sobre MA50,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+SIE.DE,SIEMENS AG                    N,portfolio,Industrials,2,3,-1,-3,NEUTRAL,Hammer,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+PRIM,Primoris Services Corporation,portfolio,Industrials,4,5,-1,-3,NEUTRAL,Precio sobre MA50,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+EXPN.L,EXPERIAN PLC ORD USD0.10,portfolio,Industrials,2,2,0,-3,NEUTRAL,Doji en Caída,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+6367.T,"Daikin Industries,Ltd.",value_global,Industrials,0,2,-2,-3,NEUTRAL,,Tendencia Bajista LH/LL,MACD Histograma Cayendo,2026-03-16 09:18
+8306.T,"Mitsubishi UFJ Financial Group, Inc.",value_global,Financial Services,2,3,-1,-3,NEUTRAL,Hammer,Bearish Engulfing,Tendencia Bajista LH/LL,2026-03-16 09:18
+SCHP.SW,SCHINDLER PS,value_eu,Industrials,2,3,-1,-3,NEUTRAL,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+000270.KS,Kia Corporation,value_global,Consumer Cyclical,2,3,-1,-3,NEUTRAL,Tendencia Alcista HH/HL,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+CCNE,CNB Financial Corporation,portfolio,Financial Services,4,5,-1,-3,NEUTRAL,Precio sobre MA50,Shooting Star,RSI Zona Baja,2026-03-16 09:18
+MSFT,Microsoft Corporation,portfolio,Technology,3,4,-1,-3,NEUTRAL,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+NBTB,NBT Bancorp Inc.,portfolio,Financial Services,3,4,-1,-3,NEUTRAL,Tendencia Alcista HH/HL,Shooting Star,RSI Zona Baja,2026-03-16 09:18
+6098.T,"Recruit Holdings Co., Ltd.",value_global,Communication Services,3,3,0,-3,NEUTRAL,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+055550.KS,"Shinhan Financial Group Co., Ltd.",value_global,Financial Services,2,4,-2,-3,NEUTRAL,Tendencia Alcista HH/HL,Extendido sobre MA200,Precio sobre MA50,2026-03-16 09:18
+SPGI,S&P Global Inc.,portfolio,Financial Services,4,4,0,-3,NEUTRAL,Hammer,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+RSG,"Republic Services, Inc.",portfolio,Industrials,3,4,-1,-3,NEUTRAL,Rebote MA50,Bearish Engulfing,Precio sobre MA50,2026-03-16 09:18
+ULVR.L,UNILEVER PLC ORD 3.5P,value_eu,Consumer Defensive,1,2,-1,-3,NEUTRAL,RSI Zona Baja,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+NEWT,"NewtekOne, Inc.",portfolio,Financial Services,4,5,-1,-3,NEUTRAL,Hammer,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+0001.HK,CK Hutchison Holdings Limited,value_global,Industrials,1,2,-1,-3,NEUTRAL,Tendencia Alcista HH/HL,Evening Star,Tendencia Alcista HH/HL,2026-03-16 09:18
+ALG,"Alamo Group, Inc.",value_us,Industrials,2,4,-2,-4,BEARISH,Volumen Extraordinario Alcista,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+SAB.MC,BANCO DE SABADELL,value_eu,Financial Services,0,3,-3,-4,BEARISH,,Tendencia Bajista LH/LL,Doji en Subida,2026-03-16 09:18
+ABF.L,ASSOCIATED BRITISH FOODS PLC OR,value_eu,Consumer Defensive,2,4,-2,-4,BEARISH,Bullish Engulfing,Shooting Star,Tendencia Bajista LH/LL,2026-03-16 09:18
+7733.T,Olympus Corporation,value_global,Healthcare,5,5,0,-4,BEARISH,RSI Sobrevendido,Death Cross,Precio bajo MA50,2026-03-16 09:18
+HOLN.SW,HOLCIM N,portfolio,Basic Materials,3,4,-1,-4,BEARISH,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+SAN.PA,SANOFI,value_eu,Healthcare,3,3,0,-4,BEARISH,RSI Zona Baja,Death Cross,RSI Zona Baja,2026-03-16 09:18
+AMH,American Homes 4 Rent,value_us,Real Estate,3,5,-2,-4,BEARISH,Toque Banda Inferior BB,Cerca de Mínimo 52s,RSI Zona Baja,2026-03-16 09:18
+OR.PA,L'OREAL,value_eu,Consumer Defensive,2,4,-2,-4,BEARISH,Golden Cross,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+2020.HK,ANTA Sports Products Limited,value_global,Consumer Cyclical,1,3,-2,-4,BEARISH,Doji en Caída,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+8035.T,Tokyo Electron Limited,value_global,Technology,1,3,-2,-4,BEARISH,Tendencia Alcista HH/HL,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+SUNS,"Sunrise Realty Trust, Inc.",portfolio,Real Estate,6,9,-3,-4,BEARISH,RSI Sobrevendido,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+BMED.MI,BANCA MEDIOLANUM,value_eu,Financial Services,2,3,-1,-4,BEARISH,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+028260.KS,Samsung C&T Corporation,value_global,Industrials,2,5,-3,-4,BEARISH,Pullback Volumen Seco,Extendido sobre MA200,Extendido sobre MA200,2026-03-16 09:18
+PRU.L,PRUDENTIAL PLC ORD 5P,portfolio,Financial Services,0,2,-2,-4,BEARISH,,Shooting Star,Tendencia Bajista LH/LL,2026-03-16 09:18
+0700.HK,Tencent Holdings Limited,value_global,Communication Services,1,4,-3,-4,BEARISH,Morning Star,Death Cross,Toque Banda Superior BB,2026-03-16 09:18
+LLOY.L,LLOYDS BANKING GROUP PLC ORD 10,portfolio,Financial Services,3,4,-1,-4,BEARISH,Tendencia Alcista HH/HL,Evening Star,RSI Zona Baja,2026-03-16 09:18
+HEI.DE,Heidelberg Materials AG       I,portfolio,Basic Materials,2,3,-1,-4,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+NWG.L,NATWEST GROUP PLC ORD 107.69P,portfolio,Financial Services,1,3,-2,-5,BEARISH,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+7203.T,Toyota Motor Corporation,value_global,Consumer Cyclical,2,4,-2,-5,BEARISH,Tendencia Alcista HH/HL,Shooting Star,RSI Zona Baja,2026-03-16 09:18
+FCNCA,nan,portfolio,Financial Services,4,6,-2,-5,BEARISH,RSI Sobrevendido,Evening Star,Precio bajo MA50,2026-03-16 09:18
+ABR,Arbor Realty Trust,value_us,Real Estate,4,5,-1,-5,BEARISH,Hammer,Precio bajo MA200,Precio sobre MA50,2026-03-16 09:18
+AKZA.AS,AKZO NOBEL,value_eu,Basic Materials,4,5,-1,-5,BEARISH,RSI Sobrevendido,Death Cross,Death Cross,2026-03-16 09:18
+SAN.MC,BANCO SANTANDER S.A.,value_eu,Financial Services,2,4,-2,-5,BEARISH,Tendencia Alcista HH/HL,Evening Star,Precio bajo MA50,2026-03-16 09:18
+NTGY.MC,"NATURGY ENERGY GROUP, S.A.",value_eu,Utilities,0,2,-2,-5,BEARISH,,Evening Star,Tendencia Bajista LH/LL,2026-03-16 09:18
+TBBK,"The Bancorp, Inc.",portfolio,Financial Services,6,6,0,-5,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+8316.T,"Sumitomo Mitsui Financial Group, Inc.",value_global,Financial Services,3,4,-1,-5,BEARISH,Tendencia Alcista HH/HL,Bearish Engulfing,Precio bajo MA50,2026-03-16 09:18
+TOTS3.SA,TOTVS S.A.,value_global,Technology,5,7,-2,-5,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+FTAI,FTAI Aviation Ltd.,portfolio,Industrials,4,7,-3,-5,BEARISH,Toque Banda Inferior BB,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+ADMQ,ADM Endeavors Inc.,value_us,Industrials,3,5,-2,-5,BEARISH,Morning Star,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+MPB,Mid Penn Bancorp,value_us,Financial Services,2,5,-3,-5,BEARISH,Precio sobre MA50,Tendencia Bajista LH/LL,Tendencia Bajista LH/LL,2026-03-16 09:18
+TPC,Tutor Perini Corporation,portfolio,Industrials,5,7,-2,-5,BEARISH,Hammer,Bearish Engulfing,Precio bajo MA50,2026-03-16 09:18
+UMH,"UMH Properties, Inc.",value_us,Real Estate,2,5,-3,-6,BEARISH,RSI Sobrevendido,Bearish Engulfing,RSI Sobrevendido,2026-03-16 09:18
+ISP.MI,INTESA SANPAOLO,portfolio,Financial Services,1,4,-3,-6,BEARISH,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+WKL.AS,WOLTERS KLUWER,value_eu,Industrials,2,4,-2,-6,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+DGICA,"Donegal Group, Inc.",value_us,Financial Services,3,5,-2,-6,BEARISH,Toque Banda Inferior BB,Death Cross,RSI Zona Baja,2026-03-16 09:18
+4568.T,"Daiichi Sankyo Company, Limited",value_global,Healthcare,4,7,-3,-6,BEARISH,Morning Star,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+MTX.DE,MTU Aero Engines AG           N,portfolio,Industrials,3,4,-1,-6,BEARISH,RSI Zona Baja,Evening Star,Precio bajo MA50,2026-03-16 09:18
+SIKA.SW,SIKA N,portfolio,Basic Materials,2,5,-3,-6,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+UCG.MI,UNICREDIT,portfolio,Financial Services,2,4,-2,-6,BEARISH,Tendencia Alcista HH/HL,Evening Star,Precio bajo MA50,2026-03-16 09:18
+6690.HK,"Haier Smart Home Co., Ltd.",value_global,Consumer Cyclical,1,4,-3,-6,BEARISH,RSI Zona Baja,Shooting Star,RSI Zona Baja,2026-03-16 09:18
+SGO.PA,SAINT GOBAIN,portfolio,Industrials,2,5,-3,-6,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+CAP.PA,CAPGEMINI,value_eu,Technology,2,4,-2,-6,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+RMS.PA,HERMES INTL,portfolio,Consumer Cyclical,2,5,-3,-6,BEARISH,RSI Zona Baja,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+WTB.L,WHITBREAD PLC ORD 76 122/153P,value_eu,Consumer Cyclical,3,5,-2,-6,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+THRY,nan,portfolio,Technology,5,6,-1,-6,BEARISH,Pullback Volumen Seco,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+9984.T,SoftBank Group Corp.,value_global,Communication Services,0,3,-3,-6,BEARISH,,Precio bajo MA50,Precio bajo MA50,2026-03-16 09:18
+AMS.MC,"AMADEUS IT GROUP, S.A.",portfolio,Technology,2,4,-2,-7,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+LYFT,"Lyft, Inc.",portfolio,Technology,3,5,-2,-7,BEARISH,Squeeze Bollinger,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+GIVN.SW,GIVAUDAN N,portfolio,Basic Materials,3,5,-2,-7,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+RACE.MI,FERRARI,portfolio,Consumer Cyclical,5,6,-1,-7,BEARISH,Toque Banda Inferior BB,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+PGHN.SW,PARTNERS GROUP N,portfolio,Financial Services,4,6,-2,-7,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+SAP.DE,SAP SE                        I,portfolio,Technology,1,4,-3,-7,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+ATO.PA,ATOS,value_eu,Technology,1,3,-2,-7,BEARISH,RSI Zona Baja,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+RI.PA,PERNOD RICARD,value_eu,Consumer Defensive,2,4,-2,-7,BEARISH,RSI Zona Baja,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+ACNB,ACNB Corporation,portfolio,Financial Services,2,5,-3,-7,BEARISH,RSI Zona Baja,Tendencia Bajista LH/LL,RSI Zona Baja,2026-03-16 09:18
+2382.HK,Sunny Optical Technology (Group) Company Limited,value_global,Technology,3,5,-2,-7,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+DOMH,Dominari Holdings Inc.,portfolio,Financial Services,4,7,-3,-8,BEARISH,MACD Cruce Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+BFC,Bank First Corporation,portfolio,Financial Services,1,6,-5,-9,BEARISH,Precio sobre MA50,Shooting Star,Tendencia Bajista LH/LL,2026-03-16 09:18
+MDLN,Medline Inc.,value_us,Healthcare,1,4,-3,-9,BEARISH,RSI Zona Baja,Bearish Engulfing,RSI Zona Baja,2026-03-16 09:18
+6501.T,"Hitachi, Ltd.",value_global,Industrials,0,5,-5,-9,BEARISH,,Bearish Engulfing,MACD Histograma Cayendo,2026-03-16 09:18
+IT,"Gartner, Inc.",portfolio,Technology,3,7,-4,-10,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+FG,"F&G Annuities & Life, Inc.",value_us,Financial Services,3,8,-5,-10,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+DGE.L,DIAGEO PLC ORD 28 101/108P,portfolio,Consumer Defensive,3,6,-3,-10,BEARISH,RSI Zona Baja,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+RAND.AS,Randstad N.V.,value_eu,Industrials,3,7,-4,-10,BEARISH,Toque Banda Inferior BB,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+DFDV,DeFi Development Corp.,value_us,Financial Services,2,6,-4,-11,BEARISH,Pullback Volumen Seco,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+P911.DE,Dr. Ing. h.c. F. Porsche AG   I,value_eu,Consumer Cyclical,3,7,-4,-11,BEARISH,Hammer,Bearish Engulfing,Precio bajo MA50,2026-03-16 09:18
+HHH,Howard Hughes Holdings Inc.,value_us,Real Estate,3,8,-5,-11,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+ENR,"Energizer Holdings, Inc.",portfolio,Industrials,3,9,-6,-12,BEARISH,Divergencia RSI Alcista,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+GCBC,nan,portfolio,Financial Services,2,7,-5,-12,BEARISH,Squeeze Bollinger,Death Cross,Bearish Engulfing,2026-03-16 09:18
+MDBH,"MDB Capital Holdings, LLC",value_us,Financial Services,6,12,-6,-13,BEARISH,Toque Banda Inferior BB,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+TBRG,"TruBridge, Inc.",value_us,Healthcare,7,10,-3,-13,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+ADS.DE,adidas AG                     N,portfolio,Consumer Cyclical,4,8,-4,-13,BEARISH,RSI Zona Baja,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+EXP,Eagle Materials Inc,portfolio,Basic Materials,3,9,-6,-14,BEARISH,RSI Sobrevendido,Death Cross,Death Cross,2026-03-16 09:18
+GOGO,Gogo Inc.,value_us,Communication Services,3,9,-6,-15,BEARISH,Tendencia Alcista HH/HL,Precio bajo MA200,Precio bajo MA200,2026-03-16 09:18
+OWL,Blue Owl Capital Inc.,value_us,Financial Services,3,11,-8,-17,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18
+INSE,"Inspired Entertainment, Inc.",value_us,Consumer Cyclical,4,13,-9,-18,BEARISH,RSI Sobrevendido,Precio bajo MA200,Precio bajo MA50,2026-03-16 09:18

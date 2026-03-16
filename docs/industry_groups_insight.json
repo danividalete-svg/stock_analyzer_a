@@ -1,81 +1,81 @@
 {
-  "date": "2026-03-13",
-  "timestamp": "2026-03-13T08:35:50.144070",
+  "date": "2026-03-16",
+  "timestamp": "2026-03-16T09:14:04.403690",
   "narrative": null,
   "macro_regime": "ALERT",
   "top_sectors": [
     {
-      "industry": "Oil & Gas Equipment & Services",
-      "sector": "Energy",
-      "avg_rs_percentile": 85.4,
-      "num_tickers": 2,
-      "label": "Top 10%"
-    },
-    {
       "industry": "REIT - Healthcare Facilities",
       "sector": "Real Estate",
-      "avg_rs_percentile": 71.4,
+      "avg_rs_percentile": 72.7,
       "num_tickers": 3,
       "label": "Top 10%"
     },
     {
       "industry": "Banks - Regional",
       "sector": "Financial Services",
-      "avg_rs_percentile": 67.9,
-      "num_tickers": 45,
+      "avg_rs_percentile": 68.0,
+      "num_tickers": 64,
       "label": "Top 10%"
     },
     {
-      "industry": "Diagnostics & Research",
-      "sector": "Healthcare",
-      "avg_rs_percentile": 66.3,
-      "num_tickers": 3,
+      "industry": "Oil & Gas Equipment & Services",
+      "sector": "Energy",
+      "avg_rs_percentile": 67.8,
+      "num_tickers": 5,
       "label": "Top 10%"
     },
     {
       "industry": "Drug Manufacturers - Specialty & Generic",
       "sector": "Healthcare",
-      "avg_rs_percentile": 64.4,
-      "num_tickers": 5,
+      "avg_rs_percentile": 65.4,
+      "num_tickers": 6,
+      "label": "Top 10%"
+    },
+    {
+      "industry": "Industrial Distribution",
+      "sector": "Industrials",
+      "avg_rs_percentile": 63.9,
+      "num_tickers": 2,
       "label": "Top 10%"
     }
   ],
   "bottom_sectors": [
     {
-      "industry": "Farm Products",
-      "sector": "Consumer Defensive",
-      "avg_rs_percentile": 8.8,
-      "num_tickers": 2,
-      "label": "Bottom 25%"
-    },
-    {
       "industry": "REIT - Mortgage",
       "sector": "Real Estate",
-      "avg_rs_percentile": 8.8,
-      "num_tickers": 4,
+      "avg_rs_percentile": 8.3,
+      "num_tickers": 6,
       "label": "Bottom 25%"
     },
     {
       "industry": "Health Information Services",
       "sector": "Healthcare",
-      "avg_rs_percentile": 6.0,
+      "avg_rs_percentile": 6.7,
       "num_tickers": 3,
       "label": "Bottom 25%"
     },
     {
-      "industry": "Internet Content & Information",
-      "sector": "Communication Services",
-      "avg_rs_percentile": 5.5,
+      "industry": "Farm Products",
+      "sector": "Consumer Defensive",
+      "avg_rs_percentile": 6.6,
+      "num_tickers": 2,
+      "label": "Bottom 25%"
+    },
+    {
+      "industry": "Information Technology Services",
+      "sector": "Technology",
+      "avg_rs_percentile": 6.4,
       "num_tickers": 2,
       "label": "Bottom 25%"
     },
     {
       "industry": "Software - Application",
       "sector": "Technology",
-      "avg_rs_percentile": 2.4,
+      "avg_rs_percentile": 4.1,
       "num_tickers": 5,
       "label": "Bottom 25%"
     }
   ],
-  "total_groups": 42
+  "total_groups": 51
 }

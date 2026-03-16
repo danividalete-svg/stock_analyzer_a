@@ -1,6 +1,6 @@
 {
-  "date": "2026-03-13",
-  "timestamp": "2026-03-13T08:35:50.057800",
+  "date": "2026-03-16",
+  "timestamp": "2026-03-16T09:14:04.303966",
   "narrative": null,
   "total_tickers": 16,
   "total_us": 8,
@@ -9,10 +9,10 @@
     {
       "ticker": "TPL",
       "market": "US",
-      "purchase_count": 172,
+      "purchase_count": 171,
       "unique_insiders": 2,
-      "confidence_score": 3460.0,
-      "days_span": 88
+      "confidence_score": 3440.0,
+      "days_span": 87
     },
     {
       "ticker": "WRB",

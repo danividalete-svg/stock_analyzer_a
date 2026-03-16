@@ -969,5 +969,21 @@
   "VSNT": "VSNT",
   "SSII": "SSII",
   "MLAB": "MLAB",
-  "SRCE": "SRCE"
+  "SRCE": "SRCE",
+  "AI": "AI",
+  "VKTX": "VKTX",
+  "NSP": "NSP",
+  "SFM": "SFM",
+  "NXRT": "NXRT",
+  "ACEL": "ACEL",
+  "GO": "GO",
+  "ABG": "ABG",
+  "ORGO": "ORGO",
+  "DYN": "DYN",
+  "VTRS": "VTRS",
+  "SRE": "SRE",
+  "AOSL": "AOSL",
+  "MNKD": "MNKD",
+  "ADV": "ADV",
+  "TGLS": "TGLS"
 }

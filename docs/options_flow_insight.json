@@ -1,12 +1,12 @@
 {
-  "date": "2026-03-13",
-  "timestamp": "2026-03-13T08:35:50.229017",
+  "date": "2026-03-16",
+  "timestamp": "2026-03-16T09:14:04.497149",
   "narrative": null,
   "total_flows": 27,
   "sentiment_breakdown": {
     "bullish": 11,
-    "bearish": 11,
-    "neutral": 5
+    "bearish": 13,
+    "neutral": 3
   },
-  "total_premium_m": 54.0
+  "total_premium_m": 119.29
 }
