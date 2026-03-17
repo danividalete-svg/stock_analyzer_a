@@ -1,5 +1,5 @@
 {
-  "timestamp": "20260316_075958",
+  "timestamp": "20260317_074448",
   "results": [
     {
       "sector": "Technology",
@@ -7,12 +7,12 @@
       "status": "LEADING",
       "signal": "BUY",
       "strength": "STRONG",
-      "velocity": 3.02,
+      "velocity": 4.76,
       "relative_strength": 100,
       "momentum_change": "stable",
-      "recent_return_30d": -4.92,
-      "current_price": 136.8,
-      "timestamp": "2026-03-16T07:59:55.330742"
+      "recent_return_30d": -4.46,
+      "current_price": 138.78,
+      "timestamp": "2026-03-17T07:44:46.717744"
     },
     {
       "sector": "Financials",
@@ -20,25 +20,25 @@
       "status": "LEADING",
       "signal": "BUY",
       "strength": "STRONG",
-      "velocity": 6.04,
+      "velocity": 6.52,
       "relative_strength": 100,
       "momentum_change": "stable",
-      "recent_return_30d": -8.51,
-      "current_price": 48.89,
-      "timestamp": "2026-03-16T07:59:55.602479"
+      "recent_return_30d": -8.75,
+      "current_price": 49.3,
+      "timestamp": "2026-03-17T07:44:46.904173"
     },
     {
       "sector": "Healthcare",
       "dj_ticker": "XLV",
-      "status": "NEUTRAL",
-      "signal": "HOLD",
-      "strength": "NEUTRAL",
-      "velocity": -2.28,
-      "relative_strength": 61.7,
+      "status": "WEAKENING",
+      "signal": "REDUCE",
+      "strength": "MODERATE",
+      "velocity": -0.76,
+      "relative_strength": 46.0,
       "momentum_change": "stable",
-      "recent_return_30d": -3.2,
-      "current_price": 149.79,
-      "timestamp": "2026-03-16T07:59:55.951729"
+      "recent_return_30d": -3.01,
+      "current_price": 151.01,
+      "timestamp": "2026-03-17T07:44:47.083282"
     },
     {
       "sector": "Consumer Discretionary",
@@ -46,12 +46,12 @@
       "status": "LEADING",
       "signal": "BUY",
       "strength": "STRONG",
-      "velocity": 3.21,
+      "velocity": 3.31,
       "relative_strength": 100,
       "momentum_change": "stable",
-      "recent_return_30d": -8.51,
-      "current_price": 110.86,
-      "timestamp": "2026-03-16T07:59:56.321344"
+      "recent_return_30d": -8.01,
+      "current_price": 112.2,
+      "timestamp": "2026-03-17T07:44:47.256566"
     },
     {
       "sector": "Industrials",
@@ -59,12 +59,12 @@
       "status": "LAGGING",
       "signal": "AVOID",
       "strength": "WEAK",
-      "velocity": -14.11,
+      "velocity": -10.46,
       "relative_strength": 0,
-      "momentum_change": "stable",
-      "recent_return_30d": -0.48,
-      "current_price": 164.65,
-      "timestamp": "2026-03-16T07:59:56.660705"
+      "momentum_change": "accelerating",
+      "recent_return_30d": -0.88,
+      "current_price": 166.06,
+      "timestamp": "2026-03-17T07:44:47.489096"
     },
     {
       "sector": "Energy",
@@ -72,12 +72,12 @@
       "status": "LAGGING",
       "signal": "AVOID",
       "strength": "WEAK",
-      "velocity": -27.9,
+      "velocity": -24.39,
       "relative_strength": 0,
       "momentum_change": "stable",
-      "recent_return_30d": 13.03,
-      "current_price": 57.7,
-      "timestamp": "2026-03-16T07:59:57.031520"
+      "recent_return_30d": 15.68,
+      "current_price": 57.9,
+      "timestamp": "2026-03-17T07:44:47.698723"
     },
     {
       "sector": "Materials",
@@ -85,12 +85,12 @@
       "status": "LAGGING",
       "signal": "AVOID",
       "strength": "WEAK",
-      "velocity": -16.09,
+      "velocity": -12.0,
       "relative_strength": 0,
-      "momentum_change": "stable",
-      "recent_return_30d": -0.16,
-      "current_price": 49.19,
-      "timestamp": "2026-03-16T07:59:57.371572"
+      "momentum_change": "accelerating",
+      "recent_return_30d": -0.5,
+      "current_price": 49.4,
+      "timestamp": "2026-03-17T07:44:47.925791"
     },
     {
       "sector": "Real Estate",
@@ -98,12 +98,12 @@
       "status": "LAGGING",
       "signal": "AVOID",
       "strength": "WEAK",
-      "velocity": -8.51,
+      "velocity": -8.01,
       "relative_strength": 0,
       "momentum_change": "stable",
-      "recent_return_30d": 1.98,
-      "current_price": 42.25,
-      "timestamp": "2026-03-16T07:59:57.664320"
+      "recent_return_30d": 3.96,
+      "current_price": 42.58,
+      "timestamp": "2026-03-17T07:44:48.069233"
     },
     {
       "sector": "Utilities",
@@ -111,12 +111,12 @@
       "status": "LAGGING",
       "signal": "AVOID",
       "strength": "WEAK",
-      "velocity": -10.87,
+      "velocity": -9.05,
       "relative_strength": 0,
       "momentum_change": "stable",
-      "recent_return_30d": 8.58,
-      "current_price": 46.96,
-      "timestamp": "2026-03-16T07:59:58.024760"
+      "recent_return_30d": 10.89,
+      "current_price": 47.26,
+      "timestamp": "2026-03-17T07:44:48.244316"
     },
     {
       "sector": "Communication Services",
@@ -124,12 +124,12 @@
       "status": "NEUTRAL",
       "signal": "HOLD",
       "strength": "NEUTRAL",
-      "velocity": -0.12,
-      "relative_strength": 71.8,
+      "velocity": -0.89,
+      "relative_strength": 63.0,
       "momentum_change": "stable",
-      "recent_return_30d": -4.69,
-      "current_price": 114.45,
-      "timestamp": "2026-03-16T07:59:58.363466"
+      "recent_return_30d": -3.63,
+      "current_price": 115.33,
+      "timestamp": "2026-03-17T07:44:48.370041"
     },
     {
       "sector": "Consumer Staples",
@@ -137,12 +137,12 @@
       "status": "LAGGING",
       "signal": "AVOID",
       "strength": "WEAK",
-      "velocity": -13.56,
+      "velocity": -12.53,
       "relative_strength": 0,
       "momentum_change": "stable",
-      "recent_return_30d": 1.47,
-      "current_price": 84.74,
-      "timestamp": "2026-03-16T07:59:58.713555"
+      "recent_return_30d": 0.57,
+      "current_price": 84.98,
+      "timestamp": "2026-03-17T07:44:48.550104"
     }
   ],
   "opportunities": {
@@ -153,25 +153,12 @@
         "status": "LEADING",
         "signal": "BUY",
         "strength": "STRONG",
-        "velocity": 6.04,
+        "velocity": 6.52,
         "relative_strength": 100,
         "momentum_change": "stable",
-        "recent_return_30d": -8.51,
-        "current_price": 48.89,
-        "timestamp": "2026-03-16T07:59:55.602479"
-      },
-      {
-        "sector": "Consumer Discretionary",
-        "dj_ticker": "XLY",
-        "status": "LEADING",
-        "signal": "BUY",
-        "strength": "STRONG",
-        "velocity": 3.21,
-        "relative_strength": 100,
-        "momentum_change": "stable",
-        "recent_return_30d": -8.51,
-        "current_price": 110.86,
-        "timestamp": "2026-03-16T07:59:56.321344"
+        "recent_return_30d": -8.75,
+        "current_price": 49.3,
+        "timestamp": "2026-03-17T07:44:46.904173"
       },
       {
         "sector": "Technology",
@@ -179,16 +166,43 @@
         "status": "LEADING",
         "signal": "BUY",
         "strength": "STRONG",
-        "velocity": 3.02,
+        "velocity": 4.76,
         "relative_strength": 100,
         "momentum_change": "stable",
-        "recent_return_30d": -4.92,
-        "current_price": 136.8,
-        "timestamp": "2026-03-16T07:59:55.330742"
+        "recent_return_30d": -4.46,
+        "current_price": 138.78,
+        "timestamp": "2026-03-17T07:44:46.717744"
+      },
+      {
+        "sector": "Consumer Discretionary",
+        "dj_ticker": "XLY",
+        "status": "LEADING",
+        "signal": "BUY",
+        "strength": "STRONG",
+        "velocity": 3.31,
+        "relative_strength": 100,
+        "momentum_change": "stable",
+        "recent_return_30d": -8.01,
+        "current_price": 112.2,
+        "timestamp": "2026-03-17T07:44:47.256566"
       }
     ],
     "emerging": [],
-    "weakening": [],
+    "weakening": [
+      {
+        "sector": "Healthcare",
+        "dj_ticker": "XLV",
+        "status": "WEAKENING",
+        "signal": "REDUCE",
+        "strength": "MODERATE",
+        "velocity": -0.76,
+        "relative_strength": 46.0,
+        "momentum_change": "stable",
+        "recent_return_30d": -3.01,
+        "current_price": 151.01,
+        "timestamp": "2026-03-17T07:44:47.083282"
+      }
+    ],
     "laggards": [
       {
         "sector": "Energy",
@@ -196,38 +210,12 @@
         "status": "LAGGING",
         "signal": "AVOID",
         "strength": "WEAK",
-        "velocity": -27.9,
+        "velocity": -24.39,
         "relative_strength": 0,
         "momentum_change": "stable",
-        "recent_return_30d": 13.03,
-        "current_price": 57.7,
-        "timestamp": "2026-03-16T07:59:57.031520"
-      },
-      {
-        "sector": "Materials",
-        "dj_ticker": "XLB",
-        "status": "LAGGING",
-        "signal": "AVOID",
-        "strength": "WEAK",
-        "velocity": -16.09,
-        "relative_strength": 0,
-        "momentum_change": "stable",
-        "recent_return_30d": -0.16,
-        "current_price": 49.19,
-        "timestamp": "2026-03-16T07:59:57.371572"
-      },
-      {
-        "sector": "Industrials",
-        "dj_ticker": "XLI",
-        "status": "LAGGING",
-        "signal": "AVOID",
-        "strength": "WEAK",
-        "velocity": -14.11,
-        "relative_strength": 0,
-        "momentum_change": "stable",
-        "recent_return_30d": -0.48,
-        "current_price": 164.65,
-        "timestamp": "2026-03-16T07:59:56.660705"
+        "recent_return_30d": 15.68,
+        "current_price": 57.9,
+        "timestamp": "2026-03-17T07:44:47.698723"
       },
       {
         "sector": "Consumer Staples",
@@ -235,12 +223,38 @@
         "status": "LAGGING",
         "signal": "AVOID",
         "strength": "WEAK",
-        "velocity": -13.56,
+        "velocity": -12.53,
         "relative_strength": 0,
         "momentum_change": "stable",
-        "recent_return_30d": 1.47,
-        "current_price": 84.74,
-        "timestamp": "2026-03-16T07:59:58.713555"
+        "recent_return_30d": 0.57,
+        "current_price": 84.98,
+        "timestamp": "2026-03-17T07:44:48.550104"
+      },
+      {
+        "sector": "Materials",
+        "dj_ticker": "XLB",
+        "status": "LAGGING",
+        "signal": "AVOID",
+        "strength": "WEAK",
+        "velocity": -12.0,
+        "relative_strength": 0,
+        "momentum_change": "accelerating",
+        "recent_return_30d": -0.5,
+        "current_price": 49.4,
+        "timestamp": "2026-03-17T07:44:47.925791"
+      },
+      {
+        "sector": "Industrials",
+        "dj_ticker": "XLI",
+        "status": "LAGGING",
+        "signal": "AVOID",
+        "strength": "WEAK",
+        "velocity": -10.46,
+        "relative_strength": 0,
+        "momentum_change": "accelerating",
+        "recent_return_30d": -0.88,
+        "current_price": 166.06,
+        "timestamp": "2026-03-17T07:44:47.489096"
       },
       {
         "sector": "Utilities",
@@ -248,12 +262,12 @@
         "status": "LAGGING",
         "signal": "AVOID",
         "strength": "WEAK",
-        "velocity": -10.87,
+        "velocity": -9.05,
         "relative_strength": 0,
         "momentum_change": "stable",
-        "recent_return_30d": 8.58,
-        "current_price": 46.96,
-        "timestamp": "2026-03-16T07:59:58.024760"
+        "recent_return_30d": 10.89,
+        "current_price": 47.26,
+        "timestamp": "2026-03-17T07:44:48.244316"
       },
       {
         "sector": "Real Estate",
@@ -261,12 +275,12 @@
         "status": "LAGGING",
         "signal": "AVOID",
         "strength": "WEAK",
-        "velocity": -8.51,
+        "velocity": -8.01,
         "relative_strength": 0,
         "momentum_change": "stable",
-        "recent_return_30d": 1.98,
-        "current_price": 42.25,
-        "timestamp": "2026-03-16T07:59:57.664320"
+        "recent_return_30d": 3.96,
+        "current_price": 42.58,
+        "timestamp": "2026-03-17T07:44:48.069233"
       }
     ]
   },

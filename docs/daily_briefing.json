@@ -1,43 +1,43 @@
 {
-  "date": "2026-03-16",
-  "timestamp": "2026-03-16T09:14:04.204633",
-  "narrative": "En el entorno macro actual de alerta, los inversores value deben buscar oportunidades en activos subvaluados con potencial de crecimiento. Destacamos EXEL, LIFE y MSFT por su alto score y upside significativo, con LIFE siendo particularmente atractiva debido a su alto potencial de crecimiento del 66.8%. Recomendamos una posici\u00f3n moderada en estos activos, con un tama\u00f1o del 5-7% del portafolio y un enfoque en el mediano plazo, manteniendo un nivel de cautela debido a la incertidumbre macroecon\u00f3mica.",
-  "macro_regime": "ALERT",
+  "date": "2026-03-17",
+  "timestamp": "2026-03-17T08:44:07.569662",
+  "narrative": null,
+  "macro_regime": "STRESS",
   "picks_count": 8,
   "top_picks": [
     {
       "ticker": "EXEL",
       "sector": "Healthcare",
       "value_score": 80.32,
-      "analyst_upside_pct": 13.6,
+      "analyst_upside_pct": 14.0,
+      "conviction_grade": null
+    },
+    {
+      "ticker": "INDV",
+      "sector": "Healthcare",
+      "value_score": 76.32,
+      "analyst_upside_pct": 51.3,
       "conviction_grade": null
     },
     {
       "ticker": "LIFE",
       "sector": "Financial Services",
       "value_score": 72.6,
-      "analyst_upside_pct": 66.8,
+      "analyst_upside_pct": 69.6,
       "conviction_grade": null
     },
     {
       "ticker": "MSFT",
       "sector": "Technology",
       "value_score": 72.32,
-      "analyst_upside_pct": 50.3,
+      "analyst_upside_pct": 48.7,
       "conviction_grade": null
     },
     {
       "ticker": "SPGI",
       "sector": "Financial Services",
       "value_score": 66.6,
-      "analyst_upside_pct": 27.3,
-      "conviction_grade": null
-    },
-    {
-      "ticker": "TPC",
-      "sector": "Industrials",
-      "value_score": 66.6,
-      "analyst_upside_pct": 61.6,
+      "analyst_upside_pct": 26.1,
       "conviction_grade": null
     }
   ]

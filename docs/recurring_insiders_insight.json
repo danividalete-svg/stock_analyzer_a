@@ -1,6 +1,6 @@
 {
-  "date": "2026-03-16",
-  "timestamp": "2026-03-16T09:14:04.303966",
+  "date": "2026-03-17",
+  "timestamp": "2026-03-17T08:44:07.649505",
   "narrative": null,
   "total_tickers": 16,
   "total_us": 8,
@@ -9,10 +9,10 @@
     {
       "ticker": "TPL",
       "market": "US",
-      "purchase_count": 171,
+      "purchase_count": 168,
       "unique_insiders": 2,
-      "confidence_score": 3440.0,
-      "days_span": 87
+      "confidence_score": 3380.0,
+      "days_span": 86
     },
     {
       "ticker": "WRB",
@@ -39,12 +39,12 @@
       "days_span": 84
     },
     {
-      "ticker": "ISBA",
+      "ticker": "SSP",
       "market": "US",
-      "purchase_count": 39,
-      "unique_insiders": 5,
+      "purchase_count": 40,
+      "unique_insiders": 3,
       "confidence_score": 830.0,
-      "days_span": 43
+      "days_span": 7
     }
   ]
 }
