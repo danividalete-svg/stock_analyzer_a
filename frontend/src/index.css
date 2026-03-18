@@ -1392,6 +1392,55 @@ tr[class*="cursor-pointer"]:hover td:first-child {
 }
 
 
+/* ── Semantic status colors — darker variants for light bg contrast ─
+   Tailwind's -400 shades are designed for dark modes.
+   On light backgrounds they lack contrast — override to -600/-700.
+══════════════════════════════════════════════════════════════════════ */
+:root:not(.dark) .text-emerald-400,
+:root:not(.dark) [class*="text-emerald-4"] {
+  color: hsl(152 55% 28%) !important;
+}
+:root:not(.dark) .text-green-400,
+:root:not(.dark) [class*="text-green-4"] {
+  color: hsl(142 55% 28%) !important;
+}
+:root:not(.dark) .text-red-400,
+:root:not(.dark) [class*="text-red-4"] {
+  color: hsl(0 65% 40%) !important;
+}
+:root:not(.dark) .text-red-300 {
+  color: hsl(0 65% 38%) !important;
+}
+:root:not(.dark) .text-amber-400,
+:root:not(.dark) [class*="text-amber-4"] {
+  color: hsl(38 75% 33%) !important;
+}
+:root:not(.dark) .text-yellow-400,
+:root:not(.dark) [class*="text-yellow-4"] {
+  color: hsl(45 75% 30%) !important;
+}
+:root:not(.dark) .text-orange-400,
+:root:not(.dark) [class*="text-orange-4"] {
+  color: hsl(25 75% 38%) !important;
+}
+:root:not(.dark) .text-blue-400,
+:root:not(.dark) [class*="text-blue-4"] {
+  color: hsl(215 70% 38%) !important;
+}
+/* Colored backgrounds — slightly more opaque for light mode */
+:root:not(.dark) [class*="bg-emerald-500/1"],
+:root:not(.dark) [class*="bg-emerald-500/8"] {
+  background-color: hsl(152 55% 28% / 0.08) !important;
+}
+:root:not(.dark) [class*="bg-red-500/1"],
+:root:not(.dark) [class*="bg-red-500/8"] {
+  background-color: hsl(0 65% 40% / 0.08) !important;
+}
+:root:not(.dark) [class*="bg-amber-500/1"],
+:root:not(.dark) [class*="bg-amber-500/8"] {
+  background-color: hsl(38 75% 33% / 0.08) !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    MOBILE / iOS FIXES
 ════════════════════════════════════════════════════════════════════ */

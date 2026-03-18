@@ -237,7 +237,7 @@ function InsidersMini({ data, loading }: { data: InsiderData[] | undefined; load
               return (
                 <div key={r.ticker} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/3 transition-colors">
                   <div className="w-[3.5rem] shrink-0">
-                    <div className="font-mono font-bold text-purple-400 text-[0.8rem]">{r.ticker}</div>
+                    <div className="font-mono font-bold text-primary text-[0.8rem]">{r.ticker}</div>
                     <div className="text-[0.58rem] text-muted-foreground/50">{isEU ? 'EU' : 'US'}</div>
                   </div>
                   <div className="flex-1 min-w-0 text-[0.72rem] text-muted-foreground truncate">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, type ValueOpportunity } from '../api/client'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import CsvDownload from '../components/CsvDownload'
 import WatchlistButton from '../components/WatchlistButton'
+import PaginationBar from '../components/PaginationBar'
 import InfoTooltip from '../components/InfoTooltip'
 import ThesisModal from '../components/ThesisModal'
 import TickerLogo from '../components/TickerLogo'
@@ -55,6 +56,10 @@ export default function ValueUS() {
   const [hideEarnings, setHideEarnings] = useState(false)
   const [onlyOwned, setOnlyOwned] = useState(false)
   const { isOwned, positions: myPos } = usePersonalPortfolio()
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 50
+
+  useEffect(() => { setPage(1) }, [filterGrade, filterSector, minFcf, minRr, hideEarnings, onlyOwned])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -83,7 +88,8 @@ export default function ValueUS() {
     if (av > bv) return sortDir === 'asc' ? 1 : -1
     return 0
   })
-  const top = sorted.slice(0, 20)
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE)
+  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -116,7 +122,7 @@ export default function ValueUS() {
   const bestUpside = Math.max(...filtered.map(r => r.analyst_upside_pct || 0), 0)
 
   const sectorCounts: Record<string, number> = {}
-  top.forEach(d => { const s = d.sector || 'Unknown'; sectorCounts[s] = (sectorCounts[s] || 0) + 1 })
+  sorted.forEach(d => { const s = d.sector || 'Unknown'; sectorCounts[s] = (sectorCounts[s] || 0) + 1 })
   const concentrated = Object.entries(sectorCounts).filter(([, c]) => c >= 3)
 
   const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || minFcf !== '' || minRr !== '' || hideEarnings || onlyOwned
@@ -387,7 +393,7 @@ export default function ValueUS() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {top.map(d => (
+            {paged.map(d => (
               <TableRow key={d.ticker} className="cursor-pointer" onClick={() => toggleThesis(d.ticker, d)}>
                   <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">
                     <div className="flex items-center gap-2">
@@ -438,7 +444,7 @@ export default function ValueUS() {
             ))}
           </TableBody>
         </Table>
-        {top.length === 0 && (
+        {sorted.length === 0 && (
           <CardContent className="py-16 text-center">
             <div className="text-4xl mb-4 opacity-20">💎</div>
             <p className="font-medium text-muted-foreground">
@@ -447,6 +453,8 @@ export default function ValueUS() {
           </CardContent>
         )}
       </Card>
+
+      <PaginationBar page={page} totalPages={totalPages} onPage={setPage} />
 
       {expandedRow && (
         <ThesisModal

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { fetchMeanReversion } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import TickerLogo from '../components/TickerLogo'
@@ -12,6 +12,7 @@ import CsvDownload from '../components/CsvDownload'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { Wallet } from 'lucide-react'
+import PaginationBar from '../components/PaginationBar'
 
 interface MRItem {
   ticker: string
@@ -40,6 +41,10 @@ export default function MeanReversion() {
   const [sortKey, setSortKey] = useState<string>('reversion_score')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 25
+
+  useEffect(() => { setPage(1) }, [sortKey])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -189,7 +194,7 @@ export default function MeanReversion() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sorted.slice(0, 30).map((d, i) => (
+            {sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((d, i) => (
               <>
                 <TableRow
                   key={d.ticker + i}
@@ -307,6 +312,7 @@ export default function MeanReversion() {
           </CardContent>
         )}
       </Card>
+      <PaginationBar page={page} totalPages={Math.ceil(sorted.length / PAGE_SIZE)} onPage={setPage} />
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { fetchRecurringInsiders, fetchInsidersInsight, downloadCsv, type InsiderData } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { Wallet } from 'lucide-react'
+import PaginationBar from '../components/PaginationBar'
 
 type InsiderRow = InsiderData & { market?: string }
 type SortKey = keyof InsiderRow
@@ -39,6 +40,10 @@ export default function Insiders() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [filterMarket, setFilterMarket] = useState<'ALL' | 'US' | 'EU'>('ALL')
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 30
+
+  useEffect(() => { setPage(1) }, [filterMarket, sortKey])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -218,7 +223,7 @@ export default function Insiders() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sorted.slice(0, 60).map(d => {
+            {sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(d => {
               const company = getCompany(d)
               const normConf = normScore(d.confidence_score, maxScore)
               const isEu = d.market && d.market !== 'US'
@@ -304,6 +309,7 @@ export default function Insiders() {
           </CardContent>
         )}
       </Card>
+      <PaginationBar page={page} totalPages={Math.ceil(sorted.length / PAGE_SIZE)} onPage={setPage} />
     </>
   )
 }
