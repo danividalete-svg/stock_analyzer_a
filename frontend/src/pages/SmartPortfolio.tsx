@@ -40,75 +40,83 @@ function AllocationBar({ pick }: { pick: SmartPortfolioPick }) {
   )
 }
 
-function PickRow({ pick, rank }: { pick: SmartPortfolioPick; rank: number }) {
+function PickCard({ pick, rank }: { pick: SmartPortfolioPick; rank: number }) {
   const gradeCls = GRADE_COLOR[pick.conviction_grade] || GRADE_COLOR['C']
+  const score = pick.value_score
+  const scoreColor = score >= 75 ? 'text-emerald-400' : score >= 60 ? 'text-blue-400' : 'text-yellow-400'
+  const scoreBg = score >= 75 ? 'bg-emerald-500/10 border-emerald-500/30' : score >= 60 ? 'bg-blue-500/10 border-blue-500/30' : 'bg-yellow-500/10 border-yellow-500/30'
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-b border-border/20 last:border-0 hover:bg-muted/5 transition-colors">
-      {/* Rank + Ticker */}
-      <div className="flex items-center gap-2 min-w-[100px]">
-        <span className="text-[0.6rem] text-muted-foreground/50 font-bold w-4">#{rank}</span>
+    <div className="group relative border border-border/20 rounded-lg p-4 hover:border-primary/30 hover:bg-primary/3 transition-all">
+      {/* Rank badge */}
+      <div className="absolute -top-2.5 -left-2 w-6 h-6 rounded-md bg-muted border border-border/40 flex items-center justify-center">
+        <span className="text-[0.6rem] font-bold text-muted-foreground">#{rank}</span>
+      </div>
+
+      {/* Top row: ticker + company + grade */}
+      <div className="flex items-center gap-3 mb-3">
         <TickerLogo ticker={pick.ticker} size="xs" />
-        <div>
-          <div className="font-mono font-bold text-sm text-primary leading-tight">{pick.ticker}</div>
-          <div className="text-[0.6rem] text-muted-foreground/60 truncate max-w-[80px]">{pick.sector}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-mono font-bold text-base text-primary">{pick.ticker}</span>
+            <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded border ${gradeCls}`}>
+              {pick.conviction_grade}
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground/70 truncate">{pick.company}</div>
+        </div>
+        {/* Score circle */}
+        <div className={`flex-shrink-0 w-12 h-12 rounded-lg border ${scoreBg} flex flex-col items-center justify-center`}>
+          <span className={`text-lg font-bold leading-none ${scoreColor}`}>{score.toFixed(0)}</span>
+          <span className="text-[0.5rem] text-muted-foreground/50 mt-0.5">score</span>
         </div>
       </div>
 
-      {/* Company */}
-      <div className="flex-1 min-w-[120px]">
-        <div className="text-xs text-foreground/80 truncate">{pick.company}</div>
+      {/* Metrics row */}
+      <div className="grid grid-cols-4 gap-2 mb-3">
         {pick.current_price != null && (
-          <div className="text-[0.6rem] text-muted-foreground/60">${pick.current_price.toFixed(2)}</div>
+          <div className="text-center py-1.5 rounded-md bg-muted/30">
+            <div className="text-xs font-bold text-foreground">${pick.current_price.toFixed(2)}</div>
+            <div className="text-[0.5rem] text-muted-foreground/50">precio</div>
+          </div>
         )}
-      </div>
-
-      {/* Grade */}
-      <span className={`text-xs font-bold px-2 py-0.5 rounded border ${gradeCls}`}>
-        {pick.conviction_grade}
-      </span>
-
-      {/* Score */}
-      <div className="text-center min-w-[38px]">
-        <div className="text-sm font-bold text-foreground">{pick.value_score.toFixed(0)}</div>
-        <div className="text-[0.55rem] text-muted-foreground/50">score</div>
-      </div>
-
-      {/* Metrics */}
-      <div className="flex items-center gap-3 text-xs">
         {pick.analyst_upside_pct != null && (
-          <div className="text-center">
-            <div className={`font-bold ${pick.analyst_upside_pct >= 15 ? 'text-emerald-400' : 'text-foreground/70'}`}>
+          <div className="text-center py-1.5 rounded-md bg-muted/30">
+            <div className={`text-xs font-bold ${pick.analyst_upside_pct >= 15 ? 'text-emerald-400' : 'text-foreground/70'}`}>
               +{pick.analyst_upside_pct.toFixed(0)}%
             </div>
-            <div className="text-muted-foreground/50 text-[0.55rem]">upside</div>
+            <div className="text-[0.5rem] text-muted-foreground/50">upside</div>
           </div>
         )}
         {pick.fcf_yield_pct != null && (
-          <div className="text-center">
-            <div className={`font-bold ${pick.fcf_yield_pct >= 5 ? 'text-emerald-400' : 'text-foreground/60'}`}>
+          <div className="text-center py-1.5 rounded-md bg-muted/30">
+            <div className={`text-xs font-bold ${pick.fcf_yield_pct >= 5 ? 'text-emerald-400' : 'text-foreground/60'}`}>
               {pick.fcf_yield_pct.toFixed(1)}%
             </div>
-            <div className="text-muted-foreground/50 text-[0.55rem]">FCF</div>
+            <div className="text-[0.5rem] text-muted-foreground/50">FCF</div>
           </div>
         )}
         {pick.risk_reward_ratio != null && (
-          <div className="text-center">
-            <div className={`font-bold ${pick.risk_reward_ratio >= 2 ? 'text-emerald-400' : 'text-foreground/60'}`}>
+          <div className="text-center py-1.5 rounded-md bg-muted/30">
+            <div className={`text-xs font-bold ${pick.risk_reward_ratio >= 2 ? 'text-emerald-400' : 'text-foreground/60'}`}>
               {pick.risk_reward_ratio.toFixed(1)}x
             </div>
-            <div className="text-muted-foreground/50 text-[0.55rem]">R:R</div>
-          </div>
-        )}
-        {pick.days_to_earnings != null && pick.days_to_earnings <= 21 && (
-          <div className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded border ${pick.earnings_catalyst ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : 'text-orange-400 border-orange-500/30 bg-orange-500/10'}`}>
-            {pick.days_to_earnings}d earn
+            <div className="text-[0.5rem] text-muted-foreground/50">R:R</div>
           </div>
         )}
       </div>
 
-      {/* Allocation bar */}
-      <AllocationBar pick={pick} />
+      {/* Bottom: sector + earnings badge + allocation */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[0.6rem] text-muted-foreground/60 bg-muted/20 px-2 py-0.5 rounded">{pick.sector}</span>
+        {pick.days_to_earnings != null && pick.days_to_earnings <= 21 && (
+          <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded border ${pick.earnings_catalyst ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : 'text-orange-400 border-orange-500/30 bg-orange-500/10'}`}>
+            {pick.days_to_earnings}d earn
+          </span>
+        )}
+        <div className="flex-1" />
+        <AllocationBar pick={pick} />
+      </div>
     </div>
   )
 }
@@ -248,20 +256,18 @@ export default function SmartPortfolio() {
         </CardContent>
       </Card>
 
-      {/* Picks list */}
+      {/* Picks grid */}
       {data.picks.length > 0 ? (
-        <Card className="glass border border-border/40">
-          <CardContent className="p-0">
-            <div className="px-4 py-3 border-b border-border/30">
-              <span className="text-xs font-semibold text-muted-foreground">
-                {data.total_picks} posiciones · ordenadas por ranking algorítmico
-              </span>
-            </div>
+        <div>
+          <div className="text-xs font-semibold text-muted-foreground mb-3">
+            {data.total_picks} posiciones · ordenadas por ranking algorítmico
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {data.picks.map((pick, i) => (
-              <PickRow key={pick.ticker} pick={pick} rank={i + 1} />
+              <PickCard key={pick.ticker} pick={pick} rank={i + 1} />
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
         <Card className="glass border border-border/40">
           <CardContent className="p-8 text-center text-sm text-muted-foreground">
@@ -270,18 +276,7 @@ export default function SmartPortfolio() {
         </Card>
       )}
 
-      {/* AI Thesis */}
-      {data.portfolio_thesis && (
-        <Card className="glass border border-primary/20 bg-primary/5">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles size={14} className="text-primary" />
-              <span className="text-xs font-semibold text-primary">Tesis del portfolio (IA)</span>
-            </div>
-            <p className="text-sm text-foreground/85 leading-relaxed">{data.portfolio_thesis}</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* AI Thesis — already shown at top via AiNarrativeCard */}
 
       {/* Risk Notes */}
       {data.risk_notes.length > 0 && (
