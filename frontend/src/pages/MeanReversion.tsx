@@ -250,22 +250,48 @@ export default function MeanReversion() {
                 {expanded === d.ticker && (
                   <tr className="thesis-row">
                     <td colSpan={12}>
-                      <div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-[0.75rem]">
-                        {[
-                          { label: 'Soporte', value: d.support_level != null ? `$${d.support_level.toFixed(2)}` : '—' },
-                          { label: 'Resistencia', value: d.resistance_level != null ? `$${d.resistance_level.toFixed(2)}` : '—' },
-                          { label: 'Dist. a Soporte', value: d.distance_to_support_pct != null ? `${d.distance_to_support_pct.toFixed(1)}%` : '—' },
-                          { label: 'Volumen Ratio', value: d.volume_ratio != null ? `${Number(d.volume_ratio).toFixed(2)}x` : '—' },
-                          { label: 'Precio Actual', value: d.current_price != null ? `$${Number(d.current_price).toFixed(2)}` : '—' },
-                          { label: 'SMA 50', value: (d as Record<string,unknown>).sma_50 != null ? `$${Number((d as Record<string,unknown>).sma_50).toFixed(2)}` : '—' },
-                          { label: 'SMA 200', value: (d as Record<string,unknown>).sma_200 != null ? `$${Number((d as Record<string,unknown>).sma_200).toFixed(2)}` : '—' },
-                          { label: 'Detectado', value: d.detected_date || '—' },
-                        ].map(({ label, value }) => (
-                          <div key={label}>
-                            <div className="text-[0.6rem] uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
-                            <div className="font-semibold">{value}</div>
-                          </div>
-                        ))}
+                      <div className="px-5 py-4 space-y-3">
+                        {/* Price ladder */}
+                        <div className="flex items-center gap-2">
+                          {[
+                            { label: 'Soporte', value: d.support_level, color: 'emerald' as const },
+                            { label: 'Precio', value: d.current_price != null ? Number(d.current_price) : null, color: 'primary' as const },
+                            { label: 'Resistencia', value: d.resistance_level, color: 'red' as const },
+                          ].map(({ label, value, color }) => value != null && (
+                            <div key={label} className={`flex-1 rounded-lg border px-3 py-2 ${
+                              color === 'emerald' ? 'bg-emerald-500/8 border-emerald-500/20' :
+                              color === 'red' ? 'bg-red-500/8 border-red-500/15' :
+                              'bg-primary/6 border-primary/15'
+                            }`}>
+                              <div className={`text-sm font-bold tabular-nums ${
+                                color === 'emerald' ? 'text-emerald-400' :
+                                color === 'red' ? 'text-red-400' : 'text-primary'
+                              }`}>${value.toFixed(2)}</div>
+                              <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5">{label}</div>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Metrics grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-1.5 text-[0.75rem]">
+                          {[
+                            { label: 'Dist. Soporte', value: d.distance_to_support_pct != null ? `${d.distance_to_support_pct.toFixed(1)}%` : null,
+                              q: d.distance_to_support_pct != null ? (d.distance_to_support_pct <= 5 ? 'good' : '') : '' },
+                            { label: 'Vol. Ratio', value: d.volume_ratio != null ? `${Number(d.volume_ratio).toFixed(2)}x` : null,
+                              q: d.volume_ratio != null ? (Number(d.volume_ratio) >= 1.5 ? 'good' : '') : '' },
+                            { label: 'SMA 50', value: (d as Record<string,unknown>).sma_50 != null ? `$${Number((d as Record<string,unknown>).sma_50).toFixed(2)}` : null, q: '' },
+                            { label: 'SMA 200', value: (d as Record<string,unknown>).sma_200 != null ? `$${Number((d as Record<string,unknown>).sma_200).toFixed(2)}` : null, q: '' },
+                            { label: 'Detectado', value: d.detected_date || null, q: '' },
+                          ].filter(x => x.value != null).map(({ label, value, q }) => (
+                            <div key={label} className={`rounded-lg border px-2.5 py-2 ${
+                              q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' : 'bg-muted/12 border-border/20'
+                            }`}>
+                              <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${
+                                q === 'good' ? 'text-emerald-400' : 'text-foreground/70'
+                              }`}>{value}</div>
+                              <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </td>
                   </tr>

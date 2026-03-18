@@ -134,6 +134,28 @@ export default function TickerSearch() {
   }
   const ss = (key: string) => r?.[key] != null ? String(r[key]) : null
 
+  type Quality = 'good' | 'warn' | 'bad' | 'neutral'
+  const qualBg = (q: Quality) =>
+    q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' :
+    q === 'bad'  ? 'bg-red-500/8 border-red-500/15' :
+    q === 'warn' ? 'bg-amber-500/8 border-amber-500/15' :
+                   'bg-muted/12 border-border/20'
+  const qualText = (q: Quality) =>
+    q === 'good' ? 'text-emerald-400' :
+    q === 'bad'  ? 'text-red-400' :
+    q === 'warn' ? 'text-amber-400' :
+                   'text-foreground/70'
+
+  const Metric = ({ label, value, quality = 'neutral' }: { label: string; value: string | null; quality?: Quality }) => {
+    if (value == null) return null
+    return (
+      <div className={`rounded-lg border px-2.5 py-2 ${qualBg(quality)}`}>
+        <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${qualText(quality)}`}>{value}</div>
+        <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
+      </div>
+    )
+  }
+
   const Row = ({ label, value, cls }: { label: string; value: string | null; cls?: string }) => (
     <div className="flex items-center justify-between py-1.5 border-b border-border/20 last:border-0">
       <span className="text-xs text-muted-foreground">{label}</span>
@@ -269,106 +291,233 @@ export default function TickerSearch() {
               ))}
             </div>
 
-            {/* Analysis sections */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5">
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Entry / Exit</h4>
-                <Row label="Entry"     value={fmtDollar(sf('entry_price'))} />
-                <Row label="Stop Loss" value={fmtDollar(sf('stop_loss'))} cls="text-red-400" />
-                <Row label="Target"    value={fmtDollar(sf('target_price'))} cls="text-emerald-400" />
-                <Row label="R:R"       value={sf('risk_reward')?.toFixed(1) ?? null} cls={sf('risk_reward') != null && sf('risk_reward')! >= 2 ? 'text-emerald-400' : sf('risk_reward') != null && sf('risk_reward')! < 1 ? 'text-red-400' : ''} />
-              </div>
+            {/* ── Analysis sections — visual metric cards ── */}
+            <div className="space-y-5">
 
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Analistas</h4>
-                <Row label="Target"        value={fmtDollar(sf('target_price_analyst'))} />
-                <Row label="Upside"        value={fmtPct(sf('analyst_upside_pct'))} cls={colorPct(sf('analyst_upside_pct'))} />
-                <Row label="Recomendacion" value={ss('analyst_recommendation')} />
-                <Row label="Analistas"     value={sf('analyst_count')?.toFixed(0) ?? null} />
-                <Row label="DCF Target"    value={fmtDollar(sf('target_price_dcf'))} />
-                <Row label="DCF Upside"    value={fmtPct(sf('target_price_dcf_upside_pct'))} cls={colorPct(sf('target_price_dcf_upside_pct'))} />
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Fundamentales</h4>
-                <Row label="ROE"         value={sf('roe') != null ? `${(sf('roe')! * 100).toFixed(1)}%` : null} cls={sf('roe') != null ? (sf('roe')! > 0 ? 'text-emerald-400' : 'text-red-400') : ''} />
-                <Row label="ROIC"        value={sf('roic_greenblatt') != null ? `${sf('roic_greenblatt')!.toFixed(1)}%` : null} cls={sf('roic_greenblatt') != null && sf('roic_greenblatt')! >= 20 ? 'text-emerald-400' : sf('roic_greenblatt') != null && sf('roic_greenblatt')! >= 10 ? 'text-amber-400' : ''} />
-                <Row label="EBIT/EV"     value={sf('ebit_ev_yield') != null ? `${sf('ebit_ev_yield')!.toFixed(1)}%` : null} cls={sf('ebit_ev_yield') != null && sf('ebit_ev_yield')! >= 8 ? 'text-emerald-400' : ''} />
-                <Row label="FCF Yield"   value={fmtPct(sf('fcf_yield'))} cls={sf('fcf_yield') != null && sf('fcf_yield')! >= 5 ? 'text-emerald-400' : ''} />
-                <Row label="Forward P/E" value={sf('forward_pe')?.toFixed(1) ?? null} />
-                <Row label="PEG"         value={sf('peg_ratio')?.toFixed(2) ?? null} cls={sf('peg_ratio') != null && sf('peg_ratio')! <= 1 ? 'text-emerald-400' : ''} />
-                <Row label="Rev Growth"  value={sf('revenue_growth') != null ? `${(sf('revenue_growth')! * 100).toFixed(1)}%` : null} cls={colorPct(sf('revenue_growth'))} />
-                <Row label="Dividend"    value={sf('dividend_yield') != null ? `${sf('dividend_yield')!.toFixed(2)}%` : null} cls={sf('dividend_yield') != null && sf('dividend_yield')! > 0 ? 'text-emerald-400' : ''} />
-                <Row label="Buyback"     value={r?.buyback_active != null ? (r.buyback_active ? 'Si' : 'No') : null} cls={r?.buyback_active ? 'text-emerald-400' : ''} />
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Tecnicos</h4>
-                <Row label="MA Filter"     value={r?.ma_passes != null ? (r.ma_passes ? 'PASS' : 'FAIL') : null} cls={r?.ma_passes ? 'text-emerald-400' : 'text-red-400'} />
-                <Row label="A/D Signal"    value={ss('ad_signal')} cls={ss('ad_signal')?.includes('ACCUM') ? 'text-emerald-400' : ss('ad_signal')?.includes('DIST') ? 'text-red-400' : ''} />
-                <Row label="RS Line"       value={sf('rs_line_score')?.toFixed(1) ?? null} />
-                <Row label="Trend"         value={sf('trend_template_score') != null ? `${sf('trend_template_score')}/8` : null} cls={sf('trend_template_score') != null && sf('trend_template_score')! >= 7 ? 'text-emerald-400' : ''} />
-                <Row label="52w Proximity" value={fmtPct(sf('proximity_to_52w_high'))} cls={sf('proximity_to_52w_high') != null && sf('proximity_to_52w_high')! > -10 ? 'text-emerald-400' : ''} />
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Earnings</h4>
-                <Row label="EPS Growth YoY"   value={fmtPct(sf('eps_growth_yoy'))} cls={colorPct(sf('eps_growth_yoy'))} />
-                <Row label="EPS Accelerating" value={r?.eps_accelerating != null ? (r.eps_accelerating ? 'Si' : 'No') : null} cls={r?.eps_accelerating ? 'text-emerald-400' : ''} />
-                <Row label="Rev Growth YoY"   value={fmtPct(sf('rev_growth_yoy'))} cls={colorPct(sf('rev_growth_yoy'))} />
-                <Row label="Profit Margin"    value={fmtPct(sf('profit_margin_pct'))} cls={sf('profit_margin_pct') != null && sf('profit_margin_pct')! >= 15 ? 'text-emerald-400' : ''} />
-                <Row label="Next Earnings"    value={ss('next_earnings')} />
-                <Row label="Days to Earnings" value={sf('days_to_earnings')?.toFixed(0) ?? null} cls={sf('days_to_earnings') != null && sf('days_to_earnings')! <= 7 ? 'text-red-400' : sf('days_to_earnings') != null && sf('days_to_earnings')! <= 21 ? 'text-amber-400' : ''} />
-                {r?.earnings_warning != null && (
-                  <Row label="Earnings Warning" value={r.earnings_warning ? '⚠ Risky entry' : 'OK'} cls={r.earnings_warning ? 'text-amber-400' : 'text-emerald-400'} />
-                )}
-                {r?.earnings_catalyst != null && (
-                  <Row label="Earnings Catalyst" value={r.earnings_catalyst ? '🚀 Upcoming catalyst' : '—'} cls={r.earnings_catalyst ? 'text-emerald-400' : ''} />
-                )}
-              </div>
-
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Salud Financiera</h4>
-                {/* Piotroski F-Score — proven +13.4% annual alpha */}
-                {sf('piotroski_score') != null && (
-                  <div className="flex items-center justify-between py-1.5 border-b border-border/20">
-                    <span className="text-xs text-muted-foreground">Piotroski F-Score</span>
-                    <span className={`text-xs font-bold tabular-nums ${sf('piotroski_score')! >= 8 ? 'text-emerald-400' : sf('piotroski_score')! <= 2 ? 'text-red-400' : 'text-amber-400'}`}>
-                      {sf('piotroski_score')}/9 — {ss('piotroski_label')}
-                    </span>
+              {/* Entry / Exit + Analistas — side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Entry / Exit — price ladder */}
+                {(sf('entry_price') != null || sf('stop_loss') != null || sf('target_price') != null) && (
+                  <div className="rounded-xl border border-border/30 border-l-2 border-l-primary/50 overflow-hidden">
+                    <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
+                      <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Entry / Exit</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5 p-3">
+                      <Metric label="Entrada" value={fmtDollar(sf('entry_price'))} quality="neutral" />
+                      <Metric label="Stop Loss" value={fmtDollar(sf('stop_loss'))} quality="bad" />
+                      <Metric label="Target" value={fmtDollar(sf('target_price'))} quality="good" />
+                      <Metric label="R:R" value={sf('risk_reward')?.toFixed(1) ?? null}
+                        quality={sf('risk_reward') != null ? (sf('risk_reward')! >= 2 ? 'good' : sf('risk_reward')! < 1 ? 'bad' : 'warn') : 'neutral'} />
+                    </div>
                   </div>
                 )}
-                <Row label="Current Ratio"     value={sf('current_ratio')?.toFixed(2) ?? null} cls={sf('current_ratio') != null && sf('current_ratio')! >= 1.5 ? 'text-emerald-400' : sf('current_ratio') != null && sf('current_ratio')! < 1 ? 'text-red-400' : ''} />
-                <Row label="Debt/Equity"       value={sf('debt_to_equity_fund')?.toFixed(2) ?? sf('debt_to_equity')?.toFixed(2) ?? null} cls={sf('debt_to_equity_fund') != null && sf('debt_to_equity_fund')! > 2 ? 'text-red-400' : ''} />
-                <Row label="Operating Margin"  value={fmtPct(sf('operating_margin_pct'))} cls={sf('operating_margin_pct') != null && sf('operating_margin_pct')! >= 20 ? 'text-emerald-400' : ''} />
-                <Row label="Interest Coverage" value={sf('interest_coverage')?.toFixed(1) ?? null} cls={sf('interest_coverage') != null && sf('interest_coverage')! >= 5 ? 'text-emerald-400' : sf('interest_coverage') != null && sf('interest_coverage')! < 2 ? 'text-red-400' : ''} />
-                <Row label="FCF per Share"     value={sf('fcf_per_share') != null ? `$${sf('fcf_per_share')!.toFixed(2)}` : null} cls={sf('fcf_per_share') != null && sf('fcf_per_share')! > 0 ? 'text-emerald-400' : sf('fcf_per_share') != null && sf('fcf_per_share')! < 0 ? 'text-red-400' : ''} />
-                <Row label="Payout Ratio"      value={fmtPct(sf('payout_ratio'))} />
-                <Row label="Analyst Revision"  value={sf('analyst_revision') != null ? (sf('analyst_revision')! > 0 ? `+${sf('analyst_revision')!.toFixed(1)}` : sf('analyst_revision')!.toFixed(1)) : null} cls={sf('analyst_revision') != null && sf('analyst_revision')! > 0 ? 'text-emerald-400' : sf('analyst_revision') != null && sf('analyst_revision')! < 0 ? 'text-red-400' : ''} />
+
+                {/* Analistas — consensus card */}
+                {(sf('target_price_analyst') != null || sf('analyst_upside_pct') != null) && (
+                  <div className="rounded-xl border border-border/30 border-l-2 border-l-emerald-500/50 overflow-hidden">
+                    <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
+                      <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Analistas</span>
+                    </div>
+                    <div className="p-3 space-y-2">
+                      {/* Main consensus */}
+                      {sf('target_price_analyst') != null && (
+                        <div className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${sf('analyst_upside_pct') != null && sf('analyst_upside_pct')! >= 0 ? 'bg-emerald-500/8 border-emerald-500/15' : 'bg-red-500/8 border-red-500/15'}`}>
+                          <div className="flex-1">
+                            <div className="flex items-baseline gap-2">
+                              <span className={`text-sm font-bold tabular-nums ${sf('analyst_upside_pct') != null && sf('analyst_upside_pct')! >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {fmtDollar(sf('target_price_analyst'))}
+                              </span>
+                              {sf('analyst_upside_pct') != null && (
+                                <span className={`text-[0.7rem] font-semibold ${sf('analyst_upside_pct')! >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
+                                  {sf('analyst_upside_pct')! >= 0 ? '+' : ''}{sf('analyst_upside_pct')!.toFixed(1)}%
+                                </span>
+                              )}
+                              {ss('analyst_recommendation') && (
+                                <span className={`px-1.5 py-0.5 rounded text-[0.55rem] font-bold uppercase ${
+                                  ss('analyst_recommendation')!.toLowerCase().includes('buy') ? 'bg-emerald-500/15 text-emerald-300' :
+                                  ss('analyst_recommendation')!.toLowerCase().includes('sell') ? 'bg-red-500/15 text-red-300' :
+                                  'bg-amber-500/15 text-amber-300'
+                                }`}>{ss('analyst_recommendation')}</span>
+                              )}
+                            </div>
+                            <div className="text-[0.6rem] text-muted-foreground/50 mt-0.5">
+                              Consenso {sf('analyst_count') != null ? `${sf('analyst_count')!.toFixed(0)} analistas` : ''}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {/* DCF row */}
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <Metric label="DCF Target" value={fmtDollar(sf('target_price_dcf'))}
+                          quality={sf('target_price_dcf_upside_pct') != null ? (sf('target_price_dcf_upside_pct')! >= 0 ? 'good' : 'bad') : 'neutral'} />
+                        <Metric label="DCF Upside" value={fmtPct(sf('target_price_dcf_upside_pct'))}
+                          quality={sf('target_price_dcf_upside_pct') != null ? (sf('target_price_dcf_upside_pct')! >= 20 ? 'good' : sf('target_price_dcf_upside_pct')! < 0 ? 'bad' : 'warn') : 'neutral'} />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Señales</h4>
-                <Row label="Insiders Score" value={sf('insiders_score')?.toFixed(0) ?? null} />
-                {(r?.insider_recurring as Record<string, unknown>) && (
-                  <>
-                    <Row label="Insider Compras"   value={String((r.insider_recurring as Record<string, unknown>).purchase_count ?? '—')} />
-                    <Row label="Insider Confianza" value={String((r.insider_recurring as Record<string, unknown>).confidence_score ?? '—')} />
-                  </>
-                )}
-                {(r?.options_flow as Record<string, unknown>) && (
-                  <>
-                    <Row label="Options Sentiment" value={String((r.options_flow as Record<string, unknown>).sentiment ?? '—')} />
-                    <Row label="Options Score"     value={String((r.options_flow as Record<string, unknown>).flow_score ?? '—')} />
-                  </>
-                )}
-                {(r?.mean_reversion as Record<string, unknown>) && (
-                  <>
-                    <Row label="MR Strategy" value={String((r.mean_reversion as Record<string, unknown>).strategy ?? '—')} />
-                    <Row label="MR Score"    value={String((r.mean_reversion as Record<string, unknown>).reversion_score ?? '—')} />
-                  </>
-                )}
+              {/* Fundamentales + Tecnicos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-blue-500/50 overflow-hidden">
+                  <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
+                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Fundamentales</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 p-3">
+                    <Metric label="ROE" value={sf('roe') != null ? `${(sf('roe')! * 100).toFixed(1)}%` : null}
+                      quality={sf('roe') != null ? (sf('roe')! >= 0.15 ? 'good' : sf('roe')! < 0 ? 'bad' : 'neutral') : 'neutral'} />
+                    <Metric label="ROIC" value={sf('roic_greenblatt') != null ? `${sf('roic_greenblatt')!.toFixed(1)}%` : null}
+                      quality={sf('roic_greenblatt') != null ? (sf('roic_greenblatt')! >= 20 ? 'good' : sf('roic_greenblatt')! >= 10 ? 'warn' : 'neutral') : 'neutral'} />
+                    <Metric label="EBIT/EV" value={sf('ebit_ev_yield') != null ? `${sf('ebit_ev_yield')!.toFixed(1)}%` : null}
+                      quality={sf('ebit_ev_yield') != null && sf('ebit_ev_yield')! >= 8 ? 'good' : 'neutral'} />
+                    <Metric label="FCF Yield" value={fmtPct(sf('fcf_yield'))}
+                      quality={sf('fcf_yield') != null ? (sf('fcf_yield')! >= 5 ? 'good' : sf('fcf_yield')! < 0 ? 'bad' : 'neutral') : 'neutral'} />
+                    <Metric label="Forward P/E" value={sf('forward_pe')?.toFixed(1) ?? null}
+                      quality={sf('forward_pe') != null ? (sf('forward_pe')! <= 15 ? 'good' : sf('forward_pe')! > 30 ? 'bad' : 'neutral') : 'neutral'} />
+                    <Metric label="PEG" value={sf('peg_ratio')?.toFixed(2) ?? null}
+                      quality={sf('peg_ratio') != null ? (sf('peg_ratio')! <= 1 ? 'good' : sf('peg_ratio')! > 2 ? 'bad' : 'neutral') : 'neutral'} />
+                    <Metric label="Rev Growth" value={sf('revenue_growth') != null ? `${(sf('revenue_growth')! * 100).toFixed(1)}%` : null}
+                      quality={sf('revenue_growth') != null ? (sf('revenue_growth')! > 0 ? 'good' : 'bad') : 'neutral'} />
+                    <Metric label="Dividend" value={sf('dividend_yield') != null ? `${sf('dividend_yield')!.toFixed(2)}%` : null}
+                      quality={sf('dividend_yield') != null && sf('dividend_yield')! > 0 ? 'good' : 'neutral'} />
+                    <Metric label="Buyback" value={r?.buyback_active != null ? (r.buyback_active ? 'Activo' : 'No') : null}
+                      quality={r?.buyback_active ? 'good' : 'neutral'} />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-cyan-500/50 overflow-hidden">
+                  <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
+                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Técnicos</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 p-3">
+                    <Metric label="MA Filter" value={r?.ma_passes != null ? (r.ma_passes ? 'PASS' : 'FAIL') : null}
+                      quality={r?.ma_passes ? 'good' : r?.ma_passes === false ? 'bad' : 'neutral'} />
+                    <Metric label="A/D Signal" value={ss('ad_signal')}
+                      quality={ss('ad_signal')?.includes('ACCUM') ? 'good' : ss('ad_signal')?.includes('DIST') ? 'bad' : 'neutral'} />
+                    <Metric label="RS Line" value={sf('rs_line_score')?.toFixed(1) ?? null} />
+                    <Metric label="Trend" value={sf('trend_template_score') != null ? `${sf('trend_template_score')}/8` : null}
+                      quality={sf('trend_template_score') != null ? (sf('trend_template_score')! >= 7 ? 'good' : sf('trend_template_score')! <= 3 ? 'bad' : 'neutral') : 'neutral'} />
+                    <Metric label="52w Prox." value={fmtPct(sf('proximity_to_52w_high'))}
+                      quality={sf('proximity_to_52w_high') != null ? (sf('proximity_to_52w_high')! > -10 ? 'good' : sf('proximity_to_52w_high')! < -25 ? 'bad' : 'warn') : 'neutral'} />
+                  </div>
+                </div>
               </div>
+
+              {/* Earnings + Salud Financiera */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-amber-500/50 overflow-hidden">
+                  <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
+                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Earnings</span>
+                  </div>
+                  <div className="p-3 space-y-2">
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <Metric label="EPS Growth" value={fmtPct(sf('eps_growth_yoy'))}
+                        quality={sf('eps_growth_yoy') != null ? (sf('eps_growth_yoy')! > 0 ? 'good' : 'bad') : 'neutral'} />
+                      <Metric label="EPS Accel." value={r?.eps_accelerating != null ? (r.eps_accelerating ? 'Sí' : 'No') : null}
+                        quality={r?.eps_accelerating ? 'good' : 'neutral'} />
+                      <Metric label="Rev Growth" value={fmtPct(sf('rev_growth_yoy'))}
+                        quality={sf('rev_growth_yoy') != null ? (sf('rev_growth_yoy')! > 0 ? 'good' : 'bad') : 'neutral'} />
+                      <Metric label="Profit Margin" value={fmtPct(sf('profit_margin_pct'))}
+                        quality={sf('profit_margin_pct') != null ? (sf('profit_margin_pct')! >= 15 ? 'good' : sf('profit_margin_pct')! < 5 ? 'bad' : 'neutral') : 'neutral'} />
+                      <Metric label="Next Earnings" value={ss('next_earnings')} />
+                      <Metric label="Days" value={sf('days_to_earnings')?.toFixed(0) ?? null}
+                        quality={sf('days_to_earnings') != null ? (sf('days_to_earnings')! <= 7 ? 'bad' : sf('days_to_earnings')! <= 21 ? 'warn' : 'good') : 'neutral'} />
+                    </div>
+                    {/* Warning/Catalyst badges */}
+                    {(r?.earnings_warning || r?.earnings_catalyst) && (
+                      <div className="flex gap-2 flex-wrap">
+                        {r?.earnings_warning && (
+                          <span className="text-[0.65rem] px-2 py-0.5 rounded-lg border bg-red-500/8 border-red-500/20 text-red-400">⚠ Risky entry</span>
+                        )}
+                        {r?.earnings_catalyst && (
+                          <span className="text-[0.65rem] px-2 py-0.5 rounded-lg border bg-emerald-500/8 border-emerald-500/20 text-emerald-400">🚀 Catalyst</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-violet-500/50 overflow-hidden">
+                  <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
+                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Salud Financiera</span>
+                  </div>
+                  <div className="p-3 space-y-2">
+                    {/* Piotroski F-Score — visual bar */}
+                    {sf('piotroski_score') != null && (() => {
+                      const ps = sf('piotroski_score')!
+                      const pq: Quality = ps >= 8 ? 'good' : ps <= 2 ? 'bad' : ps >= 6 ? 'warn' : 'neutral'
+                      return (
+                        <div className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${qualBg(pq)}`}>
+                          <div className="flex-1">
+                            <div className="flex items-baseline gap-2">
+                              <span className={`text-sm font-bold tabular-nums ${qualText(pq)}`}>{ps}/9</span>
+                              <span className="text-[0.65rem] text-muted-foreground/60">{ss('piotroski_label')}</span>
+                            </div>
+                            <div className="flex gap-0.5 mt-1.5">
+                              {Array.from({ length: 9 }).map((_, i) => (
+                                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < ps ? (pq === 'good' ? 'bg-emerald-400' : pq === 'bad' ? 'bg-red-400' : 'bg-amber-400') : 'bg-muted/30'}`} />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/40 shrink-0">F-Score</div>
+                        </div>
+                      )
+                    })()}
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <Metric label="Current Ratio" value={sf('current_ratio')?.toFixed(2) ?? null}
+                        quality={sf('current_ratio') != null ? (sf('current_ratio')! >= 1.5 ? 'good' : sf('current_ratio')! < 1 ? 'bad' : 'warn') : 'neutral'} />
+                      <Metric label="Debt/Equity" value={sf('debt_to_equity_fund')?.toFixed(2) ?? sf('debt_to_equity')?.toFixed(2) ?? null}
+                        quality={(sf('debt_to_equity_fund') ?? sf('debt_to_equity')) != null ? ((sf('debt_to_equity_fund') ?? sf('debt_to_equity'))! <= 0.5 ? 'good' : (sf('debt_to_equity_fund') ?? sf('debt_to_equity'))! > 2 ? 'bad' : 'warn') : 'neutral'} />
+                      <Metric label="Op. Margin" value={fmtPct(sf('operating_margin_pct'))}
+                        quality={sf('operating_margin_pct') != null ? (sf('operating_margin_pct')! >= 20 ? 'good' : sf('operating_margin_pct')! < 5 ? 'bad' : 'neutral') : 'neutral'} />
+                      <Metric label="Int. Coverage" value={sf('interest_coverage')?.toFixed(1) ?? null}
+                        quality={sf('interest_coverage') != null ? (sf('interest_coverage')! >= 5 ? 'good' : sf('interest_coverage')! < 2 ? 'bad' : 'warn') : 'neutral'} />
+                      <Metric label="FCF/Share" value={sf('fcf_per_share') != null ? `$${sf('fcf_per_share')!.toFixed(2)}` : null}
+                        quality={sf('fcf_per_share') != null ? (sf('fcf_per_share')! > 0 ? 'good' : 'bad') : 'neutral'} />
+                      <Metric label="Payout" value={fmtPct(sf('payout_ratio'))}
+                        quality={sf('payout_ratio') != null ? (sf('payout_ratio')! <= 60 ? 'good' : sf('payout_ratio')! > 90 ? 'bad' : 'warn') : 'neutral'} />
+                    </div>
+                    {sf('analyst_revision') != null && (
+                      <Metric label="Analyst Revision" value={sf('analyst_revision')! > 0 ? `+${sf('analyst_revision')!.toFixed(1)}` : sf('analyst_revision')!.toFixed(1)}
+                        quality={sf('analyst_revision')! > 0 ? 'good' : sf('analyst_revision')! < 0 ? 'bad' : 'neutral'} />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Señales */}
+              {(sf('insiders_score') != null || r?.insider_recurring || r?.options_flow || r?.mean_reversion) && (
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-purple-500/50 overflow-hidden">
+                  <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
+                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Señales</span>
+                  </div>
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 p-3">
+                    <Metric label="Insiders Score" value={sf('insiders_score')?.toFixed(0) ?? null}
+                      quality={sf('insiders_score') != null ? (sf('insiders_score')! >= 70 ? 'good' : sf('insiders_score')! <= 30 ? 'bad' : 'neutral') : 'neutral'} />
+                    {(r?.insider_recurring as Record<string, unknown>) && (
+                      <>
+                        <Metric label="Compras" value={String((r.insider_recurring as Record<string, unknown>).purchase_count ?? '—')} quality="neutral" />
+                        <Metric label="Confianza" value={String((r.insider_recurring as Record<string, unknown>).confidence_score ?? '—')}
+                          quality={Number((r.insider_recurring as Record<string, unknown>).confidence_score ?? 0) >= 70 ? 'good' : 'neutral'} />
+                      </>
+                    )}
+                    {(r?.options_flow as Record<string, unknown>) && (
+                      <>
+                        <Metric label="Options" value={String((r.options_flow as Record<string, unknown>).sentiment ?? '—')}
+                          quality={String((r.options_flow as Record<string, unknown>).sentiment ?? '').toLowerCase().includes('bull') ? 'good' : String((r.options_flow as Record<string, unknown>).sentiment ?? '').toLowerCase().includes('bear') ? 'bad' : 'neutral'} />
+                        <Metric label="Flow Score" value={String((r.options_flow as Record<string, unknown>).flow_score ?? '—')} />
+                      </>
+                    )}
+                    {(r?.mean_reversion as Record<string, unknown>) && (
+                      <>
+                        <Metric label="MR Strategy" value={String((r.mean_reversion as Record<string, unknown>).strategy ?? '—')} />
+                        <Metric label="MR Score" value={String((r.mean_reversion as Record<string, unknown>).reversion_score ?? '—')} />
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {aiNarrative && (

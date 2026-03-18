@@ -266,20 +266,26 @@ export default function Insiders() {
                   {expanded === d.ticker && (
                     <tr className="thesis-row">
                       <td colSpan={8}>
-                        <div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-[0.75rem]">
+                        <div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-[0.75rem]">
                           {[
-                            { label: 'Empresa', value: company },
-                            { label: 'Mercado', value: d.market ?? 'US' },
-                            { label: 'Total compras', value: d.purchase_count },
-                            { label: 'Directivos únicos', value: d.unique_insiders },
-                            { label: 'Acciones compradas', value: fmtQty(d.total_qty) },
-                            { label: 'Periodo activo', value: `${d.days_span} días` },
-                            { label: 'Primera compra', value: d.first_purchase || '—' },
-                            { label: 'Última compra', value: d.last_purchase },
-                          ].map(({ label, value }) => (
-                            <div key={label}>
-                              <div className="text-[0.6rem] uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
-                              <div className="font-semibold">{String(value)}</div>
+                            { label: 'Empresa', value: company, q: '' },
+                            { label: 'Mercado', value: d.market ?? 'US', q: '' },
+                            { label: 'Total compras', value: d.purchase_count, q: Number(d.purchase_count) >= 5 ? 'good' : Number(d.purchase_count) >= 3 ? 'warn' : '' },
+                            { label: 'Directivos únicos', value: d.unique_insiders, q: d.unique_insiders >= 3 ? 'good' : d.unique_insiders >= 2 ? 'warn' : '' },
+                            { label: 'Acciones compradas', value: fmtQty(d.total_qty), q: '' },
+                            { label: 'Periodo activo', value: `${d.days_span} días`, q: d.days_span >= 30 ? 'good' : '' },
+                            { label: 'Primera compra', value: d.first_purchase || '—', q: '' },
+                            { label: 'Última compra', value: d.last_purchase, q: '' },
+                          ].map(({ label, value, q }) => (
+                            <div key={label} className={`rounded-lg border px-2.5 py-2 ${
+                              q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' :
+                              q === 'warn' ? 'bg-amber-500/8 border-amber-500/15' :
+                              'bg-muted/12 border-border/20'
+                            }`}>
+                              <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${
+                                q === 'good' ? 'text-emerald-400' : q === 'warn' ? 'text-amber-400' : 'text-foreground/70'
+                              }`}>{String(value)}</div>
+                              <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
                             </div>
                           ))}
                         </div>
