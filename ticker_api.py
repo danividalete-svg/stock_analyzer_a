@@ -2235,22 +2235,23 @@ Para options_strategy: sé específico — si recomiendas COVERED_CALL indica el
 
 @app.route('/api/options-chain/<ticker>')
 def options_chain(ticker: str):
-    """Return real options contracts for a ticker with Groq strategy recommendation.
+    """Return real options contracts across all horizons + thesis-aware Groq recommendation.
 
-    Returns the 2 nearest monthly expiries (30-60 days out) with:
-    - Covered call candidates: OTM calls ~5-15% above spot, sorted by premium
-    - Protective put candidates: OTM puts ~5-15% below spot
-    - Groq strategy recommendation based on position context
+    Buckets expiries into short (30-75d), medium (3-6mo), long (6-15mo LEAPS).
+    Groq receives the full investment thesis and selects the optimal contract
+    across ALL horizons — not just the nearest expiry.
     """
-    import yfinance as _yf, json as _json, os as _os
-    from datetime import datetime as _dt, timedelta as _td
-    import math as _math
+    import yfinance as _yf, json as _json, os as _os, re as _re
+    from datetime import datetime as _dt
 
-    ticker = ticker.upper().strip()
+    ticker    = ticker.upper().strip()
     cur_price = float(request.args.get('price', 0) or 0)
     pl_pct    = float(request.args.get('pl', 0) or 0)
     upside    = float(request.args.get('upside', 0) or 0)
     action    = request.args.get('action', 'MANTENER')
+    conviction= request.args.get('conviction', 'MEDIA')
+    thesis    = (request.args.get('thesis', '') or '')[:800]   # AI analysis text
+    key_risk  = (request.args.get('key_risk', '') or '')[:300]
 
     try:
         t = _yf.Ticker(ticker)
@@ -2261,130 +2262,162 @@ def options_chain(ticker: str):
         if not cur_price:
             return jsonify({'error': 'No se pudo obtener precio actual'}), 400
 
-        expiries = t.options  # list of 'YYYY-MM-DD' strings
-        if not expiries:
+        all_expiries = t.options
+        if not all_expiries:
             return jsonify({'error': f'{ticker} no tiene opciones negociables (puede ser acción europea o de baja liquidez)'}), 404
 
-        # Pick expiries 25-55 days out (ideal for covered calls / theta decay)
+        # ── Bucket all available expiries ─────────────────────────────────
         today = _dt.now().date()
-        target_expiries = []
-        for exp in expiries:
+
+        def bucket(days):
+            if days < 75:    return 'short'    # 30-75d: covered call income
+            if days < 180:   return 'medium'   # 3-6mo: balanced
+            if days <= 450:  return 'long'     # 6-15mo: LEAPS, thesis plays
+            return None
+
+        buckets = {'short': [], 'medium': [], 'long': []}
+        for exp in all_expiries:
             d = _dt.strptime(exp, '%Y-%m-%d').date()
             days_out = (d - today).days
-            if 25 <= days_out <= 70:
-                target_expiries.append((days_out, exp))
-        if not target_expiries:
-            # fallback: nearest 2 expiries regardless
-            for exp in expiries[:3]:
-                d = _dt.strptime(exp, '%Y-%m-%d').date()
-                target_expiries.append(((d - today).days, exp))
+            if days_out < 20:
+                continue
+            b = bucket(days_out)
+            if b and len(buckets[b]) < 2:   # max 2 per bucket
+                buckets[b].append((days_out, exp))
 
-        target_expiries.sort()
-        selected = [e for _, e in target_expiries[:2]]
+        # Fall back: if no buckets filled, take first 3 available
+        selected_expiries = []
+        for b in ['short', 'medium', 'long']:
+            selected_expiries.extend(buckets[b])
+        if not selected_expiries:
+            for exp in all_expiries[:3]:
+                d = _dt.strptime(exp, '%Y-%m-%d').date()
+                selected_expiries.append(((d - today).days, exp))
+
+        selected_expiries.sort()
+
+        def row_to_dict(row, kind, days_out):
+            d = {
+                'strike':        round(float(row['strike']), 2),
+                'bid':           round(float(row.get('bid', 0) or 0), 2),
+                'ask':           round(float(row.get('ask', 0) or 0), 2),
+                'mid':           round(float(row.get('mid', 0) or 0), 2),
+                'volume':        int(row.get('volume', 0) or 0),
+                'open_interest': int(row.get('openInterest', 0) or 0),
+                'iv':            round(float(row.get('impliedVolatility', 0) or 0) * 100, 1),
+                'pct_otm':       round(float(row.get('pct_otm', 0) or 0), 1),
+            }
+            if kind == 'call':
+                d['annual_yield_pct'] = round(float(row.get('annual_yield', 0) or 0), 1)
+            else:
+                d['cost_pct'] = round(float(row.get('cost_pct', 0) or 0), 1)
+            return d
 
         result_expiries = []
-        for exp in selected:
+        for days_out, exp in selected_expiries:
             chain = t.option_chain(exp)
-            days_out = (_dt.strptime(exp, '%Y-%m-%d').date() - today).days
 
-            # ── Covered call candidates: calls 3-18% OTM ──────────────────
             calls_df = chain.calls.copy()
             calls_df = calls_df[
-                (calls_df['strike'] > cur_price * 1.03) &
-                (calls_df['strike'] < cur_price * 1.18) &
+                (calls_df['strike'] > cur_price * 1.02) &
+                (calls_df['strike'] < cur_price * 1.25) &
                 (calls_df['bid'] > 0)
             ].copy()
-            calls_df['mid']         = (calls_df['bid'] + calls_df['ask']) / 2
-            calls_df['pct_otm']     = (calls_df['strike'] - cur_price) / cur_price * 100
-            calls_df['annual_yield']= calls_df['mid'] / cur_price * (365 / days_out) * 100
-            calls_df = calls_df.nlargest(4, 'volume') if len(calls_df) > 4 else calls_df
+            if not calls_df.empty:
+                calls_df['mid']          = (calls_df['bid'] + calls_df['ask']) / 2
+                calls_df['pct_otm']      = (calls_df['strike'] - cur_price) / cur_price * 100
+                calls_df['annual_yield'] = calls_df['mid'] / cur_price * (365 / days_out) * 100
+                calls_df = calls_df.nlargest(5, 'openInterest')
 
-            # ── Protective put candidates: puts 3-15% OTM (below) ─────────
             puts_df = chain.puts.copy()
             puts_df = puts_df[
-                (puts_df['strike'] < cur_price * 0.97) &
-                (puts_df['strike'] > cur_price * 0.85) &
+                (puts_df['strike'] < cur_price * 0.98) &
+                (puts_df['strike'] > cur_price * 0.80) &
                 (puts_df['bid'] > 0)
             ].copy()
-            puts_df['mid']      = (puts_df['bid'] + puts_df['ask']) / 2
-            puts_df['pct_otm']  = (cur_price - puts_df['strike']) / cur_price * 100
-            puts_df['cost_pct'] = puts_df['mid'] / cur_price * 100
-            puts_df = puts_df.nlargest(4, 'volume') if len(puts_df) > 4 else puts_df
-
-            def row_to_dict(row, kind):
-                d = {
-                    'strike': round(float(row['strike']), 2),
-                    'bid':    round(float(row.get('bid', 0) or 0), 2),
-                    'ask':    round(float(row.get('ask', 0) or 0), 2),
-                    'mid':    round(float(row.get('mid', 0) or 0), 2),
-                    'volume': int(row.get('volume', 0) or 0),
-                    'open_interest': int(row.get('openInterest', 0) or 0),
-                    'iv':     round(float(row.get('impliedVolatility', 0) or 0) * 100, 1),
-                    'pct_otm': round(float(row.get('pct_otm', 0) or 0), 1),
-                }
-                if kind == 'call':
-                    d['annual_yield_pct'] = round(float(row.get('annual_yield', 0) or 0), 1)
-                else:
-                    d['cost_pct'] = round(float(row.get('cost_pct', 0) or 0), 1)
-                return d
+            if not puts_df.empty:
+                puts_df['mid']      = (puts_df['bid'] + puts_df['ask']) / 2
+                puts_df['pct_otm']  = (cur_price - puts_df['strike']) / cur_price * 100
+                puts_df['cost_pct'] = puts_df['mid'] / cur_price * 100
+                puts_df = puts_df.nlargest(5, 'openInterest')
 
             result_expiries.append({
-                'expiry':   exp,
-                'days_out': days_out,
-                'covered_calls': [row_to_dict(r, 'call') for _, r in calls_df.iterrows()],
-                'protective_puts': [row_to_dict(r, 'put') for _, r in puts_df.iterrows()],
+                'expiry':          exp,
+                'days_out':        days_out,
+                'bucket':          bucket(days_out) or 'short',
+                'covered_calls':   [row_to_dict(r, 'call', days_out) for _, r in calls_df.iterrows()],
+                'protective_puts': [row_to_dict(r, 'put',  days_out) for _, r in puts_df.iterrows()],
             })
 
-        # ── Groq recommendation based on best contracts ────────────────────
+        # ── Thesis-aware Groq recommendation across ALL horizons ──────────
         groq_key = _os.environ.get('GROQ_API_KEY', '')
         ai_recommendation = None
         if groq_key and result_expiries:
-            best_exp = result_expiries[0]
-            calls_summary = ', '.join(
-                f"strike ${c['strike']} prima ${c['mid']} ({c['annual_yield_pct']}% anual, {c['pct_otm']}% OTM)"
-                for c in best_exp['covered_calls'][:3]
-            ) or 'sin liquidez'
-            puts_summary = ', '.join(
-                f"strike ${p['strike']} prima ${p['mid']} (coste {p['cost_pct']}% del nominal, {p['pct_otm']}% OTM)"
-                for p in best_exp['protective_puts'][:3]
-            ) or 'sin liquidez'
+            # Build a compact contracts summary per expiry for Groq
+            contracts_text = []
+            for exp_data in result_expiries:
+                calls_str = '; '.join(
+                    f"CALL ${c['strike']} prima ${c['mid']} yield={c['annual_yield_pct']}%/año OTM={c['pct_otm']}%"
+                    for c in exp_data['covered_calls'][:3]
+                ) or 'sin liquidez'
+                puts_str = '; '.join(
+                    f"PUT ${p['strike']} prima ${p['mid']} coste={p['cost_pct']}% OTM={p['pct_otm']}%"
+                    for p in exp_data['protective_puts'][:3]
+                ) or 'sin liquidez'
+                contracts_text.append(
+                    f"  [{exp_data['bucket'].upper()} — {exp_data['expiry']} ({exp_data['days_out']}d)]\n"
+                    f"    Calls: {calls_str}\n"
+                    f"    Puts:  {puts_str}"
+                )
 
-            prompt = f"""Eres un especialista en opciones para inversores value. Analiza esta situación:
+            thesis_block = f"\nTesis de inversión: {thesis}" if thesis else ''
+            risk_block   = f"\nRiesgo principal: {key_risk}" if key_risk else ''
 
-Ticker: {ticker} | Precio actual: ${cur_price:.2f}
-P&L posición: {pl_pct:+.1f}% | Upside analistas restante: {upside:+.1f}%
-Acción recomendada por análisis fundamental: {action}
+            prompt = f"""Eres un especialista en opciones para inversores value/GARP. Analiza TODA la cadena de opciones disponible y elige el contrato ÓPTIMO teniendo en cuenta la tesis de inversión.
 
-Opciones disponibles para {best_exp['expiry']} ({best_exp['days_out']} días):
-CALLS OTM disponibles: {calls_summary}
-PUTS OTM disponibles: {puts_summary}
+POSICIÓN:
+Ticker: {ticker} | Precio: ${cur_price:.2f} | P&L: {pl_pct:+.1f}% | Upside analistas: {upside:+.1f}%
+Acción fundamental: {action} | Convicción: {conviction}{thesis_block}{risk_block}
 
-Responde SOLO en JSON válido:
+CADENA DE OPCIONES DISPONIBLE (corto/medio/largo plazo):
+{chr(10).join(contracts_text)}
+
+INSTRUCCIONES:
+- Considera el horizonte temporal de la tesis: si hay un catalizador a 6-12 meses, un LEAPS puede ser mejor que un covered call a 45 días
+- Si la convicción es ALTA y el upside es grande, no vendas covered calls que limiten el upside — mejor un protective put o simplemente hold
+- Si hay poca convicción o el upside es bajo, covered call OTM genera ingreso sin sacrificar mucho
+- Elige el expiry que mejor case con el timing del catalizador o del rerating esperado
+- Sé MUY específico con el strike y expiry elegido
+
+Responde SOLO en JSON válido (sin markdown, sin texto extra):
 {{
-  "recommended_strategy": "COVERED_CALL | PROTECTIVE_PUT | COLLAR | HOLD",
+  "recommended_strategy": "COVERED_CALL | PROTECTIVE_PUT | COLLAR | LEAPS_CALL | CASH_SECURED_PUT | HOLD",
+  "thesis_alignment": "cómo encaja esta estrategia con la tesis de inversión en 1-2 frases",
   "primary_contract": {{
     "type": "call | put",
     "strike": 123.00,
-    "expiry": "{best_exp['expiry']}",
+    "expiry": "YYYY-MM-DD",
     "premium": 2.50,
-    "rationale": "por qué este strike y expiry concreto"
+    "horizon": "corto | medio | largo",
+    "rationale": "por qué ESTE strike y ESTE expiry y no otros — sé muy específico con la tesis"
   }},
   "secondary_contract": null,
-  "expected_outcome": "qué esperar en términos de ingreso/protección en euros/dólares y %",
-  "max_risk": "qué pierdes si te equivocas",
-  "when_to_close": "cuándo cerrar la posición de opciones antes de expiración"
+  "expected_outcome": "ingreso/protección esperado en $ y % si la tesis se cumple",
+  "scenario_bull": "qué pasa con el contrato si la acción sube al target",
+  "scenario_bear": "qué pasa con el contrato si la acción cae un 15%",
+  "when_to_close": "condición concreta para cerrar antes de expiración (precio, fecha, evento)"
 }}"""
+
             try:
                 from groq import Groq as _Groq
                 client = _Groq(api_key=groq_key)
                 resp = client.chat.completions.create(
                     model='llama-3.3-70b-versatile',
                     messages=[{'role': 'user', 'content': prompt}],
-                    max_tokens=600,
+                    max_tokens=800,
                     temperature=0.2,
                 )
                 ai_text = resp.choices[0].message.content.strip()
-                import re as _re
                 m = _re.search(r'```(?:json)?\s*([\s\S]+?)\s*```', ai_text)
                 if m:
                     ai_text = m.group(1)
@@ -2393,9 +2426,9 @@ Responde SOLO en JSON válido:
                 ai_recommendation = None
 
         return jsonify({
-            'ticker': ticker,
-            'current_price': round(cur_price, 2),
-            'expiries': result_expiries,
+            'ticker':           ticker,
+            'current_price':    round(cur_price, 2),
+            'expiries':         result_expiries,
             'ai_recommendation': ai_recommendation,
         })
 

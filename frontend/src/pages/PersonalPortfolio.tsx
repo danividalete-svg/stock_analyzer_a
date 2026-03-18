@@ -311,14 +311,18 @@ interface OptionsChainData {
   expiries: Array<{
     expiry: string
     days_out: number
+    bucket: string
     covered_calls: Array<{ strike: number; bid: number; ask: number; mid: number; volume: number; open_interest: number; iv: number; pct_otm: number; annual_yield_pct: number }>
     protective_puts: Array<{ strike: number; bid: number; ask: number; mid: number; volume: number; open_interest: number; iv: number; pct_otm: number; cost_pct: number }>
   }>
   ai_recommendation: {
     recommended_strategy: string
-    primary_contract: { type: string; strike: number; expiry: string; premium: number; rationale: string } | null
+    thesis_alignment?: string
+    primary_contract: { type: string; strike: number; expiry: string; premium: number; horizon?: string; rationale: string } | null
     secondary_contract: { type: string; strike: number; expiry: string; premium: number; rationale: string } | null
     expected_outcome: string
+    scenario_bull?: string
+    scenario_bear?: string
     max_risk: string
     when_to_close: string
   } | null
@@ -339,10 +343,13 @@ function OptionsPanel({ result, sym }: { result: PositionResult; sym: string }) 
     setErr('')
     try {
       const params = new URLSearchParams({
-        price: String(result.current_price ?? 0),
-        pl: String(result.pl_pct ?? 0),
-        upside: String(result.analyst_upside ?? 0),
-        action: result.action,
+        price:      String(result.current_price ?? 0),
+        pl:         String(result.pl_pct ?? 0),
+        upside:     String(result.analyst_upside ?? 0),
+        action:     result.action,
+        conviction: result.conviction,
+        thesis:     result.analysis ?? '',
+        key_risk:   result.key_risk ?? '',
       })
       const base = import.meta.env.VITE_API_URL || ''
       const res = await fetch(`${base}/api/options-chain/${result.ticker}?${params}`)
@@ -401,34 +408,61 @@ function OptionsPanel({ result, sym }: { result: PositionResult; sym: string }) 
             <>
               {/* AI recommendation */}
               {data.ai_recommendation && (
-                <div className={`p-3 rounded-xl ${meta.bg} border ${meta.border} space-y-2`}>
-                  <div className="flex items-center gap-2">
+                <div className={`p-3 rounded-xl ${meta.bg} border ${meta.border} space-y-2.5`}>
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[0.55rem] font-bold uppercase tracking-widest text-muted-foreground/50">Recomendación IA</span>
-                    <span className={`text-[0.7rem] font-bold ${meta.color}`}>{data.ai_recommendation.recommended_strategy?.replace(/_/g, ' ')}</span>
+                    <span className={`text-[0.72rem] font-bold ${meta.color}`}>{data.ai_recommendation.recommended_strategy?.replace(/_/g, ' ')}</span>
+                    {data.ai_recommendation.thesis_alignment && (
+                      <span className="text-[0.68rem] text-foreground/60 flex-1">— {data.ai_recommendation.thesis_alignment}</span>
+                    )}
                   </div>
+
                   {data.ai_recommendation.primary_contract && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[0.72rem]">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[0.72rem] p-2.5 rounded-lg bg-background/30">
                       <div>
-                        <div className="text-muted-foreground/50 text-[0.6rem] uppercase tracking-wide">Contrato</div>
-                        <div className="font-bold text-foreground">{data.ai_recommendation.primary_contract.type?.toUpperCase()} ${data.ai_recommendation.primary_contract.strike}</div>
+                        <div className="text-muted-foreground/50 text-[0.58rem] uppercase tracking-wide mb-0.5">Contrato óptimo</div>
+                        <div className="font-bold text-foreground text-sm">{data.ai_recommendation.primary_contract.type?.toUpperCase()} ${data.ai_recommendation.primary_contract.strike}</div>
                       </div>
                       <div>
-                        <div className="text-muted-foreground/50 text-[0.6rem] uppercase tracking-wide">Expiración</div>
+                        <div className="text-muted-foreground/50 text-[0.58rem] uppercase tracking-wide mb-0.5">Expiración</div>
                         <div className="font-bold text-foreground">{data.ai_recommendation.primary_contract.expiry}</div>
+                        <div className="text-[0.6rem] text-muted-foreground/50">{data.ai_recommendation.primary_contract.horizon}</div>
                       </div>
                       <div>
-                        <div className="text-muted-foreground/50 text-[0.6rem] uppercase tracking-wide">Prima</div>
-                        <div className={`font-bold ${meta.color}`}>{sym}{data.ai_recommendation.primary_contract.premium?.toFixed(2)}</div>
+                        <div className="text-muted-foreground/50 text-[0.58rem] uppercase tracking-wide mb-0.5">Prima estimada</div>
+                        <div className={`font-bold text-sm ${meta.color}`}>{sym}{data.ai_recommendation.primary_contract.premium?.toFixed(2)}</div>
                       </div>
-                      <div className="col-span-2 sm:col-span-1">
-                        <div className="text-muted-foreground/50 text-[0.6rem] uppercase tracking-wide">Resultado esperado</div>
-                        <div className="text-foreground/70">{data.ai_recommendation.expected_outcome}</div>
+                      <div>
+                        <div className="text-muted-foreground/50 text-[0.58rem] uppercase tracking-wide mb-0.5">Resultado esperado</div>
+                        <div className="text-foreground/70 text-[0.7rem]">{data.ai_recommendation.expected_outcome}</div>
                       </div>
                     </div>
                   )}
+
                   {data.ai_recommendation.primary_contract?.rationale && (
-                    <p className="text-[0.7rem] text-foreground/60 italic">"{data.ai_recommendation.primary_contract.rationale}"</p>
+                    <p className="text-[0.72rem] text-foreground/70 leading-relaxed border-l-2 border-primary/30 pl-2.5">
+                      {data.ai_recommendation.primary_contract.rationale}
+                    </p>
                   )}
+
+                  {/* Bull/Bear scenarios */}
+                  {(data.ai_recommendation.scenario_bull || data.ai_recommendation.scenario_bear) && (
+                    <div className="grid grid-cols-2 gap-2 text-[0.68rem]">
+                      {data.ai_recommendation.scenario_bull && (
+                        <div className="p-2 rounded-lg bg-emerald-500/8 border border-emerald-500/15">
+                          <div className="text-emerald-400 font-semibold mb-0.5">📈 Si sube al target</div>
+                          <div className="text-foreground/60">{data.ai_recommendation.scenario_bull}</div>
+                        </div>
+                      )}
+                      {data.ai_recommendation.scenario_bear && (
+                        <div className="p-2 rounded-lg bg-red-500/8 border border-red-500/15">
+                          <div className="text-red-400 font-semibold mb-0.5">📉 Si cae -15%</div>
+                          <div className="text-foreground/60">{data.ai_recommendation.scenario_bear}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-2 text-[0.68rem] pt-1 border-t border-border/20">
                     <div><span className="text-red-400 font-semibold">Riesgo máx: </span><span className="text-foreground/60">{data.ai_recommendation.max_risk}</span></div>
                     <div><span className="text-amber-400 font-semibold">Cuándo cerrar: </span><span className="text-foreground/60">{data.ai_recommendation.when_to_close}</span></div>
@@ -440,7 +474,7 @@ function OptionsPanel({ result, sym }: { result: PositionResult; sym: string }) 
               {data.expiries.map(exp => (
                 <div key={exp.expiry}>
                   <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2">
-                    Expiración {exp.expiry} · {exp.days_out} días
+                    {exp.bucket === 'long' ? '🔵 LEAPS' : exp.bucket === 'medium' ? '🟡 Medio plazo' : '⚡ Corto plazo'} — {exp.expiry} · {exp.days_out} días
                   </div>
 
                   {exp.covered_calls.length > 0 && (
