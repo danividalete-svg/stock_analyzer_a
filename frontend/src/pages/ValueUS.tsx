@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, type ValueOpportunity } from '../api/client'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
 import ScoreBar from '../components/ScoreBar'
@@ -52,6 +53,8 @@ export default function ValueUS() {
   const [minFcf, setMinFcf] = useState<string>('')
   const [minRr, setMinRr] = useState<string>('')
   const [hideEarnings, setHideEarnings] = useState(false)
+  const [onlyOwned, setOnlyOwned] = useState(false)
+  const { isOwned, positions: myPos } = usePersonalPortfolio()
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -69,6 +72,7 @@ export default function ValueUS() {
     if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
     if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
     if (hideEarnings && r.earnings_warning) return false
+    if (onlyOwned && !isOwned(r.ticker)) return false
     return true
   })
 
@@ -115,8 +119,8 @@ export default function ValueUS() {
   top.forEach(d => { const s = d.sector || 'Unknown'; sectorCounts[s] = (sectorCounts[s] || 0) + 1 })
   const concentrated = Object.entries(sectorCounts).filter(([, c]) => c >= 3)
 
-  const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || minFcf !== '' || minRr !== '' || hideEarnings
-  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setMinFcf(''); setMinRr(''); setHideEarnings(false) }
+  const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || minFcf !== '' || minRr !== '' || hideEarnings || onlyOwned
+  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setMinFcf(''); setMinRr(''); setHideEarnings(false); setOnlyOwned(false) }
 
   const fmtFcf = (v?: number) => {
     if (v == null) return <span className="text-muted-foreground">—</span>
@@ -292,6 +296,20 @@ export default function ValueUS() {
           >
             Ocultar earnings &lt;7d
           </button>
+
+          {/* Only owned toggle */}
+          {myPos.length > 0 && (
+            <button
+              onClick={() => setOnlyOwned(v => !v)}
+              className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${
+                onlyOwned
+                  ? 'border-primary/60 bg-primary/15 text-primary'
+                  : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
+              }`}
+            >
+              En cartera
+            </button>
+          )}
 
           {/* Reset */}
           {hasActiveFilters && (

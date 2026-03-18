@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchEUValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, fetchValueEUInsight, type ValueOpportunity } from '../api/client'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import { useApi } from '../hooks/useApi'
 import { useTechnicalSummaryMap } from '../hooks/useTechnicalSummaryMap'
 import type { TechnicalSummary } from '../api/client'
@@ -60,6 +61,8 @@ export default function ValueEU() {
   const [filterMarket, setFilterMarket] = useState<string>('ALL')
   const [minFcf, setMinFcf] = useState<string>('')
   const [minRr, setMinRr] = useState<string>('')
+  const [onlyOwned, setOnlyOwned] = useState(false)
+  const { isOwned, positions: myPos } = usePersonalPortfolio()
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -77,6 +80,7 @@ export default function ValueEU() {
     if (filterMarket !== 'ALL' && r.market !== filterMarket) return false
     if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
     if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
+    if (onlyOwned && !isOwned(r.ticker)) return false
     return true
   })
 
@@ -123,8 +127,8 @@ export default function ValueEU() {
   top.forEach(d => { const s = d.sector || 'Unknown'; sectorCounts[s] = (sectorCounts[s] || 0) + 1 })
   const concentrated = Object.entries(sectorCounts).filter(([, c]) => c >= 3)
 
-  const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || filterMarket !== 'ALL' || minFcf !== '' || minRr !== ''
-  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setFilterMarket('ALL'); setMinFcf(''); setMinRr('') }
+  const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || filterMarket !== 'ALL' || minFcf !== '' || minRr !== '' || onlyOwned
+  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setFilterMarket('ALL'); setMinFcf(''); setMinRr(''); setOnlyOwned(false) }
 
   const fmtFcf = (v?: number) => {
     if (v == null) return <span className="text-muted-foreground">—</span>
@@ -265,6 +269,20 @@ export default function ValueEU() {
             <input type="number" value={minRr} onChange={e => setMinRr(e.target.value)} placeholder="0"
               className="w-14 text-[0.72rem] px-2 py-0.5 rounded border border-border/40 bg-transparent text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50" />
           </div>
+
+          {/* Only owned toggle */}
+          {myPos.length > 0 && (
+            <button
+              onClick={() => setOnlyOwned(v => !v)}
+              className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${
+                onlyOwned
+                  ? 'border-primary/60 bg-primary/15 text-primary'
+                  : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
+              }`}
+            >
+              En cartera
+            </button>
+          )}
 
           {hasActiveFilters && (
             <button onClick={resetFilters} className="text-[0.65rem] text-muted-foreground/60 hover:text-foreground underline underline-offset-2 transition-colors ml-auto">

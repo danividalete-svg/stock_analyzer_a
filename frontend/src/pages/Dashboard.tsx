@@ -13,7 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import GradeBadge from '../components/GradeBadge'
 import InfoTooltip from '../components/InfoTooltip'
 import TickerLogo from '../components/TickerLogo'
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar, Wallet, Zap } from 'lucide-react'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -460,11 +461,55 @@ export default function Dashboard() {
   const { data: macroRaw, loading: loadingMacro } = useApi(() => fetchMacroRadar(), [])
   const { data: briefingRaw } = useApi(() => fetchDailyBriefing(), [])
 
+  const { positions: myPositions } = usePersonalPortfolio()
+  const myTickers = new Set(myPositions.map(p => p.ticker.toUpperCase()))
+
   const pf = (portfolio as PortfolioSummary) ?? {}
   const overall = pf.overall as Record<string, { count: number; win_rate: number; avg_return: number }> | undefined
 
   const topUS = (valueUS?.data ?? []).slice(0, 5)
   const topEU = (valueEU?.data ?? []).slice(0, 5)
+
+  // ── Portfolio Action Items ─────────────────────────────────────────
+  const actionItems: { icon: React.ReactNode; text: string; color: string; link: string }[] = []
+  if (myTickers.size > 0) {
+    // Earnings warnings for owned tickers
+    const allValue = [...(valueUS?.data ?? []), ...(valueEU?.data ?? [])]
+    for (const r of allValue) {
+      if (myTickers.has(r.ticker) && r.earnings_warning && r.days_to_earnings != null) {
+        actionItems.push({
+          icon: <AlertTriangle size={11} />,
+          text: `${r.ticker} — earnings en ${r.days_to_earnings}d, evita añadir`,
+          color: 'text-amber-400',
+          link: '/earnings',
+        })
+      }
+    }
+    // Insiders buying/selling owned tickers
+    const insiderData = (insiders?.data ?? []) as InsiderData[]
+    for (const ins of insiderData) {
+      if (myTickers.has(ins.ticker)) {
+        actionItems.push({
+          icon: <Zap size={11} />,
+          text: `${ins.ticker} — ${ins.purchase_count} compras insider (${ins.unique_insiders} directivos)`,
+          color: 'text-purple-400',
+          link: '/insiders',
+        })
+      }
+    }
+    // Mean reversion bounce on owned tickers
+    const mrData = (mrRaw as { data?: { ticker: string }[] })?.data ?? []
+    for (const mr of mrData) {
+      if (myTickers.has(mr.ticker)) {
+        actionItems.push({
+          icon: <TrendingUp size={11} />,
+          text: `${mr.ticker} — en zona oversold, oportunidad de añadir`,
+          color: 'text-cyan-400',
+          link: '/mean-reversion',
+        })
+      }
+    }
+  }
 
   // Earnings warnings from both lists
   const earningsWarnings = [
@@ -517,6 +562,34 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Portfolio Action Items */}
+      {actionItems.length > 0 && (
+        <div className="mb-5 animate-fade-in-up">
+          <Card className="glass border border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Wallet size={14} className="text-primary" />
+                <span className="text-[0.62rem] font-bold uppercase tracking-widest text-primary/70">Acciones pendientes · Mi Cartera</span>
+                <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">{actionItems.length}</span>
+              </div>
+              <div className="space-y-1.5">
+                {actionItems.slice(0, 8).map((item, i) => (
+                  <Link
+                    key={i}
+                    to={item.link}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/10 border border-border/20 hover:bg-muted/20 hover:border-border/40 transition-colors group"
+                  >
+                    <span className={item.color}>{item.icon}</span>
+                    <span className="text-[0.75rem] text-foreground/80 flex-1">{item.text}</span>
+                    <ChevronRight size={11} className="text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
-import { TrendingDown, ChevronDown, ChevronRight, Activity } from 'lucide-react'
+import { TrendingDown, ChevronDown, ChevronRight, Activity, Wallet } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
 import TickerLogo from '../components/TickerLogo'
 import { fetchTechnicalSignals, type TechnicalSignal, type TechnicalSummary } from '../api/client'
@@ -154,11 +155,13 @@ function TickerCard({ row, signals }: { row: TechnicalSummary; signals: Technica
 
 export default function TechnicalSignals() {
   const { data, loading, error } = useApi(() => fetchTechnicalSignals().then(d => ({ data: d })), [])
+  const { isOwned, positions: myPositions } = usePersonalPortfolio()
 
   const [biasFilter, setBiasFilter] = useState<'ALL' | 'BULLISH' | 'BEARISH' | 'NEUTRAL'>('ALL')
   const [sourceFilter, setSourceFilter] = useState<string>('ALL')
   const [tfFilter, setTfFilter] = useState<'ALL' | 'DAILY' | 'WEEKLY'>('ALL')
   const [strengthFilter, setStrengthFilter] = useState<number>(1)
+  const [onlyMyPortfolio, setOnlyMyPortfolio] = useState(false)
 
   // All hooks must be called unconditionally — before any early returns
   const { signals = [], summary = [] } = (data as { signals: TechnicalSignal[]; summary: TechnicalSummary[] }) ?? {}
@@ -169,13 +172,14 @@ export default function TechnicalSignals() {
     return summary.filter(row => {
       if (biasFilter !== 'ALL' && row.bias !== biasFilter) return false
       if (sourceFilter !== 'ALL' && row.source !== sourceFilter) return false
+      if (onlyMyPortfolio && !isOwned(row.ticker)) return false
       return true
     }).sort((a, b) => {
       if (a.bias === 'BULLISH' && b.bias !== 'BULLISH') return -1
       if (b.bias === 'BULLISH' && a.bias !== 'BULLISH') return 1
       return b.net_score - a.net_score
     })
-  }, [summary, biasFilter, sourceFilter])
+  }, [summary, biasFilter, sourceFilter, onlyMyPortfolio, isOwned])
 
   const getSignals = (ticker: string) => {
     return signals.filter(s =>
@@ -383,6 +387,21 @@ export default function TechnicalSignals() {
             </button>
           ))}
         </div>
+
+        {/* My portfolio filter */}
+        {myPositions.length > 0 && (
+          <button
+            onClick={() => setOnlyMyPortfolio(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+              onlyMyPortfolio
+                ? 'bg-primary/20 border-primary/50 text-primary'
+                : 'bg-muted/20 border-border/30 text-muted-foreground hover:text-foreground hover:border-border/60'
+            }`}
+          >
+            <Wallet size={12} />
+            Mi Cartera
+          </button>
+        )}
       </div>
 
       {/* Results count */}

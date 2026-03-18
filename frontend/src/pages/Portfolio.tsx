@@ -478,7 +478,7 @@ export default function Portfolio() {
           <p className="text-xs text-muted-foreground/60 mb-3">
             Riesgo de concentración oculto — correlación &gt;0.7 significa que los picks se mueven juntos
           </p>
-          <Card className="glass border border-border/40 overflow-x-auto">
+          <Card className="glass border border-border/40" style={{ overflowX: 'clip' }}>
             <CardContent className="p-3">
               <table className="text-[0.62rem] border-collapse w-full">
                 <thead>

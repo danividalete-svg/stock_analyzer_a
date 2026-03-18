@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { fetchHedgeFunds, type HedgeFundConsensusItem } from '../api/client'
 import { useApi } from '../hooks/useApi'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card, CardContent } from '@/components/ui/card'
-import { Building2, TrendingUp, DollarSign, Users2, Info } from 'lucide-react'
+import { Building2, TrendingUp, DollarSign, Users2, Info, Wallet } from 'lucide-react'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
 
@@ -38,7 +39,7 @@ function ConsensusBadge({ count }: { count: number }) {
   return <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground border border-border/30">{count} fondo</span>
 }
 
-function HoldingRow({ row, rank }: { row: HedgeFundConsensusItem; rank: number }) {
+function HoldingRow({ row, rank, owned }: { row: HedgeFundConsensusItem; rank: number; owned?: boolean }) {
   const funds = row.funds_list.split(' | ')
   const barWidth = Math.min(100, (row.avg_portfolio_pct / 15) * 100)
 
@@ -49,7 +50,11 @@ function HoldingRow({ row, rank }: { row: HedgeFundConsensusItem; rank: number }
         <span className="text-[0.6rem] text-muted-foreground/40 font-bold w-4 tabular-nums">#{rank}</span>
         <TickerLogo ticker={row.ticker || ''} size="xs" />
         <div>
-          <div className="font-mono font-bold text-sm text-primary leading-tight flex items-center gap-1.5">{row.ticker || '—'}<OwnedBadge ticker={row.ticker || ''} /></div>
+          <div className="font-mono font-bold text-sm text-primary leading-tight flex items-center gap-1.5">
+            {row.ticker || '—'}
+            <OwnedBadge ticker={row.ticker || ''} />
+            {owned && <span className="text-[0.55rem] font-bold px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/25">EN CARTERA</span>}
+          </div>
           <div className="text-[0.65rem] text-muted-foreground truncate max-w-[160px]">{row.company_name}</div>
         </div>
       </div>
@@ -87,6 +92,7 @@ function HoldingRow({ row, rank }: { row: HedgeFundConsensusItem; rank: number }
 
 export default function HedgeFunds() {
   const { data, loading, error } = useApi(() => fetchHedgeFunds(), [])
+  const { isOwned, positions: myPositions } = usePersonalPortfolio()
   const [minFunds, setMinFunds] = useState(1)
 
   if (loading) return <Loading />
@@ -99,6 +105,7 @@ export default function HedgeFunds() {
   const filtered = allRows.filter(r => r.funds_count >= minFunds)
   const multi    = allRows.filter(r => r.funds_count >= 2).length
   const top3     = allRows.filter(r => r.funds_count >= 3).length
+  const overlapCount = myPositions.length > 0 ? allRows.filter(r => isOwned(r.ticker || '')).length : 0
 
   return (
     <div className="space-y-6">
@@ -122,6 +129,16 @@ export default function HedgeFunds() {
           <strong className="text-amber-300"> 2+ fondos holding = convergencia de due diligence independiente.</strong>
         </span>
       </div>
+
+      {/* Portfolio overlap */}
+      {overlapCount > 0 && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-lg border border-primary/20 bg-primary/5 text-xs text-primary/80">
+          <Wallet size={13} className="flex-shrink-0 text-primary" />
+          <span>
+            <strong className="text-primary">{overlapCount} de tus {myPositions.length} posiciones</strong> coinciden con holdings de hedge funds — validación de tesis independiente.
+          </span>
+        </div>
+      )}
 
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -189,7 +206,7 @@ export default function HedgeFunds() {
             </div>
           ) : (
             filtered.map((row, i) => (
-              <HoldingRow key={`${row.ticker}-${i}`} row={row} rank={i + 1} />
+              <HoldingRow key={`${row.ticker}-${i}`} row={row} rank={i + 1} owned={isOwned(row.ticker || '')} />
             ))
           )}
         </CardContent>

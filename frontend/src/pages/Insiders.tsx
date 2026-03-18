@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { fetchRecurringInsiders, fetchInsidersInsight, downloadCsv, type InsiderData } from '../api/client'
 import { useApi } from '../hooks/useApi'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
@@ -8,6 +9,7 @@ import Loading, { ErrorState } from '../components/Loading'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { Wallet } from 'lucide-react'
 
 type InsiderRow = InsiderData & { market?: string }
 type SortKey = keyof InsiderRow
@@ -32,6 +34,7 @@ function fmtQty(v?: number) {
 export default function Insiders() {
   const { data, loading, error } = useApi(() => fetchRecurringInsiders(), [])
   const { data: insightRaw } = useApi(() => fetchInsidersInsight(), [])
+  const { positions: myPositions } = usePersonalPortfolio()
   const [sortKey, setSortKey] = useState<SortKey>('confidence_score')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [filterMarket, setFilterMarket] = useState<'ALL' | 'US' | 'EU'>('ALL')
@@ -104,6 +107,74 @@ export default function Insiders() {
           </Card>
         ))}
       </div>
+
+      {/* My Portfolio insiders */}
+      {(() => {
+        const ownedTickers = new Set(myPositions.map(p => p.ticker))
+        const myInsiders = filtered.filter(r => ownedTickers.has(r.ticker))
+        if (myInsiders.length === 0) return null
+        return (
+          <Card className="glass border border-primary/20 mb-5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Wallet size={14} className="text-primary" />
+                <span className="text-[0.62rem] font-bold uppercase tracking-widest text-primary/70">Insiders en Mi Cartera</span>
+                <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">{myInsiders.length}</span>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/50 hover:bg-transparent">
+                    <TableHead>Ticker / Empresa</TableHead>
+                    <TableHead className="hidden sm:table-cell">Mercado</TableHead>
+                    <TableHead>Compras</TableHead>
+                    <TableHead>Direct.</TableHead>
+                    <TableHead className="hidden md:table-cell">Acciones</TableHead>
+                    <TableHead className="hidden sm:table-cell">Última Compra</TableHead>
+                    <TableHead>Confianza</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {myInsiders.map(d => {
+                    const company = getCompany(d)
+                    const normConf = normScore(d.confidence_score, maxScore)
+                    const isEu = d.market && d.market !== 'US'
+                    return (
+                      <TableRow key={d.ticker}>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            <TickerLogo ticker={d.ticker} size="xs" />
+                            <div>
+                              <div className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">{d.ticker}</div>
+                              {company !== d.ticker && (
+                                <div className="text-[0.65rem] text-muted-foreground truncate max-w-[180px]">{company}</div>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell"><Badge variant={marketVariant(d.market)}>{d.market ?? 'US'}</Badge></TableCell>
+                        <TableCell className="font-bold tabular-nums">{d.purchase_count}</TableCell>
+                        <TableCell>
+                          <span className={d.unique_insiders >= 3 ? 'text-emerald-400 font-bold' : d.unique_insiders >= 2 ? 'text-amber-400 font-semibold' : ''}>
+                            {d.unique_insiders}
+                          </span>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell tabular-nums text-muted-foreground">{fmtQty(d.total_qty)}</TableCell>
+                        <TableCell className="hidden sm:table-cell text-muted-foreground text-[0.75rem]">{d.last_purchase}</TableCell>
+                        <TableCell>
+                          {isEu && d.confidence_label
+                            ? <Badge variant={confVariant(d.confidence_score, maxScore)}>{d.confidence_label}</Badge>
+                            : <Badge variant={confVariant(d.confidence_score, maxScore)}>{normConf}</Badge>
+                          }
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {/* Filter + Download bar */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">

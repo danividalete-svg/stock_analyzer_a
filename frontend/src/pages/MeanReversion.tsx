@@ -4,12 +4,14 @@ import AiNarrativeCard from '../components/AiNarrativeCard'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
 import { useApi } from '../hooks/useApi'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
 import ScoreBar from '../components/ScoreBar'
 import { Badge } from '@/components/ui/badge'
 import CsvDownload from '../components/CsvDownload'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { Wallet } from 'lucide-react'
 
 interface MRItem {
   ticker: string
@@ -34,6 +36,7 @@ interface MRItem {
 
 export default function MeanReversion() {
   const { data, loading, error } = useApi(() => fetchMeanReversion(), [])
+  const { positions: myPositions } = usePersonalPortfolio()
   const [sortKey, setSortKey] = useState<string>('reversion_score')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -108,6 +111,64 @@ export default function MeanReversion() {
           </Card>
         ))}
       </div>
+
+      {/* My positions in oversold zone */}
+      {(() => {
+        const ownedTickers = new Set(myPositions.map(p => p.ticker))
+        const myMR = items.filter(r => ownedTickers.has(r.ticker))
+        if (myMR.length === 0) return null
+        return (
+          <Card className="glass border border-primary/20 mb-5 animate-fade-in-up">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Wallet size={14} className="text-primary" />
+                <span className="text-[0.62rem] font-bold uppercase tracking-widest text-primary/70">Mis Posiciones en Zona Oversold</span>
+                <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">{myMR.length}</span>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/50 hover:bg-transparent">
+                    <TableHead>Ticker</TableHead>
+                    <TableHead>Calidad</TableHead>
+                    <TableHead>Score</TableHead>
+                    <TableHead>Soporte</TableHead>
+                    <TableHead>Resistencia</TableHead>
+                    <TableHead>Vol x</TableHead>
+                    <TableHead>RSI</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {myMR.map(d => (
+                    <TableRow key={d.ticker}>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <TickerLogo ticker={d.ticker} size="xs" />
+                          <span className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">{d.ticker}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell><Badge variant={qualVariant(d.quality)}>{d.quality}</Badge></TableCell>
+                      <TableCell><ScoreBar score={d.reversion_score} /></TableCell>
+                      <TableCell className="tabular-nums text-amber-400">{d.support_level != null ? `$${d.support_level.toFixed(2)}` : '—'}</TableCell>
+                      <TableCell className="tabular-nums">{d.resistance_level != null ? `$${d.resistance_level.toFixed(2)}` : '—'}</TableCell>
+                      <TableCell className="tabular-nums">
+                        {d.volume_ratio != null
+                          ? <span className={(d.volume_ratio as number) >= 1.5 ? 'text-emerald-400' : ''}>{Number(d.volume_ratio).toFixed(2)}x</span>
+                          : '—'}
+                      </TableCell>
+                      <TableCell className="tabular-nums">
+                        {d.rsi != null
+                          ? <span className={d.rsi < 30 ? 'text-emerald-400' : ''}>{d.rsi.toFixed(0)}</span>
+                          : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <p className="text-[0.65rem] text-muted-foreground mt-2">Tus posiciones en zona de rebote — considera ampliar si los fundamentales lo respaldan</p>
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       <Card className="glass animate-fade-in-up">
         <Table>
