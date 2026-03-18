@@ -54,6 +54,12 @@ export interface ValueOpportunity {
   // Hedge Fund 13F consensus
   hedge_fund_count?: number
   hedge_fund_names?: string
+  // Health/earnings metrics (from global CSV)
+  roe_pct?: number
+  profit_margin_pct?: number
+  revenue_growth_pct?: number
+  pe_forward?: number
+  pe_trailing?: number
 }
 
 export interface MomentumOpportunity {
