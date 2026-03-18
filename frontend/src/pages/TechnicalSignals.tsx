@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { TrendingDown, ChevronDown, ChevronRight, Activity, Wallet } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
@@ -171,7 +171,6 @@ export default function TechnicalSignals() {
   const sources = ['ALL', ...Array.from(new Set(summary.map(r => r.source))).filter(Boolean)]
 
   const filteredSummary = useMemo(() => {
-    setPage(1)
     return summary.filter(row => {
       if (biasFilter !== 'ALL' && row.bias !== biasFilter) return false
       if (sourceFilter !== 'ALL' && row.source !== sourceFilter) return false
@@ -183,6 +182,8 @@ export default function TechnicalSignals() {
       return b.net_score - a.net_score
     })
   }, [summary, biasFilter, sourceFilter, onlyMyPortfolio, isOwned])
+
+  useEffect(() => { setPage(1) }, [biasFilter, sourceFilter, onlyMyPortfolio])
 
   const totalPages = Math.ceil(filteredSummary.length / PAGE_SIZE)
   const pagedSummary = filteredSummary.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
