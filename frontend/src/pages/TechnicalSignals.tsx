@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { TrendingDown, ChevronDown, ChevronRight, Activity, Wallet } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
@@ -162,6 +162,8 @@ export default function TechnicalSignals() {
   const [tfFilter, setTfFilter] = useState<'ALL' | 'DAILY' | 'WEEKLY'>('ALL')
   const [strengthFilter, setStrengthFilter] = useState<number>(1)
   const [onlyMyPortfolio, setOnlyMyPortfolio] = useState(false)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 20
 
   // All hooks must be called unconditionally — before any early returns
   const { signals = [], summary = [] } = (data as { signals: TechnicalSignal[]; summary: TechnicalSummary[] }) ?? {}
@@ -169,6 +171,7 @@ export default function TechnicalSignals() {
   const sources = ['ALL', ...Array.from(new Set(summary.map(r => r.source))).filter(Boolean)]
 
   const filteredSummary = useMemo(() => {
+    setPage(1)
     return summary.filter(row => {
       if (biasFilter !== 'ALL' && row.bias !== biasFilter) return false
       if (sourceFilter !== 'ALL' && row.source !== sourceFilter) return false
@@ -180,6 +183,14 @@ export default function TechnicalSignals() {
       return b.net_score - a.net_score
     })
   }, [summary, biasFilter, sourceFilter, onlyMyPortfolio, isOwned])
+
+  const totalPages = Math.ceil(filteredSummary.length / PAGE_SIZE)
+  const pagedSummary = filteredSummary.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const goToPage = useCallback((p: number) => {
+    setPage(p)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
   const getSignals = (ticker: string) => {
     return signals.filter(s =>
@@ -409,6 +420,7 @@ export default function TechnicalSignals() {
         Mostrando <strong className="text-foreground">{filteredSummary.length}</strong> tickers
         {biasFilter !== 'ALL' && ` · ${biasFilter === 'BULLISH' ? 'alcistas' : biasFilter === 'BEARISH' ? 'bajistas' : 'neutros'}`}
         {sourceFilter !== 'ALL' && ` · ${SOURCE_LABELS[sourceFilter] ?? sourceFilter}`}
+        {totalPages > 1 && ` · pág. ${page}/${totalPages}`}
       </div>
 
       {/* Cards */}
@@ -418,13 +430,48 @@ export default function TechnicalSignals() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredSummary.map(row => {
+          {pagedSummary.map(row => {
             const rowSignals = getSignals(row.ticker)
             if (rowSignals.length === 0 && strengthFilter > 1) return null
             return (
               <TickerCard key={row.ticker} row={row} signals={rowSignals} />
             )
           })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            onClick={() => goToPage(page - 1)}
+            disabled={page === 1}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border/40 bg-muted/20 text-muted-foreground hover:text-foreground hover:border-border/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            ← Anterior
+          </button>
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <button
+                key={p}
+                onClick={() => goToPage(p)}
+                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all border ${
+                  p === page
+                    ? 'bg-primary/20 border-primary/50 text-primary'
+                    : 'border-border/30 bg-muted/20 text-muted-foreground hover:text-foreground hover:border-border/60'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => goToPage(page + 1)}
+            disabled={page === totalPages}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border/40 bg-muted/20 text-muted-foreground hover:text-foreground hover:border-border/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            Siguiente →
+          </button>
         </div>
       )}
     </div>
