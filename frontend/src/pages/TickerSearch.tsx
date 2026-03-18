@@ -86,7 +86,16 @@ export default function TickerSearch() {
     }
   }, [])
 
-  const onSearch = () => doSearch(ticker)
+  const onSearch = () => {
+    // If input looks like a company name (has spaces or >6 chars with lowercase),
+    // and we have suggestions, auto-select the first one
+    const t = ticker.trim()
+    if (suggestions.length > 0 && (t.includes(' ') || (t.length > 6 && t !== t.toUpperCase()))) {
+      selectSuggestion(suggestions[0])
+    } else {
+      doSearch(t)
+    }
+  }
 
   const selectSuggestion = (s: SearchResult) => {
     setTicker(s.ticker)
@@ -148,10 +157,10 @@ export default function TickerSearch() {
       <div className="relative mb-6" ref={wrapRef}>
         <div className="flex gap-2">
           <Input
-            className="flex-1 font-mono uppercase"
+            className="flex-1"
             placeholder="Ticker o empresa (ej: Apple, MSFT, SAP.DE)"
             value={ticker}
-            onChange={e => setTicker(e.target.value.toUpperCase())}
+            onChange={e => setTicker(e.target.value)}
             onKeyDown={onKey}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             autoFocus

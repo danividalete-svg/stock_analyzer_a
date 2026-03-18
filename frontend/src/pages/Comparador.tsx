@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { GitCompare, Plus, X, Loader2, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { searchTickers, type SearchResult } from '../api/client'
 import TickerLogo from '../components/TickerLogo'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -118,11 +119,42 @@ export default function Comparador() {
   const [results, setResults] = useState<Record<string, TickerData>>({})
   const [loading, setLoading] = useState<Record<string, boolean>>({})
   const [errors, setErrors]   = useState<Record<string, string>>({})
+  const [suggestions, setSuggestions] = useState<SearchResult[]>([])
+  const [showSugg, setShowSugg] = useState(false)
+  const [activeIdx, setActiveIdx] = useState(-1)
+  const wrapRef = useRef<HTMLDivElement>(null)
 
-  const addTicker = async () => {
-    const t = input.trim().toUpperCase()
+  // Debounced autocomplete
+  useEffect(() => {
+    const q = input.trim()
+    if (q.length < 2) { setSuggestions([]); setShowSugg(false); return }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await searchTickers(q)
+        const items = res.data?.results || []
+        setSuggestions(items)
+        setShowSugg(items.length > 0)
+        setActiveIdx(-1)
+      } catch { setSuggestions([]) }
+    }, 280)
+    return () => clearTimeout(timer)
+  }, [input])
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setShowSugg(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const addTickerBySymbol = async (sym: string) => {
+    const t = sym.trim().toUpperCase()
     if (!t || tickers.includes(t) || tickers.length >= 4) return
     setInput('')
+    setSuggestions([])
+    setShowSugg(false)
     setTickers(prev => [...prev, t])
     setLoading(prev => ({ ...prev, [t]: true }))
     setErrors(prev => { const e = { ...prev }; delete e[t]; return e })
@@ -134,6 +166,16 @@ export default function Comparador() {
     } finally {
       setLoading(prev => ({ ...prev, [t]: false }))
     }
+  }
+
+  const addTicker = async () => {
+    const t = input.trim()
+    // If input looks like a company name, auto-select first suggestion
+    if (suggestions.length > 0 && (t.includes(' ') || (t.length > 6 && t !== t.toUpperCase()))) {
+      addTickerBySymbol(suggestions[0].ticker)
+      return
+    }
+    addTickerBySymbol(t)
   }
 
   const remove = (t: string) => {
@@ -189,22 +231,52 @@ export default function Comparador() {
             </div>
           ))}
           {tickers.length < 4 && (
-            <div className="flex gap-2">
-              <input
-                value={input}
-                onChange={e => setInput(e.target.value.toUpperCase())}
-                onKeyDown={e => e.key === 'Enter' && addTicker()}
-                placeholder="AAPL"
-                className="w-24 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/40 text-sm font-mono font-bold text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
-              />
-              <button
-                onClick={addTicker}
-                disabled={!input.trim()}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-              >
-                <Plus size={13} />
-                Añadir
-              </button>
+            <div className="relative" ref={wrapRef}>
+              <div className="flex gap-2">
+                <input
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Escape') { setShowSugg(false); return }
+                    if (e.key === 'Enter') {
+                      if (showSugg && activeIdx >= 0 && suggestions[activeIdx]) {
+                        addTickerBySymbol(suggestions[activeIdx].ticker)
+                      } else {
+                        addTicker()
+                      }
+                      return
+                    }
+                    if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIdx(i => Math.min(i + 1, suggestions.length - 1)) }
+                    if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx(i => Math.max(i - 1, -1)) }
+                  }}
+                  onFocus={() => suggestions.length > 0 && setShowSugg(true)}
+                  placeholder="AAPL o Apple..."
+                  className="w-40 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/40 text-sm font-bold text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
+                />
+                <button
+                  onClick={addTicker}
+                  disabled={!input.trim()}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                >
+                  <Plus size={13} />
+                  Añadir
+                </button>
+              </div>
+              {showSugg && suggestions.length > 0 && (
+                <ul className="absolute top-full left-0 mt-1 z-50 w-72 bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+                  {suggestions.map((s, i) => (
+                    <li
+                      key={s.ticker}
+                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors text-sm ${i === activeIdx ? 'bg-primary/10' : 'hover:bg-muted/50'}`}
+                      onMouseDown={() => addTickerBySymbol(s.ticker)}
+                      onMouseEnter={() => setActiveIdx(i)}
+                    >
+                      <span className="font-mono font-bold text-primary w-16 shrink-0">{s.ticker}</span>
+                      <span className="text-muted-foreground truncate">{s.company_name}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </div>
