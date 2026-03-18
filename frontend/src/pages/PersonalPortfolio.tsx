@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, RefreshCw, TrendingUp, TrendingDown, Wallet, AlertTriangle, X, Loader2, BookOpen, Send, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, RefreshCw, TrendingUp, TrendingDown, Wallet, AlertTriangle, X, Loader2, BookOpen, Send, Trash2, ChevronDown, ChevronUp, Zap } from 'lucide-react'
 import axios from 'axios'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -51,6 +51,8 @@ interface PositionResult {
   recommended_weight_pct: number
   analysis: string
   key_risk: string
+  options_strategy?: string
+  options_rationale?: string
 }
 
 interface PortfolioAnalysis {
@@ -290,58 +292,224 @@ function AddForm({ onAdd, saving }: { onAdd: (p: Omit<Position, 'id'>) => Promis
   )
 }
 
-// ── Strategy Panel ────────────────────────────────────────────────────────────
+// ── Options Panel ─────────────────────────────────────────────────────────────
 
-type Strategy = { label: string; color: string; bg: string; border: string; desc: string }
-
-function getStrategy(result: PositionResult): Strategy {
-  const upside  = result.analyst_upside ?? 0
-  const pl      = result.pl_pct
-  const fcf     = result.fcf_yield ?? 0
-  const action  = result.action
-  const conviction = result.conviction
-
-  if (action === 'VENDER')
-    return { label: 'Rotación', color: 'text-red-400', bg: 'bg-red-500/8', border: 'border-red-500/20',
-      desc: 'Cierra la posición y rota hacia una oportunidad con mejor R:R. Prioriza preservar capital.' }
-
-  if (action === 'AÑADIR' && conviction === 'ALTA' && upside > 25)
-    return { label: 'Doblar posición', color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20',
-      desc: `Máxima convicción con +${upside.toFixed(0)}% de upside. Añade hasta el peso recomendado aprovechando la corrección.` }
-
-  if (pl > 20 && upside < 15)
-    return { label: 'Covered Call OTM', color: 'text-amber-400', bg: 'bg-amber-500/8', border: 'border-amber-500/20',
-      desc: `+${pl.toFixed(0)}% de ganancia y poco upside restante. Vende calls OTM a 30-45 días para generar ingreso adicional mientras mantienes la posición.` }
-
-  if (pl > 30 && conviction !== 'ALTA')
-    return { label: 'Toma parcial de ganancias', color: 'text-amber-400', bg: 'bg-amber-500/8', border: 'border-amber-500/20',
-      desc: `Posición con +${pl.toFixed(0)}%. Reduce 1/3 para asegurar beneficios; mantén el resto con trailing stop del 8%.` }
-
-  if (pl < -10 && upside > 30 && conviction === 'ALTA')
-    return { label: 'Promedio a la baja', color: 'text-blue-400', bg: 'bg-blue-500/8', border: 'border-blue-500/20',
-      desc: `Drawdown temporal con tesis intacta y +${upside.toFixed(0)}% de upside. Añadir reduce el coste medio y mejora el R:R.` }
-
-  if (pl < -15 && conviction !== 'ALTA')
-    return { label: 'Stop Loss defensivo', color: 'text-red-400', bg: 'bg-red-500/8', border: 'border-red-500/20',
-      desc: `Pérdida del ${pl.toFixed(0)}% con convicción ${conviction.toLowerCase()}. Evalúa salida con stop al -8% adicional para limitar daños.` }
-
-  if (fcf >= 5 && pl > 0 && upside > 15)
-    return { label: 'Mantener + reinversión dividendos', color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20',
-      desc: `FCF yield del ${fcf.toFixed(1)}% + ${upside.toFixed(0)}% de upside. Reinvierte dividendos/buybacks. Posición de largo plazo óptima.` }
-
-  return { label: 'Mantener — tesis vigente', color: 'text-primary', bg: 'bg-primary/8', border: 'border-primary/20',
-    desc: `Posición equilibrada (${pl >= 0 ? '+' : ''}${pl.toFixed(0)}% P&L, ${upside.toFixed(0)}% upside). Mantén con stop del 8% y revisa en el próximo earnings.` }
+const STRAT_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  COVERED_CALL:      { label: 'Covered Call',       color: 'text-amber-400',   bg: 'bg-amber-500/8',   border: 'border-amber-500/20' },
+  PROTECTIVE_PUT:    { label: 'Protective Put',      color: 'text-blue-400',    bg: 'bg-blue-500/8',    border: 'border-blue-500/20' },
+  COLLAR:            { label: 'Collar',              color: 'text-purple-400',  bg: 'bg-purple-500/8',  border: 'border-purple-500/20' },
+  BUY_MORE:          { label: 'Añadir posición',     color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20' },
+  CASH_SECURED_PUT:  { label: 'Cash-Secured Put',   color: 'text-cyan-400',    bg: 'bg-cyan-500/8',    border: 'border-cyan-500/20' },
+  TRAILING_STOP:     { label: 'Trailing Stop',       color: 'text-amber-400',   bg: 'bg-amber-500/8',   border: 'border-amber-500/20' },
+  HOLD:              { label: 'Mantener',            color: 'text-primary',     bg: 'bg-primary/8',     border: 'border-primary/20' },
+  SELL:              { label: 'Cerrar posición',     color: 'text-red-400',     bg: 'bg-red-500/8',     border: 'border-red-500/20' },
 }
 
-function StrategyPanel({ result, sym: _sym }: { result: PositionResult; sym: string }) {
-  const s = getStrategy(result)
+interface OptionsChainData {
+  ticker: string
+  current_price: number
+  expiries: Array<{
+    expiry: string
+    days_out: number
+    covered_calls: Array<{ strike: number; bid: number; ask: number; mid: number; volume: number; open_interest: number; iv: number; pct_otm: number; annual_yield_pct: number }>
+    protective_puts: Array<{ strike: number; bid: number; ask: number; mid: number; volume: number; open_interest: number; iv: number; pct_otm: number; cost_pct: number }>
+  }>
+  ai_recommendation: {
+    recommended_strategy: string
+    primary_contract: { type: string; strike: number; expiry: string; premium: number; rationale: string } | null
+    secondary_contract: { type: string; strike: number; expiry: string; premium: number; rationale: string } | null
+    expected_outcome: string
+    max_risk: string
+    when_to_close: string
+  } | null
+}
+
+function OptionsPanel({ result, sym }: { result: PositionResult; sym: string }) {
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<OptionsChainData | null>(null)
+  const [err, setErr] = useState('')
+
+  const meta = STRAT_META[result.options_strategy ?? ''] ?? STRAT_META['HOLD']
+
+  const fetchChain = async () => {
+    if (data) { setOpen(o => !o); return }
+    setOpen(true)
+    setLoading(true)
+    setErr('')
+    try {
+      const params = new URLSearchParams({
+        price: String(result.current_price ?? 0),
+        pl: String(result.pl_pct ?? 0),
+        upside: String(result.analyst_upside ?? 0),
+        action: result.action,
+      })
+      const base = import.meta.env.VITE_API_URL || ''
+      const res = await fetch(`${base}/api/options-chain/${result.ticker}?${params}`)
+      const json = await res.json()
+      if (!res.ok) { setErr(json.error || 'Error'); setLoading(false); return }
+      setData(json)
+    } catch (e) {
+      setErr('Error de red')
+    }
+    setLoading(false)
+  }
+
   return (
-    <div className={`mx-5 mb-3.5 p-3 rounded-xl ${s.bg} border ${s.border}`}>
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-[0.55rem] font-bold uppercase tracking-widest text-muted-foreground/50">Estrategia sugerida</span>
-        <span className={`text-[0.7rem] font-bold ${s.color}`}>{s.label}</span>
+    <div className="border-t border-border/20">
+      {/* Header strip — always visible */}
+      <div className={`mx-0 px-5 py-2.5 ${meta.bg} border-b ${meta.border}`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Zap size={12} className={meta.color} />
+            <span className="text-[0.55rem] font-bold uppercase tracking-widest text-muted-foreground/50">Estrategia IA</span>
+            <span className={`text-[0.72rem] font-bold ${meta.color}`}>{meta.label}</span>
+            {result.options_rationale && (
+              <span className="text-[0.7rem] text-foreground/60 truncate hidden sm:block">{result.options_rationale}</span>
+            )}
+          </div>
+          <button
+            onClick={fetchChain}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.65rem] font-semibold border transition-all ${meta.border} ${meta.color} hover:${meta.bg}`}
+          >
+            {loading ? <Loader2 size={10} className="animate-spin" /> : <ChevronDown size={10} className={open ? 'rotate-180' : ''} />}
+            {data ? (open ? 'Ocultar' : 'Ver contratos') : 'Ver contratos reales'}
+          </button>
+        </div>
+        {result.options_rationale && (
+          <p className="text-[0.7rem] text-foreground/60 mt-1 sm:hidden">{result.options_rationale}</p>
+        )}
       </div>
-      <p className="text-[0.75rem] text-foreground/70 leading-relaxed">{s.desc}</p>
+
+      {/* Options chain detail */}
+      {open && (
+        <div className="px-5 py-4 space-y-4">
+          {loading && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 size={13} className="animate-spin" /> Cargando cadena de opciones desde Yahoo Finance…
+            </div>
+          )}
+          {err && (
+            <div className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+              {err.includes('no tiene opciones') ? (
+                <span>{err} — Las estrategias basadas en opciones no están disponibles para este activo. Consulta el análisis de la IA arriba.</span>
+              ) : err}
+            </div>
+          )}
+
+          {data && (
+            <>
+              {/* AI recommendation */}
+              {data.ai_recommendation && (
+                <div className={`p-3 rounded-xl ${meta.bg} border ${meta.border} space-y-2`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[0.55rem] font-bold uppercase tracking-widest text-muted-foreground/50">Recomendación IA</span>
+                    <span className={`text-[0.7rem] font-bold ${meta.color}`}>{data.ai_recommendation.recommended_strategy?.replace(/_/g, ' ')}</span>
+                  </div>
+                  {data.ai_recommendation.primary_contract && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[0.72rem]">
+                      <div>
+                        <div className="text-muted-foreground/50 text-[0.6rem] uppercase tracking-wide">Contrato</div>
+                        <div className="font-bold text-foreground">{data.ai_recommendation.primary_contract.type?.toUpperCase()} ${data.ai_recommendation.primary_contract.strike}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground/50 text-[0.6rem] uppercase tracking-wide">Expiración</div>
+                        <div className="font-bold text-foreground">{data.ai_recommendation.primary_contract.expiry}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground/50 text-[0.6rem] uppercase tracking-wide">Prima</div>
+                        <div className={`font-bold ${meta.color}`}>{sym}{data.ai_recommendation.primary_contract.premium?.toFixed(2)}</div>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <div className="text-muted-foreground/50 text-[0.6rem] uppercase tracking-wide">Resultado esperado</div>
+                        <div className="text-foreground/70">{data.ai_recommendation.expected_outcome}</div>
+                      </div>
+                    </div>
+                  )}
+                  {data.ai_recommendation.primary_contract?.rationale && (
+                    <p className="text-[0.7rem] text-foreground/60 italic">"{data.ai_recommendation.primary_contract.rationale}"</p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 text-[0.68rem] pt-1 border-t border-border/20">
+                    <div><span className="text-red-400 font-semibold">Riesgo máx: </span><span className="text-foreground/60">{data.ai_recommendation.max_risk}</span></div>
+                    <div><span className="text-amber-400 font-semibold">Cuándo cerrar: </span><span className="text-foreground/60">{data.ai_recommendation.when_to_close}</span></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Raw contracts per expiry */}
+              {data.expiries.map(exp => (
+                <div key={exp.expiry}>
+                  <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2">
+                    Expiración {exp.expiry} · {exp.days_out} días
+                  </div>
+
+                  {exp.covered_calls.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-[0.62rem] font-semibold text-amber-400 mb-1.5">Covered Calls disponibles</div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[0.7rem] border-collapse">
+                          <thead>
+                            <tr className="border-b border-border/30">
+                              {['Strike', 'Bid', 'Ask', 'Prima', '% OTM', 'Yield anual', 'Vol', 'IV%'].map(h => (
+                                <th key={h} className="text-left py-1 px-2 text-muted-foreground/50 font-semibold whitespace-nowrap">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {exp.covered_calls.map((c, i) => (
+                              <tr key={i} className="border-b border-border/10 hover:bg-muted/10">
+                                <td className="py-1.5 px-2 font-bold text-foreground">{sym}{c.strike}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{sym}{c.bid}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{sym}{c.ask}</td>
+                                <td className="py-1.5 px-2 font-bold text-amber-400">{sym}{c.mid}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">+{c.pct_otm}%</td>
+                                <td className="py-1.5 px-2 font-bold text-emerald-400">{c.annual_yield_pct}%</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{c.volume.toLocaleString()}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{c.iv}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {exp.protective_puts.length > 0 && (
+                    <div>
+                      <div className="text-[0.62rem] font-semibold text-blue-400 mb-1.5">Protective Puts disponibles</div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[0.7rem] border-collapse">
+                          <thead>
+                            <tr className="border-b border-border/30">
+                              {['Strike', 'Bid', 'Ask', 'Prima', '% OTM', 'Coste %', 'Vol', 'IV%'].map(h => (
+                                <th key={h} className="text-left py-1 px-2 text-muted-foreground/50 font-semibold whitespace-nowrap">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {exp.protective_puts.map((p, i) => (
+                              <tr key={i} className="border-b border-border/10 hover:bg-muted/10">
+                                <td className="py-1.5 px-2 font-bold text-foreground">{sym}{p.strike}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{sym}{p.bid}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{sym}{p.ask}</td>
+                                <td className="py-1.5 px-2 font-bold text-blue-400">{sym}{p.mid}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">-{p.pct_otm}%</td>
+                                <td className="py-1.5 px-2 text-red-400">{p.cost_pct}%</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{p.volume.toLocaleString()}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{p.iv}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -480,8 +648,8 @@ function PositionCard({ result, pos, userId, onRemove }: {
         </div>
       )}
 
-      {/* Estrategias para maximizar rentabilidad */}
-      {result && <StrategyPanel result={result} sym={sym} />}
+      {/* Estrategias de opciones para maximizar rentabilidad */}
+      {result && <OptionsPanel result={result} sym={sym} />}
 
       {/* Journal */}
       <JournalSection ticker={ticker} userId={userId} />
