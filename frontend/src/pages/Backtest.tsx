@@ -290,7 +290,7 @@ export default function Backtest() {
           <Stats signals={filtered} period={period} />
 
           {/* Table */}
-          <div className="glass rounded-2xl overflow-hidden">
+          <div className="glass rounded-2xl">
             <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/30 text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground">
               <button onClick={() => setSort('date')} className={`w-16 shrink-0 text-left hover:text-foreground transition-colors ${sort==='date'?'text-primary':''}`}>Fecha ↕</button>
               <span className="w-8 shrink-0" />
@@ -345,7 +345,7 @@ export default function Backtest() {
             </p>
           </div>
 
-          <div className="glass rounded-2xl overflow-hidden">
+          <div className="glass rounded-2xl">
             <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border/30 text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground">
               <span className="w-8 shrink-0" />
               <span className="flex-1 min-w-0">Ticker</span>

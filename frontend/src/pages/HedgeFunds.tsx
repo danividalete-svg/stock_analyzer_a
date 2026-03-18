@@ -173,7 +173,7 @@ export default function HedgeFunds() {
       </div>
 
       {/* Table */}
-      <Card className="glass overflow-hidden">
+      <Card className="glass">
         <CardContent className="p-0">
           {/* Header — column widths must match HoldingRow flex layout */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 border-b border-border/30 bg-muted/5">

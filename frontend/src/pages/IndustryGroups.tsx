@@ -208,7 +208,7 @@ export default function IndustryGroups() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="glass overflow-hidden animate-fade-in-up">
+        <Card className="glass animate-fade-in-up">
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">

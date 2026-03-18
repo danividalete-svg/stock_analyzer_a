@@ -221,7 +221,7 @@ export default function Comparador() {
 
       {/* Comparison table */}
       {loadedTickers.length >= 1 && (
-        <div className="glass rounded-2xl overflow-hidden">
+        <div className="glass rounded-2xl">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>

@@ -122,7 +122,7 @@ export default function Datos() {
               <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2 px-1">
                 {group.group}
               </div>
-              <Card className="glass overflow-hidden">
+              <Card className="glass">
                 {group.items.map((item, i) => (
                   <div
                     key={item.key}
@@ -169,7 +169,7 @@ export default function Datos() {
         </div>
 
         {snapshots.length > 0 ? (
-          <Card className="glass overflow-hidden">
+          <Card className="glass">
             {snapshots.map(snap => (
               <SnapshotRow key={snap.date} snap={snap} csvBase={csvBase} />
             ))}

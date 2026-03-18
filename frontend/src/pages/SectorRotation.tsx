@@ -100,7 +100,7 @@ export default function SectorRotation() {
       </div>
 
       {alerts.length > 0 && (
-        <Card className="glass overflow-hidden animate-fade-in-up">
+        <Card className="glass animate-fade-in-up">
           <div className="px-5 py-3 border-b border-border/50">
             <h3 className="text-sm font-semibold">Alertas de Rotacion</h3>
           </div>

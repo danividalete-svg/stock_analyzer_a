@@ -250,7 +250,7 @@ export default function SmartPortfolio() {
 
       {/* Picks list */}
       {data.picks.length > 0 ? (
-        <Card className="glass border border-border/40 overflow-hidden">
+        <Card className="glass border border-border/40">
           <CardContent className="p-0">
             <div className="px-4 py-3 border-b border-border/30">
               <span className="text-xs font-semibold text-muted-foreground">

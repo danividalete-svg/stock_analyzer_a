@@ -271,7 +271,7 @@ export default function Screener() {
           <p className="text-sm text-muted-foreground">Ajusta los filtros.</p>
         </div>
       ) : (
-        <div className="glass rounded-2xl overflow-hidden">
+        <div className="glass rounded-2xl">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>

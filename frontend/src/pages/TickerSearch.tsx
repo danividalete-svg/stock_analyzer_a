@@ -213,7 +213,7 @@ export default function TickerSearch() {
       )}
 
       {r && !notFound && (
-        <Card className="glass overflow-hidden animate-fade-in-up">
+        <Card className="glass animate-fade-in-up">
           <CardContent className="p-6">
             {/* Header */}
             <div className="flex items-start justify-between mb-6 gap-4">

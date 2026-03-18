@@ -361,7 +361,7 @@ function PositionCard({ result, pos, userId, onRemove }: {
   const action = result?.action ?? 'MANTENER'
 
   return (
-    <div className="glass rounded-2xl overflow-hidden">
+    <div className="glass rounded-2xl">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-border/30">
         <TickerLogo ticker={ticker} size="sm" />

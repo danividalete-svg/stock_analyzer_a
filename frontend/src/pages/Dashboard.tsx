@@ -150,7 +150,7 @@ function TopPicksTable({
           Ver todos <ChevronRight size={11} />
         </Link>
       </div>
-      <Card className="glass overflow-hidden">
+      <Card className="glass">
         {loading ? (
           <div className="divide-y divide-border/30">
             {['a','b','c','d','e'].map((k) => (
@@ -214,7 +214,7 @@ function InsidersMini({ data, loading }: { data: InsiderData[] | undefined; load
           Ver todos <ChevronRight size={11} />
         </Link>
       </div>
-      <Card className="glass overflow-hidden">
+      <Card className="glass">
         {loading ? (
           <div className="divide-y divide-border/30">
             {['a','b','c','d'].map((k) => (
