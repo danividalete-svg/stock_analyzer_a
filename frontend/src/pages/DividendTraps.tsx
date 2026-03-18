@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
-import { fetchDividendTraps, fetchValueOpportunities, fetchEUValueOpportunities } from '../api/client'
-import type { DividendTrapEntry } from '../api/client'
+import { fetchDividendTraps, fetchDividendCalendar, fetchValueOpportunities, fetchEUValueOpportunities } from '../api/client'
+import type { DividendTrapEntry, DividendCalendarEvent } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card, CardContent } from '@/components/ui/card'
-import { AlertTriangle, ShieldCheck, ChevronDown, ChevronUp, Briefcase, Zap } from 'lucide-react'
+import { AlertTriangle, ShieldCheck, ChevronDown, ChevronUp, Briefcase, Zap, CalendarClock, Clock, DollarSign, Loader2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
 
-type Tab = 'traps' | 'safe'
+type Tab = 'traps' | 'safe' | 'timing'
 
 const RISK_CONFIG = {
   HIGH:   { label: 'ALTO',   bg: 'bg-red-500/10 border-red-500/25',    text: 'text-red-400',    dot: 'bg-red-400' },
@@ -166,6 +167,19 @@ export default function DividendTraps() {
     ]).then(([us, eu]) => setValueRecs(new Set([...us, ...eu])))
   }, [])
 
+  // Dividend calendar (lazy-loaded when tab clicked)
+  const [divCalendar, setDivCalendar] = useState<DividendCalendarEvent[]>([])
+  const [divCalLoading, setDivCalLoading] = useState(false)
+  const [divCalLoaded, setDivCalLoaded] = useState(false)
+  const loadDivCalendar = () => {
+    if (divCalLoaded) return
+    setDivCalLoading(true)
+    fetchDividendCalendar()
+      .then(r => { setDivCalendar(r.data.events); setDivCalLoaded(true) })
+      .catch(() => setDivCalLoaded(true))
+      .finally(() => setDivCalLoading(false))
+  }
+
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
   if (!data) return <ErrorState message="Sin datos de dividend traps" />
@@ -315,6 +329,13 @@ export default function DividendTraps() {
         >
           Seguros ({data.safe_count})
         </button>
+        <button
+          onClick={() => { setTab('timing'); loadDivCalendar() }}
+          className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all flex items-center gap-1.5 ${tab === 'timing' ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'bg-card/40 border-border/40 text-muted-foreground hover:text-foreground'}`}
+        >
+          <CalendarClock size={13} />
+          Timing {divCalLoaded ? `(${divCalendar.length})` : ''}
+        </button>
 
         {tab === 'traps' && (
           <div className="flex gap-1 ml-2">
@@ -346,25 +367,190 @@ export default function DividendTraps() {
             </div>
           )}
         </>
-      ) : (
+      ) : tab === 'safe' ? (
         <div className="space-y-2">
           {(filteredTraps as DividendTrapEntry[]).map(entry => (
             <SafeCard key={entry.ticker} entry={entry} />
           ))}
         </div>
+      ) : (
+        /* Dividend Timing tab */
+        <div className="space-y-4">
+          {divCalLoading && (
+            <Card className="glass border border-border/40">
+              <CardContent className="p-8 text-center">
+                <Loader2 size={24} className="animate-spin text-primary mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">Escaneando ex-dividend dates...</p>
+                <p className="text-xs text-muted-foreground/50 mt-1">Primera carga puede tardar ~30s</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {divCalLoaded && divCalendar.length === 0 && (
+            <Card className="glass border border-border/40">
+              <CardContent className="p-8 text-center text-sm text-muted-foreground">
+                No hay ex-dividend dates en los proximos 45 dias para acciones de calidad
+              </CardContent>
+            </Card>
+          )}
+
+          {divCalLoaded && divCalendar.length > 0 && (() => {
+            // Group by urgency
+            const urgent = divCalendar.filter(e => e.days_to_exdiv <= 7)
+            const soon = divCalendar.filter(e => e.days_to_exdiv > 7 && e.days_to_exdiv <= 21)
+            const later = divCalendar.filter(e => e.days_to_exdiv > 21)
+
+            const EventCard = ({ event }: { event: DividendCalendarEvent }) => (
+              <Card className={`glass border transition-all ${isOwned(event.ticker) ? 'border-primary/30 bg-primary/5' : 'border-border/30'}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-1.5 min-w-[72px]">
+                      <TickerLogo ticker={event.ticker} size="xs" />
+                      <div>
+                        <div className="font-mono font-bold text-sm text-primary flex items-center gap-1.5">
+                          {event.ticker}
+                          <OwnedBadge ticker={event.ticker} />
+                        </div>
+                        <div className="text-[0.62rem] text-muted-foreground truncate max-w-[80px]">{event.sector}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-foreground/80 truncate">{event.company}</div>
+                      {event.current_price != null && (
+                        <div className="text-[0.62rem] text-muted-foreground">${event.current_price.toFixed(2)}</div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 text-xs flex-wrap">
+                      <div className="text-center">
+                        <div className={`font-bold ${event.days_to_exdiv <= 7 ? 'text-amber-400' : 'text-blue-400'}`}>
+                          {event.days_to_exdiv}d
+                        </div>
+                        <div className="text-muted-foreground/60 text-[0.6rem]">Ex-Div</div>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="font-bold text-foreground/80">{event.ex_dividend_date.slice(5)}</div>
+                        <div className="text-muted-foreground/60 text-[0.6rem]">Fecha</div>
+                      </div>
+
+                      {event.dividend_per_share != null && (
+                        <div className="text-center">
+                          <div className="font-bold text-emerald-400">${event.dividend_per_share.toFixed(2)}</div>
+                          <div className="text-muted-foreground/60 text-[0.6rem]">$/Accion</div>
+                        </div>
+                      )}
+
+                      {event.capture_yield_pct != null && (
+                        <div className="text-center">
+                          <div className="font-bold text-emerald-400">{event.capture_yield_pct.toFixed(2)}%</div>
+                          <div className="text-muted-foreground/60 text-[0.6rem]">Capture</div>
+                        </div>
+                      )}
+
+                      {event.dividend_yield_annual != null && (
+                        <div className="text-center">
+                          <div className="font-bold text-foreground/70">{event.dividend_yield_annual.toFixed(1)}%</div>
+                          <div className="text-muted-foreground/60 text-[0.6rem]">Yield anual</div>
+                        </div>
+                      )}
+
+                      {event.fundamental_score != null && (
+                        <div className="text-center">
+                          <div className={`font-bold ${event.fundamental_score >= 65 ? 'text-emerald-400' : event.fundamental_score >= 50 ? 'text-foreground/60' : 'text-red-400'}`}>
+                            {event.fundamental_score.toFixed(0)}
+                          </div>
+                          <div className="text-muted-foreground/60 text-[0.6rem]">Fund</div>
+                        </div>
+                      )}
+
+                      <div className="flex gap-1">
+                        {event.source === 'value_rec' && (
+                          <Badge variant="blue" className="text-[0.55rem]">VALUE</Badge>
+                        )}
+                        {event.conviction_grade && (
+                          <Badge variant={event.conviction_grade === 'A' || event.conviction_grade === 'A+' ? 'green' : 'gray'} className="text-[0.55rem]">
+                            {event.conviction_grade}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+
+            return (
+              <>
+                {urgent.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2 flex items-center gap-1.5">
+                      <Clock size={12} />
+                      Esta semana — comprar antes del ex-div ({urgent.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {urgent.map(e => <EventCard key={e.ticker} event={e} />)}
+                    </div>
+                  </div>
+                )}
+
+                {soon.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-2 flex items-center gap-1.5">
+                      <CalendarClock size={12} />
+                      Proximas 2-3 semanas ({soon.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {soon.map(e => <EventCard key={e.ticker} event={e} />)}
+                    </div>
+                  </div>
+                )}
+
+                {later.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+                      <DollarSign size={12} />
+                      Mas adelante ({later.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {later.map(e => <EventCard key={e.ticker} event={e} />)}
+                    </div>
+                  </div>
+                )}
+              </>
+            )
+          })()}
+
+          {/* Timing explanation */}
+          {divCalLoaded && (
+            <Card className="glass border border-border/30">
+              <CardContent className="p-3 space-y-1 text-xs text-muted-foreground">
+                <div className="font-semibold text-foreground/70 mb-2">Estrategia de Dividend Timing</div>
+                <div>• Solo muestra empresas con <span className="text-emerald-400">buenos fundamentales</span> (score ≥55) o recomendaciones VALUE</div>
+                <div>• <span className="text-blue-400">Comprar antes del ex-dividend date</span> para capturar el dividendo</div>
+                <div>• <span className="text-amber-400">Capture yield</span> = dividendo por accion / precio actual (lo que capturas por holding 1 dia)</div>
+                <div>• El precio suele caer ~dividendo el dia ex-div, pero en empresas de calidad con tendencia alcista se recupera rapido</div>
+                <div>• Ideal: combinar con analisis VALUE — si ya te gusta la empresa, el dividendo es un bonus</div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
-      {/* Legend */}
-      <Card className="glass border border-border/30">
-        <CardContent className="p-3 space-y-1 text-xs text-muted-foreground">
-          <div className="font-semibold text-foreground/70 mb-2">Criterios de trampa</div>
-          <div>• <span className="text-red-400">Payout &gt;100%</span> — el dividendo supera los beneficios</div>
-          <div>• <span className="text-red-400">FCF yield &lt; dividend yield</span> — la caja libre no cubre el dividendo</div>
-          <div>• <span className="text-orange-400">Yield &gt;6–8%</span> — el mercado ya descuenta un recorte</div>
-          <div>• <span className="text-orange-400">Deuda/equity &gt;2x</span> — el dividendo compite con el pago de deuda</div>
-          <div>• <span className="text-yellow-400">ROE negativo</span> — empresa pierde dinero mientras paga dividendo</div>
-        </CardContent>
-      </Card>
+      {/* Legend (only for trap/safe tabs) */}
+      {tab !== 'timing' && (
+        <Card className="glass border border-border/30">
+          <CardContent className="p-3 space-y-1 text-xs text-muted-foreground">
+            <div className="font-semibold text-foreground/70 mb-2">Criterios de trampa</div>
+            <div>• <span className="text-red-400">Payout &gt;100%</span> — el dividendo supera los beneficios</div>
+            <div>• <span className="text-red-400">FCF yield &lt; dividend yield</span> — la caja libre no cubre el dividendo</div>
+            <div>• <span className="text-orange-400">Yield &gt;6–8%</span> — el mercado ya descuenta un recorte</div>
+            <div>• <span className="text-orange-400">Deuda/equity &gt;2x</span> — el dividendo compite con el pago de deuda</div>
+            <div>• <span className="text-yellow-400">ROE negativo</span> — empresa pierde dinero mientras paga dividendo</div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

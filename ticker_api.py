@@ -1819,6 +1819,137 @@ def dividend_traps():
     return jsonify(data)
 
 
+_div_calendar_cache: dict = {'date': '', 'data': None}
+
+@app.route('/api/dividend-calendar')
+def dividend_calendar():
+    """Upcoming ex-dividend dates for quality stocks — dividend timing tool."""
+    from datetime import datetime as dt2, timedelta
+    import yfinance as yf
+    import concurrent.futures
+
+    today = dt2.now()
+    today_str = today.strftime('%Y-%m-%d')
+
+    # Return cache if same day
+    if _div_calendar_cache['date'] == today_str and _div_calendar_cache['data']:
+        return jsonify(_div_calendar_cache['data'])
+
+    # Collect candidate tickers: value opportunities + fundamental scores with dividend > 0
+    candidates: dict = {}  # ticker -> {company, sector, div_yield, fund_score, value_score}
+
+    # From value opportunities CSVs
+    for csv_name in ['value_opportunities.csv', 'european_value_opportunities.csv']:
+        df = _load_csv(DOCS / csv_name)
+        if df is not None and not df.empty:
+            for t in df.index:
+                dy = _sf(df.loc[t].get('dividend_yield_pct'))
+                if dy and dy > 0:
+                    candidates[t] = {
+                        'company': _notna_str(df.loc[t], 'company_name', t),
+                        'sector': _notna_str(df.loc[t], 'sector', ''),
+                        'dividend_yield': dy,
+                        'fundamental_score': _sf(df.loc[t].get('fundamental_score')),
+                        'value_score': _sf(df.loc[t].get('value_score')),
+                        'conviction_grade': _notna_str(df.loc[t], 'conviction_grade', ''),
+                        'source': 'value_rec',
+                    }
+
+    # From fundamental scores (broader, but only high-quality)
+    if not DF_FUND.empty:
+        for t in DF_FUND.index:
+            if t in candidates:
+                continue
+            dy = _sf(DF_FUND.loc[t].get('dividend_yield_pct'))
+            fs = _sf(DF_FUND.loc[t].get('fundamental_score'))
+            if dy and dy > 0.5 and fs and fs >= 55:  # only decent-quality + meaningful yield
+                candidates[t] = {
+                    'company': _notna_str(DF_FUND.loc[t], 'company_name', t),
+                    'sector': _notna_str(DF_FUND.loc[t], 'sector', ''),
+                    'dividend_yield': dy,
+                    'fundamental_score': fs,
+                    'value_score': None,
+                    'conviction_grade': '',
+                    'source': 'fundamental',
+                }
+
+    if not candidates:
+        _div_calendar_cache['date'] = today_str
+        _div_calendar_cache['data'] = {'events': [], 'total': 0, 'as_of': today_str}
+        return jsonify(_div_calendar_cache['data'])
+
+    # Fetch ex-dividend dates from yfinance (parallel, max 60 tickers)
+    tickers_to_check = list(candidates.keys())[:60]
+    events = []
+
+    def _get_exdiv(ticker):
+        try:
+            t_obj = yf.Ticker(ticker)
+            cal = t_obj.calendar
+            if not cal:
+                return None
+            exdiv = cal.get('Ex-Dividend Date')
+            div_date = cal.get('Dividend Date')
+            if not exdiv:
+                return None
+            # Convert to string
+            exdiv_str = str(exdiv)
+            if exdiv_str < today_str:
+                return None  # past date
+            # Check if within 45 days
+            from datetime import date
+            if hasattr(exdiv, 'year'):
+                days_to = (exdiv - today.date()).days
+            else:
+                days_to = (dt2.strptime(exdiv_str, '%Y-%m-%d').date() - today.date()).days
+            if days_to > 45 or days_to < 0:
+                return None
+            info = t_obj.info
+            last_div_value = info.get('lastDividendValue')
+            price = info.get('currentPrice') or info.get('previousClose')
+            return {
+                'ticker': ticker,
+                'ex_dividend_date': exdiv_str,
+                'payment_date': str(div_date) if div_date else None,
+                'days_to_exdiv': days_to,
+                'dividend_per_share': round(last_div_value, 4) if last_div_value else None,
+                'current_price': round(price, 2) if price else None,
+                'capture_yield_pct': round((last_div_value / price) * 100, 2) if last_div_value and price and price > 0 else None,
+            }
+        except Exception:
+            return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(_get_exdiv, t): t for t in tickers_to_check}
+        for future in concurrent.futures.as_completed(futures):
+            ticker = futures[future]
+            result = future.result()
+            if result:
+                c = candidates[ticker]
+                result.update({
+                    'company': c['company'],
+                    'sector': c['sector'],
+                    'dividend_yield_annual': c['dividend_yield'],
+                    'fundamental_score': c['fundamental_score'],
+                    'value_score': c['value_score'],
+                    'conviction_grade': c['conviction_grade'],
+                    'source': c['source'],
+                })
+                events.append(result)
+
+    events.sort(key=lambda x: x['days_to_exdiv'])
+
+    result_data = {
+        'events': events,
+        'total': len(events),
+        'tickers_scanned': len(tickers_to_check),
+        'as_of': today_str,
+    }
+    _div_calendar_cache['date'] = today_str
+    _div_calendar_cache['data'] = result_data
+    return jsonify(result_data)
+
+
 @app.route('/api/earnings-calendar')
 def earnings_calendar():
     """Return upcoming earnings from fundamental_scores.csv sorted by date."""

@@ -323,6 +323,33 @@ export interface DividendTrapsData {
 export const fetchDividendTraps = () =>
   api.get<DividendTrapsData>('/api/dividend-traps')
 
+export interface DividendCalendarEvent {
+  ticker: string
+  company: string
+  sector: string
+  ex_dividend_date: string
+  payment_date: string | null
+  days_to_exdiv: number
+  dividend_per_share: number | null
+  current_price: number | null
+  capture_yield_pct: number | null
+  dividend_yield_annual: number | null
+  fundamental_score: number | null
+  value_score: number | null
+  conviction_grade: string
+  source: 'value_rec' | 'fundamental'
+}
+
+export interface DividendCalendarData {
+  events: DividendCalendarEvent[]
+  total: number
+  tickers_scanned: number
+  as_of: string
+}
+
+export const fetchDividendCalendar = () =>
+  api.get<DividendCalendarData>('/api/dividend-calendar')
+
 export interface CorrelationData {
   tickers: string[]
   matrix: Record<string, number>[]
