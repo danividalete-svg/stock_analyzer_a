@@ -142,12 +142,7 @@ button:active:not(:disabled) { transform: scale(0.97); }
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
-/* Light mode: deeper gradient for contrast on light background */
-:root:not(.dark) .gradient-title {
-  background: linear-gradient(135deg, hsl(239 84% 52%) 0%, hsl(160 84% 30%) 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-}
+/* Light mode gradient-title → overridden by Cybertruck Light section */
 
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -232,81 +227,8 @@ button:active:not(:disabled) { transform: scale(0.97); }
   z-index: 2;
 }
 
-/* ── LIGHT MODE — frosted white glass ───────────────────────────────── */
-
-/* More opaque white + blur reveals pastel orbs underneath */
-.glass:not(.dark *) {
-  background: hsl(0 0% 100% / 0.56);
-  border-color: hsl(0 0% 100% / 0.72);
-  backdrop-filter: blur(24px) saturate(165%) brightness(1.05);
-  -webkit-backdrop-filter: blur(24px) saturate(165%) brightness(1.05);
-  box-shadow:
-    0 4px 20px hsl(222 30% 15% / 0.10),
-    0 1px 4px  hsl(222 30% 15% / 0.06),
-    inset 0  1.5px 0 hsl(0 0% 100% / 0.90),
-    inset 0 -1px   0 hsl(220 30% 60% / 0.06);
-}
-:root:not(.dark) .glass:not(:has(table)):hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 8px 32px hsl(222 30% 15% / 0.13),
-    0 2px 8px  hsl(222 30% 15% / 0.07),
-    inset 0  1.5px 0 hsl(0 0% 100% / 0.96),
-    inset 0 -1px   0 hsl(220 30% 60% / 0.06);
-}
-
-/* Softer iridescent border in light mode */
-:root:not(.dark) .glass::before {
-  background: linear-gradient(
-    135deg,
-    hsl(0 0% 100% / 0.80) 0%,
-    hsl(239 84% 75% / 0.25) 28%,
-    transparent 52%,
-    hsl(160 84% 55% / 0.18) 76%,
-    hsl(0 0% 100% / 0.75) 100%
-  );
-}
-
-/* Light orbs — enough to show through frosted white glass */
-:root:not(.dark) .orb-1 { opacity: 0.30; }
-:root:not(.dark) .orb-2 { opacity: 0.22; }
-:root:not(.dark) .orb-3 { opacity: 0.14; }
-
-/* Score bar mask */
-:root:not(.dark) .score-mask { background: hsl(220 13% 86%); }
-
-/* Sidebar — frosted glass panel */
-:root:not(.dark) aside {
-  background: hsl(220 28% 96% / 0.72) !important;
-  backdrop-filter: blur(20px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
-  border-right: 1px solid hsl(0 0% 100% / 0.65) !important;
-  box-shadow: 2px 0 12px hsl(222 30% 15% / 0.06) !important;
-}
-
-/* Topbar */
-:root:not(.dark) header {
-  background: hsl(0 0% 100% / 0.72) !important;
-  backdrop-filter: blur(20px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
-  border-bottom: 1px solid hsl(220 13% 86%) !important;
-  box-shadow: 0 1px 8px hsl(222 30% 15% / 0.06) !important;
-}
-
-/* Table rows */
-:root:not(.dark) .glass table tbody tr:nth-child(even) { background: hsl(0 0% 100% / 0.30); }
-:root:not(.dark) .glass table tbody tr:hover { background: hsl(239 84% 57% / 0.06) !important; }
-:root:not(.dark) .glass table thead th {
-  background: hsl(0 0% 100% / 0.95) !important;
-  backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid hsl(220 13% 86%) !important;
-}
-
-/* Glow-border in light mode */
-:root:not(.dark) .glow-border {
-  animation: none;
-  box-shadow: 0 0 0 1.5px hsl(239 84% 57% / 0.22), 0 6px 20px hsl(222 30% 15% / 0.08);
-}
+/* Light mode glass, orbs, sidebar, topbar, tables, glow-border
+   → all defined in Cybertruck Light section below */
 
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1233,6 +1155,242 @@ tr[class*="cursor-pointer"]:hover td:first-child {
   text-shadow: 0 0 12px hsl(194 100% 52% / 0.35);
   letter-spacing: 0.16em;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CYBERTRUCK LIGHT — angular steel on bright canvas
+   Matches the dark Cybertruck aesthetic: cyan primary, sharp corners,
+   metallic glass, steel orbs, scanlines, chrome shimmer.
+════════════════════════════════════════════════════════════════════ */
+
+/* ── Override light mode tokens to Cybertruck palette ─────────── */
+:root:not(.dark) {
+  /* Electric cyan — darker for contrast on light backgrounds */
+  --primary:             194 100% 36%;
+  --primary-foreground:  0 0% 100%;
+  --ring:                194 100% 36%;
+
+  /* Cold steel off-white */
+  --background:          210 20% 96%;
+  --foreground:          212 28% 8%;
+  --card:                210 14% 99%;
+  --card-foreground:     212 28% 8%;
+  --popover:             210 14% 99%;
+  --popover-foreground:  212 28% 8%;
+
+  /* Steel borders */
+  --border:              210 15% 86%;
+  --input:               210 15% 88%;
+
+  /* Cool muted */
+  --muted:               210 16% 93%;
+  --muted-foreground:    210 14% 42%;
+  --secondary:           210 16% 93%;
+  --accent:              210 16% 93%;
+
+  /* Angular corners — Cybertruck signature */
+  --radius: 0.25rem;
+}
+
+/* ── Cold steel orbs (light) ──────────────────────────────────── */
+:root:not(.dark) .orb-1 {
+  background: radial-gradient(circle, hsl(194 80% 70%), hsl(210 60% 65%) 50%, transparent 70%);
+  opacity: 0.22;
+}
+:root:not(.dark) .orb-2 {
+  background: radial-gradient(circle, hsl(210 50% 68%), hsl(220 40% 72%) 50%, transparent 70%);
+  opacity: 0.16;
+}
+:root:not(.dark) .orb-3 {
+  background: radial-gradient(circle, hsl(194 60% 66%), hsl(205 50% 70%) 50%, transparent 70%);
+  opacity: 0.12;
+}
+
+/* ── Metallic glass panels (light) ────────────────────────────── */
+:root:not(.dark) .glass {
+  background: hsl(210 20% 100% / 0.62);
+  border-color: hsl(210 20% 80% / 0.50);
+  backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+  -webkit-backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+  box-shadow:
+    0 4px 20px hsl(210 20% 20% / 0.08),
+    0 1px 4px  hsl(210 20% 20% / 0.04),
+    inset 0  1.5px 0 hsl(0 0% 100% / 0.92),
+    inset 0 -1px   0 hsl(210 20% 60% / 0.08);
+  animation:
+    cyberFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+:root:not(.dark) .glass:not(:has(table)):hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 36px hsl(210 20% 20% / 0.11),
+    0 3px 10px  hsl(210 20% 20% / 0.06),
+    0 0   28px  hsl(194 100% 48% / 0.06),
+    inset 0  1.5px 0 hsl(0 0% 100% / 0.96),
+    inset 0 -1px   0 hsl(210 20% 60% / 0.08);
+}
+
+/* Silver + cyan metallic border (light) */
+:root:not(.dark) .glass::before {
+  background: linear-gradient(
+    135deg,
+    hsl(0 0% 100% / 0.85)     0%,
+    hsl(194 80% 55% / 0.22)  24%,
+    hsl(0 0% 90% / 0.06)     48%,
+    hsl(194 60% 50% / 0.18)  76%,
+    hsl(0 0% 100% / 0.80)   100%
+  );
+}
+
+/* Cursor spotlight — subtle cyan hover (light) */
+:root:not(.dark) .glass::after {
+  background:
+    radial-gradient(
+      280px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+      hsl(194 100% 48% / 0.06) 0%,
+      transparent 70%
+    );
+}
+
+/* ── Sidebar — steel frosted (light) ─────────────────────────── */
+:root:not(.dark) aside {
+  background: hsl(210 22% 97% / 0.78) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  border-right: 1px solid hsl(210 15% 84%) !important;
+  box-shadow: 2px 0 14px hsl(210 20% 20% / 0.05) !important;
+}
+
+/* ── Topbar — steel frosted (light) ──────────────────────────── */
+:root:not(.dark) header {
+  background: hsl(210 20% 99% / 0.78) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  border-bottom: 1px solid hsl(210 15% 86%) !important;
+  box-shadow: 0 1px 10px hsl(210 20% 20% / 0.05) !important;
+}
+
+/* ── Table rows — cyan sweep on hover (light) ────────────────── */
+:root:not(.dark) .glass table tbody tr:nth-child(even) { background: hsl(210 15% 97% / 0.40); }
+:root:not(.dark) .glass table tbody tr:hover { background: hsl(194 100% 48% / 0.06) !important; }
+:root:not(.dark) .glass table thead th {
+  background: hsl(210 18% 98% / 0.96) !important;
+  backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid hsl(210 15% 86%) !important;
+}
+:root:not(.dark) tr[class*="cursor-pointer"]:hover {
+  background: linear-gradient(
+    90deg,
+    hsl(194 100% 48% / 0.08) 0%,
+    hsl(194 100% 48% / 0.03) 40%,
+    transparent 100%
+  ) !important;
+}
+:root:not(.dark) tr[class*="cursor-pointer"]:hover td:first-child {
+  border-left: 2px solid hsl(194 100% 42% / 0.50);
+}
+
+/* ── Gradient title — dark steel chrome shimmer (light) ──────── */
+:root:not(.dark) .gradient-title {
+  background: linear-gradient(
+    90deg,
+    hsl(194 100% 32%)  0%,
+    hsl(210 20% 28%)  18%,
+    hsl(194 80% 38%)  36%,
+    hsl(210 15% 22%)  54%,
+    hsl(194 70% 34%)  72%,
+    hsl(210 20% 28%)  88%,
+    hsl(194 100% 32%) 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+/* ── Aurora line — cyan flow (light) ─────────────────────────── */
+:root:not(.dark) .aurora-line {
+  background: linear-gradient(
+    90deg,
+    transparent               0%,
+    hsl(210 60% 50% / 0.35) 10%,
+    hsl(194 100% 42% / 0.65) 28%,
+    hsl(194 100% 50% / 0.80) 50%,
+    hsl(194 100% 42% / 0.65) 72%,
+    hsl(210 60% 50% / 0.35) 90%,
+    transparent              100%
+  );
+  background-size: 200% 100%;
+  animation: auroraFlow 3s linear infinite;
+}
+
+/* ── Active nav link — cyan left stripe (light) ──────────────── */
+:root:not(.dark) .nav-link-active {
+  box-shadow:
+    inset 3px 0 0 hsl(194 100% 38% / 0.85),
+    inset 0 0 20px hsl(194 100% 48% / 0.04);
+}
+:root:not(.dark) .nav-link-active .nav-icon {
+  color: hsl(194 100% 34%);
+}
+
+/* ── Sidebar logo — steel cyan (light) ───────────────────────── */
+:root:not(.dark) .sidebar-logo-icon {
+  background: linear-gradient(135deg, hsl(194 80% 40%), hsl(210 60% 50%));
+}
+
+/* ── Nav section labels — cyan (light) ───────────────────────── */
+:root:not(.dark) aside nav > div[class*="tracking"] {
+  color: hsl(194 100% 32% / 0.55);
+  letter-spacing: 0.16em;
+}
+
+/* ── Subtle grid lines (light) ───────────────────────────────── */
+:root:not(.dark) body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(hsl(194 80% 48% / 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(194 80% 48% / 0.018) 1px, transparent 1px);
+  background-size: 52px 52px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Glow-border — subtle cyan ring (light) ──────────────────── */
+:root:not(.dark) .glow-border {
+  animation: none;
+  box-shadow: 0 0 0 1.5px hsl(194 100% 42% / 0.20), 0 6px 20px hsl(210 20% 20% / 0.06);
+}
+
+/* ── Score bar mask (light) ──────────────────────────────────── */
+:root:not(.dark) .score-mask { background: hsl(210 15% 90%); }
+
+/* ── Scrollbar — steel + cyan accent (light) ─────────────────── */
+:root:not(.dark) ::-webkit-scrollbar-thumb         { background: hsl(210 16% 80%); }
+:root:not(.dark) ::-webkit-scrollbar-thumb:hover   { background: hsl(194 80% 42% / 0.50); }
+
+/* ── Text selection — cyan tint (light) ──────────────────────── */
+:root:not(.dark) ::selection {
+  background: hsl(194 100% 48% / 0.16);
+}
+
+/* ── Focus ring — cyan (light) ───────────────────────────────── */
+:root:not(.dark) :focus-visible {
+  outline-color: hsl(194 100% 38% / 0.6);
+}
+
+/* ── Buttons — subtle cyan glow on hover (light) ─────────────── */
+:root:not(.dark) button:not([disabled]):hover {
+  box-shadow: 0 0 12px hsl(194 100% 48% / 0.12), 0 0 3px hsl(194 100% 48% / 0.06);
+}
+
+/* ── "Stock Analyzer" title — subtle glitch (light) ──────────── */
+:root:not(.dark) aside h1 {
+  animation: cyberGlitch 8s ease-in-out infinite;
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════
    MOBILE / iOS FIXES
