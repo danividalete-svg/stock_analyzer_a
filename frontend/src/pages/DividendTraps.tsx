@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { fetchDividendTraps } from '../api/client'
+import { useState, useEffect } from 'react'
+import { fetchDividendTraps, fetchValueOpportunities, fetchEUValueOpportunities } from '../api/client'
 import type { DividendTrapEntry } from '../api/client'
 import { useApi } from '../hooks/useApi'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card, CardContent } from '@/components/ui/card'
-import { AlertTriangle, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react'
+import { AlertTriangle, ShieldCheck, ChevronDown, ChevronUp, Briefcase, Zap } from 'lucide-react'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
 
@@ -152,12 +153,29 @@ function SafeCard({ entry }: { entry: DividendTrapEntry }) {
 
 export default function DividendTraps() {
   const { data, loading, error } = useApi(() => fetchDividendTraps(), [])
+  const { positions: myPositions, isOwned } = usePersonalPortfolio()
   const [tab, setTab] = useState<Tab>('traps')
   const [riskFilter, setRiskFilter] = useState<'ALL' | 'HIGH' | 'MEDIUM'>('ALL')
+
+  // Fetch VALUE recommendations to cross-reference
+  const [valueRecs, setValueRecs] = useState<Set<string>>(new Set())
+  useEffect(() => {
+    Promise.all([
+      fetchValueOpportunities().then(r => r.data.data.map(v => v.ticker)).catch(() => [] as string[]),
+      fetchEUValueOpportunities().then(r => r.data.data.map(v => v.ticker)).catch(() => [] as string[]),
+    ]).then(([us, eu]) => setValueRecs(new Set([...us, ...eu])))
+  }, [])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
   if (!data) return <ErrorState message="Sin datos de dividend traps" />
+
+  // Portfolio tickers that appear in traps or safe lists
+  const myTraps = data.traps.filter(t => isOwned(t.ticker))
+  const mySafe = data.safe_dividends.filter(t => isOwned(t.ticker))
+
+  // VALUE recommendations that appear in traps (warning!)
+  const recTraps = data.traps.filter(t => valueRecs.has(t.ticker))
 
   const filteredTraps = tab === 'traps'
     ? (riskFilter === 'ALL' ? data.traps : data.traps.filter(t => t.risk_level === riskFilter))
@@ -175,6 +193,82 @@ export default function DividendTraps() {
         </div>
         <span className="text-xs text-muted-foreground self-start">{data.date} · {data.total_scanned} tickers analizados</span>
       </div>
+
+      {/* Portfolio alert */}
+      {myPositions.length > 0 && (myTraps.length > 0 || mySafe.length > 0) && (
+        <Card className={`glass border ${myTraps.length > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-emerald-500/30 bg-emerald-500/5'}`}>
+          <CardContent className="p-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
+              <Briefcase size={14} />
+              Tu Cartera — Dividend Check
+            </h4>
+            {myTraps.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs font-semibold text-red-400 mb-2 flex items-center gap-1.5">
+                  <AlertTriangle size={12} />
+                  {myTraps.length} posicion{myTraps.length > 1 ? 'es' : ''} con dividendo en riesgo
+                </div>
+                <div className="space-y-1.5">
+                  {myTraps.map(t => (
+                    <div key={t.ticker} className="flex items-center gap-3 py-1.5 px-3 bg-red-500/5 rounded-lg border border-red-500/10">
+                      <TickerLogo ticker={t.ticker} size="xs" />
+                      <span className="font-mono font-bold text-sm text-primary">{t.ticker}</span>
+                      <span className="text-xs text-muted-foreground truncate flex-1">{t.company}</span>
+                      <span className="text-xs font-bold text-red-400">Yield {t.dividend_yield?.toFixed(1)}%</span>
+                      <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded ${RISK_CONFIG[t.risk_level].bg} ${RISK_CONFIG[t.risk_level].text}`}>
+                        {RISK_CONFIG[t.risk_level].label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {mySafe.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold text-emerald-400 mb-2 flex items-center gap-1.5">
+                  <ShieldCheck size={12} />
+                  {mySafe.length} posicion{mySafe.length > 1 ? 'es' : ''} con dividendo seguro
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {mySafe.map(t => (
+                    <div key={t.ticker} className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/15">
+                      <TickerLogo ticker={t.ticker} size="xs" />
+                      <span className="font-mono font-bold text-xs text-primary">{t.ticker}</span>
+                      <span className="text-xs font-semibold text-emerald-400">{t.dividend_yield?.toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* VALUE recommendations in traps */}
+      {recTraps.length > 0 && (
+        <Card className="glass border border-amber-500/30 bg-amber-500/5">
+          <CardContent className="p-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-3 flex items-center gap-2">
+              <Zap size={14} />
+              Recomendaciones VALUE con dividendo en riesgo ({recTraps.length})
+            </h4>
+            <div className="space-y-1.5">
+              {recTraps.map(t => (
+                <div key={t.ticker} className="flex items-center gap-3 py-1.5 px-3 bg-amber-500/5 rounded-lg border border-amber-500/10">
+                  <TickerLogo ticker={t.ticker} size="xs" />
+                  <span className="font-mono font-bold text-sm text-primary">{t.ticker}</span>
+                  <span className="text-xs text-muted-foreground truncate flex-1">{t.company}</span>
+                  <span className="text-xs text-amber-400">Yield {t.dividend_yield?.toFixed(1)}% · Payout {t.payout_ratio?.toFixed(0)}%</span>
+                  <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded ${RISK_CONFIG[t.risk_level].bg} ${RISK_CONFIG[t.risk_level].text}`}>
+                    {RISK_CONFIG[t.risk_level].label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-[0.65rem] text-muted-foreground/60 mt-2">Estas acciones aparecen como oportunidades VALUE pero su dividendo puede estar en riesgo de recorte.</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">

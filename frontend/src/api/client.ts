@@ -450,6 +450,32 @@ export const getCsvUrl = (dataset: string): string => {
   return `/api/download/${dataset}`
 }
 
+/** Fetch ticker→sector mapping from fundamental_scores CSVs (broad coverage) */
+export const fetchTickerSectorMap = async (): Promise<Record<string, string>> => {
+  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
+  const map: Record<string, string> = {}
+
+  const fetchCsv = async (filename: string) => {
+    try {
+      const url = csvBase ? `${csvBase}/${filename}` : `/api/download/${filename.replace('.csv', '')}`
+      const res = await fetch(url)
+      if (!res.ok) return
+      const rows = parseCsvRows(await res.text())
+      for (const row of rows) {
+        const ticker = (row.ticker || '').trim()
+        const sector = (row.sector || '').trim()
+        if (ticker && sector) map[ticker] = sector
+      }
+    } catch { /* ignore */ }
+  }
+
+  await Promise.all([
+    fetchCsv('fundamental_scores.csv'),
+    fetchCsv('european_fundamental_scores.csv'),
+  ])
+  return map
+}
+
 export interface ScoreHistoryPoint { date: string; score: number; grade: string | null }
 export const fetchScoreHistory = (ticker: string) =>
   api.get<{ ticker: string; history: ScoreHistoryPoint[]; points: number }>(`/api/score-history/${ticker}`)

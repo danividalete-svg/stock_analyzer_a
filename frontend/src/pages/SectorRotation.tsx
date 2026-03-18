@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchSectorRotation, fetchValueOpportunities, fetchEUValueOpportunities, type SectorRotationData } from '../api/client'
+import { fetchSectorRotation, fetchTickerSectorMap, type SectorRotationData } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
@@ -23,19 +23,16 @@ export default function SectorRotation() {
   const { data, loading, error } = useApi(() => fetchSectorRotation(), [])
   const { positions: myPositions } = usePersonalPortfolio()
 
-  // Fetch value opportunities to get ticker→sector mapping
+  // Fetch fundamental_scores CSVs for broad ticker→sector mapping
   const [tickerSectors, setTickerSectors] = useState<Record<string, string>>({})
   useEffect(() => {
     if (myPositions.length === 0) return
     const myTickers = new Set(myPositions.map(p => p.ticker))
-    Promise.all([
-      fetchValueOpportunities().then(r => r.data.data).catch(() => []),
-      fetchEUValueOpportunities().then(r => r.data.data).catch(() => []),
-    ]).then(([us, eu]) => {
+    fetchTickerSectorMap().then(allMap => {
       const map: Record<string, string> = {}
-      for (const v of [...us, ...eu]) {
-        if (myTickers.has(v.ticker) && v.sector) {
-          map[v.ticker] = toRotationSector(v.sector)
+      for (const [ticker, sector] of Object.entries(allMap)) {
+        if (myTickers.has(ticker)) {
+          map[ticker] = toRotationSector(sector)
         }
       }
       setTickerSectors(map)
