@@ -127,7 +127,8 @@ export default function Comparador() {
   // Debounced autocomplete
   useEffect(() => {
     const q = input.trim()
-    if (q.length < 2) { setSuggestions([]); setShowSugg(false); return }
+    if (!q) { setSuggestions([]); setShowSugg(false); return }
+    const delay = q.length <= 2 ? 500 : 280
     const timer = setTimeout(async () => {
       try {
         const res = await searchTickers(q)
@@ -136,7 +137,7 @@ export default function Comparador() {
         setShowSugg(items.length > 0)
         setActiveIdx(-1)
       } catch { setSuggestions([]) }
-    }, 280)
+    }, delay)
     return () => clearTimeout(timer)
   }, [input])
 

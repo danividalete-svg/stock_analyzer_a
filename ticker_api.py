@@ -2087,9 +2087,10 @@ def theses(ticker):
 
 @app.route('/api/search')
 def search_tickers():
-    """Autocomplete: busca tickers por nombre de empresa o símbolo."""
+    """Autocomplete: busca tickers por nombre de empresa o símbolo.
+    Falls back to yfinance search if no local results found."""
     q = request.args.get('q', '').strip().lower()
-    if not q or len(q) < 2:
+    if not q:
         return jsonify({"results": []})
 
     results = []
@@ -2140,6 +2141,34 @@ def search_tickers():
         company = (data.get('company_name') or '').strip()
         if matches(t, company):
             add(t, company, data.get('sector', '') or '')
+
+    # 5. yfinance fallback — if few/no local results, try yfinance search
+    if len(results) < 3:
+        try:
+            import yfinance as yf
+            # Try direct ticker lookup first
+            q_upper = q.upper()
+            if q_upper not in seen:
+                t_obj = yf.Ticker(q_upper)
+                info = t_obj.info or {}
+                name = info.get('longName') or info.get('shortName', '')
+                price = info.get('currentPrice') or info.get('previousClose')
+                if name and price and price > 0:
+                    add(q_upper, name, info.get('sector', ''))
+
+            # Also try yfinance search for company name queries (3+ chars)
+            if len(q) >= 3 and len(results) < 5:
+                try:
+                    search_results = yf.Search(q)
+                    for item in (search_results.quotes or [])[:5]:
+                        sym = (item.get('symbol') or '').upper()
+                        name = item.get('longname') or item.get('shortname') or ''
+                        if sym and sym not in seen and not sym.endswith('.F'):
+                            add(sym, name, item.get('sector', ''))
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     # Ordenar: coincidencia exacta > empieza por ticker > empieza por empresa > contiene
     def sort_key(r):

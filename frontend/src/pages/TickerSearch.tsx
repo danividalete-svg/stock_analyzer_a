@@ -35,11 +35,12 @@ export default function TickerSearch() {
   // Debounced autocomplete
   useEffect(() => {
     const t = ticker.trim()
-    if (t.length < 2) {
+    if (!t) {
       setSuggestions([])
       setShowSuggestions(false)
       return
     }
+    const delay = t.length <= 2 ? 500 : 280  // longer delay for short queries (yfinance fallback)
     const timer = setTimeout(async () => {
       try {
         const res = await searchTickers(t)
@@ -50,7 +51,7 @@ export default function TickerSearch() {
       } catch {
         setSuggestions([])
       }
-    }, 280)
+    }, delay)
     return () => clearTimeout(timer)
   }, [ticker])
 
