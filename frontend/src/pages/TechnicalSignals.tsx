@@ -253,6 +253,66 @@ export default function TechnicalSignals() {
         </div>
       )}
 
+      {/* ── Entradas Destacadas ─────────────────────────────────────────── */}
+      {(() => {
+        const top = summary
+          .filter(r => r.bias === 'BULLISH' && r.bullish_count >= 2)
+          .sort((a, b) => b.net_score - a.net_score)
+          .slice(0, 6)
+        if (top.length === 0) return null
+        return (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[0.6rem] font-bold uppercase tracking-widest text-emerald-400">⚡ Entradas Destacadas</span>
+              <span className="text-[0.6rem] text-muted-foreground/50">— alcistas con ≥2 señales confirmadas</span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {top.map(row => {
+                const topSig = signals
+                  .filter(s => s.ticker === row.ticker && s.direction === 'BULLISH')
+                  .sort((a, b) => b.strength - a.strength)
+                  .slice(0, 2)
+                const inPortfolio = row.source === 'portfolio'
+                return (
+                  <div
+                    key={row.ticker}
+                    className="glass flex-shrink-0 w-52 rounded-xl p-3 border border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <TickerLogo ticker={row.ticker} size="xs" />
+                      <span className="font-mono font-bold text-sm text-foreground">{row.ticker}</span>
+                      {inPortfolio && (
+                        <span className="text-[0.55rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25 font-bold ml-auto">
+                          EN CARTERA
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                        +{row.bullish_count} ALCISTAS
+                      </span>
+                      <span className="text-[0.6rem] text-muted-foreground/50">{SOURCE_LABELS[row.source] ?? row.source}</span>
+                    </div>
+                    <div className="space-y-1">
+                      {topSig.map((s, i) => (
+                        <div key={i} className="flex items-center gap-1.5">
+                          <span className={`flex gap-0.5 text-emerald-400`}>
+                            {Array.from({ length: 3 }, (_, j) => (
+                              <span key={j} className={`inline-block w-1 h-1 rounded-full ${j < s.strength ? 'bg-emerald-400' : 'bg-emerald-400/20'}`} />
+                            ))}
+                          </span>
+                          <span className="text-[0.68rem] text-foreground/70 truncate">{s.signal_name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         {/* Bias filter */}

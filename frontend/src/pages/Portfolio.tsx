@@ -81,6 +81,8 @@ export default function Portfolio() {
   const [sigSortKey, setSigSortKey] = useState<SortKey>('signal_date')
   const [sigSortDir, setSigSortDir] = useState<SortDir>('desc')
   const [sigFilter, setSigFilter] = useState<'ALL' | 'ACTIVE' | 'COMPLETED'>('ALL')
+  const [sigPage, setSigPage] = useState(1)
+  const SIG_PAGE_SIZE = 30
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -360,6 +362,7 @@ export default function Portfolio() {
           if (sigFilter === 'COMPLETED') return s.status !== 'ACTIVE'
           return true
         })
+        const sigVisible = sigPage * SIG_PAGE_SIZE
 
         const sigSorted = [...sigFiltered].sort((a, b) => {
           const av = a[sigSortKey] ?? ''
@@ -382,7 +385,7 @@ export default function Portfolio() {
                 {(['ALL', 'ACTIVE', 'COMPLETED'] as const).map(f => (
                   <button
                     key={f}
-                    onClick={() => setSigFilter(f)}
+                    onClick={() => { setSigFilter(f); setSigPage(1) }}
                     className={`text-[0.65rem] px-2 py-0.5 rounded border transition-colors ${sigFilter === f ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'}`}
                   >
                     {f === 'ALL' ? 'Todas' : f === 'ACTIVE' ? 'Activas' : 'Completadas'}
@@ -409,7 +412,7 @@ export default function Portfolio() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sigSorted.map((s, i) => (
+                  {sigSorted.slice(0, sigVisible).map((s, i) => (
                     <TableRow key={`${s.ticker}_${i}`}>
                       <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">
                         <div className="flex items-center gap-1.5">
@@ -452,6 +455,16 @@ export default function Portfolio() {
                 </TableBody>
               </Table>
             </Card>
+            {sigVisible < sigFiltered.length && (
+              <div className="mt-3 flex justify-center">
+                <button
+                  onClick={() => setSigPage(p => p + 1)}
+                  className="text-xs px-4 py-1.5 rounded-lg border border-border/40 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
+                >
+                  Ver más ({sigFiltered.length - sigVisible} restantes)
+                </button>
+              </div>
+            )}
           </div>
         )
       })()}

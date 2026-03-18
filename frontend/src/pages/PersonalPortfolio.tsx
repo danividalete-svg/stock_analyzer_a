@@ -290,6 +290,62 @@ function AddForm({ onAdd, saving }: { onAdd: (p: Omit<Position, 'id'>) => Promis
   )
 }
 
+// ── Strategy Panel ────────────────────────────────────────────────────────────
+
+type Strategy = { label: string; color: string; bg: string; border: string; desc: string }
+
+function getStrategy(result: PositionResult): Strategy {
+  const upside  = result.analyst_upside ?? 0
+  const pl      = result.pl_pct
+  const fcf     = result.fcf_yield ?? 0
+  const action  = result.action
+  const conviction = result.conviction
+
+  if (action === 'VENDER')
+    return { label: 'Rotación', color: 'text-red-400', bg: 'bg-red-500/8', border: 'border-red-500/20',
+      desc: 'Cierra la posición y rota hacia una oportunidad con mejor R:R. Prioriza preservar capital.' }
+
+  if (action === 'AÑADIR' && conviction === 'ALTA' && upside > 25)
+    return { label: 'Doblar posición', color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20',
+      desc: `Máxima convicción con +${upside.toFixed(0)}% de upside. Añade hasta el peso recomendado aprovechando la corrección.` }
+
+  if (pl > 20 && upside < 15)
+    return { label: 'Covered Call OTM', color: 'text-amber-400', bg: 'bg-amber-500/8', border: 'border-amber-500/20',
+      desc: `+${pl.toFixed(0)}% de ganancia y poco upside restante. Vende calls OTM a 30-45 días para generar ingreso adicional mientras mantienes la posición.` }
+
+  if (pl > 30 && conviction !== 'ALTA')
+    return { label: 'Toma parcial de ganancias', color: 'text-amber-400', bg: 'bg-amber-500/8', border: 'border-amber-500/20',
+      desc: `Posición con +${pl.toFixed(0)}%. Reduce 1/3 para asegurar beneficios; mantén el resto con trailing stop del 8%.` }
+
+  if (pl < -10 && upside > 30 && conviction === 'ALTA')
+    return { label: 'Promedio a la baja', color: 'text-blue-400', bg: 'bg-blue-500/8', border: 'border-blue-500/20',
+      desc: `Drawdown temporal con tesis intacta y +${upside.toFixed(0)}% de upside. Añadir reduce el coste medio y mejora el R:R.` }
+
+  if (pl < -15 && conviction !== 'ALTA')
+    return { label: 'Stop Loss defensivo', color: 'text-red-400', bg: 'bg-red-500/8', border: 'border-red-500/20',
+      desc: `Pérdida del ${pl.toFixed(0)}% con convicción ${conviction.toLowerCase()}. Evalúa salida con stop al -8% adicional para limitar daños.` }
+
+  if (fcf >= 5 && pl > 0 && upside > 15)
+    return { label: 'Mantener + reinversión dividendos', color: 'text-emerald-400', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20',
+      desc: `FCF yield del ${fcf.toFixed(1)}% + ${upside.toFixed(0)}% de upside. Reinvierte dividendos/buybacks. Posición de largo plazo óptima.` }
+
+  return { label: 'Mantener — tesis vigente', color: 'text-primary', bg: 'bg-primary/8', border: 'border-primary/20',
+    desc: `Posición equilibrada (${pl >= 0 ? '+' : ''}${pl.toFixed(0)}% P&L, ${upside.toFixed(0)}% upside). Mantén con stop del 8% y revisa en el próximo earnings.` }
+}
+
+function StrategyPanel({ result, sym: _sym }: { result: PositionResult; sym: string }) {
+  const s = getStrategy(result)
+  return (
+    <div className={`mx-5 mb-3.5 p-3 rounded-xl ${s.bg} border ${s.border}`}>
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-[0.55rem] font-bold uppercase tracking-widest text-muted-foreground/50">Estrategia sugerida</span>
+        <span className={`text-[0.7rem] font-bold ${s.color}`}>{s.label}</span>
+      </div>
+      <p className="text-[0.75rem] text-foreground/70 leading-relaxed">{s.desc}</p>
+    </div>
+  )
+}
+
 // ── Position Card ─────────────────────────────────────────────────────────────
 
 function PositionCard({ result, pos, userId, onRemove }: {
@@ -423,6 +479,9 @@ function PositionCard({ result, pos, userId, onRemove }: {
           )}
         </div>
       )}
+
+      {/* Estrategias para maximizar rentabilidad */}
+      {result && <StrategyPanel result={result} sym={sym} />}
 
       {/* Journal */}
       <JournalSection ticker={ticker} userId={userId} />

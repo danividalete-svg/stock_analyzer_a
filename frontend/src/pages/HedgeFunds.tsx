@@ -45,7 +45,7 @@ function HoldingRow({ row, rank }: { row: HedgeFundConsensusItem; rank: number }
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-b border-border/20 last:border-0 hover:bg-muted/5 transition-colors">
       {/* Rank + Ticker */}
-      <div className="flex items-center gap-2 min-w-[130px]">
+      <div className="flex items-center gap-2 min-w-[160px]">
         <span className="text-[0.6rem] text-muted-foreground/40 font-bold w-4 tabular-nums">#{rank}</span>
         <TickerLogo ticker={row.ticker || ''} size="xs" />
         <div>
@@ -58,13 +58,13 @@ function HoldingRow({ row, rank }: { row: HedgeFundConsensusItem; rank: number }
       <ConsensusBadge count={row.funds_count} />
 
       {/* Value held */}
-      <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-[80px]">
+      <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-[90px]">
         <DollarSign size={11} className="text-muted-foreground/50" />
         <span className="font-bold text-foreground tabular-nums">${row.total_value_m.toLocaleString('en-US', { maximumFractionDigits: 0 })}M</span>
       </div>
 
       {/* Avg portfolio % bar */}
-      <div className="flex items-center gap-2 min-w-[120px]">
+      <div className="flex items-center gap-2 min-w-[130px]">
         <div className="flex-1 h-1 rounded-full bg-muted/30 overflow-hidden w-20">
           <div
             className="h-full rounded-full bg-emerald-500/70"
@@ -175,13 +175,13 @@ export default function HedgeFunds() {
       {/* Table */}
       <Card className="glass overflow-hidden">
         <CardContent className="p-0">
-          {/* Header */}
+          {/* Header — column widths must match HoldingRow flex layout */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 border-b border-border/30 bg-muted/5">
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[130px]">Ticker / Empresa</span>
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50">Consenso</span>
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[80px]">Valor total</span>
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[120px]">% portfolio avg</span>
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50">Fondos</span>
+            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[160px]">Ticker / Empresa</span>
+            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 w-[70px]">Consenso</span>
+            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[90px]">Valor total</span>
+            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[130px]">% portfolio avg</span>
+            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 flex-1 min-w-[200px]">Fondos</span>
           </div>
           {filtered.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
