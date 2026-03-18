@@ -537,8 +537,11 @@ button:active:not(:disabled) { transform: scale(0.97); }
 ════════════════════════════════════════════════════════════════════ */
 
 @keyframes fadeIn    { from { opacity: 0; }                              to { opacity: 1; } }
-@keyframes fadeInUp  { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-8px) scaleY(0.94); } to { opacity: 1; transform: translateY(0) scaleY(1); } }
+/* CRITICAL: "to" must use transform:none — NOT translateY(0).
+   translateY(0) creates a containing block that breaks position:sticky
+   on descendant thead elements (first table row hidden behind header). */
+@keyframes fadeInUp  { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-8px) scaleY(0.94); } to { opacity: 1; transform: none; } }
 @keyframes floatY    { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes shimmer   { 0% { background-position: -800px 0; } 100% { background-position: 800px 0; } }
 @keyframes spin      { to { transform: rotate(360deg); } }
@@ -547,25 +550,32 @@ button:active:not(:disabled) { transform: scale(0.97); }
   50%       { box-shadow: 0 0 0 6px hsl(var(--ring) / 0.18), 0 0 20px hsl(var(--ring) / 0.12); }
 }
 
-/* Entrance animations */
+/* Entrance animations
+   CRITICAL: use "backwards" NOT "both". "both" persists the final
+   keyframe's transform after the animation → creates a containing block
+   that breaks position:sticky on descendant thead elements.
+   "backwards" only applies the "from" keyframe before the animation
+   starts (keeps elements hidden during delay), but does NOT persist
+   anything after it ends → element reverts to natural CSS (no transform)
+   → sticky works correctly relative to the viewport. */
 .animate-fade-in    { animation: fadeIn    0.25s ease both; }
-.animate-fade-in-up { animation: fadeInUp  0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.animate-slide-down { animation: slideDown 0.15s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in-up { animation: fadeInUp  0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.animate-slide-down { animation: slideDown 0.15s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 
 /* Staggered stat cards */
-.stagger-1 { animation: fadeInUp 0.32s ease both 0.03s; }
-.stagger-2 { animation: fadeInUp 0.32s ease both 0.08s; }
-.stagger-3 { animation: fadeInUp 0.32s ease both 0.13s; }
-.stagger-4 { animation: fadeInUp 0.32s ease both 0.18s; }
-.stagger-5 { animation: fadeInUp 0.32s ease both 0.22s; }
+.stagger-1 { animation: fadeInUp 0.32s ease backwards 0.03s; }
+.stagger-2 { animation: fadeInUp 0.32s ease backwards 0.08s; }
+.stagger-3 { animation: fadeInUp 0.32s ease backwards 0.13s; }
+.stagger-4 { animation: fadeInUp 0.32s ease backwards 0.18s; }
+.stagger-5 { animation: fadeInUp 0.32s ease backwards 0.22s; }
 
 /* Staggered analysis sections */
-.stagger-a1 { animation: fadeInUp 0.30s ease both 0.05s; }
-.stagger-a2 { animation: fadeInUp 0.30s ease both 0.10s; }
-.stagger-a3 { animation: fadeInUp 0.30s ease both 0.15s; }
-.stagger-a4 { animation: fadeInUp 0.30s ease both 0.20s; }
-.stagger-a5 { animation: fadeInUp 0.30s ease both 0.25s; }
-.stagger-a6 { animation: fadeInUp 0.30s ease both 0.30s; }
+.stagger-a1 { animation: fadeInUp 0.30s ease backwards 0.05s; }
+.stagger-a2 { animation: fadeInUp 0.30s ease backwards 0.10s; }
+.stagger-a3 { animation: fadeInUp 0.30s ease backwards 0.15s; }
+.stagger-a4 { animation: fadeInUp 0.30s ease backwards 0.20s; }
+.stagger-a5 { animation: fadeInUp 0.30s ease backwards 0.25s; }
+.stagger-a6 { animation: fadeInUp 0.30s ease backwards 0.30s; }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -1015,7 +1025,7 @@ tr[class*="cursor-pointer"]:hover td:first-child {
 /* ── Glass cards: entrance + scan beam ───────────────────────── */
 .dark .glass {
   animation:
-    cyberFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
+    cyberFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards,
     cyberScan   8s linear 0.6s infinite;
 }
 

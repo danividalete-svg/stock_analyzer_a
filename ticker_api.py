@@ -2241,7 +2241,7 @@ def options_chain(ticker: str):
     Groq receives the full investment thesis and selects the optimal contract
     across ALL horizons — not just the nearest expiry.
     """
-    import yfinance as _yf, json as _json, os as _os, re as _re
+    import yfinance as _yf, json as _json, os as _os, re as _re, math as _math
     from datetime import datetime as _dt
 
     ticker    = ticker.upper().strip()
@@ -2296,21 +2296,38 @@ def options_chain(ticker: str):
 
         selected_expiries.sort()
 
+        def _safe_int(v):
+            """Convert to int, handling NaN/None/float safely."""
+            if v is None or (isinstance(v, float) and (_math.isnan(v) or _math.isinf(v))):
+                return 0
+            try:
+                return int(v)
+            except (ValueError, TypeError):
+                return 0
+
+        def _safe_float(v, default=0.0):
+            if v is None or (isinstance(v, float) and (_math.isnan(v) or _math.isinf(v))):
+                return default
+            try:
+                return float(v)
+            except (ValueError, TypeError):
+                return default
+
         def row_to_dict(row, kind, days_out):
             d = {
-                'strike':        round(float(row['strike']), 2),
-                'bid':           round(float(row.get('bid', 0) or 0), 2),
-                'ask':           round(float(row.get('ask', 0) or 0), 2),
-                'mid':           round(float(row.get('mid', 0) or 0), 2),
-                'volume':        int(row.get('volume', 0) or 0),
-                'open_interest': int(row.get('openInterest', 0) or 0),
-                'iv':            round(float(row.get('impliedVolatility', 0) or 0) * 100, 1),
-                'pct_otm':       round(float(row.get('pct_otm', 0) or 0), 1),
+                'strike':        round(_safe_float(row['strike']), 2),
+                'bid':           round(_safe_float(row.get('bid', 0)), 2),
+                'ask':           round(_safe_float(row.get('ask', 0)), 2),
+                'mid':           round(_safe_float(row.get('mid', 0)), 2),
+                'volume':        _safe_int(row.get('volume', 0)),
+                'open_interest': _safe_int(row.get('openInterest', 0)),
+                'iv':            round(_safe_float(row.get('impliedVolatility', 0)) * 100, 1),
+                'pct_otm':       round(_safe_float(row.get('pct_otm', 0)), 1),
             }
             if kind == 'call':
-                d['annual_yield_pct'] = round(float(row.get('annual_yield', 0) or 0), 1)
+                d['annual_yield_pct'] = round(_safe_float(row.get('annual_yield', 0)), 1)
             else:
-                d['cost_pct'] = round(float(row.get('cost_pct', 0) or 0), 1)
+                d['cost_pct'] = round(_safe_float(row.get('cost_pct', 0)), 1)
             return d
 
         result_expiries = []
@@ -2324,9 +2341,11 @@ def options_chain(ticker: str):
                 (calls_df['bid'] > 0)
             ].copy()
             if not calls_df.empty:
+                calls_df['openInterest'] = calls_df['openInterest'].fillna(0)
+                calls_df['volume']       = calls_df['volume'].fillna(0)
                 calls_df['mid']          = (calls_df['bid'] + calls_df['ask']) / 2
                 calls_df['pct_otm']      = (calls_df['strike'] - cur_price) / cur_price * 100
-                calls_df['annual_yield'] = calls_df['mid'] / cur_price * (365 / days_out) * 100
+                calls_df['annual_yield'] = calls_df['mid'] / cur_price * (365 / max(days_out, 1)) * 100
                 calls_df = calls_df.nlargest(5, 'openInterest')
 
             puts_df = chain.puts.copy()
@@ -2336,6 +2355,8 @@ def options_chain(ticker: str):
                 (puts_df['bid'] > 0)
             ].copy()
             if not puts_df.empty:
+                puts_df['openInterest'] = puts_df['openInterest'].fillna(0)
+                puts_df['volume']       = puts_df['volume'].fillna(0)
                 puts_df['mid']      = (puts_df['bid'] + puts_df['ask']) / 2
                 puts_df['pct_otm']  = (cur_price - puts_df['strike']) / cur_price * 100
                 puts_df['cost_pct'] = puts_df['mid'] / cur_price * 100
@@ -2373,39 +2394,46 @@ def options_chain(ticker: str):
             thesis_block = f"\nTesis de inversión: {thesis}" if thesis else ''
             risk_block   = f"\nRiesgo principal: {key_risk}" if key_risk else ''
 
-            prompt = f"""Eres un especialista en opciones para inversores value/GARP. Analiza TODA la cadena de opciones disponible y elige el contrato ÓPTIMO teniendo en cuenta la tesis de inversión.
+            prompt = f"""Eres un asesor de opciones que da instrucciones EXACTAS y ULTRA-ESPECÍFICAS. El usuario va a abrir su broker y ejecutar la orden AHORA MISMO. No puede haber ambigüedad.
 
-POSICIÓN:
-Ticker: {ticker} | Precio: ${cur_price:.2f} | P&L: {pl_pct:+.1f}% | Upside analistas: {upside:+.1f}%
-Acción fundamental: {action} | Convicción: {conviction}{thesis_block}{risk_block}
+POSICIÓN ACTUAL:
+- Ticker: {ticker}
+- Precio actual: ${cur_price:.2f}
+- P&L actual: {pl_pct:+.1f}%
+- Upside según analistas: {upside:+.1f}%
+- Acción recomendada: {action}
+- Convicción: {conviction}{thesis_block}{risk_block}
 
-CADENA DE OPCIONES DISPONIBLE (corto/medio/largo plazo):
+CONTRATOS DISPONIBLES EN EL MERCADO AHORA MISMO:
 {chr(10).join(contracts_text)}
 
-INSTRUCCIONES:
-- Considera el horizonte temporal de la tesis: si hay un catalizador a 6-12 meses, un LEAPS puede ser mejor que un covered call a 45 días
-- Si la convicción es ALTA y el upside es grande, no vendas covered calls que limiten el upside — mejor un protective put o simplemente hold
-- Si hay poca convicción o el upside es bajo, covered call OTM genera ingreso sin sacrificar mucho
-- Elige el expiry que mejor case con el timing del catalizador o del rerating esperado
-- Sé MUY específico con el strike y expiry elegido
+INSTRUCCIONES CRÍTICAS:
+1. Elige EXACTAMENTE UN contrato principal de la lista de arriba. NO inventes strikes ni expiries que no estén en la lista.
+2. Si la convicción es ALTA y el upside >20%, NO vendas covered calls que limiten — mejor LEAPS call o protective put.
+3. Si la posición está en pérdida y la tesis es intacta, considera LEAPS call para duplicar exposición a bajo coste.
+4. Si hay poco upside, covered call OTM genera ingreso.
+5. Piensa en el horizonte de la tesis: catalizador a 6-12 meses → expiry LEAPS.
 
-Responde SOLO en JSON válido (sin markdown, sin texto extra):
+RESPONDE EN JSON VÁLIDO (sin markdown, sin texto extra). Incluye instrucciones tan claras que un principiante pueda ejecutar la orden:
 {{
   "recommended_strategy": "COVERED_CALL | PROTECTIVE_PUT | COLLAR | LEAPS_CALL | CASH_SECURED_PUT | HOLD",
-  "thesis_alignment": "cómo encaja esta estrategia con la tesis de inversión en 1-2 frases",
+  "thesis_alignment": "por qué esta estrategia encaja con la tesis en 1-2 frases",
   "primary_contract": {{
-    "type": "call | put",
+    "action": "COMPRAR | VENDER",
+    "type": "CALL | PUT",
     "strike": 123.00,
     "expiry": "YYYY-MM-DD",
-    "premium": 2.50,
+    "premium_approx": 2.50,
+    "total_cost_100_shares": 250.00,
     "horizon": "corto | medio | largo",
-    "rationale": "por qué ESTE strike y ESTE expiry y no otros — sé muy específico con la tesis"
+    "order_instructions": "En tu broker: Sell to Open 1x {ticker} CALL $strike exp DD/MM/YYYY, limit price $X.XX. Necesitas tener 100 acciones."
   }},
   "secondary_contract": null,
-  "expected_outcome": "ingreso/protección esperado en $ y % si la tesis se cumple",
-  "scenario_bull": "qué pasa con el contrato si la acción sube al target",
-  "scenario_bear": "qué pasa con el contrato si la acción cae un 15%",
-  "when_to_close": "condición concreta para cerrar antes de expiración (precio, fecha, evento)"
+  "profit_if_target": "Si {ticker} sube a $X (target analistas), ganas $Y (+Z%) con este contrato",
+  "loss_if_drops": "Si {ticker} cae un 15% a $X, pierdes $Y (-Z%)",
+  "max_risk": "Lo máximo que puedes perder es $X (la prima pagada / asignación a $strike)",
+  "when_to_close": "Cierra la posición cuando: condición exacta (precio, fecha, % ganancia)",
+  "step_by_step": "1. Abre tu broker. 2. Busca {ticker} opciones. 3. Selecciona [tipo] strike $X exp DD/MM/YYYY. 4. Pon orden [compra/venta] limit a $X.XX. 5. Confirma."
 }}"""
 
             try:

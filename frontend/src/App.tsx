@@ -192,7 +192,7 @@ export default function App() {
       <div className={cn('flex flex-col min-h-screen min-w-0 relative z-10', user && 'md:ml-56')}>
         {user && <TopBar onMenuClick={() => setSidebarOpen(o => !o)} onOpenCmd={openCmd} />}
         <ScrollToTop />
-        <main className="flex-1 p-5 md:p-8 overflow-x-hidden min-w-0">
+        <main className="flex-1 p-5 md:p-8 min-w-0" style={{ overflowX: 'clip' }}>
           <Routes>
             {/* Public route */}
             <Route path="/login" element={<Login />} />

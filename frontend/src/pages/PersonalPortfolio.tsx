@@ -318,13 +318,20 @@ interface OptionsChainData {
   ai_recommendation: {
     recommended_strategy: string
     thesis_alignment?: string
-    primary_contract: { type: string; strike: number; expiry: string; premium: number; horizon?: string; rationale: string } | null
+    primary_contract: {
+      action?: string; type: string; strike: number; expiry: string
+      premium_approx?: number; premium?: number; total_cost_100_shares?: number
+      horizon?: string; rationale?: string; order_instructions?: string
+    } | null
     secondary_contract: { type: string; strike: number; expiry: string; premium: number; rationale: string } | null
-    expected_outcome: string
+    expected_outcome?: string
+    profit_if_target?: string
+    loss_if_drops?: string
     scenario_bull?: string
     scenario_bear?: string
-    max_risk: string
-    when_to_close: string
+    max_risk?: string
+    when_to_close?: string
+    step_by_step?: string
   } | null
 }
 
@@ -407,68 +414,97 @@ function OptionsPanel({ result, sym }: { result: PositionResult; sym: string }) 
           {data && (
             <>
               {/* AI recommendation */}
-              {data.ai_recommendation && (
+              {data.ai_recommendation && (() => {
+                const rec = data.ai_recommendation!
+                const pc = rec.primary_contract
+                const premium = pc?.premium_approx ?? pc?.premium ?? 0
+                return (
                 <div className={`p-3 rounded-xl ${meta.bg} border ${meta.border} space-y-2.5`}>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[0.55rem] font-bold uppercase tracking-widest text-muted-foreground/50">Recomendación IA</span>
-                    <span className={`text-[0.72rem] font-bold ${meta.color}`}>{data.ai_recommendation.recommended_strategy?.replace(/_/g, ' ')}</span>
-                    {data.ai_recommendation.thesis_alignment && (
-                      <span className="text-[0.68rem] text-foreground/60 flex-1">— {data.ai_recommendation.thesis_alignment}</span>
+                    <span className={`text-[0.72rem] font-bold ${meta.color}`}>{rec.recommended_strategy?.replace(/_/g, ' ')}</span>
+                    {rec.thesis_alignment && (
+                      <span className="text-[0.68rem] text-foreground/60 flex-1">— {rec.thesis_alignment}</span>
                     )}
                   </div>
 
-                  {data.ai_recommendation.primary_contract && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[0.72rem] p-2.5 rounded-lg bg-background/30">
-                      <div>
-                        <div className="text-muted-foreground/50 text-[0.58rem] uppercase tracking-wide mb-0.5">Contrato óptimo</div>
-                        <div className="font-bold text-foreground text-sm">{data.ai_recommendation.primary_contract.type?.toUpperCase()} ${data.ai_recommendation.primary_contract.strike}</div>
+                  {pc && (
+                    <div className="p-3 rounded-lg bg-background/40 border border-primary/20 space-y-2">
+                      {/* Contract header */}
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${pc.action === 'COMPRAR' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                          {pc.action ?? (rec.recommended_strategy?.includes('COVERED') ? 'VENDER' : 'COMPRAR')}
+                        </span>
+                        <span className="font-bold text-foreground text-lg">{pc.type?.toUpperCase()} ${pc.strike}</span>
+                        <span className="text-muted-foreground text-sm">exp {pc.expiry}</span>
+                        <span className="text-[0.65rem] text-muted-foreground/50 uppercase">{pc.horizon}</span>
                       </div>
-                      <div>
-                        <div className="text-muted-foreground/50 text-[0.58rem] uppercase tracking-wide mb-0.5">Expiración</div>
-                        <div className="font-bold text-foreground">{data.ai_recommendation.primary_contract.expiry}</div>
-                        <div className="text-[0.6rem] text-muted-foreground/50">{data.ai_recommendation.primary_contract.horizon}</div>
+                      {/* Key numbers */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[0.72rem]">
+                        <div>
+                          <div className="text-muted-foreground/50 text-[0.58rem] uppercase mb-0.5">Prima por contrato</div>
+                          <div className={`font-bold text-sm ${meta.color}`}>{sym}{premium?.toFixed(2)}</div>
+                        </div>
+                        {pc.total_cost_100_shares != null && (
+                          <div>
+                            <div className="text-muted-foreground/50 text-[0.58rem] uppercase mb-0.5">Coste total (100 acc)</div>
+                            <div className="font-bold text-sm text-foreground">{sym}{pc.total_cost_100_shares?.toFixed(0)}</div>
+                          </div>
+                        )}
+                        {(rec.profit_if_target ?? rec.expected_outcome) && (
+                          <div>
+                            <div className="text-muted-foreground/50 text-[0.58rem] uppercase mb-0.5">Si acierta</div>
+                            <div className="text-emerald-400/80 text-[0.7rem]">{rec.profit_if_target ?? rec.expected_outcome}</div>
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <div className="text-muted-foreground/50 text-[0.58rem] uppercase tracking-wide mb-0.5">Prima estimada</div>
-                        <div className={`font-bold text-sm ${meta.color}`}>{sym}{data.ai_recommendation.primary_contract.premium?.toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <div className="text-muted-foreground/50 text-[0.58rem] uppercase tracking-wide mb-0.5">Resultado esperado</div>
-                        <div className="text-foreground/70 text-[0.7rem]">{data.ai_recommendation.expected_outcome}</div>
-                      </div>
+                      {/* Order instructions — the "para tontos" section */}
+                      {pc.order_instructions && (
+                        <div className="p-2 rounded-lg bg-primary/5 border border-primary/15 text-[0.72rem] text-foreground/80">
+                          <div className="text-primary font-semibold text-[0.6rem] uppercase tracking-wide mb-1">Orden exacta en tu broker</div>
+                          {pc.order_instructions}
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {data.ai_recommendation.primary_contract?.rationale && (
+                  {/* Step by step */}
+                  {rec.step_by_step && (
+                    <div className="p-2 rounded-lg bg-blue-500/5 border border-blue-500/15 text-[0.72rem] text-foreground/70 leading-relaxed">
+                      <div className="text-blue-400 font-semibold text-[0.6rem] uppercase tracking-wide mb-1">Paso a paso</div>
+                      {rec.step_by_step}
+                    </div>
+                  )}
+
+                  {pc?.rationale && (
                     <p className="text-[0.72rem] text-foreground/70 leading-relaxed border-l-2 border-primary/30 pl-2.5">
-                      {data.ai_recommendation.primary_contract.rationale}
+                      {pc.rationale}
                     </p>
                   )}
 
                   {/* Bull/Bear scenarios */}
-                  {(data.ai_recommendation.scenario_bull || data.ai_recommendation.scenario_bear) && (
-                    <div className="grid grid-cols-2 gap-2 text-[0.68rem]">
-                      {data.ai_recommendation.scenario_bull && (
-                        <div className="p-2 rounded-lg bg-emerald-500/8 border border-emerald-500/15">
-                          <div className="text-emerald-400 font-semibold mb-0.5">📈 Si sube al target</div>
-                          <div className="text-foreground/60">{data.ai_recommendation.scenario_bull}</div>
-                        </div>
-                      )}
-                      {data.ai_recommendation.scenario_bear && (
-                        <div className="p-2 rounded-lg bg-red-500/8 border border-red-500/15">
-                          <div className="text-red-400 font-semibold mb-0.5">📉 Si cae -15%</div>
-                          <div className="text-foreground/60">{data.ai_recommendation.scenario_bear}</div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="grid grid-cols-2 gap-2 text-[0.68rem]">
+                    {(rec.profit_if_target || rec.scenario_bull) && (
+                      <div className="p-2 rounded-lg bg-emerald-500/8 border border-emerald-500/15">
+                        <div className="text-emerald-400 font-semibold mb-0.5">Si sube al target</div>
+                        <div className="text-foreground/60">{rec.profit_if_target || rec.scenario_bull}</div>
+                      </div>
+                    )}
+                    {(rec.loss_if_drops || rec.scenario_bear) && (
+                      <div className="p-2 rounded-lg bg-red-500/8 border border-red-500/15">
+                        <div className="text-red-400 font-semibold mb-0.5">Si cae -15%</div>
+                        <div className="text-foreground/60">{rec.loss_if_drops || rec.scenario_bear}</div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[0.68rem] pt-1 border-t border-border/20">
-                    <div><span className="text-red-400 font-semibold">Riesgo máx: </span><span className="text-foreground/60">{data.ai_recommendation.max_risk}</span></div>
-                    <div><span className="text-amber-400 font-semibold">Cuándo cerrar: </span><span className="text-foreground/60">{data.ai_recommendation.when_to_close}</span></div>
+                    {rec.max_risk && <div><span className="text-red-400 font-semibold">Riesgo máx: </span><span className="text-foreground/60">{rec.max_risk}</span></div>}
+                    {rec.when_to_close && <div><span className="text-amber-400 font-semibold">Cuándo cerrar: </span><span className="text-foreground/60">{rec.when_to_close}</span></div>}
                   </div>
                 </div>
-              )}
+                )
+              })()}
 
               {/* Raw contracts per expiry */}
               {data.expiries.map(exp => (
