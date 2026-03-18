@@ -2106,6 +2106,8 @@ def search_tickers():
             seen.add(ticker)
 
     def matches(ticker, company_name):
+        if not isinstance(ticker, str):
+            return False
         return q in ticker.lower() or q in (company_name or '').lower()
 
     # 1. Pipeline tickers (DF_5D — más completo)
@@ -2142,42 +2144,54 @@ def search_tickers():
         if matches(t, company):
             add(t, company, data.get('sector', '') or '')
 
-    # 5. yfinance fallback — if few/no local results, try yfinance search
-    if len(results) < 3:
-        try:
-            import yfinance as yf
-            # Try direct ticker lookup first
-            q_upper = q.upper()
-            if q_upper not in seen:
+    # 5. yfinance fallback
+    try:
+        import yfinance as yf
+        q_upper = q.upper()
+
+        # Always try direct ticker lookup if query looks like a ticker (≤6 chars, no spaces)
+        if ' ' not in q and len(q) <= 6 and q_upper not in seen:
+            try:
                 t_obj = yf.Ticker(q_upper)
                 info = t_obj.info or {}
                 name = info.get('longName') or info.get('shortName', '')
                 price = info.get('currentPrice') or info.get('previousClose')
                 if name and price and price > 0:
-                    add(q_upper, name, info.get('sector', ''))
+                    # Insert at top (exact ticker match)
+                    results.insert(0, {
+                        "ticker": q_upper,
+                        "company_name": name,
+                        "sector": info.get('sector', ''),
+                    })
+                    seen.add(q_upper)
+            except Exception:
+                pass
 
-            # Also try yfinance search for company name queries (3+ chars)
-            if len(q) >= 3 and len(results) < 5:
-                try:
-                    search_results = yf.Search(q)
-                    for item in (search_results.quotes or [])[:5]:
-                        sym = (item.get('symbol') or '').upper()
-                        name = item.get('longname') or item.get('shortname') or ''
-                        if sym and sym not in seen and not sym.endswith('.F'):
-                            add(sym, name, item.get('sector', ''))
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        # yfinance search for company name queries (3+ chars, few local results)
+        if len(q) >= 3 and len(results) < 5:
+            try:
+                search_results = yf.Search(q)
+                for item in (search_results.quotes or [])[:5]:
+                    sym = (item.get('symbol') or '').upper()
+                    name = item.get('longname') or item.get('shortname') or ''
+                    if sym and sym not in seen and not sym.endswith('.F'):
+                        add(sym, name, item.get('sector', ''))
+            except Exception:
+                pass
+    except Exception:
+        pass
 
-    # Ordenar: coincidencia exacta > empieza por ticker > empieza por empresa > contiene
+    # Ordenar: exacto > nombre empieza por query > ticker empieza > contiene
+    # Prioritize clean tickers (no dots = US primary) over foreign listings
     def sort_key(r):
         t = r['ticker'].lower()
         c = r['company_name'].lower()
-        if t == q:           return 0
-        if t.startswith(q):  return 1
-        if c.startswith(q):  return 2
-        return 3
+        has_dot = '.' in r['ticker']  # foreign listing penalty
+        if t == q:                     return (0, has_dot)
+        if c.startswith(q):            return (1, has_dot)
+        if t.startswith(q):            return (2, has_dot)
+        if q in c:                     return (3, has_dot)
+        return (4, has_dot)
 
     results.sort(key=sort_key)
     return jsonify({"results": results[:10]})
