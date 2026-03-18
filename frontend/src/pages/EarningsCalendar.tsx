@@ -4,9 +4,10 @@ import type { EarningsEntry } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card, CardContent } from '@/components/ui/card'
-import { Calendar, AlertTriangle, Zap, TrendingUp } from 'lucide-react'
+import { Calendar, AlertTriangle, Zap, TrendingUp, Wallet } from 'lucide-react'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
+import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 
 type FilterMode = 'all' | 'warning' | 'catalyst'
 
@@ -54,6 +55,7 @@ export default function EarningsCalendar() {
   const { data, loading, error } = useApi(() => fetchEarningsCalendar(), [])
   const [filter, setFilter] = useState<FilterMode>('all')
   const [search, setSearch] = useState('')
+  const { positions: myPositions } = usePersonalPortfolio()
 
   const filtered = useMemo(() => {
     if (!data?.earnings) return []
@@ -69,6 +71,14 @@ export default function EarningsCalendar() {
 
   const grouped = useMemo(() => groupByDate(filtered), [filtered])
   const sortedDates = Object.keys(grouped).sort()
+
+  const myTickers = useMemo(() => new Set(myPositions.map(p => p.ticker.toUpperCase())), [myPositions])
+  const myEarnings = useMemo(() => {
+    if (!data?.earnings || myTickers.size === 0) return []
+    return data.earnings
+      .filter(e => myTickers.has(e.ticker.toUpperCase()))
+      .sort((a, b) => (a.days_to_earnings ?? 999) - (b.days_to_earnings ?? 999))
+  }, [data, myTickers])
 
   const warningCount = data?.earnings.filter(e => e.earnings_warning).length ?? 0
   const catalystCount = data?.earnings.filter(e => e.earnings_catalyst).length ?? 0
@@ -123,6 +133,51 @@ export default function EarningsCalendar() {
           </CardContent>
         </Card>
       </div>
+
+      {/* My Portfolio Earnings */}
+      {myEarnings.length > 0 && (
+        <Card className="glass border border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Wallet size={14} className="text-primary" />
+              <span className="text-[0.62rem] font-bold uppercase tracking-widest text-primary/70">Earnings de Mi Cartera</span>
+              <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">{myEarnings.length}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {myEarnings.map(entry => (
+                <div
+                  key={entry.ticker}
+                  className={`flex items-center gap-2.5 p-2.5 rounded-lg border ${urgencyBg(entry.days_to_earnings, entry.earnings_warning)}`}
+                >
+                  <TickerLogo ticker={entry.ticker} size="xs" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-sm text-primary">{entry.ticker}</span>
+                      <span className="text-[0.65rem] text-muted-foreground truncate">{entry.company}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[0.65rem] text-muted-foreground">{formatDate(entry.earnings_date)}</span>
+                      {entry.earnings_warning && (
+                        <span className="text-[0.58rem] font-semibold text-red-400 flex items-center gap-0.5">
+                          <AlertTriangle size={8} /> Alerta
+                        </span>
+                      )}
+                      {entry.earnings_catalyst && (
+                        <span className="text-[0.58rem] font-semibold text-emerald-400 flex items-center gap-0.5">
+                          <Zap size={8} /> Catalizador
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className={`text-lg font-bold tabular-nums shrink-0 ${urgencyColor(entry.days_to_earnings, entry.earnings_warning)}`}>
+                    {daysLabel(entry.days_to_earnings)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-2">

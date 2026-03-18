@@ -2052,6 +2052,41 @@ def analyze_personal_portfolio():
         return jsonify({'error': 'GROQ_API_KEY not configured'}), 500
 
     import yfinance as _yf
+    from datetime import timedelta as _td
+
+    # ── Position sizing helpers (inline from position_sizer.py) ──────────
+    def _calc_atr_volatility(ticker_obj, cur_price):
+        """ATR-based volatility as fraction of price."""
+        try:
+            end = datetime.now()
+            df = ticker_obj.history(start=end - _td(days=45), end=end)
+            if df.empty or len(df) < 14:
+                return 0.20
+            h, l, c = df['High'], df['Low'], df['Close']
+            tr = pd.concat([h - l, (h - c.shift()).abs(), (l - c.shift()).abs()], axis=1).max(axis=1)
+            atr = float(tr.rolling(14).mean().iloc[-1])
+            return atr / cur_price if cur_price > 0 else 0.20
+        except Exception:
+            return 0.20
+
+    def _calc_kelly(win_rate=0.75, avg_win=5.0, avg_loss=-3.0, max_pos=0.10):
+        if avg_loss >= 0 or avg_win <= 0:
+            return 0.0
+        ratio = abs(avg_win / avg_loss)
+        kelly = (win_rate * ratio - (1 - win_rate)) / ratio
+        return max(0, min(kelly * 0.5, max_pos))
+
+    # Load backtest metrics if available
+    _bt_win_rate, _bt_avg_win, _bt_avg_loss = 0.75, 5.0, -3.0
+    try:
+        bt_path = DOCS / 'backtest_metrics.json'
+        if bt_path.exists():
+            bt = _json.loads(bt_path.read_text())
+            _bt_win_rate = bt.get('win_rate', 0.75)
+            _bt_avg_win  = bt.get('avg_win', 5.0)
+            _bt_avg_loss = bt.get('avg_loss', -3.0)
+    except Exception:
+        pass
 
     enriched = []
     for pos in positions:
@@ -2062,9 +2097,11 @@ def analyze_personal_portfolio():
         if not ticker or shares <= 0:
             continue
         try:
-            info = _yf.Ticker(ticker).info
+            t_obj = _yf.Ticker(ticker)
+            info  = t_obj.info
         except Exception:
-            info = {}
+            t_obj = None
+            info  = {}
         cur_price = (info.get('currentPrice') or info.get('regularMarketPrice')
                      or info.get('previousClose') or avg_p or 0)
         mkt_val  = shares * cur_price
@@ -2078,6 +2115,23 @@ def analyze_personal_portfolio():
                 fcf_yield = fcf / mc * 100
         except Exception:
             pass
+
+        # ── Position sizing for this holding ─────────────────────────
+        volatility = _calc_atr_volatility(t_obj, cur_price) if t_obj else 0.20
+        kelly_pct  = _calc_kelly(_bt_win_rate, _bt_avg_win, _bt_avg_loss)
+
+        # Volatility multiplier (high vol → smaller, low vol → larger)
+        vol_mult = 0.7 if volatility > 0.15 else (1.2 if volatility < 0.05 else 1.0)
+        opt_size_pct = min(kelly_pct * vol_mult, 0.10)  # capped at 10%
+
+        # Stop loss based on 2x ATR
+        stop_loss_pct_atr = volatility * 2
+        stop_loss_price   = cur_price * (1 - stop_loss_pct_atr)
+
+        # Risk: how much we lose if price hits stop
+        risk_per_share = cur_price - stop_loss_price
+        risk_amount    = shares * risk_per_share
+
         enriched.append({
             'ticker': ticker, 'shares': shares, 'avg_price': avg_p,
             'current_price': cur_price, 'currency': currency,
@@ -2099,6 +2153,14 @@ def analyze_personal_portfolio():
             'debt_to_equity': info.get('debtToEquity'),
             'fifty_two_week_high': info.get('fiftyTwoWeekHigh'),
             'fifty_two_week_low': info.get('fiftyTwoWeekLow'),
+            # Position sizing fields
+            'volatility_pct': round(volatility * 100, 1),
+            'kelly_pct': round(kelly_pct * 100, 1),
+            'optimal_size_pct': round(opt_size_pct * 100, 1),
+            'stop_loss_atr': round(stop_loss_price, 2),
+            'stop_loss_pct_atr': round(stop_loss_pct_atr * 100, 1),
+            'risk_amount': round(risk_amount, 0),
+            'vol_multiplier': vol_mult,
         })
 
     if not enriched:
@@ -2206,6 +2268,14 @@ Para options_strategy: sé específico — si recomiendas COVERED_CALL indica el
             'stop_loss': None, 'recommended_weight_pct': round(p['portfolio_pct'], 1),
             'analysis': '', 'key_risk': '',
             'options_strategy': '', 'options_rationale': '',
+            # Position sizing
+            'volatility_pct': p.get('volatility_pct'),
+            'kelly_pct': p.get('kelly_pct'),
+            'optimal_size_pct': p.get('optimal_size_pct'),
+            'stop_loss_atr': p.get('stop_loss_atr'),
+            'stop_loss_pct_atr': p.get('stop_loss_pct_atr'),
+            'risk_amount': p.get('risk_amount'),
+            'vol_multiplier': p.get('vol_multiplier'),
         }
         if ai_result and 'positions' in ai_result:
             for ap in ai_result['positions']:
@@ -2224,8 +2294,21 @@ Para options_strategy: sé específico — si recomiendas COVERED_CALL indica el
                     break
         result_positions.append(row)
 
+    # ── Portfolio-level risk metrics ────────────────────────────────────
+    total_risk = sum(r.get('risk_amount', 0) or 0 for r in result_positions)
+    total_risk_pct = (total_risk / total_value * 100) if total_value else 0
+    oversized = [r['ticker'] for r in result_positions
+                 if r.get('portfolio_pct', 0) > (r.get('optimal_size_pct', 100) or 100) * 1.5]
+
     return jsonify({
         'total_value': round(total_value, 2),
+        'risk_metrics': {
+            'total_risk_amount': round(total_risk, 0),
+            'total_risk_pct': round(total_risk_pct, 1),
+            'kelly_base_pct': round(_calc_kelly(_bt_win_rate, _bt_avg_win, _bt_avg_loss) * 100, 1),
+            'oversized_positions': oversized,
+            'win_rate_used': round(_bt_win_rate * 100 if _bt_win_rate <= 1 else _bt_win_rate, 1),
+        },
         'portfolio_analysis': ai_result.get('portfolio_analysis', {}) if ai_result else {},
         'positions': result_positions,
     })

@@ -53,6 +53,22 @@ interface PositionResult {
   key_risk: string
   options_strategy?: string
   options_rationale?: string
+  // Position sizing
+  volatility_pct?: number
+  kelly_pct?: number
+  optimal_size_pct?: number
+  stop_loss_atr?: number
+  stop_loss_pct_atr?: number
+  risk_amount?: number
+  vol_multiplier?: number
+}
+
+interface RiskMetrics {
+  total_risk_amount: number
+  total_risk_pct: number
+  kelly_base_pct: number
+  oversized_positions: string[]
+  win_rate_used: number
 }
 
 interface PortfolioAnalysis {
@@ -63,6 +79,7 @@ interface PortfolioAnalysis {
 
 interface AnalysisResult {
   total_value: number
+  risk_metrics?: RiskMetrics
   portfolio_analysis: PortfolioAnalysis
   positions: PositionResult[]
 }
@@ -705,6 +722,31 @@ function PositionCard({ result, pos, userId, onRemove }: {
         </div>
       )}
 
+      {/* Position Sizing strip */}
+      {result && result.volatility_pct != null && (
+        <div className="flex gap-4 px-5 py-2 bg-primary/3 border-b border-border/20 overflow-x-auto scrollbar-hide text-[0.72rem] text-muted-foreground items-center">
+          <span className="text-[0.58rem] font-bold uppercase tracking-widest text-primary/50 shrink-0">Sizing</span>
+          <span>Volatilidad <strong className={`${(result.volatility_pct ?? 0) > 15 ? 'text-red-400' : (result.volatility_pct ?? 0) < 5 ? 'text-emerald-400' : 'text-amber-400'}`}>
+            {result.volatility_pct?.toFixed(1)}%
+          </strong></span>
+          <span>Kelly <strong className="text-foreground">{result.kelly_pct?.toFixed(1)}%</strong></span>
+          <span>Tamaño óptimo <strong className="text-primary">{result.optimal_size_pct?.toFixed(1)}%</strong>
+            {result.portfolio_pct > (result.optimal_size_pct ?? 100) * 1.5 && (
+              <strong className="text-red-400 ml-1">SOBREEXPUESTO</strong>
+            )}
+            {result.portfolio_pct < (result.optimal_size_pct ?? 0) * 0.5 && result.optimal_size_pct! > 0 && (
+              <strong className="text-blue-400 ml-1">INFRAEXPUESTO</strong>
+            )}
+          </span>
+          <span>Stop ATR <strong className="text-red-400">{sym}{result.stop_loss_atr?.toFixed(2)}</strong>
+            <span className="text-muted-foreground/50 ml-0.5">(-{result.stop_loss_pct_atr?.toFixed(0)}%)</span>
+          </span>
+          <span>Riesgo <strong className={`${(result.risk_amount ?? 0) > 500 ? 'text-red-400' : 'text-amber-400'}`}>
+            {sym}{result.risk_amount?.toFixed(0)}
+          </strong></span>
+        </div>
+      )}
+
       {/* AI analysis */}
       {result?.analysis && (
         <div className="px-5 py-3.5 space-y-2">
@@ -911,6 +953,68 @@ export default function PersonalPortfolio() {
                   <p className="text-[0.75rem] text-amber-300/80">{result.portfolio_analysis.concentration_warning}</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Risk & Position Sizing overview */}
+          {result.risk_metrics && (
+            <div className="pt-3 border-t border-border/30">
+              <div className="text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-2">
+                Risk Management · Position Sizing (Kelly)
+              </div>
+              <div className="flex gap-4 flex-wrap text-[0.72rem] mb-2">
+                <span className="text-muted-foreground">
+                  Riesgo total cartera{' '}
+                  <strong className={result.risk_metrics.total_risk_pct > 10 ? 'text-red-400' : result.risk_metrics.total_risk_pct > 5 ? 'text-amber-400' : 'text-emerald-400'}>
+                    {result.risk_metrics.total_risk_pct.toFixed(1)}%
+                  </strong>
+                  <span className="text-muted-foreground/50 ml-1">(${result.risk_metrics.total_risk_amount.toFixed(0)} en riesgo)</span>
+                </span>
+                <span className="text-muted-foreground">
+                  Kelly base <strong className="text-foreground">{result.risk_metrics.kelly_base_pct.toFixed(1)}%</strong>
+                </span>
+                <span className="text-muted-foreground">
+                  Win rate <strong className="text-foreground">{result.risk_metrics.win_rate_used.toFixed(0)}%</strong>
+                </span>
+              </div>
+              {result.risk_metrics.oversized_positions.length > 0 && (
+                <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/8 border border-red-500/15 text-[0.72rem]">
+                  <AlertTriangle size={11} className="text-red-400 mt-0.5 shrink-0" />
+                  <span className="text-red-300/80">
+                    Posiciones sobreexpuestas (peso actual &gt; 1.5× Kelly óptimo):{' '}
+                    <strong>{result.risk_metrics.oversized_positions.join(', ')}</strong>
+                    {' '}— considera reducir o abrir hedge
+                  </span>
+                </div>
+              )}
+              {/* Per-position sizing bars */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                {result.positions.map(p => {
+                  const actual = p.portfolio_pct
+                  const optimal = p.optimal_size_pct ?? 0
+                  const maxBar = Math.max(actual, optimal, 1)
+                  const isOver = actual > optimal * 1.5
+                  const isUnder = actual < optimal * 0.5 && optimal > 0
+                  return (
+                    <div key={p.ticker} className="p-2 rounded-lg bg-muted/10 border border-border/20">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-mono font-bold text-[0.68rem] text-foreground">{p.ticker}</span>
+                        <span className={`text-[0.6rem] font-bold ${isOver ? 'text-red-400' : isUnder ? 'text-blue-400' : 'text-emerald-400'}`}>
+                          {isOver ? 'SOBRE' : isUnder ? 'INFRA' : 'OK'}
+                        </span>
+                      </div>
+                      <div className="relative h-2 rounded-full bg-muted/30 overflow-hidden">
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-primary/40" style={{ width: `${(optimal / maxBar) * 100}%` }} />
+                        <div className={`absolute inset-y-0 left-0 rounded-full ${isOver ? 'bg-red-400/60' : 'bg-emerald-400/60'}`} style={{ width: `${(actual / maxBar) * 100}%`, height: '50%', top: '25%' }} />
+                      </div>
+                      <div className="flex justify-between mt-0.5 text-[0.58rem] text-muted-foreground/60">
+                        <span>Actual {actual.toFixed(1)}%</span>
+                        <span>Kelly {optimal.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
 
