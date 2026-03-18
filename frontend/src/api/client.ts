@@ -337,7 +337,9 @@ export interface DividendCalendarEvent {
   fundamental_score: number | null
   value_score: number | null
   conviction_grade: string
-  source: 'value_rec' | 'fundamental'
+  ai_verdict: string
+  ai_confidence: string
+  source: 'value_filtered'
 }
 
 export interface DividendCalendarData {

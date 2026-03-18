@@ -466,11 +466,9 @@ export default function DividendTraps() {
                       )}
 
                       <div className="flex gap-1">
-                        {event.source === 'value_rec' && (
-                          <Badge variant="blue" className="text-[0.55rem]">VALUE</Badge>
-                        )}
+                        <Badge variant="green" className="text-[0.55rem]">IA VERIFIED</Badge>
                         {event.conviction_grade && (
-                          <Badge variant={event.conviction_grade === 'A' || event.conviction_grade === 'A+' ? 'green' : 'gray'} className="text-[0.55rem]">
+                          <Badge variant={event.conviction_grade === 'A' || event.conviction_grade === 'A+' ? 'blue' : 'gray'} className="text-[0.55rem]">
                             {event.conviction_grade}
                           </Badge>
                         )}
@@ -527,8 +525,8 @@ export default function DividendTraps() {
             <Card className="glass border border-border/30">
               <CardContent className="p-3 space-y-1 text-xs text-muted-foreground">
                 <div className="font-semibold text-foreground/70 mb-2">Estrategia de Dividend Timing</div>
-                <div>• Solo muestra empresas con <span className="text-emerald-400">buenos fundamentales</span> (score ≥55) o recomendaciones VALUE</div>
-                <div>• <span className="text-blue-400">Comprar antes del ex-dividend date</span> para capturar el dividendo</div>
+                <div>• Solo muestra empresas <span className="text-emerald-400">filtradas por IA</span> — recomendaciones VALUE verificadas con calidad confirmada</div>
+                <div>• <span className="text-blue-400">Comprar antes del ex-dividend date</span> para capturar el dividendo y quedarte en cartera</div>
                 <div>• <span className="text-amber-400">Capture yield</span> = dividendo por accion / precio actual (lo que capturas por holding 1 dia)</div>
                 <div>• El precio suele caer ~dividendo el dia ex-div, pero en empresas de calidad con tendencia alcista se recupera rapido</div>
                 <div>• Ideal: combinar con analisis VALUE — si ya te gusta la empresa, el dividendo es un bonus</div>

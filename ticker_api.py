@@ -1835,11 +1835,13 @@ def dividend_calendar():
     if _div_calendar_cache['date'] == today_str and _div_calendar_cache['data']:
         return jsonify(_div_calendar_cache['data'])
 
-    # Collect candidate tickers: value opportunities + fundamental scores with dividend > 0
-    candidates: dict = {}  # ticker -> {company, sector, div_yield, fund_score, value_score}
+    # ONLY AI-filtered VALUE opportunities (quality confirmed by IA)
+    candidates: dict = {}  # ticker -> {company, sector, div_yield, fund_score, value_score, ...}
 
-    # From value opportunities CSVs
-    for csv_name in ['value_opportunities.csv', 'european_value_opportunities.csv']:
+    for csv_name, source_label in [
+        ('value_opportunities_filtered.csv', 'value_filtered'),
+        ('european_value_opportunities_filtered.csv', 'value_filtered'),
+    ]:
         df = _load_csv(DOCS / csv_name)
         if df is not None and not df.empty:
             for t in df.index:
@@ -1852,26 +1854,10 @@ def dividend_calendar():
                         'fundamental_score': _sf(df.loc[t].get('fundamental_score')),
                         'value_score': _sf(df.loc[t].get('value_score')),
                         'conviction_grade': _notna_str(df.loc[t], 'conviction_grade', ''),
-                        'source': 'value_rec',
+                        'ai_verdict': _notna_str(df.loc[t], 'ai_verdict', ''),
+                        'ai_confidence': _notna_str(df.loc[t], 'ai_confidence', ''),
+                        'source': source_label,
                     }
-
-    # From fundamental scores (broader, but only high-quality)
-    if not DF_FUND.empty:
-        for t in DF_FUND.index:
-            if t in candidates:
-                continue
-            dy = _sf(DF_FUND.loc[t].get('dividend_yield_pct'))
-            fs = _sf(DF_FUND.loc[t].get('fundamental_score'))
-            if dy and dy > 0.5 and fs and fs >= 55:  # only decent-quality + meaningful yield
-                candidates[t] = {
-                    'company': _notna_str(DF_FUND.loc[t], 'company_name', t),
-                    'sector': _notna_str(DF_FUND.loc[t], 'sector', ''),
-                    'dividend_yield': dy,
-                    'fundamental_score': fs,
-                    'value_score': None,
-                    'conviction_grade': '',
-                    'source': 'fundamental',
-                }
 
     if not candidates:
         _div_calendar_cache['date'] = today_str
@@ -1933,6 +1919,8 @@ def dividend_calendar():
                     'fundamental_score': c['fundamental_score'],
                     'value_score': c['value_score'],
                     'conviction_grade': c['conviction_grade'],
+                    'ai_verdict': c.get('ai_verdict', ''),
+                    'ai_confidence': c.get('ai_confidence', ''),
                     'source': c['source'],
                 })
                 events.append(result)
