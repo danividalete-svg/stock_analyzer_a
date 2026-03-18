@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { fetchHedgeFunds, type HedgeFundConsensusItem } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card, CardContent } from '@/components/ui/card'
-import { Building2, TrendingUp, DollarSign, Users2, Info, Wallet } from 'lucide-react'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { Building2, TrendingUp, DollarSign, Users2, Info, Wallet, Brain } from 'lucide-react'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
 
@@ -39,55 +40,43 @@ function ConsensusBadge({ count }: { count: number }) {
   return <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-muted/30 text-muted-foreground border border-border/30">{count} fondo</span>
 }
 
-function HoldingRow({ row, rank, owned }: { row: HedgeFundConsensusItem; rank: number; owned?: boolean }) {
-  const funds = row.funds_list.split(' | ')
-  const barWidth = Math.min(100, (row.avg_portfolio_pct / 15) * 100)
+/** Generate client-side AI insight from the 13F data */
+function generateInsight(rows: HedgeFundConsensusItem[], funds: string[]): string {
+  if (rows.length === 0) return ''
 
-  return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-b border-border/20 last:border-0 hover:bg-muted/5 transition-colors">
-      {/* Rank + Ticker */}
-      <div className="flex items-center gap-2 min-w-[160px]">
-        <span className="text-[0.6rem] text-muted-foreground/40 font-bold w-4 tabular-nums">#{rank}</span>
-        <TickerLogo ticker={row.ticker || ''} size="xs" />
-        <div>
-          <div className="font-mono font-bold text-sm text-primary leading-tight flex items-center gap-1.5">
-            {row.ticker || '—'}
-            <OwnedBadge ticker={row.ticker || ''} />
-            {owned && <span className="text-[0.55rem] font-bold px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/25">EN CARTERA</span>}
-          </div>
-          <div className="text-[0.65rem] text-muted-foreground truncate max-w-[160px]">{row.company_name}</div>
-        </div>
-      </div>
+  const multi = rows.filter(r => r.funds_count >= 2)
+  const topByValue = [...rows].sort((a, b) => b.total_value_m - a.total_value_m).slice(0, 5)
+  const topByConcentration = [...rows].sort((a, b) => b.avg_portfolio_pct - a.avg_portfolio_pct).slice(0, 3)
+  const totalAum = rows.reduce((sum, r) => sum + r.total_value_m, 0)
 
-      {/* Consensus badge */}
-      <ConsensusBadge count={row.funds_count} />
+  const parts: string[] = []
 
-      {/* Value held */}
-      <div className="flex items-center gap-1 text-xs text-muted-foreground min-w-[90px]">
-        <DollarSign size={11} className="text-muted-foreground/50" />
-        <span className="font-bold text-foreground tabular-nums">${row.total_value_m.toLocaleString('en-US', { maximumFractionDigits: 0 })}M</span>
-      </div>
+  // Consensus picks
+  if (multi.length > 0) {
+    const tickers = multi.map(r => `**${r.ticker}** (${r.funds_count} fondos)`).join(', ')
+    parts.push(`Convergencia de due diligence: ${tickers} — múltiples gestores value llegaron a la misma conclusión independientemente.`)
+  } else {
+    parts.push('No hay convergencia 2+ fondos actualmente — cada gestor tiene posiciones únicas, lo cual sugiere oportunidades diferenciadas.')
+  }
 
-      {/* Avg portfolio % bar */}
-      <div className="flex items-center gap-2 min-w-[130px]">
-        <div className="flex-1 h-1 rounded-full bg-muted/30 overflow-hidden w-20">
-          <div
-            className="h-full rounded-full bg-emerald-500/70"
-            style={{ width: `${barWidth}%` }}
-          />
-        </div>
-        <span className="text-[0.65rem] text-muted-foreground tabular-nums">{row.avg_portfolio_pct.toFixed(1)}% avg</span>
-      </div>
+  // Top positions by value
+  const topTickers = topByValue.map(r => `${r.ticker} ($${(r.total_value_m / 1000).toFixed(1)}B)`).join(', ')
+  parts.push(`Mayores posiciones por valor: ${topTickers}. AUM total rastreado: $${(totalAum / 1000).toFixed(0)}B.`)
 
-      {/* Fund badges */}
-      <div className="flex flex-wrap gap-1 flex-1 min-w-[200px]">
-        {funds.map(f => fundBadge(f))}
-      </div>
+  // High conviction (concentration)
+  const highConv = topByConcentration.filter(r => r.avg_portfolio_pct >= 3)
+  if (highConv.length > 0) {
+    const convTickers = highConv.map(r => `${r.ticker} (${r.avg_portfolio_pct.toFixed(1)}% del portfolio)`).join(', ')
+    parts.push(`Alta convicción: ${convTickers} — posiciones concentradas indican fuerte tesis de inversión.`)
+  }
 
-      {/* Latest date */}
-      <div className="text-[0.6rem] text-muted-foreground/40 ml-auto">{row.latest_date}</div>
-    </div>
-  )
+  // Fund diversity
+  const buffettCount = rows.filter(r => r.funds_list.includes('Berkshire')).length
+  if (buffettCount > rows.length * 0.5) {
+    parts.push(`Berkshire Hathaway domina con ${buffettCount} de ${rows.length} posiciones mostradas — el oráculo de Omaha sigue concentrado en financieras y consumo.`)
+  }
+
+  return parts.join(' ')
 }
 
 export default function HedgeFunds() {
@@ -95,17 +84,19 @@ export default function HedgeFunds() {
   const { isOwned, positions: myPositions } = usePersonalPortfolio()
   const [minFunds, setMinFunds] = useState(1)
 
+  const allRows  = data?.top_consensus ?? []
+  const funds    = data?.funds_scraped ?? []
+  const insight  = useMemo(() => generateInsight(allRows, funds), [allRows, funds])
+
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
 
-  const allRows  = data?.top_consensus ?? []
-  const funds    = data?.funds_scraped ?? []
   const genAt    = data?.generated_at ? new Date(data.generated_at).toLocaleDateString('es-ES') : '—'
-
   const filtered = allRows.filter(r => r.funds_count >= minFunds)
   const multi    = allRows.filter(r => r.funds_count >= 2).length
   const top3     = allRows.filter(r => r.funds_count >= 3).length
   const overlapCount = myPositions.length > 0 ? allRows.filter(r => isOwned(r.ticker || '')).length : 0
+  const maxPct   = Math.max(...allRows.map(r => r.avg_portfolio_pct), 1)
 
   return (
     <div className="space-y-6">
@@ -119,6 +110,23 @@ export default function HedgeFunds() {
           Holdings 13F — {funds.length} fondos value/quality · {allRows.length} posiciones · actualizado {genAt}
         </p>
       </div>
+
+      {/* AI Insight */}
+      {insight && (
+        <div className="rounded-xl border border-amber-500/25 bg-gradient-to-r from-amber-500/8 to-transparent overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-amber-500/15 bg-amber-500/8">
+            <Brain size={13} className="text-amber-400" />
+            <span className="text-[0.62rem] font-bold text-amber-400 uppercase tracking-widest">Lectura de los 13F</span>
+          </div>
+          <p className="px-4 py-3 text-sm text-foreground/80 leading-relaxed">
+            {insight.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+              part.startsWith('**') && part.endsWith('**')
+                ? <strong key={i} className="text-amber-300 font-semibold">{part.slice(2, -2)}</strong>
+                : <span key={i}>{part}</span>
+            )}
+          </p>
+        </div>
+      )}
 
       {/* Info banner */}
       <div className="flex items-start gap-2 px-4 py-3 rounded-lg border border-amber-500/20 bg-amber-500/5 text-xs text-amber-400/80">
@@ -191,25 +199,86 @@ export default function HedgeFunds() {
 
       {/* Table */}
       <Card className="glass">
-        <CardContent className="p-0">
-          {/* Header — column widths must match HoldingRow flex layout */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 border-b border-border/30 bg-muted/5">
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[160px]">Ticker / Empresa</span>
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 w-[70px]">Consenso</span>
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[90px]">Valor total</span>
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 min-w-[130px]">% portfolio avg</span>
-            <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 flex-1 min-w-[200px]">Fondos</span>
-          </div>
-          {filtered.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No hay datos disponibles. Los 13F se actualizan trimestralmente.
-            </div>
-          ) : (
-            filtered.map((row, i) => (
-              <HoldingRow key={`${row.ticker}-${i}`} row={row} rank={i + 1} owned={isOwned(row.ticker || '')} />
-            ))
-          )}
-        </CardContent>
+        {filtered.length === 0 ? (
+          <CardContent className="py-12 text-center">
+            <div className="text-4xl mb-4 opacity-20">🏛️</div>
+            <p className="font-medium text-muted-foreground">No hay datos disponibles. Los 13F se actualizan trimestralmente.</p>
+          </CardContent>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="w-8">#</TableHead>
+                <TableHead>Ticker</TableHead>
+                <TableHead>Consenso</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead>Concentración</TableHead>
+                <TableHead>Fondos</TableHead>
+                <TableHead className="text-right hidden md:table-cell">Filing</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((row, i) => {
+                const fundsList = row.funds_list.split(' | ')
+                const barWidth = Math.min(100, (row.avg_portfolio_pct / maxPct) * 100)
+                const owned = isOwned(row.ticker || '')
+                const isMulti = row.funds_count >= 2
+
+                return (
+                  <TableRow key={`${row.ticker}-${i}`} className={isMulti ? 'bg-amber-500/[0.03]' : ''}>
+                    <TableCell className="text-[0.65rem] text-muted-foreground/40 font-bold tabular-nums">
+                      {i + 1}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <TickerLogo ticker={row.ticker || ''} size="xs" />
+                        <div>
+                          <div className="font-mono font-bold text-[0.8rem] text-primary leading-tight flex items-center gap-1.5">
+                            {row.ticker || '—'}
+                            <OwnedBadge ticker={row.ticker || ''} />
+                            {owned && <span className="text-[0.5rem] font-bold px-1 py-0 rounded bg-primary/15 text-primary border border-primary/25">CARTERA</span>}
+                          </div>
+                          <div className="text-[0.62rem] text-muted-foreground truncate max-w-[140px]">{row.company_name}</div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <ConsensusBadge count={row.funds_count} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="font-bold text-[0.8rem] tabular-nums">
+                        ${row.total_value_m >= 1000
+                          ? `${(row.total_value_m / 1000).toFixed(1)}B`
+                          : `${row.total_value_m.toLocaleString('en-US', { maximumFractionDigits: 0 })}M`}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 min-w-[100px]">
+                        <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${row.avg_portfolio_pct >= 5 ? 'bg-emerald-500' : row.avg_portfolio_pct >= 2 ? 'bg-emerald-500/70' : 'bg-emerald-500/40'}`}
+                            style={{ width: `${barWidth}%` }}
+                          />
+                        </div>
+                        <span className="text-[0.65rem] text-muted-foreground tabular-nums w-12 text-right">
+                          {row.avg_portfolio_pct.toFixed(1)}%
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {fundsList.map(f => fundBadge(f))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right hidden md:table-cell">
+                      <span className="text-[0.6rem] text-muted-foreground/40 tabular-nums">{row.latest_date}</span>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        )}
       </Card>
     </div>
   )
