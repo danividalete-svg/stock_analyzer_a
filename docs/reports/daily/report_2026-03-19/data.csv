@@ -1,0 +1,101 @@
+Ticker,Insider,Title,Date,Type,Price,Qty,Owned,Value,Source,ScrapedAt,Chart_Daily,Chart_Weekly
+2026-03-19 08:49:23,ORBS,Eightco Holdings Inc.,10%,P - Purchase,0.89,86956513,100655143,77%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ORBS_d.png,reports/graphs/ORBS_w.png
+2026-03-19 08:49:23,LOAR,Loar Holdings Inc.,Dir,P - Purchase,64.9,75000,8087580,4%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/LOAR_d.png,reports/graphs/LOAR_w.png
+2026-03-19 08:49:23,SONO,Sonos Inc,10%,P - Purchase,13.41,228920,36002604,3%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SONO_d.png,reports/graphs/SONO_w.png
+2026-03-19 08:49:23,AVO,"Mission Produce, Inc.",10%,P - Purchase,11.89,217274,9987882,2%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/AVO_d.png,reports/graphs/AVO_w.png
+2026-03-19 08:49:23,EXFY,"Expensify, Inc.",10%,P - Purchase,0.94,2263444,13987003,2%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/EXFY_d.png,reports/graphs/EXFY_w.png
+2026-03-19 08:49:23,RDDT,"Reddit, Inc.",Dir,P - Purchase,132.26,10500,68899,1%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/RDDT_d.png,reports/graphs/RDDT_w.png
+2026-03-19 08:49:23,TOI,"Oncology Institute, Inc.",10%,P - Purchase,3.07,398985,10251929,1%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/TOI_d.png,reports/graphs/TOI_w.png
+2026-03-19 08:49:23,POOL,Pool Corp,Dir,P - Purchase,205.0,5000,938155,1%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/POOL_d.png,reports/graphs/POOL_w.png
+2026-03-19 08:49:23,SARO,"Standardaero, Inc.",Dir,P - Purchase,26.41,37243,281531,983%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SARO_d.png,reports/graphs/SARO_w.png
+2026-03-19 08:49:23,GPGI,"Gpgi, Inc.","See remarks, 10%",P - Purchase,17.08,44000,50214372,751%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GPGI_d.png,reports/graphs/GPGI_w.png
+2026-03-19 08:49:23,GO,Grocery Outlet Holding Corp.,Dir,P - Purchase,6.06,116003,1092969,702%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GO_d.png,reports/graphs/GO_w.png
+2026-03-19 08:49:23,STIM,"Neuronetics, Inc.",10%,P - Purchase,1.16,531000,7516404,615%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/STIM_d.png,reports/graphs/STIM_w.png
+2026-03-19 08:49:23,SOFI,"Sofi Technologies, Inc.",CEO,P - Purchase,17.32,28900,11704352,500%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SOFI_d.png,reports/graphs/SOFI_w.png
+2026-03-19 08:49:23,TACT,Transact Technologies Inc,CEO,P - Purchase,3.51,100000,268318,351%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/TACT_d.png,reports/graphs/TACT_w.png
+2026-03-19 08:49:23,CBZ,"Cbiz, Inc.","SVP, CFO",P - Purchase,25.97,12775,148480,331%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CBZ_d.png,reports/graphs/CBZ_w.png
+2026-03-19 08:49:23,SNES,"Senestech, Inc.",10%,P - Purchase,1.93,171034,1756485,330%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SNES_d.png,reports/graphs/SNES_w.png
+2026-03-19 08:49:23,FLNT,"Fluent, Inc.","Dir, 10%",P - Purchase,3.47,82480,3099061,286%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/FLNT_d.png,reports/graphs/FLNT_w.png
+2026-03-19 08:49:23,FLNT,"Fluent, Inc.",10%,P - Purchase,3.47,82355,3099061,286%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/FLNT_d.png,reports/graphs/FLNT_w.png
+2026-03-19 08:49:23,SDHC,Smith Douglas Homes Corp.,"Dir, 10%",P - Purchase,11.36,22618,58918,256%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SDHC_d.png,reports/graphs/SDHC_w.png
+2026-03-19 08:49:23,WEST,Westrock Coffee Co,Dir,P - Purchase,4.6,55000,4400192,253%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/WEST_d.png,reports/graphs/WEST_w.png
+2026-03-19 08:49:23,SDHC,Smith Douglas Homes Corp.,Dir,P - Purchase,12.27,20300,60684,249%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SDHC_d.png,reports/graphs/SDHC_w.png
+2026-03-19 08:49:23,FCNCA,First Citizens Bancshares Inc /De/,"COB, CEO, 10%",P - Purchase,1550.0,149,667077,230%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/FCNCA_d.png,reports/graphs/FCNCA_w.png
+2026-03-19 08:49:23,TNXP,Tonix Pharmaceuticals Holding Corp.,CEO,P - Purchase,14.89,15000,19007,223%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/TNXP_d.png,reports/graphs/TNXP_w.png
+2026-03-19 08:49:23,AIRS,"Airsculpt Technologies, Inc.",10%,P - Purchase,2.56,83000,6676059,212%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/AIRS_d.png,reports/graphs/AIRS_w.png
+2026-03-19 08:49:23,ARKO,Arko Corp.,"CFO, EVP",P - Purchase,5.07,40000,40000,202%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ARKO_d.png,reports/graphs/ARKO_w.png
+2026-03-19 08:49:23,FOA,Finance of America Companies Inc.,CFO,P - Purchase,16.45,10600,33436,174%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/FOA_d.png,reports/graphs/FOA_w.png
+2026-03-19 08:49:23,ARQ,"Arq, Inc.",Dir,P - Purchase,1.95,77500,174010,151%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ARQ_d.png,reports/graphs/ARQ_w.png
+2026-03-19 08:49:23,WAT,Waters Corp /De/,Dir,P - Purchase,289.46,500,3441,144%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/WAT_d.png,reports/graphs/WAT_w.png
+2026-03-19 08:49:23,GCBC,Greene County Bancorp Inc,Dir,P - Purchase,21.96,6000,35427,131%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GCBC_d.png,reports/graphs/GCBC_w.png
+2026-03-19 08:49:23,CBSH,Commerce Bancshares Inc /Mo/,Dir,P - Purchase,47.71,2500,5403,119%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CBSH_d.png,reports/graphs/CBSH_w.png
+2026-03-19 08:49:23,UUU,"Universal Safety Products, Inc.","Dir, 10%",P - Purchase,5.93,20000,654032,118%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/UUU_d.png,reports/graphs/UUU_w.png
+2026-03-19 08:49:23,BW,"Babcock & Wilcox Enterprises, Inc.",CEO,P - Purchase,15.15,7000,1929279,106%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/BW_d.png,reports/graphs/BW_w.png
+2026-03-19 08:49:23,AEYE,Audioeye Inc,CFO,P - Purchase,5.9,16850,144981,99%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/AEYE_d.png,reports/graphs/AEYE_w.png
+2026-03-19 08:49:23,GPGI,"Gpgi, Inc.",Dir,P - Purchase,17.1,5800,51676172,99%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GPGI_d.png,reports/graphs/GPGI_w.png
+2026-03-19 08:49:23,ACNT,Ascent Industries Co.,CEO,P - Purchase,12.98,7595,79985,98%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ACNT_d.png,reports/graphs/ACNT_w.png
+2026-03-19 08:49:23,CRTO,Criteo S.A.,Dir,P - Purchase,17.81,5000,26600,89%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CRTO_d.png,reports/graphs/CRTO_w.png
+2026-03-19 08:49:23,RHLD,"Resolute Holdings Management, Inc.",Dir,P - Purchase,142.29,552,4306416,78%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/RHLD_d.png,reports/graphs/RHLD_w.png
+2026-03-19 08:49:23,RHLD,"Resolute Holdings Management, Inc.",CFO,P - Purchase,141.51,500,2400,70%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/RHLD_d.png,reports/graphs/RHLD_w.png
+2026-03-19 08:49:23,XZO,"Exzeo Group, Inc.",CEO,P - Purchase,15.99,4000,1576013,63%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/XZO_d.png,reports/graphs/XZO_w.png
+2026-03-19 08:49:23,PAL,"Proficient Auto Logistics, Inc",Dir,P - Purchase,6.38,10000,20000,63%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/PAL_d.png,reports/graphs/PAL_w.png
+2026-03-19 08:49:23,MX,Magnachip Semiconductor Corp,Dir,P - Purchase,2.87,21994,379821,63%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/MX_d.png,reports/graphs/MX_w.png
+2026-03-19 08:49:23,FSUN,Firstsun Capital Bancorp,Dir,P - Purchase,35.28,1500,1550,52%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/FSUN_d.png,reports/graphs/FSUN_w.png
+2026-03-19 08:49:23,GPGI,"Gpgi, Inc.",See remarks,P - Purchase,17.0,3000,3000,51%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GPGI_d.png,reports/graphs/GPGI_w.png
+2026-03-19 08:49:23,HBIO,Harvard Bioscience Inc,Dir,P - Purchase,4.87,10000,21000,48%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/HBIO_d.png,reports/graphs/HBIO_w.png
+2026-03-19 08:49:23,CSTM,Constellium Se,Dir,P - Purchase,24.77,1665,40700,41%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CSTM_d.png,reports/graphs/CSTM_w.png
+2026-03-19 08:49:23,PBI,Pitney Bowes Inc /De/,Dir,P - Purchase,10.23,4000,9000,40%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/PBI_d.png,reports/graphs/PBI_w.png
+2026-03-19 08:49:23,VEEE,"Twin Vee Powercats, Co.",Dir,P - Purchase,0.37,100000,250000,37%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/VEEE_d.png,reports/graphs/VEEE_w.png
+2026-03-19 08:49:23,EML,Eastern Co,"Dir, 10%",P - Purchase,20.93,1717,686853,35%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/EML_d.png,reports/graphs/EML_w.png
+2026-03-19 08:49:23,SI,"Shoulder Innovations, Inc.","CEO, Exec COB",P - Purchase,15.18,2200,278866,33%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SI_d.png,reports/graphs/SI_w.png
+2026-03-19 08:49:23,CMTV,Community Bancorp /Vt,Dir,P - Purchase,30.19,1035,9859,31%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CMTV_d.png,reports/graphs/CMTV_w.png
+2026-03-19 08:49:23,WSBC,Wesbanco Inc,Dir,P - Purchase,32.77,940,127212,30%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/WSBC_d.png,reports/graphs/WSBC_w.png
+2026-03-19 08:49:23,PSX,Phillips 66,Dir,P - Purchase,173.2,175,16624,30%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/PSX_d.png,reports/graphs/PSX_w.png
+2026-03-19 08:49:23,SI,"Shoulder Innovations, Inc.",CFO,P - Purchase,15.0,2000,70835,30%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SI_d.png,reports/graphs/SI_w.png
+2026-03-19 08:49:23,EML,Eastern Co,Dir,P - Purchase,20.93,1339,141194,28%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/EML_d.png,reports/graphs/EML_w.png
+2026-03-19 08:49:23,CULP,Culp Inc,"Pres, CEO",P - Purchase,3.16,8739,419387,27%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CULP_d.png,reports/graphs/CULP_w.png
+2026-03-19 08:49:23,AGYS,Agilysys Inc,Dir,P - Purchase,68.22,400,35407,27%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/AGYS_d.png,reports/graphs/AGYS_w.png
+2026-03-19 08:49:23,CBZ,"Cbiz, Inc.",Dir,P - Purchase,26.06,1000,9310,26%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CBZ_d.png,reports/graphs/CBZ_w.png
+2026-03-19 08:49:23,HBIO,Harvard Bioscience Inc,CEO,P - Purchase,5.01,5000,105000,25%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/HBIO_d.png,reports/graphs/HBIO_w.png
+2026-03-19 08:49:23,ALIT,"Alight, Inc. / Delaware",Dir,P - Purchase,0.82,30000,117219,24%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ALIT_d.png,reports/graphs/ALIT_w.png
+2026-03-19 08:49:23,EML,Eastern Co,Dir,P - Purchase,20.93,1099,18065,23%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/EML_d.png,reports/graphs/EML_w.png
+2026-03-19 08:49:23,EML,Eastern Co,Dir,P - Purchase,20.93,1064,25086,22%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/EML_d.png,reports/graphs/EML_w.png
+2026-03-19 08:49:23,AWRE,Aware Inc /Ma/,Dir,P - Purchase,1.28,16754,5121954,21%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/AWRE_d.png,reports/graphs/AWRE_w.png
+2026-03-19 08:49:23,EML,Eastern Co,Dir,P - Purchase,20.93,989,81194,20%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/EML_d.png,reports/graphs/EML_w.png
+2026-03-19 08:49:23,EML,Eastern Co,Dir,P - Purchase,20.93,962,3227,20%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/EML_d.png,reports/graphs/EML_w.png
+2026-03-19 08:49:23,BW,"Babcock & Wilcox Enterprises, Inc.",CFO,P - Purchase,14.76,1285,324143,18%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/BW_d.png,reports/graphs/BW_w.png
+2026-03-19 08:49:23,GAIA,"Gaia, Inc",Dir,P - Purchase,3.11,5486,302943,17%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GAIA_d.png,reports/graphs/GAIA_w.png
+2026-03-19 08:49:23,ACIC,American Coastal Insurance Corp,Dir,P - Purchase,11.71,1400,307816,16%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ACIC_d.png,reports/graphs/ACIC_w.png
+2026-03-19 08:49:23,ABR,Arbor Realty Trust Inc,Dir,P - Purchase,7.85,1927,24990,15%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ABR_d.png,reports/graphs/ABR_w.png
+2026-03-19 08:49:23,HFFG,Hf Foods Group Inc.,"Pres, CEO",P - Purchase,1.8,8367,424171,15%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/HFFG_d.png,reports/graphs/HFFG_w.png
+2026-03-19 08:49:23,SI,"Shoulder Innovations, Inc.",Dir,P - Purchase,14.84,1000,13666,14%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SI_d.png,reports/graphs/SI_w.png
+2026-03-19 08:49:23,MYO,"Myomo, Inc.",Dir,P - Purchase,0.7,20000,131754,13%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/MYO_d.png,reports/graphs/MYO_w.png
+2026-03-19 08:49:23,CBKM,Consumers Bancorp Inc /Oh/,"CEO, Pres",P - Purchase,25.97,513,77255,13%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CBKM_d.png,reports/graphs/CBKM_w.png
+2026-03-19 08:49:23,SDHC,Smith Douglas Homes Corp.,See Remarks,P - Purchase,11.56,1000,316643,11%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SDHC_d.png,reports/graphs/SDHC_w.png
+2026-03-19 08:49:23,ROLR,"High Roller Technologies, Inc.",COO,P - Purchase,3.95,2277,15022,8%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ROLR_d.png,reports/graphs/ROLR_w.png
+2026-03-19 08:49:23,SDHC,Smith Douglas Homes Corp.,Dir,P - Purchase,11.38,700,14748,7%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SDHC_d.png,reports/graphs/SDHC_w.png
+2026-03-19 08:49:23,HFFG,Hf Foods Group Inc.,Chief Administrative Officer,P - Purchase,1.74,4000,237995,6%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/HFFG_d.png,reports/graphs/HFFG_w.png
+2026-03-19 08:49:23,GAIA,"Gaia, Inc",Dir,P - Purchase,3.07,2000,297457,6%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GAIA_d.png,reports/graphs/GAIA_w.png
+2026-03-19 08:49:23,QRHC,Quest Resource Holding Corp,Dir,P - Purchase,1.16,5000,83214,5%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/QRHC_d.png,reports/graphs/QRHC_w.png
+2026-03-19 08:49:23,LFVN,Lifevantage Corp,Dir,P - Purchase,5.23,1055,136563,5%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/LFVN_d.png,reports/graphs/LFVN_w.png
+2026-03-19 08:49:23,AWRE,Aware Inc /Ma/,CFO,P - Purchase,1.15,4500,60984,5%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/AWRE_d.png,reports/graphs/AWRE_w.png
+2026-03-19 08:49:23,HFFG,Hf Foods Group Inc.,CFO,P - Purchase,1.76,2500,9700,4%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/HFFG_d.png,reports/graphs/HFFG_w.png
+2026-03-19 08:49:23,GRNT,"Granite Ridge Resources, Inc.",Dir,P - Purchase,5.15,658,1328839,3%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GRNT_d.png,reports/graphs/GRNT_w.png
+2026-03-19 08:49:23,CTM,"Castellum, Inc.",COO,P - Purchase,0.8,3000,534000,2%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/CTM_d.png,reports/graphs/CTM_w.png
+2026-03-19 08:49:23,GABC,"German American Bancorp, Inc.",Dir,P - Purchase,40.48,52,144171,2%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GABC_d.png,reports/graphs/GABC_w.png
+2026-03-19 08:49:23,GABC,"German American Bancorp, Inc.",Dir,P - Purchase,40.84,49,17382,2%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GABC_d.png,reports/graphs/GABC_w.png
+2026-03-19 08:49:23,GABC,"German American Bancorp, Inc.",Dir,P - Purchase,40.48,49,11788,2%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GABC_d.png,reports/graphs/GABC_w.png
+2026-03-19 08:49:23,PLD,"Prologis, Inc.",Dir,P - Purchase,107.34,13,11,1%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/PLD_d.png,reports/graphs/PLD_w.png
+2026-03-19 08:49:23,DRMA,"Dermata Therapeutics, Inc.","SVP, Regulatory Affairs",P - Purchase,1.27,1000,1046,1%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/DRMA_d.png,reports/graphs/DRMA_w.png
+2026-03-19 08:49:23,GABC,"German American Bancorp, Inc.",Dir,P - Purchase,40.84,25,66905,1%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GABC_d.png,reports/graphs/GABC_w.png
+2026-03-19 08:49:23,GABC,"German American Bancorp, Inc.",Dir,P - Purchase,40.48,25,27233,1%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/GABC_d.png,reports/graphs/GABC_w.png
+2026-03-19 08:49:23,NUTX,Nutex Health Inc.,Dir,P - Purchase,94.46,10,32137,945%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/NUTX_d.png,reports/graphs/NUTX_w.png
+2026-03-19 08:49:23,SCND,Scientific Industries Inc,COB,P - Purchase,0.65,1000,917871,650%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/SCND_d.png,reports/graphs/SCND_w.png
+2026-03-19 08:49:23,TPL,Texas Pacific Land Corp,10%,P - Purchase,525.47,1,3467927,525%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/TPL_d.png,reports/graphs/TPL_w.png
+2026-03-19 08:49:23,TPL,Texas Pacific Land Corp,10%,P - Purchase,524.58,1,3467926,525%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/TPL_d.png,reports/graphs/TPL_w.png
+2026-03-19 08:49:23,PML,Pimco Municipal Income Fund II,10%,P - Purchase,7.74,65,0,503%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/PML_d.png,reports/graphs/PML_w.png
+2026-03-19 08:49:23,YORW,York Water Co,"Pres, CEO",P - Purchase,31.55,15,39988,473%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/YORW_d.png,reports/graphs/YORW_w.png
+2026-03-19 08:49:23,ISBA,Isabella Bank Corp,Dir,P - Purchase,44.03,7,5840,300%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ISBA_d.png,reports/graphs/ISBA_w.png
+2026-03-19 08:49:23,ACNB,Acnb Corp,Dir,P - Purchase,46.42,5,28484,250%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ACNB_d.png,reports/graphs/ACNB_w.png
+2026-03-19 08:49:23,MNTR,"Mentor Capital, Inc.","CEO, 10%",P - Purchase,0.08,1600,3193996,134%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/MNTR_d.png,reports/graphs/MNTR_w.png
+2026-03-19 08:49:23,ED,Consolidated Edison Inc,"VP, Controller",P - Purchase,115.55,1,5296,109%,OpenInsider.com,2026-03-19 08:49:23,reports/graphs/ED_d.png,reports/graphs/ED_w.png

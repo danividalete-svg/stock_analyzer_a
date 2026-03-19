@@ -1,6 +1,6 @@
 {
-  "date": "2026-03-17",
-  "timestamp": "2026-03-17T08:44:07.649505",
+  "date": "2026-03-19",
+  "timestamp": "2026-03-19T08:37:55.179182",
   "narrative": null,
   "total_tickers": 16,
   "total_us": 8,
@@ -12,7 +12,7 @@
       "purchase_count": 168,
       "unique_insiders": 2,
       "confidence_score": 3380.0,
-      "days_span": 86
+      "days_span": 88
     },
     {
       "ticker": "WRB",
@@ -28,15 +28,15 @@
       "purchase_count": 52,
       "unique_insiders": 1,
       "confidence_score": 1050.0,
-      "days_span": 79
+      "days_span": 88
     },
     {
       "ticker": "DLPN",
       "market": "US",
-      "purchase_count": 49,
+      "purchase_count": 48,
       "unique_insiders": 1,
-      "confidence_score": 990.0,
-      "days_span": 84
+      "confidence_score": 970.0,
+      "days_span": 83
     },
     {
       "ticker": "SSP",

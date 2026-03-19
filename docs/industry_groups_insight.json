@@ -1,81 +1,81 @@
 {
-  "date": "2026-03-17",
-  "timestamp": "2026-03-17T08:44:07.724911",
+  "date": "2026-03-19",
+  "timestamp": "2026-03-19T08:37:55.255066",
   "narrative": null,
   "macro_regime": "STRESS",
   "top_sectors": [
     {
-      "industry": "Oil & Gas E&P",
-      "sector": "Energy",
-      "avg_rs_percentile": 71.3,
-      "num_tickers": 5,
-      "label": "Top 10%"
-    },
-    {
       "industry": "REIT - Healthcare Facilities",
       "sector": "Real Estate",
-      "avg_rs_percentile": 69.7,
+      "avg_rs_percentile": 70.5,
       "num_tickers": 3,
-      "label": "Top 10%"
-    },
-    {
-      "industry": "Banks - Regional",
-      "sector": "Financial Services",
-      "avg_rs_percentile": 67.9,
-      "num_tickers": 44,
       "label": "Top 10%"
     },
     {
       "industry": "Drug Manufacturers - Specialty & Generic",
       "sector": "Healthcare",
-      "avg_rs_percentile": 63.7,
+      "avg_rs_percentile": 65.7,
       "num_tickers": 5,
       "label": "Top 10%"
     },
     {
       "industry": "Engineering & Construction",
       "sector": "Industrials",
-      "avg_rs_percentile": 63.2,
+      "avg_rs_percentile": 65.7,
       "num_tickers": 5,
+      "label": "Top 10%"
+    },
+    {
+      "industry": "Oil & Gas E&P",
+      "sector": "Energy",
+      "avg_rs_percentile": 65.4,
+      "num_tickers": 5,
+      "label": "Top 10%"
+    },
+    {
+      "industry": "Banks - Regional",
+      "sector": "Financial Services",
+      "avg_rs_percentile": 64.4,
+      "num_tickers": 42,
       "label": "Top 10%"
     }
   ],
   "bottom_sectors": [
     {
-      "industry": "Internet Content & Information",
-      "sector": "Communication Services",
-      "avg_rs_percentile": 9.0,
-      "num_tickers": 2,
+      "industry": "Software - Infrastructure",
+      "sector": "Technology",
+      "avg_rs_percentile": 10.4,
+      "num_tickers": 3,
       "label": "Bottom 25%"
     },
     {
       "industry": "Farm Products",
       "sector": "Consumer Defensive",
-      "avg_rs_percentile": 7.4,
+      "avg_rs_percentile": 6.6,
       "num_tickers": 2,
       "label": "Bottom 25%"
     },
     {
       "industry": "REIT - Mortgage",
       "sector": "Real Estate",
-      "avg_rs_percentile": 6.6,
+      "avg_rs_percentile": 6.3,
       "num_tickers": 4,
       "label": "Bottom 25%"
     },
     {
-      "industry": "Health Information Services",
-      "sector": "Healthcare",
-      "avg_rs_percentile": 6.5,
-      "num_tickers": 3,
+      "industry": "Information Technology Services",
+      "sector": "Technology",
+      "avg_rs_percentile": 5.4,
+      "num_tickers": 2,
       "label": "Bottom 25%"
     },
     {
       "industry": "Software - Application",
       "sector": "Technology",
-      "avg_rs_percentile": 5.0,
+      "avg_rs_percentile": 4.6,
       "num_tickers": 5,
       "label": "Bottom 25%"
     }
   ],
-  "total_groups": 41
+  "total_groups": 42
 }

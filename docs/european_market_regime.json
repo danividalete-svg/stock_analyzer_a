@@ -1,8 +1,8 @@
 {
   "regime": "UPTREND_PRESSURE",
   "recommendation": "CAUTION",
-  "stoxx50_price": 5722.38,
-  "ma50": 5957.62,
-  "ma200": 5821.32,
+  "stoxx50_price": 5657.89,
+  "ma50": 5946.04,
+  "ma200": 5823.05,
   "ma200_slope": 1.01
 }
