@@ -2,8 +2,8 @@
   "generated": "2026-03-06",
   "events": [
     {"date": "2026-03-12", "event": "CPI Febrero", "type": "CPI", "impact": "HIGH", "description": "Índice de Precios al Consumidor — clave para decisiones Fed"},
-    {"date": "2026-03-19", "event": "Fed Meeting", "type": "FED", "impact": "HIGH", "description": "FOMC — decisión de tipos de interés y dot plot"},
-    {"date": "2026-03-20", "event": "Fed Decision", "type": "FED", "impact": "HIGH", "description": "Anuncio Fed + rueda de prensa Powell"},
+    {"date": "2026-03-18", "event": "Fed Meeting", "type": "FED", "impact": "HIGH", "description": "FOMC — decisión de tipos de interés y dot plot"},
+    {"date": "2026-03-19", "event": "Fed Decision ✓", "type": "FED", "impact": "HIGH", "description": "Sin cambios en tipos. Powell: esperar más datos antes de actuar. Dot plot sin modificar."},
     {"date": "2026-03-27", "event": "PCE Febrero", "type": "PCE", "impact": "HIGH", "description": "Deflactor PCE — métrica de inflación preferida de la Fed"},
     {"date": "2026-04-03", "event": "NFP Marzo", "type": "JOBS", "impact": "HIGH", "description": "Nóminas no agrícolas — indicador del mercado laboral"},
     {"date": "2026-04-10", "event": "CPI Marzo", "type": "CPI", "impact": "HIGH", "description": "Índice de Precios al Consumidor"},
