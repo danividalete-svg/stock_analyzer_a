@@ -1,6 +1,6 @@
 {
-  "date": "2026-03-19",
-  "timestamp": "2026-03-19T08:37:55.179182",
+  "date": "2026-03-20",
+  "timestamp": "2026-03-20T08:37:37.005305",
   "narrative": null,
   "total_tickers": 16,
   "total_us": 8,
@@ -9,10 +9,10 @@
     {
       "ticker": "TPL",
       "market": "US",
-      "purchase_count": 168,
+      "purchase_count": 165,
       "unique_insiders": 2,
-      "confidence_score": 3380.0,
-      "days_span": 88
+      "confidence_score": 3320.0,
+      "days_span": 85
     },
     {
       "ticker": "WRB",
@@ -25,18 +25,18 @@
     {
       "ticker": "MNTR",
       "market": "US",
-      "purchase_count": 52,
+      "purchase_count": 51,
       "unique_insiders": 1,
-      "confidence_score": 1050.0,
-      "days_span": 88
+      "confidence_score": 1030.0,
+      "days_span": 84
     },
     {
       "ticker": "DLPN",
       "market": "US",
-      "purchase_count": 48,
+      "purchase_count": 46,
       "unique_insiders": 1,
-      "confidence_score": 970.0,
-      "days_span": 83
+      "confidence_score": 930.0,
+      "days_span": 85
     },
     {
       "ticker": "SSP",

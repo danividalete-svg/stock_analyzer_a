@@ -1,43 +1,43 @@
 {
-  "date": "2026-03-19",
-  "timestamp": "2026-03-19T08:37:55.098265",
-  "narrative": "En el actual r\u00e9gimen macro de estr\u00e9s, los inversores value pueden encontrar oportunidades atractivas en activos subvaluados. Destacamos a LIFE, INDV y EXEL por su alto potencial de revalorizaci\u00f3n, impulsado por su s\u00f3lida fundamentaci\u00f3n y desempe\u00f1o operativo. Recomendamos una posici\u00f3n moderada en estos activos, con un tama\u00f1o de 5-7% del portafolio, y un enfoque a largo plazo, considerando la volatilidad actual del mercado.",
+  "date": "2026-03-20",
+  "timestamp": "2026-03-20T08:37:36.920831",
+  "narrative": "En el actual entorno macro de estr\u00e9s, los inversores value pueden encontrar oportunidades atractivas en activos subvaluados. Destacamos a LIFE, con un upside del 102.5%, y EXEL, con un upside del 13.5%, debido a su s\u00f3lida fundamentaci\u00f3n y potencial de recuperaci\u00f3n. Recomendamos una posici\u00f3n moderada, con un tama\u00f1o del 5-7% del portafolio, y un enfoque a largo plazo, con un nivel de cautela alto debido a la volatilidad actual.",
   "macro_regime": "STRESS",
   "picks_count": 8,
   "top_picks": [
     {
       "ticker": "EXEL",
       "sector": "Healthcare",
-      "value_score": 75.32,
+      "value_score": 75.12,
       "analyst_upside_pct": 13.5,
       "conviction_grade": null
     },
     {
       "ticker": "LIFE",
       "sector": "Financial Services",
-      "value_score": 71.6,
-      "analyst_upside_pct": 87.5,
+      "value_score": 73.6,
+      "analyst_upside_pct": 102.5,
       "conviction_grade": null
     },
     {
       "ticker": "INDV",
       "sector": "Healthcare",
       "value_score": 71.32,
-      "analyst_upside_pct": 53.5,
+      "analyst_upside_pct": 53.6,
       "conviction_grade": null
     },
     {
-      "ticker": "MSFT",
-      "sector": "Technology",
-      "value_score": 67.32,
-      "analyst_upside_pct": 51.8,
+      "ticker": "BUKS",
+      "sector": "Industrials",
+      "value_score": 69.7,
+      "analyst_upside_pct": null,
       "conviction_grade": null
     },
     {
-      "ticker": "SPGI",
-      "sector": "Financial Services",
-      "value_score": 66.6,
-      "analyst_upside_pct": 26.2,
+      "ticker": "LPG",
+      "sector": "Energy",
+      "value_score": 69.36,
+      "analyst_upside_pct": 6.9,
       "conviction_grade": null
     }
   ]
