@@ -12,6 +12,7 @@ export type NavItem = NavSection | NavLinkItem
 
 export const NAV: NavItem[] = [
   { path: '/dashboard',      icon: LayoutDashboard, label: 'Dashboard',           color: '#6366f1', keywords: ['inicio', 'home', 'resumen'] },
+  { path: '/cerebro',        icon: Brain,           label: 'Cerebro IA',          color: '#8b5cf6', keywords: ['cerebro', 'ia', 'agente', 'proactivo', 'aprendizaje', 'convergencia', 'alertas', 'entrada', 'semaforo'] },
   { section: 'Estrategias' },
   { path: '/value',          icon: DollarSign,      label: 'Value',               color: '#10b981', tag: '🇺🇸', keywords: ['value', 'fundamental', 'us', 'acciones'] },
   { path: '/value-eu',       icon: Euro,            label: 'Value',               color: '#3b82f6', tag: '🇪🇺', keywords: ['value', 'europa', 'europeo'] },
@@ -41,7 +42,6 @@ export const NAV: NavItem[] = [
   { section: 'Herramientas' },
   { path: '/watchlist',      icon: Star,            label: 'Watchlist',           color: '#f59e0b', keywords: ['watchlist', 'seguimiento', 'favoritos'] },
   { path: '/compare',        icon: GitCompare,      label: 'Comparador',          color: '#0ea5e9', keywords: ['comparar', 'comparador', 'compare', 'side by side'] },
-  { path: '/cerebro',        icon: Brain,           label: 'Cerebro IA',          color: '#8b5cf6', keywords: ['cerebro', 'ia', 'agente', 'proactivo', 'aprendizaje', 'convergencia', 'alertas'] },
   { path: '/alerts',         icon: Bell,            label: 'Alertas',             color: '#f59e0b', keywords: ['alertas', 'email', 'notificaciones', 'precio'] },
   { path: '/search',         icon: Search,          label: 'Buscar Ticker',       color: '#94a3b8', keywords: ['buscar', 'ticker', 'search', 'analisis'] },
   { path: '/datos',          icon: Database,        label: 'Datos & Historial',   color: '#64748b', keywords: ['datos', 'historial', 'csv', 'descarga'] },

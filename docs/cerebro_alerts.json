@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-03-21",
-  "total": 648,
-  "high_count": 241,
+  "total": 623,
+  "high_count": 222,
   "alerts": [
     {
       "ticker": "AASP",
@@ -37,22 +37,6 @@
       "data": {
         "purchase_count": 6.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "ABT",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: ABT",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -249,22 +233,6 @@
       }
     },
     {
-      "ticker": "ALLY",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: ALLY",
-      "message": "Aparece en 3 estrategias: VALUE, INSIDERS, OPTIONS. Score convergencia: 76.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "VALUE",
-          "INSIDERS",
-          "OPTIONS"
-        ],
-        "convergence_score": 76
-      }
-    },
-    {
       "ticker": "ALMS",
       "type": "INSIDER_BUYING",
       "severity": "HIGH",
@@ -406,22 +374,6 @@
       "data": {
         "purchase_count": 5.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "BA",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: BA",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -848,38 +800,6 @@
       }
     },
     {
-      "ticker": "CRM",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: CRM",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
-      }
-    },
-    {
-      "ticker": "CSGP",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: CSGP",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
-      }
-    },
-    {
       "ticker": "CTEV",
       "type": "INSIDER_BUYING",
       "severity": "HIGH",
@@ -914,22 +834,6 @@
       "data": {
         "purchase_count": 4.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "CVS",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: CVS",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -1002,22 +906,6 @@
       "data": {
         "purchase_count": 12.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "ENPH",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: ENPH",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -1102,22 +990,6 @@
       "data": {
         "purchase_count": 5.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "FIS",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: FIS",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -1411,38 +1283,6 @@
       }
     },
     {
-      "ticker": "HUM",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: HUM",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
-      }
-    },
-    {
-      "ticker": "HYMC",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: HYMC",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
-      }
-    },
-    {
       "ticker": "HYPD",
       "type": "INSIDER_BUYING",
       "severity": "HIGH",
@@ -1476,22 +1316,6 @@
       "data": {
         "purchase_count": 20.0,
         "unique_insiders": 4.0
-      }
-    },
-    {
-      "ticker": "INTC",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: INTC",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -1617,22 +1441,6 @@
       }
     },
     {
-      "ticker": "KKR",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: KKR",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
-      }
-    },
-    {
       "ticker": "KOS",
       "type": "INSIDER_BUYING",
       "severity": "HIGH",
@@ -1666,22 +1474,6 @@
       "data": {
         "purchase_count": 12.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "LAW",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: LAW",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -1863,22 +1655,6 @@
       "data": {
         "purchase_count": 12.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "MSTR",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: MSTR",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -2123,22 +1899,6 @@
       }
     },
     {
-      "ticker": "PODD",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: PODD",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
-      }
-    },
-    {
       "ticker": "POOL",
       "type": "MR_ZONE",
       "severity": "HIGH",
@@ -2173,22 +1933,6 @@
       "data": {
         "purchase_count": 9.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "PRU",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: PRU",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -2297,22 +2041,6 @@
       "data": {
         "purchase_count": 5.0,
         "unique_insiders": 2.0
-      }
-    },
-    {
-      "ticker": "ROP",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: ROP",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -2641,22 +2369,6 @@
       }
     },
     {
-      "ticker": "THRY",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: THRY",
-      "message": "Aparece en 3 estrategias: VALUE, INSIDERS, MR. Score convergencia: 79.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "VALUE",
-          "INSIDERS",
-          "MR"
-        ],
-        "convergence_score": 79
-      }
-    },
-    {
       "ticker": "TLPH",
       "type": "INSIDER_BUYING",
       "severity": "HIGH",
@@ -2739,22 +2451,6 @@
         "reversion_score": 80.0,
         "rsi": 24.6,
         "quality": "\u2b50\u2b50\u2b50 EXCELENTE"
-      }
-    },
-    {
-      "ticker": "URI",
-      "type": "NEW_CONVERGENCE",
-      "severity": "HIGH",
-      "title": "Nueva convergencia: URI",
-      "message": "Aparece en 3 estrategias: INSIDERS, MR, OPTIONS. Score convergencia: 70.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "INSIDERS",
-          "MR",
-          "OPTIONS"
-        ],
-        "convergence_score": 70
       }
     },
     {
@@ -3213,21 +2909,6 @@
       "data": {
         "purchase_count": 7.0,
         "unique_insiders": 1.0
-      }
-    },
-    {
-      "ticker": "AMRZ",
-      "type": "NEW_CONVERGENCE",
-      "severity": "MEDIUM",
-      "title": "Nueva convergencia: AMRZ",
-      "message": "Aparece en 2 estrategias: VALUE, INSIDERS. Score convergencia: 63.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "VALUE",
-          "INSIDERS"
-        ],
-        "convergence_score": 63
       }
     },
     {
@@ -5229,21 +4910,6 @@
       }
     },
     {
-      "ticker": "INDV",
-      "type": "NEW_CONVERGENCE",
-      "severity": "MEDIUM",
-      "title": "Nueva convergencia: INDV",
-      "message": "Aparece en 2 estrategias: VALUE, INSIDERS. Score convergencia: 64.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "VALUE",
-          "INSIDERS"
-        ],
-        "convergence_score": 64
-      }
-    },
-    {
       "ticker": "INTC",
       "type": "MR_ZONE",
       "severity": "MEDIUM",
@@ -5506,21 +5172,6 @@
       "data": {
         "purchase_count": 4.0,
         "unique_insiders": 1.0
-      }
-    },
-    {
-      "ticker": "LIFE",
-      "type": "NEW_CONVERGENCE",
-      "severity": "MEDIUM",
-      "title": "Nueva convergencia: LIFE",
-      "message": "Aparece en 2 estrategias: VALUE, INSIDERS. Score convergencia: 64.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "VALUE",
-          "INSIDERS"
-        ],
-        "convergence_score": 64
       }
     },
     {
@@ -5953,21 +5604,6 @@
       "data": {
         "purchase_count": 6.0,
         "unique_insiders": 1.0
-      }
-    },
-    {
-      "ticker": "MWA",
-      "type": "NEW_CONVERGENCE",
-      "severity": "MEDIUM",
-      "title": "Nueva convergencia: MWA",
-      "message": "Aparece en 2 estrategias: VALUE, INSIDERS. Score convergencia: 64.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "VALUE",
-          "INSIDERS"
-        ],
-        "convergence_score": 64
       }
     },
     {
@@ -6991,21 +6627,6 @@
       }
     },
     {
-      "ticker": "SGU",
-      "type": "NEW_CONVERGENCE",
-      "severity": "MEDIUM",
-      "title": "Nueva convergencia: SGU",
-      "message": "Aparece en 2 estrategias: VALUE, INSIDERS. Score convergencia: 64.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "VALUE",
-          "INSIDERS"
-        ],
-        "convergence_score": 64
-      }
-    },
-    {
       "ticker": "SHBI",
       "type": "INSIDER_BUYING",
       "severity": "MEDIUM",
@@ -7137,21 +6758,6 @@
       "data": {
         "purchase_count": 36.0,
         "unique_insiders": 1.0
-      }
-    },
-    {
-      "ticker": "SPGI",
-      "type": "NEW_CONVERGENCE",
-      "severity": "MEDIUM",
-      "title": "Nueva convergencia: SPGI",
-      "message": "Aparece en 2 estrategias: VALUE, INSIDERS. Score convergencia: 63.",
-      "date": "2026-03-21",
-      "data": {
-        "strategies": [
-          "VALUE",
-          "INSIDERS"
-        ],
-        "convergence_score": 63
       }
     },
     {
