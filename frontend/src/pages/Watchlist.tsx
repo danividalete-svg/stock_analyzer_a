@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, Trash2, StickyNote, ChevronRight } from 'lucide-react'
+import { Star, Trash2, StickyNote, ChevronRight, Brain } from 'lucide-react'
 import { useWatchlist, type WatchlistEntry } from '../hooks/useWatchlist'
-import { fetchValueOpportunities, fetchEUValueOpportunities } from '../api/client'
+import { fetchValueOpportunities, fetchEUValueOpportunities, fetchCerebroAlerts, type CerebroAlert } from '../api/client'
+import { useApi } from '../hooks/useApi'
 import GradeBadge from '../components/GradeBadge'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 
 function fmt(n: number | undefined | null, dec = 1) {
@@ -55,11 +57,64 @@ function NoteEditor({ entry, onSave }: { entry: WatchlistEntry; onSave: (note: s
 
 type LiveEntry = { value_score: number; conviction_grade?: string }
 
+function alertSeverityStyle(severity: string) {
+  if (severity === 'HIGH') return 'text-red-400 bg-red-500/10 border-red-500/30'
+  if (severity === 'MEDIUM') return 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+  return 'text-blue-400 bg-blue-500/10 border-blue-500/30'
+}
+
+function WatchlistAlerts({ alerts, watchlistTickers, loading }: Readonly<{
+  alerts: CerebroAlert[] | undefined
+  watchlistTickers: Set<string>
+  loading: boolean
+}>) {
+  const filtered = (alerts ?? [])
+    .filter(a => watchlistTickers.has(a.ticker.toUpperCase()))
+    .sort((a, b) => {
+      const sev = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+      return (sev[a.severity] ?? 2) - (sev[b.severity] ?? 2)
+    })
+
+  if (!loading && filtered.length === 0) return null
+
+  return (
+    <div className="mb-5 animate-fade-in-up">
+      <div className="flex items-center gap-2 mb-2 px-1">
+        <Brain size={13} className="text-purple-400" />
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Alertas Cerebro IA</span>
+        {!loading && filtered.length > 0 && (
+          <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">{filtered.length}</span>
+        )}
+      </div>
+      <Card className="glass p-4">
+        {loading ? (
+          <div className="space-y-2">{['a','b','c'].map(k => <Skeleton key={k} className="h-8 w-full" />)}</div>
+        ) : (
+          <div className="space-y-1.5">
+            {filtered.map(a => (
+              <div key={`${a.ticker}-${a.type}`} className={`flex items-start gap-2 px-3 py-2 rounded-md border ${alertSeverityStyle(a.severity)}`}>
+                <span className="text-[0.55rem] font-bold uppercase mt-0.5 shrink-0">{a.severity}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="font-mono font-bold text-[0.78rem] mr-1.5">{a.ticker}</span>
+                  <span className="text-[0.72rem] font-semibold">{a.title}</span>
+                  <p className="text-[0.66rem] text-muted-foreground mt-0.5 leading-relaxed">{a.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
 export default function Watchlist() {
   const { entries, remove, updateNote } = useWatchlist()
   const [sortKey, setSortKey] = useState<keyof WatchlistEntry>('added_at')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [liveMap, setLiveMap] = useState<Record<string, LiveEntry>>({})
+  const { data: cerebroAlertsRaw, loading: loadingAlerts } = useApi(() => fetchCerebroAlerts(), [])
+  const watchlistTickers = new Set(entries.map(e => e.ticker.toUpperCase()))
 
   useEffect(() => {
     Promise.all([fetchValueOpportunities(), fetchEUValueOpportunities()])
@@ -106,6 +161,12 @@ export default function Watchlist() {
           </p>
         </div>
       </div>
+
+      <WatchlistAlerts
+        alerts={cerebroAlertsRaw?.alerts}
+        watchlistTickers={watchlistTickers}
+        loading={loadingAlerts}
+      />
 
       {entries.length === 0 ? (
         <Card className="glass">

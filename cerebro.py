@@ -1,38 +1,39 @@
 #!/usr/bin/env python3
 """
 CEREBRO — Proactive AI Agent
-Runs daily at end of pipeline. Does 4 things:
+Runs daily at end of pipeline. 5 modules:
 
-1. PATTERN MINING  : reads portfolio_tracker history → learns what predicts wins
-2. CONVERGENCE SCAN: finds tickers in 2+ strategies today → ranks & narrates top picks
-3. ALERT GENERATOR : detects events for all tickers (new MR zone, score drop, earnings)
-4. SELF-CALIBRATION: identifies which score ranges / sectors / regimes actually work
+1. PATTERN MINING    : portfolio_tracker history → learns what predicts wins
+2. CONVERGENCE SCAN  : tickers in 2+ strategies → ranks, narrates, tracks streak
+3. ALERT GENERATOR   : MR zone, score drift, earnings warnings, new convergences
+4. SELF-CALIBRATION  : identifies over/under-weighted factors
+5. AUTO-TUNING       : writes scoring_weights_suggested.json for human review
 
-Outputs (all to docs/):
-  cerebro_insights.json    — what the system learned from history
-  cerebro_convergence.json — today's top multi-strategy convergence picks
-  cerebro_alerts.json      — ticker events (frontend filters by user's watchlist)
+Outputs (docs/):
+  cerebro_insights.json         — what the system learned from history
+  cerebro_convergence.json      — today's multi-strategy convergences + AI analysis
+  cerebro_alerts.json           — proactive ticker events
+  cerebro_calibration.json      — calibration recommendations
+  scoring_weights_suggested.json — auto-tuning proposals (human review required)
 """
 
-import os
-import json
+import os, json
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from datetime import datetime, date
+from datetime import date, datetime
 
 try:
     from groq import Groq
-    GROQ_KEY = os.getenv("GROQ_API_KEY")
-    groq_client = Groq(api_key=GROQ_KEY) if GROQ_KEY else None
+    groq_client = Groq(api_key=os.getenv("GROQ_API_KEY")) if os.getenv("GROQ_API_KEY") else None
 except Exception:
     groq_client = None
 
-DOCS = Path("docs")
+DOCS  = Path("docs")
 TODAY = date.today().isoformat()
 
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+# ── helpers ───────────────────────────────────────────────────────────────────
 
 def load_csv(path: Path) -> pd.DataFrame:
     try:
@@ -40,516 +41,468 @@ def load_csv(path: Path) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame()
 
-
-def safe_float(v) -> float | None:
+def load_json(path: Path) -> dict:
     try:
-        f = float(v)
-        return None if np.isnan(f) else f
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_json(path: Path, data: dict):
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2, default=str)
+
+def sf(v):
+    try:
+        x = float(v)
+        return None if (x != x) else x  # NaN check
     except Exception:
         return None
 
-
-def ai_narrative(prompt: str, max_tokens: int = 300) -> str | None:
+def ai(prompt: str, max_tokens: int = 300):
     if not groq_client:
         return None
     try:
-        resp = groq_client.chat.completions.create(
+        r = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            temperature=0.4,
+            max_tokens=max_tokens, temperature=0.4,
         )
-        return resp.choices[0].message.content.strip()
+        return r.choices[0].message.content.strip()
     except Exception as e:
-        print(f"  [AI] error: {e}")
+        print(f"  [AI] {e}")
         return None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 1. PATTERN MINING — what predicts wins?
+# 1. PATTERN MINING
 # ══════════════════════════════════════════════════════════════════════════════
 
 def mine_patterns() -> dict:
-    print("\n[CEREBRO] Mining patterns from portfolio tracker history...")
+    print("\n[1/5] Pattern mining...")
     df = load_csv(DOCS / "portfolio_tracker" / "recommendations.csv")
-    if df.empty:
-        print("  No data found.")
-        return {}
+    done = df[df["return_7d"].notna()].copy() if not df.empty else pd.DataFrame()
+    if len(done) < 10:
+        print(f"  Only {len(done)} completed signals — need more data.")
+        return {"total_analyzed": len(done), "narrative": None}
 
-    # Only use VALUE signals with completed 7d return
-    completed = df[df["return_7d"].notna()].copy()
-    if len(completed) < 10:
-        print(f"  Only {len(completed)} completed signals — need more data.")
-        return {"total_analyzed": len(completed)}
+    base_wr  = float(done["win_7d"].mean()) * 100 if "win_7d" in done.columns else 50.0
+    base_ret = float(done["return_7d"].mean())
+    print(f"  {len(done)} signals · baseline WR {base_wr:.1f}%")
 
-    print(f"  Analyzing {len(completed)} completed signals...")
-    baseline_wr = float(completed["win_7d"].mean()) * 100 if "win_7d" in completed.columns else 50.0
-    baseline_ret = float(completed["return_7d"].mean())
-
-    def tier_stats(sub: pd.DataFrame, label: str) -> dict:
+    def stats(sub: pd.DataFrame, label: str):
         if len(sub) < 3:
-            return {}
-        wr = float(sub["win_7d"].mean()) * 100 if "win_7d" in sub.columns else 0.0
+            return None
+        wr  = float(sub["win_7d"].mean()) * 100 if "win_7d" in sub.columns else 0.0
         ret = float(sub["return_7d"].mean())
         ret14 = float(sub["return_14d"].mean()) if "return_14d" in sub.columns and sub["return_14d"].notna().any() else None
-        return {
-            "label": label,
-            "win_rate_7d": round(wr, 1),
-            "avg_return_7d": round(ret, 2),
-            "avg_return_14d": round(ret14, 2) if ret14 is not None else None,
-            "n": len(sub),
-            "vs_baseline_wr": round(wr - baseline_wr, 1),
-            "vs_baseline_ret": round(ret - baseline_ret, 2),
-        }
+        return dict(label=label, win_rate_7d=round(wr,1), avg_return_7d=round(ret,2),
+                    avg_return_14d=round(ret14,2) if ret14 else None,
+                    n=len(sub), vs_baseline_wr=round(wr-base_wr,1), vs_baseline_ret=round(ret-base_ret,2))
 
-    # ── Score tiers ──────────────────────────────────────────────────────────
-    score_tiers = []
-    if "value_score" in completed.columns:
-        for lo, hi in [(90, 101), (80, 90), (70, 80), (60, 70), (50, 60)]:
-            sub = completed[(completed["value_score"] >= lo) & (completed["value_score"] < hi)]
-            s = tier_stats(sub, f"{lo}–{hi}")
-            if s:
-                score_tiers.append(s)
+    def tier_col(col, ranges):
+        out = []
+        for lo, hi in ranges:
+            s = stats(done[(done[col] >= lo) & (done[col] < hi)], f"{lo}–{hi}")
+            if s: out.append(s)
+        return out
 
-    # ── Market regime ────────────────────────────────────────────────────────
+    score_tiers = tier_col("value_score", [(90,101),(80,90),(70,80),(60,70),(50,60)]) if "value_score" in done.columns else []
+
     regimes = []
-    if "market_regime" in completed.columns:
-        for regime in completed["market_regime"].dropna().unique():
-            sub = completed[completed["market_regime"] == regime]
-            s = tier_stats(sub, regime)
-            if s:
-                regimes.append(s)
+    if "market_regime" in done.columns:
+        for r in done["market_regime"].dropna().unique():
+            s = stats(done[done["market_regime"] == r], r)
+            if s: regimes.append(s)
         regimes.sort(key=lambda x: x["win_rate_7d"], reverse=True)
 
-    # ── Sector ───────────────────────────────────────────────────────────────
     sectors = []
-    if "sector" in completed.columns:
-        for sector in completed["sector"].dropna().unique():
-            sub = completed[completed["sector"] == sector]
-            s = tier_stats(sub, sector)
-            if s:
-                sectors.append(s)
+    if "sector" in done.columns:
+        for sec in done["sector"].dropna().unique():
+            s = stats(done[done["sector"] == sec], sec)
+            if s: sectors.append(s)
         sectors.sort(key=lambda x: x["win_rate_7d"], reverse=True)
 
-    # ── FCF yield effect ─────────────────────────────────────────────────────
     fcf_tiers = []
-    if "fcf_yield_pct" in completed.columns:
-        high_fcf  = completed[completed["fcf_yield_pct"] >= 5]
-        med_fcf   = completed[(completed["fcf_yield_pct"] >= 2) & (completed["fcf_yield_pct"] < 5)]
-        low_fcf   = completed[completed["fcf_yield_pct"] < 2]
-        neg_fcf   = completed[completed["fcf_yield_pct"] < 0]
-        for sub, label in [(high_fcf, "FCF≥5%"), (med_fcf, "FCF 2-5%"), (low_fcf, "FCF<2%"), (neg_fcf, "FCF<0%")]:
-            s = tier_stats(sub, label)
-            if s:
-                fcf_tiers.append(s)
+    if "fcf_yield_pct" in done.columns:
+        for sub, lbl in [
+            (done[done["fcf_yield_pct"] >= 5],   "FCF≥5%"),
+            (done[(done["fcf_yield_pct"] >= 2) & (done["fcf_yield_pct"] < 5)], "FCF 2-5%"),
+            (done[done["fcf_yield_pct"] < 2],    "FCF<2%"),
+            (done[done["fcf_yield_pct"] < 0],    "FCF<0%"),
+        ]:
+            s = stats(sub, lbl)
+            if s: fcf_tiers.append(s)
 
-    # ── Risk/Reward effect ───────────────────────────────────────────────────
     rr_tiers = []
-    if "risk_reward_ratio" in completed.columns:
-        high_rr = completed[completed["risk_reward_ratio"] >= 3]
-        med_rr  = completed[(completed["risk_reward_ratio"] >= 2) & (completed["risk_reward_ratio"] < 3)]
-        low_rr  = completed[completed["risk_reward_ratio"] < 2]
-        for sub, label in [(high_rr, "R:R≥3"), (med_rr, "R:R 2-3"), (low_rr, "R:R<2")]:
-            s = tier_stats(sub, label)
-            if s:
-                rr_tiers.append(s)
+    if "risk_reward_ratio" in done.columns:
+        for sub, lbl in [
+            (done[done["risk_reward_ratio"] >= 3], "R:R≥3"),
+            (done[(done["risk_reward_ratio"] >= 2) & (done["risk_reward_ratio"] < 3)], "R:R 2-3"),
+            (done[done["risk_reward_ratio"] < 2], "R:R<2"),
+        ]:
+            s = stats(sub, lbl)
+            if s: rr_tiers.append(s)
 
-    # ── Holding period: 7d vs 14d vs 30d ────────────────────────────────────
     period_stats = {}
-    for period in ["7d", "14d", "30d"]:
-        col_ret  = f"return_{period}"
-        col_win  = f"win_{period}"
-        sub = completed[completed[col_ret].notna()] if col_ret in completed.columns else pd.DataFrame()
+    for p in ["7d","14d","30d"]:
+        sub = done[done[f"return_{p}"].notna()] if f"return_{p}" in done.columns else pd.DataFrame()
         if not sub.empty:
-            period_stats[period] = {
-                "win_rate": round(float(sub[col_win].mean()) * 100, 1) if col_win in sub.columns else None,
-                "avg_return": round(float(sub[col_ret].mean()), 2),
-                "n": len(sub),
-            }
+            period_stats[p] = dict(
+                win_rate=round(float(sub[f"win_{p}"].mean())*100,1) if f"win_{p}" in sub.columns else None,
+                avg_return=round(float(sub[f"return_{p}"].mean()),2),
+                n=len(sub))
 
-    # ── Best combo: score≥80 + no earnings warning ───────────────────────────
-    combos = []
-    if "value_score" in completed.columns and "market_regime" in completed.columns:
-        high_score_bull = completed[
-            (completed["value_score"] >= 80) &
-            (completed["market_regime"].str.upper().str.contains("BULL|ALCISTA", na=False))
-        ]
-        s = tier_stats(high_score_bull, "Score≥80 en mercado alcista")
-        if s:
-            combos.append(s)
+    best_combos = []
+    if "value_score" in done.columns and "market_regime" in done.columns:
+        s = stats(done[(done["value_score"]>=80) & done["market_regime"].str.upper().str.contains("BULL|ALCISTA",na=False)], "Score≥80 + Mercado alcista")
+        if s: best_combos.append(s)
+    if "value_score" in done.columns and "fcf_yield_pct" in done.columns:
+        s = stats(done[(done["value_score"]>=70) & (done["fcf_yield_pct"]>=5)], "Score≥70 + FCF≥5%")
+        if s: best_combos.append(s)
 
-        if "fcf_yield_pct" in completed.columns:
-            quality_combo = completed[
-                (completed["value_score"] >= 70) &
-                (completed["fcf_yield_pct"] >= 5)
-            ]
-            s = tier_stats(quality_combo, "Score≥70 + FCF≥5%")
-            if s:
-                combos.append(s)
+    # AI narrative
+    bt = max(score_tiers, key=lambda x: x["win_rate_7d"], default={})
+    br = regimes[0] if regimes else {}
+    bs = sectors[0] if sectors else {}
+    narrative = ai(
+        f"Eres el cerebro analítico de un sistema VALUE. {len(done)} señales analizadas, win rate base {base_wr:.1f}%.\n"
+        f"Mejor score tier: {bt.get('label','N/A')} → {bt.get('win_rate_7d','N/A')}% WR (ret {bt.get('avg_return_7d','N/A')}%)\n"
+        f"Mejor régimen: {br.get('label','N/A')} → {br.get('win_rate_7d','N/A')}% WR\n"
+        f"Mejor sector: {bs.get('label','N/A')} → {bs.get('win_rate_7d','N/A')}% WR\n"
+        f"FCF≥5%: {next((x['win_rate_7d'] for x in fcf_tiers if x['label']=='FCF≥5%'),'N/A')}% WR\n"
+        f"Combos: {[(c['label'],c['win_rate_7d']) for c in best_combos]}\n"
+        "3-4 frases en español. Conclusiones accionables: qué favorece victorias, qué evitar.", 250
+    ) or f"Sistema analizó {len(done)} señales. Win rate base {base_wr:.1f}%. Mejor tier: {bt.get('label','N/A')} con {bt.get('win_rate_7d','N/A')}% WR."
 
-    # ── Best overall pick ─────────────────────────────────────────────────────
-    best_ticker_stats = []
-    if "ticker" in completed.columns:
-        for ticker in completed["ticker"].unique():
-            sub = completed[completed["ticker"] == ticker]
-            if len(sub) >= 3:
-                s = tier_stats(sub, ticker)
-                if s:
-                    best_ticker_stats.append(s)
-        best_ticker_stats.sort(key=lambda x: x["win_rate_7d"], reverse=True)
-
-    insights = {
-        "generated_at": TODAY,
-        "total_analyzed": len(completed),
-        "baseline_win_rate_7d": round(baseline_wr, 1),
-        "baseline_avg_return_7d": round(baseline_ret, 2),
-        "score_tiers": score_tiers,
-        "market_regimes": regimes,
-        "sectors": sectors[:10],
-        "fcf_tiers": fcf_tiers,
-        "rr_tiers": rr_tiers,
-        "period_stats": period_stats,
-        "best_combos": combos,
-        "top_tickers_by_winrate": best_ticker_stats[:5],
-        "narrative": None,
-    }
-
-    # ── AI narrative about what the system learned ────────────────────────────
-    best_tier  = max(score_tiers, key=lambda x: x["win_rate_7d"], default={})
-    best_regime = regimes[0] if regimes else {}
-    best_sector = sectors[0] if sectors else {}
-
-    prompt = f"""Eres el cerebro analítico de un sistema de inversión VALUE.
-Analiza estos resultados históricos del sistema y genera un párrafo conciso (3-4 frases)
-con las conclusiones más importantes para mejorar las señales:
-
-- Señales analizadas: {len(completed)}, win rate base: {baseline_wr:.1f}%
-- Mejor rango de score: {best_tier.get('label','N/A')} → win rate {best_tier.get('win_rate_7d','N/A')}%
-  (retorno medio {best_tier.get('avg_return_7d','N/A')}%, n={best_tier.get('n',0)})
-- Mejor régimen: {best_regime.get('label','N/A')} → win rate {best_regime.get('win_rate_7d','N/A')}%
-- Mejor sector: {best_sector.get('label','N/A')} → win rate {best_sector.get('win_rate_7d','N/A')}%
-- FCF≥5%: {next((x['win_rate_7d'] for x in fcf_tiers if x['label']=='FCF≥5%'), 'N/A')}% win rate
-- Combos: {[c['label']+' → '+str(c['win_rate_7d'])+'%' for c in combos]}
-
-Sé específico y accionable. Menciona qué factores favorecen las victorias y qué evitar.
-Responde en español, máximo 4 frases."""
-
-    insights["narrative"] = ai_narrative(prompt) or \
-        f"El sistema analizó {len(completed)} señales. Win rate base: {baseline_wr:.1f}%. " \
-        f"Mejor rango de score: {best_tier.get('label','N/A')} con {best_tier.get('win_rate_7d','N/A')}% de acierto."
-
-    print(f"  ✓ Pattern mining done: {len(completed)} signals, baseline WR {baseline_wr:.1f}%")
-    return insights
+    print(f"  ✓ Done")
+    return dict(generated_at=TODAY, total_analyzed=len(done), baseline_win_rate_7d=round(base_wr,1),
+                baseline_avg_return_7d=round(base_ret,2), score_tiers=score_tiers, market_regimes=regimes,
+                sectors=sectors[:10], fcf_tiers=fcf_tiers, rr_tiers=rr_tiers, period_stats=period_stats,
+                best_combos=best_combos, narrative=narrative)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 2. CONVERGENCE SCAN — tickers in 2+ strategies today
+# 2. CONVERGENCE SCAN (with streak tracking)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def scan_convergence() -> dict:
-    print("\n[CEREBRO] Scanning multi-strategy convergence...")
+    print("\n[2/5] Convergence scan...")
 
-    # Load all strategy CSVs
-    value_us  = load_csv(DOCS / "value_opportunities.csv")
-    value_eu  = load_csv(DOCS / "european_value_opportunities.csv")
-    insiders  = load_csv(DOCS / "recurring_insiders.csv")
-    mr        = load_csv(DOCS / "mean_reversion_opportunities.csv")
-    options   = load_csv(DOCS / "options_flow.csv")
-    momentum  = load_csv(DOCS / "momentum_opportunities.csv")
-
-    def tickers(df: pd.DataFrame) -> set:
-        if df.empty or "ticker" not in df.columns:
-            return set()
-        return set(df["ticker"].dropna().str.upper())
-
-    sets = {
-        "VALUE":    tickers(value_us) | tickers(value_eu),
-        "INSIDERS": tickers(insiders),
-        "MR":       tickers(mr),
-        "OPTIONS":  tickers(options),
-        "MOMENTUM": tickers(momentum),
+    dfs = {
+        "VALUE":    pd.concat([load_csv(DOCS/"value_opportunities.csv"), load_csv(DOCS/"european_value_opportunities.csv")], ignore_index=True),
+        "INSIDERS": load_csv(DOCS/"recurring_insiders.csv"),
+        "MR":       load_csv(DOCS/"mean_reversion_opportunities.csv"),
+        "OPTIONS":  load_csv(DOCS/"options_flow.csv"),
+        "MOMENTUM": load_csv(DOCS/"momentum_opportunities.csv"),
     }
 
-    # Map ticker → metadata from VALUE (primary source)
-    meta: dict[str, dict] = {}
-    for df in [value_us, value_eu]:
-        if df.empty:
-            continue
-        for _, row in df.iterrows():
-            ticker = str(row.get("ticker", "")).upper()
-            if ticker and ticker not in meta:
-                meta[ticker] = {
-                    "ticker": ticker,
-                    "company_name": str(row.get("company_name", "")),
-                    "sector": str(row.get("sector", "")),
-                    "value_score": safe_float(row.get("value_score")),
-                    "conviction_grade": str(row.get("conviction_grade", "")),
-                    "analyst_upside_pct": safe_float(row.get("analyst_upside_pct")),
-                    "fcf_yield_pct": safe_float(row.get("fcf_yield_pct")),
-                    "current_price": safe_float(row.get("current_price")),
-                }
+    def tset(df): return set(df["ticker"].dropna().str.upper()) if not df.empty and "ticker" in df.columns else set()
+    sets = {k: tset(v) for k, v in dfs.items()}
 
-    # Find convergences
+    # Build metadata from VALUE
+    meta: dict[str, dict] = {}
+    for _, row in dfs["VALUE"].iterrows():
+        t = str(row.get("ticker","")).upper()
+        if t and t not in meta:
+            meta[t] = dict(ticker=t, company_name=str(row.get("company_name","")),
+                           sector=str(row.get("sector","")), value_score=sf(row.get("value_score")),
+                           conviction_grade=str(row.get("conviction_grade","")),
+                           analyst_upside_pct=sf(row.get("analyst_upside_pct")),
+                           fcf_yield_pct=sf(row.get("fcf_yield_pct")),
+                           current_price=sf(row.get("current_price")),
+                           earnings_warning=bool(row.get("earnings_warning", False)),
+                           days_to_earnings=sf(row.get("days_to_earnings")))
+
+    # Load previous convergence for streak calculation
+    prev = load_json(DOCS / "cerebro_convergence.json")
+    prev_streaks: dict[str, int] = {c["ticker"]: c.get("streak_days", 1) for c in prev.get("convergences", [])}
+    prev_date = prev.get("generated_at", "")
+
     all_tickers = set().union(*sets.values())
     convergences = []
-
     for ticker in all_tickers:
         strategies = [name for name, s in sets.items() if ticker in s]
         if len(strategies) < 2:
             continue
-
         m = meta.get(ticker, {"ticker": ticker})
 
-        # Convergence score: 0-100
-        # Each strategy contributes; more strategies = higher score
+        # Streak: how many consecutive days in convergence
+        streak = (prev_streaks.get(ticker, 0) + 1) if prev_date != TODAY else prev_streaks.get(ticker, 1)
+
         score = len(strategies) * 20
         if "VALUE" in strategies and m.get("value_score"):
-            score += min(20, m["value_score"] / 5)
-        if "INSIDERS" in strategies:
-            score += 10
-        if "MR" in strategies:
-            score += 5  # contrarian signal — adds but risky alone
+            score += min(20, (m["value_score"] or 0) / 5)
+        if "INSIDERS" in strategies: score += 10
+        if streak >= 3: score += 10  # persistence bonus
         score = min(100, int(score))
 
-        convergences.append({
-            "ticker": ticker,
-            "company_name": m.get("company_name", ""),
-            "sector": m.get("sector", ""),
-            "strategies": strategies,
-            "strategy_count": len(strategies),
-            "convergence_score": score,
-            "value_score": m.get("value_score"),
-            "conviction_grade": m.get("conviction_grade", ""),
-            "analyst_upside_pct": m.get("analyst_upside_pct"),
-            "fcf_yield_pct": m.get("fcf_yield_pct"),
-            "current_price": m.get("current_price"),
-            "analysis": None,
-        })
+        convergences.append(dict(
+            ticker=ticker, company_name=m.get("company_name",""), sector=m.get("sector",""),
+            strategies=strategies, strategy_count=len(strategies), convergence_score=score,
+            value_score=m.get("value_score"), conviction_grade=m.get("conviction_grade",""),
+            analyst_upside_pct=m.get("analyst_upside_pct"), fcf_yield_pct=m.get("fcf_yield_pct"),
+            current_price=m.get("current_price"), streak_days=streak,
+            earnings_warning=m.get("earnings_warning", False),
+            days_to_earnings=m.get("days_to_earnings"), analysis=None,
+        ))
 
-    # Sort by convergence score
-    convergences.sort(key=lambda x: (x["strategy_count"], x["convergence_score"]), reverse=True)
+    convergences.sort(key=lambda x: (x["strategy_count"], x["convergence_score"], x["streak_days"]), reverse=True)
 
     # AI analysis for top 3
     for c in convergences[:3]:
-        strats = ", ".join(c["strategies"])
-        prompt = f"""Ticker: {c['ticker']} ({c.get('company_name','')} - {c.get('sector','')})
-Aparece en {len(c['strategies'])} estrategias simultáneamente: {strats}
-Score VALUE: {c.get('value_score','N/A')} | Grade: {c.get('conviction_grade','N/A')}
-Upside analistas: {c.get('analyst_upside_pct','N/A')}% | FCF Yield: {c.get('fcf_yield_pct','N/A')}%
+        streak_note = f" (en convergencia {c['streak_days']} días consecutivos)" if c["streak_days"] >= 2 else ""
+        c["analysis"] = ai(
+            f"Ticker: {c['ticker']} ({c.get('company_name','')} - {c.get('sector','')})\n"
+            f"Estrategias: {', '.join(c['strategies'])}{streak_note}\n"
+            f"Score VALUE: {c.get('value_score','N/A')} | Grade: {c.get('conviction_grade','N/A')}\n"
+            f"Upside: {c.get('analyst_upside_pct','N/A')}% | FCF: {c.get('fcf_yield_pct','N/A')}%\n"
+            f"{'⚠️ EARNINGS en ' + str(int(c['days_to_earnings'])) + ' días' if c.get('earnings_warning') else ''}\n"
+            "2-3 frases en español. Por qué la convergencia es significativa y qué precauciones tener.", 150
+        ) or f"Convergencia de {len(c['strategies'])} estrategias: {', '.join(c['strategies'])}."
 
-En 2-3 frases, explica por qué la convergencia de estas estrategias es significativa
-y qué precauciones tener. Menciona si es una señal alcista fuerte o si hay matices.
-Responde en español, máximo 3 frases."""
-        c["analysis"] = ai_narrative(prompt, max_tokens=150) or \
-            f"Convergencia de {len(c['strategies'])} estrategias: {strats}. Score: {c.get('convergence_score')}."
-
-    result = {
-        "generated_at": TODAY,
-        "total_convergences": len(convergences),
-        "triple_or_more": sum(1 for c in convergences if c["strategy_count"] >= 3),
-        "convergences": convergences[:20],
-    }
-
-    print(f"  ✓ Found {len(convergences)} convergences ({result['triple_or_more']} triple+)")
-    return result
+    print(f"  ✓ {len(convergences)} convergences ({sum(1 for c in convergences if c['strategy_count']>=3)} triple+)")
+    return dict(generated_at=TODAY, total_convergences=len(convergences),
+                triple_or_more=sum(1 for c in convergences if c["strategy_count"]>=3),
+                convergences=convergences[:25])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 3. ALERT GENERATOR — detect events for tickers
+# 3. ALERT GENERATOR (uses pre-computed convergence, adds score drift)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def generate_alerts(prev_convergence: dict | None = None) -> dict:
-    print("\n[CEREBRO] Generating proactive alerts...")
+def generate_alerts(convergence: dict) -> dict:
+    print("\n[3/5] Alert generation...")
     alerts = []
 
-    # Load current data
-    value_df  = pd.concat([
-        load_csv(DOCS / "value_opportunities.csv"),
-        load_csv(DOCS / "european_value_opportunities.csv"),
-    ], ignore_index=True)
-    mr_df     = load_csv(DOCS / "mean_reversion_opportunities.csv")
-    insiders  = load_csv(DOCS / "recurring_insiders.csv")
+    value_df  = pd.concat([load_csv(DOCS/"value_opportunities.csv"), load_csv(DOCS/"european_value_opportunities.csv")], ignore_index=True)
+    mr_df     = load_csv(DOCS/"mean_reversion_opportunities.csv")
+    insiders  = load_csv(DOCS/"recurring_insiders.csv")
+    prev_conv = load_json(DOCS/"cerebro_convergence.json")
 
-    # ── Alert: ticker in MR zone (oversold bounce setup) ─────────────────────
+    # ── MR zone entries ────────────────────────────────────────────────────────
     if not mr_df.empty and "ticker" in mr_df.columns:
         for _, row in mr_df.iterrows():
-            ticker = str(row.get("ticker", "")).upper()
-            score = safe_float(row.get("reversion_score"))
-            rsi = safe_float(row.get("rsi"))
-            quality = str(row.get("quality", ""))
+            t = str(row.get("ticker","")).upper()
+            score = sf(row.get("reversion_score"))
+            rsi   = sf(row.get("rsi"))
+            qual  = str(row.get("quality",""))
             if score and score >= 70:
-                severity = "HIGH" if score >= 80 else "MEDIUM"
-                alerts.append({
-                    "ticker": ticker,
-                    "type": "MR_ZONE",
-                    "severity": severity,
-                    "title": f"{ticker} en zona oversold",
-                    "message": f"RSI {rsi:.0f if rsi else 'N/A'}, score MR {score:.0f}. "
-                               f"Calidad: {quality}. Posible rebote técnico.",
-                    "date": TODAY,
-                    "data": {
-                        "reversion_score": score,
-                        "rsi": rsi,
-                        "quality": quality,
-                    },
-                })
+                alerts.append(dict(ticker=t, type="MR_ZONE",
+                    severity="HIGH" if score >= 80 else "MEDIUM",
+                    title=f"{t} en zona oversold",
+                    message=f"RSI {f'{rsi:.0f}' if rsi else 'N/A'}, score MR {score:.0f}. Calidad: {qual}. Posible rebote técnico.",
+                    date=TODAY, data=dict(reversion_score=score, rsi=rsi, quality=qual)))
 
-    # ── Alert: earnings approaching for VALUE picks ───────────────────────────
+    # ── Earnings warnings ──────────────────────────────────────────────────────
     if not value_df.empty:
         for _, row in value_df.iterrows():
-            ticker = str(row.get("ticker", "")).upper()
-            days_to_earnings = safe_float(row.get("days_to_earnings"))
-            earnings_warning = row.get("earnings_warning", False)
-            value_score = safe_float(row.get("value_score"))
-            if earnings_warning and days_to_earnings is not None and days_to_earnings <= 7:
-                alerts.append({
-                    "ticker": ticker,
-                    "type": "EARNINGS_WARNING",
-                    "severity": "HIGH" if days_to_earnings <= 3 else "MEDIUM",
-                    "title": f"Earnings de {ticker} en {int(days_to_earnings)}d",
-                    "message": f"Score VALUE {value_score:.0f if value_score else 'N/A'}. "
-                               f"Earnings en {int(days_to_earnings)} días — evita entrar.",
-                    "date": TODAY,
-                    "data": {
-                        "days_to_earnings": days_to_earnings,
-                        "value_score": value_score,
-                    },
-                })
+            t    = str(row.get("ticker","")).upper()
+            dte  = sf(row.get("days_to_earnings"))
+            warn = bool(row.get("earnings_warning", False))
+            vscore = sf(row.get("value_score"))
+            if warn and dte is not None and dte <= 7:
+                alerts.append(dict(ticker=t, type="EARNINGS_WARNING",
+                    severity="HIGH" if dte <= 3 else "MEDIUM",
+                    title=f"Earnings de {t} en {int(dte)}d",
+                    message=f"Score VALUE {f'{vscore:.0f}' if vscore else 'N/A'}. Earnings en {int(dte)} días — evita entrar.",
+                    date=TODAY, data=dict(days_to_earnings=dte, value_score=vscore)))
 
-    # ── Alert: new insider buying ─────────────────────────────────────────────
+    # ── Insider buying ─────────────────────────────────────────────────────────
     if not insiders.empty and "ticker" in insiders.columns:
         for _, row in insiders.iterrows():
-            ticker = str(row.get("ticker", "")).upper()
-            count = safe_float(row.get("purchase_count"))
-            uniq  = safe_float(row.get("unique_insiders"))
-            if count and count >= 3:
-                alerts.append({
-                    "ticker": ticker,
-                    "type": "INSIDER_BUYING",
-                    "severity": "HIGH" if (uniq or 0) >= 2 else "MEDIUM",
-                    "title": f"Insider buying en {ticker}",
-                    "message": f"{int(count)} compras por {int(uniq or 0)} directivos. "
-                               f"Señal de convicción interna.",
-                    "date": TODAY,
-                    "data": {
-                        "purchase_count": count,
-                        "unique_insiders": uniq,
-                    },
-                })
+            t    = str(row.get("ticker","")).upper()
+            cnt  = sf(row.get("purchase_count"))
+            uniq = sf(row.get("unique_insiders"))
+            if cnt and cnt >= 3:
+                alerts.append(dict(ticker=t, type="INSIDER_BUYING",
+                    severity="HIGH" if (uniq or 0) >= 2 else "MEDIUM",
+                    title=f"Insider buying en {t}",
+                    message=f"{int(cnt)} compras por {int(uniq or 0)} directivos. Señal de convicción interna.",
+                    date=TODAY, data=dict(purchase_count=cnt, unique_insiders=uniq)))
 
-    # ── Alert: new convergence (ticker just entered 2+ strategies) ────────────
-    if prev_convergence:
-        prev_tickers = {c["ticker"] for c in prev_convergence.get("convergences", [])}
-        current_conv = scan_convergence()  # reuse if available
-        for c in current_conv.get("convergences", []):
+    # ── Score drift (thesis threatened) ───────────────────────────────────────
+    # Compare today's value_score vs the score when the ticker first appeared in portfolio_tracker
+    tracker = load_csv(DOCS / "portfolio_tracker" / "recommendations.csv")
+    if not tracker.empty and not value_df.empty and "ticker" in tracker.columns and "value_score" in tracker.columns:
+        # For each ticker currently in VALUE list, find its earliest recorded score
+        for _, row in value_df.iterrows():
+            t      = str(row.get("ticker","")).upper()
+            cur    = sf(row.get("value_score"))
+            if cur is None: continue
+            hist   = tracker[tracker["ticker"] == t]["value_score"].dropna()
+            if hist.empty: continue
+            orig   = float(hist.iloc[0])
+            drop   = orig - cur
+            if drop >= 15:  # score dropped 15+ pts since first signal
+                alerts.append(dict(ticker=t, type="SCORE_DRIFT",
+                    severity="HIGH" if drop >= 25 else "MEDIUM",
+                    title=f"Tesis en riesgo: {t}",
+                    message=f"Score bajó {drop:.0f} pts (de {orig:.0f} → {cur:.0f}). "
+                            f"Fundamentales pueden haber deteriorado — revisa la tesis.",
+                    date=TODAY, data=dict(original_score=round(orig,1), current_score=round(cur,1), drop=round(drop,1))))
+
+    # ── New convergences (not in yesterday's scan) ─────────────────────────────
+    prev_tickers = {c["ticker"] for c in prev_conv.get("convergences", [])}
+    if prev_conv.get("generated_at", "") != TODAY:
+        for c in convergence.get("convergences", []):
             if c["ticker"] not in prev_tickers and c["strategy_count"] >= 2:
-                alerts.append({
-                    "ticker": c["ticker"],
-                    "type": "NEW_CONVERGENCE",
-                    "severity": "HIGH" if c["strategy_count"] >= 3 else "MEDIUM",
-                    "title": f"Nueva convergencia: {c['ticker']}",
-                    "message": f"Aparece en {c['strategy_count']} estrategias: "
-                               f"{', '.join(c['strategies'])}. Score: {c['convergence_score']}.",
-                    "date": TODAY,
-                    "data": c,
-                })
+                alerts.append(dict(ticker=c["ticker"], type="NEW_CONVERGENCE",
+                    severity="HIGH" if c["strategy_count"] >= 3 else "MEDIUM",
+                    title=f"Nueva convergencia: {c['ticker']}",
+                    message=f"Aparece en {c['strategy_count']} estrategias: {', '.join(c['strategies'])}. "
+                            f"Score convergencia: {c['convergence_score']}.",
+                    date=TODAY, data=dict(strategies=c["strategies"], convergence_score=c["convergence_score"])))
 
-    # Deduplicate by ticker+type
-    seen = set()
-    deduped = []
+    # ── Long streak highlight ──────────────────────────────────────────────────
+    for c in convergence.get("convergences", []):
+        if c.get("streak_days", 0) >= 3:
+            alerts.append(dict(ticker=c["ticker"], type="STREAK",
+                severity="HIGH" if c["streak_days"] >= 5 else "MEDIUM",
+                title=f"{c['ticker']} — {c['streak_days']} días en convergencia",
+                message=f"Lleva {c['streak_days']} días consecutivos en {len(c['strategies'])} estrategias. "
+                        f"Señal persistente de alta convicción.",
+                date=TODAY, data=dict(streak_days=c["streak_days"], strategies=c["strategies"])))
+
+    # Deduplicate by ticker+type, sort HIGH first
+    seen, deduped = set(), []
     for a in alerts:
-        key = f"{a['ticker']}:{a['type']}"
-        if key not in seen:
-            seen.add(key)
+        k = f"{a['ticker']}:{a['type']}"
+        if k not in seen:
+            seen.add(k)
             deduped.append(a)
+    deduped.sort(key=lambda x: ({"HIGH":0,"MEDIUM":1}.get(x["severity"],2), x["ticker"]))
 
-    deduped.sort(key=lambda x: ({"HIGH": 0, "MEDIUM": 1}.get(x["severity"], 2), x["ticker"]))
-
-    print(f"  ✓ Generated {len(deduped)} alerts ({sum(1 for a in deduped if a['severity']=='HIGH')} HIGH)")
-    return {
-        "generated_at": TODAY,
-        "total": len(deduped),
-        "high_count": sum(1 for a in deduped if a["severity"] == "HIGH"),
-        "alerts": deduped,
-    }
+    high = sum(1 for a in deduped if a["severity"] == "HIGH")
+    print(f"  ✓ {len(deduped)} alerts ({high} HIGH)")
+    return dict(generated_at=TODAY, total=len(deduped), high_count=high, alerts=deduped)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 4. SELF-CALIBRATION — what should we change in scoring?
+# 4. SELF-CALIBRATION
 # ══════════════════════════════════════════════════════════════════════════════
 
 def self_calibrate(insights: dict) -> dict:
-    print("\n[CEREBRO] Self-calibration analysis...")
+    print("\n[4/5] Self-calibration...")
     if not insights or "score_tiers" not in insights:
-        return {}
+        return dict(generated_at=TODAY, recommendations=[], narrative=None, total_recommendations=0)
 
-    recommendations = []
     baseline = insights.get("baseline_win_rate_7d", 50)
+    recs = []
 
-    # Score tier analysis
     for tier in insights.get("score_tiers", []):
         if tier["vs_baseline_wr"] > 10 and tier["n"] >= 10:
-            recommendations.append({
-                "type": "BOOST",
-                "factor": f"Score {tier['label']}",
-                "insight": f"Señales con score {tier['label']} tienen {tier['win_rate_7d']}% WR "
-                           f"({tier['vs_baseline_wr']:+.1f}pp sobre base). Priorizar este rango.",
-                "n": tier["n"],
-            })
+            recs.append(dict(type="BOOST", factor=f"Score {tier['label']}",
+                insight=f"WR {tier['win_rate_7d']}% ({tier['vs_baseline_wr']:+.1f}pp sobre base). Priorizar este rango.", n=tier["n"]))
         elif tier["vs_baseline_wr"] < -10 and tier["n"] >= 10:
-            recommendations.append({
-                "type": "REDUCE",
-                "factor": f"Score {tier['label']}",
-                "insight": f"Señales con score {tier['label']} tienen solo {tier['win_rate_7d']}% WR "
-                           f"({tier['vs_baseline_wr']:+.1f}pp bajo base). Filtrar más agresivo.",
-                "n": tier["n"],
-            })
+            recs.append(dict(type="REDUCE", factor=f"Score {tier['label']}",
+                insight=f"Solo {tier['win_rate_7d']}% WR ({tier['vs_baseline_wr']:+.1f}pp bajo base). Filtrar más agresivo.", n=tier["n"]))
 
-    # Regime analysis
-    for regime in insights.get("market_regimes", []):
-        if regime["vs_baseline_wr"] < -15 and regime["n"] >= 5:
-            recommendations.append({
-                "type": "REGIME_FILTER",
-                "factor": f"Régimen {regime['label']}",
-                "insight": f"En régimen {regime['label']}, solo {regime['win_rate_7d']}% WR. "
-                           f"Considera pausar señales en este régimen.",
-                "n": regime["n"],
-            })
+    for reg in insights.get("market_regimes", []):
+        if reg["vs_baseline_wr"] < -15 and reg["n"] >= 5:
+            recs.append(dict(type="REGIME_FILTER", factor=f"Régimen {reg['label']}",
+                insight=f"Solo {reg['win_rate_7d']}% WR en {reg['label']}. Considera pausar señales.", n=reg["n"]))
 
-    # FCF analysis
     for fcf in insights.get("fcf_tiers", []):
         if fcf["label"] == "FCF≥5%" and fcf["vs_baseline_wr"] > 5 and fcf["n"] >= 5:
-            recommendations.append({
-                "type": "BOOST",
-                "factor": "FCF Yield ≥5%",
-                "insight": f"FCF yield alto mejora WR en +{fcf['vs_baseline_wr']:.1f}pp. "
-                           f"Aumentar peso del FCF en scoring.",
-                "n": fcf["n"],
-            })
+            recs.append(dict(type="BOOST", factor="FCF Yield ≥5%",
+                insight=f"FCF alto mejora WR +{fcf['vs_baseline_wr']:.1f}pp. Aumentar peso FCF.", n=fcf["n"]))
+        if fcf["label"] == "FCF<0%" and fcf["vs_baseline_wr"] < -5 and fcf["n"] >= 5:
+            recs.append(dict(type="REDUCE", factor="FCF Negativo",
+                insight=f"FCF negativo reduce WR {fcf['vs_baseline_wr']:.1f}pp. Penalizar más agresivo.", n=fcf["n"]))
 
-    # AI meta-analysis
-    recs_text = "\n".join([f"- [{r['type']}] {r['factor']}: {r['insight']}" for r in recommendations[:5]])
-    prompt = f"""Como sistema de IA auto-mejorable de inversión VALUE, analiza estas recomendaciones de calibración
-basadas en {insights.get('total_analyzed', 0)} señales históricas:
+    for rr in insights.get("rr_tiers", []):
+        if rr["label"] == "R:R≥3" and rr["vs_baseline_wr"] > 5 and rr["n"] >= 5:
+            recs.append(dict(type="BOOST", factor="R:R ≥3",
+                insight=f"R:R alto mejora WR +{rr['vs_baseline_wr']:.1f}pp. Aumentar peso R:R.", n=rr["n"]))
 
-{recs_text if recs_text else 'Sin recomendaciones significativas aún.'}
+    recs_text = "\n".join(f"- [{r['type']}] {r['factor']}: {r['insight']}" for r in recs[:5])
+    narrative = ai(
+        f"Sistema VALUE — {insights.get('total_analyzed',0)} señales, WR base {baseline:.1f}%.\n"
+        f"Recomendaciones de calibración:\n{recs_text or 'Sin recomendaciones significativas.'}\n"
+        "2-3 frases en español. Qué ajustes son más urgentes y por qué.", 200
+    ) or "El sistema continúa aprendiendo. Se necesitan más señales completadas para recomendaciones precisas."
 
-Win rate base del sistema: {baseline:.1f}%
+    print(f"  ✓ {len(recs)} recommendations")
+    return dict(generated_at=TODAY, recommendations=recs, narrative=narrative, total_recommendations=len(recs))
 
-En 2-3 frases, resume qué ajustes son más urgentes y por qué.
-Responde en español."""
 
-    narrative = ai_narrative(prompt, max_tokens=200) or \
-        "El sistema continúa aprendiendo de las señales históricas. " \
-        "Se necesitan más datos completados para recomendaciones precisas."
+# ══════════════════════════════════════════════════════════════════════════════
+# 5. AUTO-TUNING — generate scoring_weights_suggested.json
+# ══════════════════════════════════════════════════════════════════════════════
 
-    result = {
-        "generated_at": TODAY,
-        "recommendations": recommendations,
-        "narrative": narrative,
-        "total_recommendations": len(recommendations),
+def auto_tune(insights: dict, calibration: dict) -> dict:
+    print("\n[5/5] Auto-tuning weights...")
+
+    # Current weights (from super_score_integrator logic — approximate)
+    current_weights = {
+        "fundamentals":          40,   # fundamental_score component
+        "profitability_bonus":   15,   # ROE, margins, cashflow
+        "insiders":              15,   # insider buying
+        "institutional":         15,   # institutional ownership
+        "options_flow":          10,   # options activity
+        "ml_score":               5,   # ML prediction
+        "sector_rotation":       10,   # sector timing
+        "mean_reversion":        10,   # oversold bounce
+        "fcf_yield_bonus":        8,   # FCF yield extra bonus
+        "dividend_quality":       5,   # dividend sustainability
+        "buyback_bonus":          3,   # share repurchases
+        "analyst_revision":       5,   # estimate revisions
+        "risk_reward_bonus":      3,   # R:R ratio
     }
-    print(f"  ✓ Generated {len(recommendations)} calibration recommendations")
+
+    suggested_weights = dict(current_weights)
+    adjustments = []
+
+    # Apply calibration recommendations
+    for rec in calibration.get("recommendations", []):
+        if rec["type"] == "BOOST" and "FCF" in rec["factor"]:
+            delta = min(3, rec["n"] // 10)
+            suggested_weights["fcf_yield_bonus"] = current_weights["fcf_yield_bonus"] + delta
+            adjustments.append(dict(factor="fcf_yield_bonus", change=f"+{delta}", reason=rec["insight"], n=rec["n"]))
+
+        elif rec["type"] == "BOOST" and "R:R" in rec["factor"]:
+            delta = min(2, rec["n"] // 15)
+            suggested_weights["risk_reward_bonus"] = current_weights["risk_reward_bonus"] + delta
+            adjustments.append(dict(factor="risk_reward_bonus", change=f"+{delta}", reason=rec["insight"], n=rec["n"]))
+
+        elif rec["type"] == "REDUCE" and "FCF Negativo" in rec["factor"]:
+            suggested_weights["fcf_yield_bonus"] = max(5, current_weights["fcf_yield_bonus"] - 2)
+            adjustments.append(dict(factor="fcf_yield_bonus_penalty", change="-2 (stricter negative FCF penalty)", reason=rec["insight"], n=rec["n"]))
+
+    # Regime-based insight: if CORRECTION has very low WR, boost mean_reversion (it's the strategy that works in corrections)
+    for reg in insights.get("market_regimes", []):
+        if "CORRECT" in str(reg.get("label","")).upper() and reg.get("vs_baseline_wr",0) < -15:
+            suggested_weights["mean_reversion"] = min(15, current_weights["mean_reversion"] + 3)
+            adjustments.append(dict(factor="mean_reversion", change="+3 (corrections favor MR bounces)", reason=f"MR outperforms in {reg['label']}", n=reg["n"]))
+            break
+
+    # Best score tier insight
+    best_tier = max(insights.get("score_tiers",[]), key=lambda x: x["win_rate_7d"], default=None)
+    if best_tier and best_tier["vs_baseline_wr"] > 15 and "80" in best_tier.get("label",""):
+        adjustments.append(dict(factor="score_threshold_note",
+            change="Consider raising minimum threshold to 70+ for published picks",
+            reason=f"Score 80+ has {best_tier['win_rate_7d']}% WR vs {insights.get('baseline_win_rate_7d',50):.0f}% base",
+            n=best_tier["n"]))
+
+    narrative = ai(
+        f"Sistema de scoring VALUE — propuestas de ajuste de pesos basadas en {insights.get('total_analyzed',0)} señales históricas:\n"
+        + "\n".join(f"- {a['factor']}: {a['change']} — {a['reason']}" for a in adjustments[:5])
+        + "\n\nNota: estos cambios requieren revisión humana antes de aplicar.\n"
+        "2 frases en español: resume el impacto esperado de estos ajustes.", 150
+    ) or "Ajustes propuestos basados en análisis histórico. Requieren revisión antes de aplicar al pipeline."
+
+    result = dict(
+        generated_at=TODAY,
+        status="PENDING_REVIEW",
+        note="These weights are suggestions only. Apply manually after review.",
+        current_weights=current_weights,
+        suggested_weights=suggested_weights,
+        adjustments=adjustments,
+        expected_impact=f"Based on {insights.get('total_analyzed',0)} historical signals",
+        narrative=narrative,
+    )
+    print(f"  ✓ {len(adjustments)} weight adjustments proposed")
     return result
 
 
@@ -559,58 +512,31 @@ Responde en español."""
 
 def main():
     print("=" * 60)
-    print("CEREBRO — Proactive AI Agent")
-    print(f"Date: {TODAY}")
+    print(f"CEREBRO  ·  {TODAY}")
     print("=" * 60)
-
     if not groq_client:
-        print("⚠️  Running without AI (no GROQ_API_KEY) — rule-based mode only")
+        print("⚠  No GROQ_API_KEY — rule-based mode (no AI narratives)")
 
-    # Load previous convergence for delta detection
-    prev_conv = None
-    prev_conv_path = DOCS / "cerebro_convergence.json"
-    if prev_conv_path.exists():
-        try:
-            with open(prev_conv_path) as f:
-                prev_conv = json.load(f)
-                if prev_conv.get("generated_at") == TODAY:
-                    prev_conv = None  # same day — no delta
-        except Exception:
-            pass
-
-    # Run all 4 modules
     insights    = mine_patterns()
     convergence = scan_convergence()
-    alerts      = generate_alerts(prev_convergence=prev_conv)
+    alerts      = generate_alerts(convergence)   # passes convergence, no duplicate scan
     calibration = self_calibrate(insights)
+    tuning      = auto_tune(insights, calibration)
 
-    # Write outputs
-    outputs = {
-        "cerebro_insights.json":     insights,
-        "cerebro_convergence.json":  convergence,
-        "cerebro_alerts.json":       alerts,
-        "cerebro_calibration.json":  calibration,
-    }
+    save_json(DOCS / "cerebro_insights.json",           insights)
+    save_json(DOCS / "cerebro_convergence.json",         convergence)
+    save_json(DOCS / "cerebro_alerts.json",              alerts)
+    save_json(DOCS / "cerebro_calibration.json",         calibration)
+    save_json(DOCS / "scoring_weights_suggested.json",   tuning)
 
-    for filename, data in outputs.items():
-        path = DOCS / filename
-        with open(path, "w") as f:
-            json.dump(data, f, indent=2, default=str)
-        print(f"\n✓ Written: {path}")
-
-    # Summary
     print("\n" + "=" * 60)
-    print("CEREBRO SUMMARY")
+    print("SUMMARY")
+    print(f"  Signals analyzed : {insights.get('total_analyzed',0)} · baseline WR {insights.get('baseline_win_rate_7d',0):.1f}%")
+    print(f"  Convergences     : {convergence.get('total_convergences',0)} ({convergence.get('triple_or_more',0)} triple+)")
+    print(f"  Alerts           : {alerts.get('total',0)} ({alerts.get('high_count',0)} HIGH)")
+    print(f"  Calibration recs : {calibration.get('total_recommendations',0)}")
+    print(f"  Weight proposals : {len(tuning.get('adjustments',[]))}")
     print("=" * 60)
-    print(f"  Pattern mining : {insights.get('total_analyzed', 0)} signals, "
-          f"baseline WR {insights.get('baseline_win_rate_7d', 0):.1f}%")
-    print(f"  Convergences   : {convergence.get('total_convergences', 0)} found "
-          f"({convergence.get('triple_or_more', 0)} triple+)")
-    print(f"  Alerts         : {alerts.get('total', 0)} total "
-          f"({alerts.get('high_count', 0)} HIGH)")
-    print(f"  Calibration    : {calibration.get('total_recommendations', 0)} recommendations")
-    print("=" * 60)
-
 
 if __name__ == "__main__":
     main()

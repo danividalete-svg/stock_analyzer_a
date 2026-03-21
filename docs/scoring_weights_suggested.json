@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-03-21",
+  "status": "PENDING_REVIEW",
+  "note": "These weights are suggestions only. Apply manually after review.",
+  "current_weights": {
+    "fundamentals": 40,
+    "profitability_bonus": 15,
+    "insiders": 15,
+    "institutional": 15,
+    "options_flow": 10,
+    "ml_score": 5,
+    "sector_rotation": 10,
+    "mean_reversion": 10,
+    "fcf_yield_bonus": 8,
+    "dividend_quality": 5,
+    "buyback_bonus": 3,
+    "analyst_revision": 5,
+    "risk_reward_bonus": 3
+  },
+  "suggested_weights": {
+    "fundamentals": 40,
+    "profitability_bonus": 15,
+    "insiders": 15,
+    "institutional": 15,
+    "options_flow": 10,
+    "ml_score": 5,
+    "sector_rotation": 10,
+    "mean_reversion": 10,
+    "fcf_yield_bonus": 11,
+    "dividend_quality": 5,
+    "buyback_bonus": 3,
+    "analyst_revision": 5,
+    "risk_reward_bonus": 5
+  },
+  "adjustments": [
+    {
+      "factor": "fcf_yield_bonus",
+      "change": "+3",
+      "reason": "FCF alto mejora WR +8.3pp. Aumentar peso FCF.",
+      "n": 177
+    },
+    {
+      "factor": "risk_reward_bonus",
+      "change": "+2",
+      "reason": "R:R alto mejora WR +15.8pp. Aumentar peso R:R.",
+      "n": 243
+    }
+  ],
+  "expected_impact": "Based on 812 historical signals",
+  "narrative": "Ajustes propuestos basados en an\u00e1lisis hist\u00f3rico. Requieren revisi\u00f3n antes de aplicar al pipeline."
+}

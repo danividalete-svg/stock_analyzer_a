@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
   fetchPortfolioTracker, fetchRecurringInsiders, fetchOptionsFlow, fetchMeanReversion,
-  fetchMacroRadar, fetchDailyBriefing, fetchMarketBreadth,
-  type ValueOpportunity, type InsiderData, type PortfolioSummary, type BreadthData,
+  fetchMacroRadar, fetchDailyBriefing, fetchMarketBreadth, fetchCerebroConvergence, fetchCerebroAlerts,
+  type ValueOpportunity, type InsiderData, type PortfolioSummary, type BreadthData, type CerebroAlert,
 } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import { useApi } from '../hooks/useApi'
@@ -13,8 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import GradeBadge from '../components/GradeBadge'
 import InfoTooltip from '../components/InfoTooltip'
 import TickerLogo from '../components/TickerLogo'
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar, Wallet, Zap, Crosshair, BarChart3 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar, Wallet, Zap, Crosshair, BarChart3, Brain } from 'lucide-react'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
+import { useWatchlist } from '../hooks/useWatchlist'
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -448,25 +449,21 @@ function MeanReversionMini({ data, loading }: { data: unknown; loading: boolean 
   )
 }
 
-const STRATEGY_COLORS: Record<string, 'green' | 'blue' | 'yellow'> = {
-  VALUE: 'green', INSIDERS: 'blue', 'MEAN REV': 'yellow',
+const STRATEGY_TAG: Record<string, string> = {
+  VALUE: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  INSIDERS: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  MOMENTUM: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+}
+function strategyTag(s: string) {
+  return STRATEGY_TAG[s.toUpperCase()] ?? 'bg-purple-500/15 text-purple-400 border-purple-500/30'
 }
 
-function ConvergenciaMini({
-  valueTickers, insiderTickers, mrTickers, loading,
-}: {
-  valueTickers: Set<string>; insiderTickers: Set<string>; mrTickers: Set<string>; loading: boolean
+function ConvergenciaMini({ loading, data }: {
+  loading: boolean
+  data: { convergences: Array<{ ticker: string; strategies: string[]; strategy_count: number; convergence_score: number; conviction_grade?: string; streak_days?: number; analysis?: string | null }> } | null
 }) {
-  const overlaps: Array<{ ticker: string; strategies: string[] }> = []
-  const allTickers = new Set([...valueTickers, ...insiderTickers, ...mrTickers])
-  for (const ticker of allTickers) {
-    const strategies: string[] = []
-    if (valueTickers.has(ticker)) strategies.push('VALUE')
-    if (insiderTickers.has(ticker)) strategies.push('INSIDERS')
-    if (mrTickers.has(ticker)) strategies.push('MEAN REV')
-    if (strategies.length >= 2) overlaps.push({ ticker, strategies })
-  }
-  overlaps.sort((a, b) => b.strategies.length - a.strategies.length)
+  const items = data?.convergences ?? []
+  const sorted = [...items].sort((a, b) => b.convergence_score - a.convergence_score).slice(0, 6)
 
   return (
     <div>
@@ -474,31 +471,91 @@ function ConvergenciaMini({
         <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
           <Crosshair size={11} /> Convergencia
         </span>
-        {!loading && <span className="text-[0.62rem] text-muted-foreground/60">{overlaps.length} tickers</span>}
+        <Link to="/cerebro" className="flex items-center gap-1 text-[0.65rem] text-muted-foreground hover:text-foreground transition-colors">
+          {!loading && <span className="mr-0.5">{items.length} tickers</span>}
+          <ChevronRight size={11} />
+        </Link>
       </div>
       <Card className="glass p-4">
         {loading ? (
           <div className="space-y-2">{['a','b','c'].map(k => <Skeleton key={k} className="h-4 w-full" />)}</div>
-        ) : overlaps.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-1">Sin convergencias</p>
         ) : (
           <div className="space-y-2">
-            {overlaps.slice(0, 5).map(({ ticker, strategies }) => (
-              <div key={ticker} className="flex items-center justify-between gap-2">
-                <Link to={`/search?q=${ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline shrink-0">
-                  {ticker}
-                </Link>
+            {sorted.map(item => (
+              <div key={item.ticker} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Link to={`/search?q=${item.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">
+                    {item.ticker}
+                  </Link>
+                  {(item.streak_days ?? 0) >= 3 && (
+                    <span className="text-[0.5rem] font-bold px-1 py-0 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30" title={`${item.streak_days} días consecutivos`}>
+                      🔥{item.streak_days}d
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-0.5 justify-end">
-                  {strategies.length >= 3 && (
+                  {item.strategy_count >= 3 && (
                     <span className="text-[0.5rem] font-bold px-1 py-0 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">TRIPLE</span>
                   )}
-                  {strategies.map(s => (
-                    <span key={s} className={`text-[0.5rem] font-bold px-1 py-0 rounded border ${
-                      STRATEGY_COLORS[s] === 'green' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
-                      STRATEGY_COLORS[s] === 'blue'  ? 'bg-blue-500/15 text-blue-400 border-blue-500/30' :
-                      'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                    }`}>{s}</span>
+                  {item.strategies.map(s => (
+                    <span key={s} className={`text-[0.5rem] font-bold px-1 py-0 rounded border ${strategyTag(s)}`}>{s}</span>
                   ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+function alertSeverityStyle(severity: string) {
+  if (severity === 'HIGH') return 'text-red-400 bg-red-500/10 border-red-500/30'
+  if (severity === 'MEDIUM') return 'text-amber-400 bg-amber-500/10 border-amber-500/30'
+  return 'text-blue-400 bg-blue-500/10 border-blue-500/30'
+}
+
+function WatchlistAlertsMini({ alerts, watchlistTickers, loading }: {
+  alerts: CerebroAlert[] | undefined
+  watchlistTickers: Set<string>
+  loading: boolean
+}) {
+  const filtered = (alerts ?? [])
+    .filter(a => watchlistTickers.has(a.ticker.toUpperCase()))
+    .sort((a, b) => {
+      const sev = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+      return (sev[a.severity] ?? 2) - (sev[b.severity] ?? 2)
+    })
+    .slice(0, 5)
+
+  if (!loading && watchlistTickers.size === 0) return null
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+          <Brain size={11} /> Alertas Watchlist
+        </span>
+        <Link to="/cerebro" className="flex items-center gap-1 text-[0.65rem] text-muted-foreground hover:text-foreground transition-colors">
+          Ver todas <ChevronRight size={11} />
+        </Link>
+      </div>
+      <Card className="glass p-4">
+        {loading ? (
+          <div className="space-y-2">{['a','b','c'].map(k => <Skeleton key={k} className="h-4 w-full" />)}</div>
+        ) : filtered.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-1">Sin alertas para tu watchlist</p>
+        ) : (
+          <div className="space-y-1.5">
+            {filtered.map((a, i) => (
+              <div key={i} className={`flex items-start gap-2 px-2 py-1.5 rounded-md border ${alertSeverityStyle(a.severity)}`}>
+                <span className="text-[0.55rem] font-bold uppercase mt-0.5 shrink-0">{a.severity}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="font-mono font-bold text-[0.75rem] mr-1">{a.ticker}</span>
+                  <span className="text-[0.68rem]">{a.title}</span>
                 </div>
               </div>
             ))}
@@ -576,8 +633,12 @@ export default function Dashboard() {
   const { data: macroRaw, loading: loadingMacro } = useApi(() => fetchMacroRadar(), [])
   const { data: briefingRaw } = useApi(() => fetchDailyBriefing(), [])
   const { data: breadthRaw, loading: loadingBreadth } = useApi(() => fetchMarketBreadth(), [])
+  const { data: cerebroConv, loading: loadingConv } = useApi(() => fetchCerebroConvergence(), [])
+  const { data: cerebroAlertsRaw, loading: loadingAlerts } = useApi(() => fetchCerebroAlerts(), [])
 
   const { positions: myPositions } = usePersonalPortfolio()
+  const { entries: watchlistEntries } = useWatchlist()
+  const watchlistTickers = new Set(watchlistEntries.map(e => e.ticker.toUpperCase()))
   const myTickers = new Set(myPositions.map(p => p.ticker.toUpperCase()))
 
   const pf = (portfolio as PortfolioSummary) ?? {}
@@ -585,11 +646,6 @@ export default function Dashboard() {
 
   const topUS = (valueUS?.data ?? []).slice(0, 5)
   const topEU = (valueEU?.data ?? []).slice(0, 5)
-
-  // ── Multi-strategy convergence ────────────────────────────────────────────
-  const valueTickers  = new Set([...(valueUS?.data ?? []), ...(valueEU?.data ?? [])].map(r => r.ticker))
-  const insiderTickers = new Set(((insiders?.data ?? []) as InsiderData[]).map(r => r.ticker))
-  const mrTickers = new Set(((mrRaw as { data?: { ticker: string }[] })?.data ?? []).map(r => r.ticker))
 
   // ── Portfolio Action Items ─────────────────────────────────────────
   const actionItems: { icon: React.ReactNode; text: string; color: string; link: string }[] = []
@@ -767,15 +823,15 @@ export default function Dashboard() {
         <MeanReversionMini data={mrRaw} loading={loadingMR} />
       </div>
 
-      {/* Convergencia multi-estrategia + Market Breadth */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <ConvergenciaMini
-          valueTickers={valueTickers}
-          insiderTickers={insiderTickers}
-          mrTickers={mrTickers}
-          loading={loadingUS || loadingInsiders || loadingMR}
-        />
+      {/* Convergencia multi-estrategia + Market Breadth + Watchlist Alerts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <ConvergenciaMini loading={loadingConv} data={cerebroConv} />
         <BreadthMini data={breadthRaw ?? undefined} loading={loadingBreadth} />
+        <WatchlistAlertsMini
+          alerts={cerebroAlertsRaw?.alerts}
+          watchlistTickers={watchlistTickers}
+          loading={loadingAlerts}
+        />
       </div>
 
       {/* Quick Nav Cards */}

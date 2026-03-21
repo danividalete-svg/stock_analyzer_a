@@ -1,0 +1,526 @@
+{
+  "generated_at": "2026-03-21",
+  "total_convergences": 137,
+  "triple_or_more": 19,
+  "convergences": [
+    {
+      "ticker": "THRY",
+      "company_name": "Thryv Holdings, Inc.",
+      "sector": "Technology",
+      "strategies": [
+        "VALUE",
+        "INSIDERS",
+        "MR"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 79,
+      "value_score": 45.4,
+      "conviction_grade": "",
+      "analyst_upside_pct": 72.7,
+      "fcf_yield_pct": 55.86,
+      "current_price": 2.75,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": 41.0,
+      "analysis": "Convergencia de 3 estrategias: VALUE, INSIDERS, MR."
+    },
+    {
+      "ticker": "ALLY",
+      "company_name": "ALLY",
+      "sector": "nan",
+      "strategies": [
+        "VALUE",
+        "INSIDERS",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 76,
+      "value_score": 34.85,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": 0.0,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": "Convergencia de 3 estrategias: VALUE, INSIDERS, OPTIONS."
+    },
+    {
+      "ticker": "KKR",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": "Convergencia de 3 estrategias: INSIDERS, MR, OPTIONS."
+    },
+    {
+      "ticker": "CVS",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "ENPH",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "ROP",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "CSGP",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "PODD",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "PRU",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "FIS",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "LAW",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "HYMC",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "CRM",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "HUM",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "MSTR",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "INTC",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "ABT",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "URI",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "BA",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "INDV",
+      "company_name": "Indivior Pharmaceuticals, Inc.",
+      "sector": "Healthcare",
+      "strategies": [
+        "VALUE",
+        "INSIDERS"
+      ],
+      "strategy_count": 2,
+      "convergence_score": 64,
+      "value_score": 71.32,
+      "conviction_grade": "",
+      "analyst_upside_pct": 53.6,
+      "fcf_yield_pct": 5.81,
+      "current_price": 30.5,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": 41.0,
+      "analysis": null
+    },
+    {
+      "ticker": "SGU",
+      "company_name": "Star Group L.P.",
+      "sector": "Energy",
+      "strategies": [
+        "VALUE",
+        "INSIDERS"
+      ],
+      "strategy_count": 2,
+      "convergence_score": 64,
+      "value_score": 72.828,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": 9.73,
+      "current_price": 12.6,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": 47.0,
+      "analysis": null
+    },
+    {
+      "ticker": "MWA",
+      "company_name": "MUELLER WATER PRODUCTS",
+      "sector": "Industrials",
+      "strategies": [
+        "VALUE",
+        "INSIDERS"
+      ],
+      "strategy_count": 2,
+      "convergence_score": 64,
+      "value_score": 72.52,
+      "conviction_grade": "",
+      "analyst_upside_pct": 10.1,
+      "fcf_yield_pct": 3.5,
+      "current_price": 27.56,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": 45.0,
+      "analysis": null
+    },
+    {
+      "ticker": "LIFE",
+      "company_name": "Ethos Technologies Inc.",
+      "sector": "Financial Services",
+      "strategies": [
+        "VALUE",
+        "INSIDERS"
+      ],
+      "strategy_count": 2,
+      "convergence_score": 64,
+      "value_score": 73.6,
+      "conviction_grade": "",
+      "analyst_upside_pct": 102.5,
+      "fcf_yield_pct": 8.12,
+      "current_price": 10.0,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "AMRZ",
+      "company_name": "Amrize Ltd",
+      "sector": "Basic Materials",
+      "strategies": [
+        "VALUE",
+        "INSIDERS"
+      ],
+      "strategy_count": 2,
+      "convergence_score": 63,
+      "value_score": 65.03999999999999,
+      "conviction_grade": "",
+      "analyst_upside_pct": 24.0,
+      "fcf_yield_pct": 5.27,
+      "current_price": 54.14,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": 38.0,
+      "analysis": null
+    },
+    {
+      "ticker": "SPGI",
+      "company_name": "S&P Global Inc.",
+      "sector": "Financial Services",
+      "strategies": [
+        "VALUE",
+        "INSIDERS"
+      ],
+      "strategy_count": 2,
+      "convergence_score": 63,
+      "value_score": 67.6,
+      "conviction_grade": "",
+      "analyst_upside_pct": 26.4,
+      "fcf_yield_pct": 3.78,
+      "current_price": 426.14,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": 39.0,
+      "analysis": null
+    }
+  ]
+}
