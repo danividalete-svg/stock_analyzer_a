@@ -4,6 +4,8 @@ import { Star, Trash2, StickyNote, ChevronRight, Brain } from 'lucide-react'
 import { useWatchlist, type WatchlistEntry } from '../hooks/useWatchlist'
 import { fetchValueOpportunities, fetchEUValueOpportunities, fetchCerebroAlerts, type CerebroAlert } from '../api/client'
 import { useApi } from '../hooks/useApi'
+import { useCerebroSignals } from '../hooks/useCerebroSignals'
+import CerebroBadges from '../components/CerebroBadges'
 import GradeBadge from '../components/GradeBadge'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -114,6 +116,7 @@ export default function Watchlist() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [liveMap, setLiveMap] = useState<Record<string, LiveEntry>>({})
   const { data: cerebroAlertsRaw, loading: loadingAlerts } = useApi(() => fetchCerebroAlerts(), [])
+  const cerebro = useCerebroSignals()
   const watchlistTickers = new Set(entries.map(e => e.ticker.toUpperCase()))
 
   useEffect(() => {
@@ -217,6 +220,13 @@ export default function Watchlist() {
                 <TableRow key={e.ticker}>
                   <TableCell className="font-mono font-bold text-amber-400 text-[0.8rem] tracking-wide">
                     <Link to={`/search?q=${e.ticker}`} className="hover:underline">{e.ticker}</Link>
+                    <CerebroBadges
+                      trapInfo={cerebro.trapMap[e.ticker]}
+                      smInfo={cerebro.smMap[e.ticker]}
+                      exitInfo={cerebro.exitMap[e.ticker]}
+                      divInfo={cerebro.divMap[e.ticker]}
+                      piotrInfo={cerebro.piotrMap[e.ticker]}
+                    />
                   </TableCell>
                   <TableCell className="hidden sm:table-cell text-[0.76rem] text-muted-foreground max-w-[140px] truncate">
                     {e.company_name || '—'}

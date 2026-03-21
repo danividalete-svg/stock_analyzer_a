@@ -17,6 +17,8 @@ import ThesisModal from '../components/ThesisModal'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
 import { useTechnicalSummaryMap } from '../hooks/useTechnicalSummaryMap'
+import { useCerebroSignals } from '../hooks/useCerebroSignals'
+import CerebroBadges from '../components/CerebroBadges'
 import type { TechnicalSummary } from '../api/client'
 
 function TechBiasCell({ t }: { t?: TechnicalSummary }) {
@@ -43,6 +45,7 @@ export default function ValueUS() {
   const { data: regime } = useApi(() => fetchMarketRegime(), [])
   const { data: macroRaw } = useApi(() => fetchMacroRadar(), [])
   const techMap = useTechnicalSummaryMap()
+  const cerebro = useCerebroSignals()
   const [sortKey, setSortKey] = useState<SortKey>('value_score')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [expandedRow, setExpandedRow] = useState<ValueOpportunity | null>(null)
@@ -419,6 +422,13 @@ export default function ValueUS() {
                           </span>
                         )}
                       </div>
+                      <CerebroBadges
+                        trapInfo={cerebro.trapMap[d.ticker]}
+                        smInfo={cerebro.smMap[d.ticker]}
+                        exitInfo={cerebro.exitMap[d.ticker]}
+                        divInfo={cerebro.divMap[d.ticker]}
+                        piotrInfo={cerebro.piotrMap[d.ticker]}
+                      />
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell max-w-[160px] truncate text-muted-foreground text-[0.76rem]">{d.company_name}</TableCell>

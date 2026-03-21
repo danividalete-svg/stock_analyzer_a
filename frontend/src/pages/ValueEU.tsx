@@ -35,6 +35,8 @@ import InfoTooltip from '../components/InfoTooltip'
 import ThesisModal from '../components/ThesisModal'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
+import { useCerebroSignals } from '../hooks/useCerebroSignals'
+import CerebroBadges from '../components/CerebroBadges'
 
 const MARKET_FLAGS: Record<string, string> = {
   DAX40: '🇩🇪', FTSE100: '🇬🇧', CAC40: '🇫🇷',
@@ -51,6 +53,7 @@ export default function ValueEU() {
   const { data: macroRaw } = useApi(() => fetchMacroRadar(), [])
   const { data: insightRaw } = useApi(() => fetchValueEUInsight(), [])
   const techMap = useTechnicalSummaryMap()
+  const cerebro = useCerebroSignals()
   const [sortKey, setSortKey] = useState<SortKey>('value_score')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [expandedRow, setExpandedRow] = useState<ValueOpportunity | null>(null)
@@ -384,6 +387,13 @@ export default function ValueEU() {
                             </span>
                           )}
                         </div>
+                        <CerebroBadges
+                          trapInfo={cerebro.trapMap[d.ticker]}
+                          smInfo={cerebro.smMap[d.ticker]}
+                          exitInfo={cerebro.exitMap[d.ticker]}
+                          divInfo={cerebro.divMap[d.ticker]}
+                          piotrInfo={cerebro.piotrMap[d.ticker]}
+                        />
                       </div>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell max-w-[150px] truncate text-muted-foreground text-[0.76rem]">{d.company_name}</TableCell>
