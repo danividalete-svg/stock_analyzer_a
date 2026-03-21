@@ -1289,6 +1289,10 @@ def cerebro_alerts():
 def cerebro_calibration():
     return jsonify(_load_json(DOCS / 'cerebro_calibration.json'))
 
+@app.route('/api/cerebro/entry-signals')
+def cerebro_entry_signals():
+    return jsonify(_load_json(DOCS / 'cerebro_entry_signals.json'))
+
 
 @app.route('/api/market-breadth')
 def market_breadth():

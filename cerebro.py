@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
 CEREBRO — Proactive AI Agent
-Runs daily at end of pipeline. 5 modules:
+Runs daily at end of pipeline. 6 modules:
 
 1. PATTERN MINING    : portfolio_tracker history → learns what predicts wins
 2. CONVERGENCE SCAN  : tickers in 2+ strategies → ranks, narrates, tracks streak
 3. ALERT GENERATOR   : MR zone, score drift, earnings warnings, new convergences
 4. SELF-CALIBRATION  : identifies over/under-weighted factors
 5. AUTO-TUNING       : writes scoring_weights_suggested.json for human review
+6. ENTRY SIGNALS     : semáforo de entrada — cuándo comprar y por qué
 
 Outputs (docs/):
   cerebro_insights.json         — what the system learned from history
   cerebro_convergence.json      — today's multi-strategy convergences + AI analysis
   cerebro_alerts.json           — proactive ticker events
   cerebro_calibration.json      — calibration recommendations
+  cerebro_entry_signals.json    — entry timing signals with score + missing signals
   scoring_weights_suggested.json — auto-tuning proposals (human review required)
 """
 
@@ -507,6 +509,231 @@ def auto_tune(insights: dict, calibration: dict) -> dict:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 6. ENTRY SIGNALS — semáforo de entrada
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_entry_signals(convergence: dict) -> dict:
+    """
+    For each ticker in VALUE (US + EU), compute an entry score 0-100 based on
+    how many confirming signals are present. The more signals align, the clearer
+    the entry. Also reports which signals are MISSING so the user knows what to
+    wait for.
+
+    Entry signal levels:
+        STRONG BUY  ≥ 75
+        BUY         ≥ 50
+        MONITOR     ≥ 30
+        WAIT        < 30
+    """
+    print("[6/6] Entry signal scan...")
+
+    # ── Load all data sources ──────────────────────────────────────────────────
+    value_df    = load_csv(DOCS / "value_opportunities.csv")
+    value_eu_df = load_csv(DOCS / "european_value_opportunities.csv")
+    insiders_df = load_csv(DOCS / "recurring_insiders.csv")
+    eu_ins_df   = load_csv(DOCS / "eu_recurring_insiders.csv")
+    mr_df       = load_csv(DOCS / "mean_reversion_opportunities.csv")
+    options_df  = load_csv(DOCS / "options_flow.csv")
+    sector_df   = load_csv(DOCS / "sector_rotation.csv")
+    regime_json = load_json(DOCS / "market_regime.json")
+
+    # Previous entry signals (track days_in_value streak)
+    prev = load_json(DOCS / "cerebro_entry_signals.json")
+    prev_map = {s["ticker"]: s for s in prev.get("signals", [])}
+
+    # ── Build lookup sets ──────────────────────────────────────────────────────
+    insider_tickers = set()
+    for df in [insiders_df, eu_ins_df]:
+        if not df.empty and "ticker" in df.columns:
+            insider_tickers |= set(df["ticker"].str.upper().dropna())
+
+    mr_tickers = {}
+    if not mr_df.empty and "ticker" in mr_df.columns:
+        for _, row in mr_df.iterrows():
+            t = str(row.get("ticker", "")).upper()
+            mr_tickers[t] = {
+                "rsi": sf(row.get("rsi")),
+                "reversion_score": sf(row.get("reversion_score")),
+                "quality": str(row.get("quality", "")),
+            }
+
+    options_bullish = set()
+    if not options_df.empty:
+        for _, row in options_df.iterrows():
+            sent = str(row.get("sentiment", "")).lower()
+            if "bull" in sent:
+                options_bullish.add(str(row.get("ticker", "")).upper())
+
+    # Favorable sectors from sector rotation
+    fav_sectors = set()
+    if not sector_df.empty:
+        scol = "sector" if "sector" in sector_df.columns else None
+        rcol = next((c for c in ["rs_score","score","rank"] if c in sector_df.columns), None)
+        if scol and rcol:
+            try:
+                top = sector_df.nlargest(5, rcol)
+                fav_sectors = set(top[scol].str.upper().dropna())
+            except Exception:
+                pass
+
+    # Market regime
+    us_regime = ""
+    try:
+        us_regime = str(regime_json.get("us", {}).get("regime", "")).upper()
+    except Exception:
+        pass
+    regime_ok = any(r in us_regime for r in ["BULL", "RECOVERY"])
+
+    # Convergence streak map
+    conv_streak = {s["ticker"]: s.get("streak_days", 1) for s in convergence.get("convergences", [])}
+
+    # ── Score each VALUE ticker ────────────────────────────────────────────────
+    all_value = []
+    for df, region in [(value_df, "US"), (value_eu_df, "EU")]:
+        if df.empty:
+            continue
+        for _, row in df.iterrows():
+            t = str(row.get("ticker", "")).upper()
+            if not t:
+                continue
+
+            vscore  = sf(row.get("value_score"))
+            upside  = sf(row.get("analyst_upside_pct"))
+            fcf     = sf(row.get("fcf_yield_pct"))
+            rr      = sf(row.get("risk_reward_ratio"))
+            dte     = sf(row.get("days_to_earnings"))
+            earn_w  = bool(row.get("earnings_warning", False))
+            sector  = str(row.get("sector", "")).upper()
+            grade   = str(row.get("conviction_grade", ""))
+            price   = sf(row.get("current_price"))
+            upside_raw = sf(row.get("analyst_upside_pct"))
+            an_rev  = sf(row.get("analyst_revision_momentum"))
+            company = str(row.get("company_name", t))
+
+            # Hard filters — skip if fails
+            if vscore is None or vscore < 60:
+                continue
+            if upside is not None and upside < 10:
+                continue
+
+            # ── Score signals ──────────────────────────────────────────────────
+            fired: list[dict] = []
+            missing: list[str] = []
+
+            def sig(name: str, pts: int, condition: bool, missing_label: str = ""):
+                if condition:
+                    fired.append({"name": name, "pts": pts})
+                elif missing_label:
+                    missing.append(missing_label)
+
+            # Core value quality
+            sig("Value score ≥80",     10, vscore >= 80,              "Value score <80")
+            sig("Value score ≥70",      5, 70 <= vscore < 80)         # bonus, no missing
+            sig("FCF yield ≥5%",       10, fcf is not None and fcf >= 5,   "FCF yield <5%")
+            sig("R:R ≥2",              10, rr is not None and rr >= 2,     "R:R <2")
+            sig("Upside ≥20%",          8, upside is not None and upside >= 20, "Upside <20%")
+
+            # Timing / catalysts
+            sig("Insider buying",      25, t in insider_tickers,        "Sin insider buying (espera)")
+            sig("MR zone / oversold",  20, t in mr_tickers,             "Sin señal MR oversold")
+            sig("Options flow alcista",15, t in options_bullish,         "Sin opciones alcistas")
+            sig("Analyst revision ↑",   5, an_rev is not None and an_rev > 0, "")
+
+            # Macro / context
+            sig("Sector favorable",     8, bool(fav_sectors) and any(s in sector for s in fav_sectors), "Sector no líder")
+            sig("Régimen alcista",       7, regime_ok,                   "" if regime_ok else "Régimen no alcista")
+
+            # Persistence — days the ticker has been in VALUE
+            streak = conv_streak.get(t, 1)
+            prev_days = prev_map.get(t, {}).get("days_in_value", 0)
+            days_in_value = prev_days + 1
+            sig("En VALUE ≥3 días",    10, days_in_value >= 3,          f"Solo {days_in_value}d en VALUE" if days_in_value < 3 else "")
+
+            # Safety checks — negative signals
+            penalty = 0
+            if earn_w and dte is not None and dte <= 7:
+                penalty += 15
+                missing.append(f"⚠ Earnings en {int(dte)}d — riesgo de entrada")
+            if upside is not None and upside < 15:
+                penalty += 5
+
+            entry_score_raw = sum(s["pts"] for s in fired) - penalty
+            entry_score = max(0, min(100, entry_score_raw))
+
+            if entry_score >= 75:
+                signal = "STRONG_BUY"
+            elif entry_score >= 50:
+                signal = "BUY"
+            elif entry_score >= 30:
+                signal = "MONITOR"
+            else:
+                signal = "WAIT"
+
+            # MR detail
+            mr_detail = mr_tickers.get(t, {})
+
+            all_value.append(dict(
+                ticker=t,
+                company_name=company,
+                region=region,
+                sector=sector.title(),
+                value_score=vscore,
+                conviction_grade=grade,
+                current_price=price,
+                analyst_upside_pct=upside_raw,
+                fcf_yield_pct=fcf,
+                risk_reward_ratio=rr,
+                days_in_value=days_in_value,
+                streak_days=streak,
+                entry_score=round(entry_score),
+                signal=signal,
+                signals_fired=[s["name"] for s in fired],
+                signals_pts=fired,
+                signals_missing=missing,
+                rsi=mr_detail.get("rsi"),
+                earnings_warning=earn_w,
+                days_to_earnings=int(dte) if dte is not None else None,
+            ))
+
+    # Sort: STRONG_BUY first, then by entry_score desc
+    order = {"STRONG_BUY": 0, "BUY": 1, "MONITOR": 2, "WAIT": 3}
+    all_value.sort(key=lambda x: (order.get(x["signal"], 4), -x["entry_score"]))
+
+    # AI narrative for top 3 strong buys
+    top3 = [s for s in all_value if s["signal"] in ("STRONG_BUY", "BUY")][:3]
+    narrative = None
+    if top3:
+        lines = []
+        for s in top3:
+            lines.append(
+                f"{s['ticker']} ({s['company_name']}): entry_score={s['entry_score']}, "
+                f"señales={', '.join(s['signals_fired'][:4])}"
+            )
+        narrative = ai(
+            "Analiza estas 3 mejores oportunidades de entrada de hoy (VALUE investing):\n"
+            + "\n".join(lines)
+            + "\n\nEn 3 frases en español: por qué estas son las mejores entradas de hoy "
+            "y qué confirma la señal.", 200
+        )
+
+    counts = {k: sum(1 for s in all_value if s["signal"] == k)
+              for k in ("STRONG_BUY", "BUY", "MONITOR", "WAIT")}
+
+    result = dict(
+        generated_at=TODAY,
+        total=len(all_value),
+        strong_buy=counts["STRONG_BUY"],
+        buy=counts["BUY"],
+        monitor=counts["MONITOR"],
+        wait=counts["WAIT"],
+        narrative=narrative,
+        signals=all_value,
+    )
+    print(f"  ✓ {counts['STRONG_BUY']} STRONG BUY · {counts['BUY']} BUY · {counts['MONITOR']} MONITOR")
+    return result
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -519,14 +746,16 @@ def main():
 
     insights    = mine_patterns()
     convergence = scan_convergence()
-    alerts      = generate_alerts(convergence)   # passes convergence, no duplicate scan
+    alerts      = generate_alerts(convergence)
     calibration = self_calibrate(insights)
     tuning      = auto_tune(insights, calibration)
+    entry_sigs  = scan_entry_signals(convergence)
 
     save_json(DOCS / "cerebro_insights.json",           insights)
     save_json(DOCS / "cerebro_convergence.json",         convergence)
     save_json(DOCS / "cerebro_alerts.json",              alerts)
     save_json(DOCS / "cerebro_calibration.json",         calibration)
+    save_json(DOCS / "cerebro_entry_signals.json",       entry_sigs)
     save_json(DOCS / "scoring_weights_suggested.json",   tuning)
 
     print("\n" + "=" * 60)
@@ -534,6 +763,7 @@ def main():
     print(f"  Signals analyzed : {insights.get('total_analyzed',0)} · baseline WR {insights.get('baseline_win_rate_7d',0):.1f}%")
     print(f"  Convergences     : {convergence.get('total_convergences',0)} ({convergence.get('triple_or_more',0)} triple+)")
     print(f"  Alerts           : {alerts.get('total',0)} ({alerts.get('high_count',0)} HIGH)")
+    print(f"  Entry signals    : {entry_sigs.get('strong_buy',0)} STRONG BUY · {entry_sigs.get('buy',0)} BUY")
     print(f"  Calibration recs : {calibration.get('total_recommendations',0)}")
     print(f"  Weight proposals : {len(tuning.get('adjustments',[]))}")
     print("=" * 60)

@@ -313,10 +313,34 @@ export interface CerebroCalibration {
   total_recommendations: number
 }
 
+export interface EntrySignal {
+  ticker: string
+  company_name: string
+  region: string
+  sector: string
+  value_score: number
+  conviction_grade: string
+  current_price: number | null
+  analyst_upside_pct: number | null
+  fcf_yield_pct: number | null
+  risk_reward_ratio: number | null
+  days_in_value: number
+  streak_days: number
+  entry_score: number
+  signal: 'STRONG_BUY' | 'BUY' | 'MONITOR' | 'WAIT'
+  signals_fired: string[]
+  signals_pts: Array<{ name: string; pts: number }>
+  signals_missing: string[]
+  rsi: number | null
+  earnings_warning: boolean
+  days_to_earnings: number | null
+}
+
 export const fetchCerebroInsights    = () => api.get<CerebroInsights>('/api/cerebro/insights')
 export const fetchCerebroConvergence = () => api.get<{ generated_at: string; total_convergences: number; triple_or_more: number; convergences: CerebroSignal[] }>('/api/cerebro/convergence')
 export const fetchCerebroAlerts      = () => api.get<{ generated_at: string; total: number; high_count: number; alerts: CerebroAlert[] }>('/api/cerebro/alerts')
 export const fetchCerebroCalibration = () => api.get<CerebroCalibration>('/api/cerebro/calibration')
+export const fetchCerebroEntrySignals = () => api.get<{ generated_at: string; total: number; strong_buy: number; buy: number; monitor: number; wait: number; narrative: string | null; signals: EntrySignal[] }>('/api/cerebro/entry-signals')
 
 export const fetchMarketRegime = () =>
   api.get<MarketRegime>('/api/market-regime')

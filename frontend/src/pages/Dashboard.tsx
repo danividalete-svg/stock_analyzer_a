@@ -3,6 +3,7 @@ import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
   fetchPortfolioTracker, fetchRecurringInsiders, fetchOptionsFlow, fetchMeanReversion,
   fetchMacroRadar, fetchDailyBriefing, fetchMarketBreadth, fetchCerebroConvergence, fetchCerebroAlerts,
+  fetchCerebroEntrySignals,
   type ValueOpportunity, type InsiderData, type PortfolioSummary, type BreadthData, type CerebroAlert,
 } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
@@ -620,6 +621,64 @@ function BreadthMini({ data, loading }: { data: { us: BreadthData; eu: BreadthDa
   )
 }
 
+const ENTRY_SIGNAL_COLOR: Record<string, string> = {
+  STRONG_BUY: 'text-emerald-400',
+  BUY:        'text-amber-400',
+  MONITOR:    'text-blue-400',
+  WAIT:       'text-muted-foreground',
+}
+const ENTRY_SIGNAL_LABEL: Record<string, string> = {
+  STRONG_BUY: '🟢 STRONG BUY', BUY: '🟡 BUY', MONITOR: '🔵 MONITOR', WAIT: '⚪ WAIT',
+}
+
+function EntrySignalsMini({ data, loading }: {
+  data: { strong_buy: number; buy: number; signals: Array<{ ticker: string; signal: string; entry_score: number; signals_fired: string[]; signals_missing: string[] }> } | null
+  loading: boolean
+}) {
+  const top = (data?.signals ?? []).filter(s => s.signal !== 'WAIT').slice(0, 4)
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+          <Zap size={11} /> Señales de Entrada
+        </span>
+        <Link to="/cerebro" className="flex items-center gap-1 text-[0.65rem] text-muted-foreground hover:text-foreground transition-colors">
+          {!loading && <span className="mr-0.5">{(data?.strong_buy ?? 0) + (data?.buy ?? 0)} activas</span>}
+          <ChevronRight size={11} />
+        </Link>
+      </div>
+      <Card className="glass p-4">
+        {loading ? (
+          <div className="space-y-2">{['a','b','c','d'].map(k => <Skeleton key={k} className="h-4 w-full" />)}</div>
+        ) : top.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-1">Sin señales claras hoy</p>
+        ) : (
+          <div className="space-y-2">
+            {top.map(s => (
+              <div key={s.ticker} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Link to={`/search?q=${s.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{s.ticker}</Link>
+                  <span className={`text-[0.58rem] font-bold tabular-nums ${ENTRY_SIGNAL_COLOR[s.signal]}`}>{ENTRY_SIGNAL_LABEL[s.signal]}</span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="w-14 h-1.5 rounded-full bg-muted/20 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${s.entry_score >= 75 ? 'bg-emerald-500' : s.entry_score >= 50 ? 'bg-amber-500' : 'bg-blue-500'}`}
+                      style={{ width: `${s.entry_score}%` }}
+                    />
+                  </div>
+                  <span className="text-[0.65rem] tabular-nums font-bold text-muted-foreground">{s.entry_score}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
 // ── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -635,6 +694,7 @@ export default function Dashboard() {
   const { data: breadthRaw, loading: loadingBreadth } = useApi(() => fetchMarketBreadth(), [])
   const { data: cerebroConv, loading: loadingConv } = useApi(() => fetchCerebroConvergence(), [])
   const { data: cerebroAlertsRaw, loading: loadingAlerts } = useApi(() => fetchCerebroAlerts(), [])
+  const { data: cerebroEntry, loading: loadingEntry } = useApi(() => fetchCerebroEntrySignals(), [])
 
   const { positions: myPositions } = usePersonalPortfolio()
   const { entries: watchlistEntries } = useWatchlist()
@@ -823,8 +883,9 @@ export default function Dashboard() {
         <MeanReversionMini data={mrRaw} loading={loadingMR} />
       </div>
 
-      {/* Convergencia multi-estrategia + Market Breadth + Watchlist Alerts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      {/* Cerebro widgets: Entradas + Convergencia + Breadth + Watchlist Alerts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <EntrySignalsMini data={cerebroEntry} loading={loadingEntry} />
         <ConvergenciaMini loading={loadingConv} data={cerebroConv} />
         <BreadthMini data={breadthRaw ?? undefined} loading={loadingBreadth} />
         <WatchlistAlertsMini

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   fetchCerebroInsights, fetchCerebroConvergence, fetchCerebroAlerts, fetchCerebroCalibration,
-  type CerebroTier, type CerebroAlert,
+  fetchCerebroEntrySignals,
+  type CerebroTier, type CerebroAlert, type EntrySignal,
 } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
@@ -10,7 +11,7 @@ import AiNarrativeCard from '../components/AiNarrativeCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import TickerLogo from '../components/TickerLogo'
-import { Brain, Crosshair, Bell, SlidersHorizontal, TrendingUp, TrendingDown, Minus, ChevronRight } from 'lucide-react'
+import { Brain, Crosshair, Bell, SlidersHorizontal, TrendingUp, TrendingDown, Minus, ChevronRight, Zap, CheckCircle2, XCircle } from 'lucide-react'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -76,29 +77,141 @@ function strategyBadge(s: string) {
   )
 }
 
+// ── Entry signal helpers ───────────────────────────────────────────────────────
+
+const SIGNAL_STYLES: Record<EntrySignal['signal'], { label: string; border: string; badge: string; scoreColor: string }> = {
+  STRONG_BUY: { label: '🟢 STRONG BUY', border: 'border-emerald-500/40', badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', scoreColor: 'text-emerald-400' },
+  BUY:        { label: '🟡 BUY',         border: 'border-amber-500/30',   badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',     scoreColor: 'text-amber-400'   },
+  MONITOR:    { label: '🔵 MONITOR',     border: 'border-blue-500/25',    badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30',         scoreColor: 'text-blue-400'    },
+  WAIT:       { label: '⚪ WAIT',        border: 'border-border/30',      badge: 'bg-muted/20 text-muted-foreground border-border/30',      scoreColor: 'text-muted-foreground' },
+}
+
+function EntryScoreBar({ score }: { score: number }) {
+  const color = score >= 75 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-500' : score >= 30 ? 'bg-blue-500' : 'bg-muted/40'
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-2 rounded-full bg-muted/20 overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${score}%` }} />
+      </div>
+      <span className="tabular-nums text-sm font-extrabold w-8 text-right">{score}</span>
+    </div>
+  )
+}
+
+function EntrySignalCard({ sig }: Readonly<{ sig: EntrySignal }>) {
+  const style = SIGNAL_STYLES[sig.signal]
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <Card className={`glass border ${style.border} transition-all`}>
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <TickerLogo ticker={sig.ticker} size="sm" className="mt-0.5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            {/* Header row */}
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <Link to={`/search?q=${sig.ticker}`} className="font-mono font-bold text-primary text-[0.9rem] hover:underline">
+                {sig.ticker}
+              </Link>
+              <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded border ${style.badge}`}>{style.label}</span>
+              {sig.conviction_grade && (
+                <Badge variant={sig.conviction_grade === 'A' ? 'green' : sig.conviction_grade === 'B' ? 'blue' : 'yellow'} className="text-[0.6rem]">
+                  {sig.conviction_grade}
+                </Badge>
+              )}
+              <span className="text-[0.6rem] text-muted-foreground/50 ml-auto">{sig.region} · {sig.days_in_value}d en VALUE</span>
+            </div>
+
+            <div className="text-[0.72rem] text-muted-foreground mb-2">{sig.company_name} · {sig.sector}</div>
+
+            {/* Score bar */}
+            <div className="mb-2">
+              <div className="text-[0.58rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1">Entry score</div>
+              <EntryScoreBar score={sig.entry_score} />
+            </div>
+
+            {/* Key metrics */}
+            <div className="flex flex-wrap gap-3 text-[0.72rem] mb-2">
+              {sig.value_score != null && <span>Score VALUE: <strong className="text-foreground">{sig.value_score.toFixed(0)}</strong></span>}
+              {sig.analyst_upside_pct != null && <span>Upside: <strong className={sig.analyst_upside_pct >= 15 ? 'text-emerald-400' : 'text-foreground'}>{sig.analyst_upside_pct >= 0 ? '+' : ''}{sig.analyst_upside_pct.toFixed(1)}%</strong></span>}
+              {sig.fcf_yield_pct != null && <span>FCF: <strong className={sig.fcf_yield_pct >= 5 ? 'text-emerald-400' : 'text-foreground'}>{sig.fcf_yield_pct.toFixed(1)}%</strong></span>}
+              {sig.risk_reward_ratio != null && <span>R:R: <strong className={sig.risk_reward_ratio >= 2 ? 'text-emerald-400' : 'text-foreground'}>{sig.risk_reward_ratio.toFixed(1)}x</strong></span>}
+              {sig.rsi != null && <span>RSI: <strong className={sig.rsi <= 30 ? 'text-teal-400' : 'text-foreground'}>{sig.rsi.toFixed(0)}</strong></span>}
+            </div>
+
+            {/* Signals fired */}
+            {sig.signals_fired.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {sig.signals_fired.map(s => (
+                  <span key={s} className="flex items-center gap-0.5 text-[0.6rem] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <CheckCircle2 size={9} /> {s}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Missing signals — toggle */}
+            {sig.signals_missing.length > 0 && (
+              <button
+                onClick={() => setExpanded(e => !e)}
+                className="flex items-center gap-1 text-[0.65rem] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+              >
+                <XCircle size={10} className="text-red-400/60" />
+                {expanded ? 'Ocultar' : `Ver qué falta (${sig.signals_missing.length})`}
+                <ChevronRight size={10} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
+              </button>
+            )}
+            {expanded && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {sig.signals_missing.map(s => (
+                  <span key={s} className="flex items-center gap-0.5 text-[0.6rem] px-1.5 py-0.5 rounded bg-red-500/8 text-red-400/70 border border-red-500/15">
+                    <XCircle size={9} /> {s}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {sig.earnings_warning && sig.days_to_earnings != null && (
+              <div className="mt-2 text-[0.65rem] text-amber-400 flex items-center gap-1">
+                <Bell size={10} /> Earnings en {sig.days_to_earnings}d — riesgo de entrada
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Cerebro() {
-  const { data: insights,    loading: loadingI } = useApi(() => fetchCerebroInsights(), [])
-  const { data: convergence, loading: loadingC } = useApi(() => fetchCerebroConvergence(), [])
-  const { data: alertsData,  loading: loadingA } = useApi(() => fetchCerebroAlerts(), [])
+  const { data: insights,    loading: loadingI }   = useApi(() => fetchCerebroInsights(), [])
+  const { data: convergence, loading: loadingC }   = useApi(() => fetchCerebroConvergence(), [])
+  const { data: alertsData,  loading: loadingA }   = useApi(() => fetchCerebroAlerts(), [])
   const { data: calibration, loading: loadingCal } = useApi(() => fetchCerebroCalibration(), [])
-  const [activeTab, setActiveTab] = useState<'convergence' | 'insights' | 'alerts' | 'calibration'>('convergence')
+  const { data: entryData,   loading: loadingE }   = useApi(() => fetchCerebroEntrySignals(), [])
+  const [activeTab, setActiveTab] = useState<'entry' | 'convergence' | 'insights' | 'alerts' | 'calibration'>('entry')
+  const [entryFilter, setEntryFilter] = useState<'ALL' | 'STRONG_BUY' | 'BUY' | 'MONITOR'>('ALL')
 
-  const loading = loadingI && loadingC && loadingA && loadingCal
+  const loading = loadingI && loadingC && loadingA && loadingCal && loadingE
   if (loading) return <Loading />
-  const anyError = !insights && !convergence && !alertsData
+  const anyError = !insights && !convergence && !alertsData && !entryData
   if (anyError) return <ErrorState message="CEREBRO aún no ha generado datos. Ejecuta cerebro.py primero." />
 
-  const baseline = insights?.baseline_win_rate_7d ?? 50
-  const signals  = convergence?.convergences ?? []
-  const alerts   = alertsData?.alerts ?? []
+  const baseline      = insights?.baseline_win_rate_7d ?? 50
+  const signals       = convergence?.convergences ?? []
+  const alerts        = alertsData?.alerts ?? []
+  const entrySignals  = entryData?.signals ?? []
+  const filteredEntry = entryFilter === 'ALL'
+    ? entrySignals.filter(s => s.signal !== 'WAIT')
+    : entrySignals.filter(s => s.signal === entryFilter)
 
   const tabs = [
-    { id: 'convergence' as const,  label: 'Convergencias',   icon: Crosshair,        count: convergence?.total_convergences },
-    { id: 'insights' as const,     label: 'Patrones',         icon: Brain,            count: insights?.total_analyzed },
-    { id: 'alerts' as const,       label: 'Alertas',          icon: Bell,             count: alertsData?.high_count, highlight: (alertsData?.high_count ?? 0) > 0 },
-    { id: 'calibration' as const,  label: 'Calibración',      icon: SlidersHorizontal, count: calibration?.total_recommendations },
+    { id: 'entry' as const,       label: 'Señales Entrada', icon: Zap,              count: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0), highlight: (entryData?.strong_buy ?? 0) > 0 },
+    { id: 'convergence' as const, label: 'Convergencias',   icon: Crosshair,        count: convergence?.total_convergences },
+    { id: 'insights' as const,    label: 'Patrones',        icon: Brain,            count: insights?.total_analyzed },
+    { id: 'alerts' as const,      label: 'Alertas',         icon: Bell,             count: alertsData?.high_count, highlight: (alertsData?.high_count ?? 0) > 0 },
+    { id: 'calibration' as const, label: 'Calibración',     icon: SlidersHorizontal, count: calibration?.total_recommendations },
   ]
 
   return (
@@ -115,12 +228,13 @@ export default function Cerebro() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
         {[
-          { label: 'Señales analizadas', value: insights?.total_analyzed ?? '—', color: 'text-violet-400', sub: 'histórico' },
-          { label: 'Win rate base',      value: insights ? `${insights.baseline_win_rate_7d.toFixed(1)}%` : '—', color: insights?.baseline_win_rate_7d != null ? (insights.baseline_win_rate_7d >= 55 ? 'text-emerald-400' : insights.baseline_win_rate_7d >= 45 ? 'text-amber-400' : 'text-red-400') : '', sub: '7d sistema' },
+          { label: 'Strong Buy hoy',    value: entryData?.strong_buy ?? '—',  color: (entryData?.strong_buy ?? 0) > 0 ? 'text-emerald-400' : 'text-muted-foreground', sub: `${entryData?.buy ?? 0} BUY · ${entryData?.monitor ?? 0} Monitor` },
+          { label: 'Señales analizadas',value: insights?.total_analyzed ?? '—', color: 'text-violet-400', sub: 'histórico' },
+          { label: 'Win rate base',     value: insights ? `${insights.baseline_win_rate_7d.toFixed(1)}%` : '—', color: insights?.baseline_win_rate_7d != null ? (insights.baseline_win_rate_7d >= 55 ? 'text-emerald-400' : insights.baseline_win_rate_7d >= 45 ? 'text-amber-400' : 'text-red-400') : '', sub: '7d sistema' },
           { label: 'Convergencias hoy', value: convergence?.total_convergences ?? '—', color: 'text-cyan-400', sub: `${convergence?.triple_or_more ?? 0} triples` },
-          { label: 'Alertas HIGH',       value: alertsData?.high_count ?? '—', color: (alertsData?.high_count ?? 0) > 0 ? 'text-red-400' : 'text-muted-foreground', sub: `${alertsData?.total ?? 0} total` },
+          { label: 'Alertas HIGH',      value: alertsData?.high_count ?? '—', color: (alertsData?.high_count ?? 0) > 0 ? 'text-red-400' : 'text-muted-foreground', sub: `${alertsData?.total ?? 0} total` },
         ].map(s => (
           <Card key={s.label} className="glass p-5">
             <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">{s.label}</div>
@@ -152,6 +266,56 @@ export default function Cerebro() {
           </button>
         ))}
       </div>
+
+      {/* ── TAB: Señales de Entrada ──────────────────────────────────────────── */}
+      {activeTab === 'entry' && (
+        <div className="space-y-4 animate-fade-in-up">
+          {entryData?.narrative && (
+            <AiNarrativeCard narrative={entryData.narrative} label="Análisis de entradas de hoy" />
+          )}
+
+          {/* Filter buttons */}
+          <div className="flex gap-2 flex-wrap">
+            {(['ALL', 'STRONG_BUY', 'BUY', 'MONITOR'] as const).map(f => {
+              const counts: Record<string, number | undefined> = {
+                ALL: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0) + (entryData?.monitor ?? 0),
+                STRONG_BUY: entryData?.strong_buy,
+                BUY: entryData?.buy,
+                MONITOR: entryData?.monitor,
+              }
+              const labels: Record<string, string> = { ALL: 'Todos', STRONG_BUY: '🟢 Strong Buy', BUY: '🟡 Buy', MONITOR: '🔵 Monitor' }
+              return (
+                <button
+                  key={f}
+                  onClick={() => setEntryFilter(f)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    entryFilter === f
+                      ? 'bg-primary/15 text-primary border-primary/30'
+                      : 'bg-muted/10 text-muted-foreground border-border/30 hover:text-foreground'
+                  }`}
+                >
+                  {labels[f]}
+                  <span className="text-[0.6rem] opacity-70">{counts[f] ?? 0}</span>
+                </button>
+              )
+            })}
+          </div>
+
+          {loadingE ? (
+            <div className="space-y-3">{['a','b','c'].map(k => <Card key={k} className="glass h-32 animate-pulse" />)}</div>
+          ) : filteredEntry.length === 0 ? (
+            <Card className="glass">
+              <CardContent className="py-12 text-center text-muted-foreground">
+                {entryFilter === 'ALL'
+                  ? 'No hay señales de entrada claras hoy. Revisa mañana.'
+                  : `No hay señales ${entryFilter.replace('_', ' ')} hoy.`}
+              </CardContent>
+            </Card>
+          ) : (
+            filteredEntry.map(sig => <EntrySignalCard key={sig.ticker} sig={sig} />)
+          )}
+        </div>
+      )}
 
       {/* ── TAB: Convergencias ─────────────────────────────────────────────────── */}
       {activeTab === 'convergence' && (
