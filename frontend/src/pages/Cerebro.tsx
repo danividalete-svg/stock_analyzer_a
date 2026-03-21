@@ -80,10 +80,10 @@ function strategyBadge(s: string) {
 // ── Entry signal helpers ───────────────────────────────────────────────────────
 
 const SIGNAL_STYLES: Record<EntrySignal['signal'], { label: string; border: string; bg: string; badge: string; scoreColor: string }> = {
-  STRONG_BUY: { label: '🟢 STRONG BUY', border: 'border-emerald-500/50', bg: 'bg-emerald-500/8',  badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40', scoreColor: 'text-emerald-400' },
-  BUY:        { label: '🟡 BUY',         border: 'border-amber-500/40',   bg: 'bg-amber-500/6',   badge: 'bg-amber-500/20 text-amber-400 border-amber-500/40',     scoreColor: 'text-amber-400'   },
-  MONITOR:    { label: '🔵 MONITOR',     border: 'border-blue-500/30',    bg: 'bg-blue-500/5',    badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30',        scoreColor: 'text-blue-400'    },
-  WAIT:       { label: '⚪ WAIT',        border: 'border-border/20',      bg: 'bg-transparent',   badge: 'bg-muted/20 text-muted-foreground border-border/30',     scoreColor: 'text-muted-foreground' },
+  STRONG_BUY: { label: '🟢 STRONG BUY', border: 'border-emerald-500/60', bg: 'bg-emerald-500/15', badge: 'bg-emerald-500/25 text-emerald-400 border-emerald-500/40', scoreColor: 'text-emerald-400' },
+  BUY:        { label: '🟡 BUY',         border: 'border-amber-500/50',   bg: 'bg-amber-500/10',  badge: 'bg-amber-500/25 text-amber-400 border-amber-500/40',      scoreColor: 'text-amber-400'   },
+  MONITOR:    { label: '🔵 MONITOR',     border: 'border-blue-500/30',    bg: 'bg-blue-500/10',   badge: 'bg-blue-500/20 text-blue-400 border-blue-500/30',         scoreColor: 'text-blue-400'    },
+  WAIT:       { label: '⚪ WAIT',        border: 'border-border/20',      bg: 'bg-transparent',   badge: 'bg-muted/20 text-muted-foreground border-border/30',      scoreColor: 'text-muted-foreground' },
 }
 
 function EntryScoreBar({ score }: { score: number }) {
@@ -191,7 +191,7 @@ export default function Cerebro() {
   const { data: calibration, loading: loadingCal } = useApi(() => fetchCerebroCalibration(), [])
   const { data: entryData,   loading: loadingE }   = useApi(() => fetchCerebroEntrySignals(), [])
   const [activeTab, setActiveTab] = useState<'entry' | 'convergence' | 'insights' | 'alerts' | 'calibration'>('entry')
-  const [entryFilter, setEntryFilter] = useState<'ALL' | 'STRONG_BUY' | 'BUY' | 'MONITOR'>('ALL')
+  const [entryFilter, setEntryFilter] = useState<'ACTIONABLE' | 'STRONG_BUY' | 'BUY' | 'MONITOR'>('ACTIONABLE')
 
   const loading = loadingI && loadingC && loadingA && loadingCal && loadingE
   if (loading) return <Loading />
@@ -202,8 +202,8 @@ export default function Cerebro() {
   const signals       = convergence?.convergences ?? []
   const alerts        = alertsData?.alerts ?? []
   const entrySignals  = entryData?.signals ?? []
-  const filteredEntry = entryFilter === 'ALL'
-    ? entrySignals.filter(s => s.signal !== 'WAIT')
+  const filteredEntry = entryFilter === 'ACTIONABLE'
+    ? entrySignals.filter(s => s.signal === 'STRONG_BUY' || s.signal === 'BUY')
     : entrySignals.filter(s => s.signal === entryFilter)
 
   const tabs = [
@@ -276,14 +276,14 @@ export default function Cerebro() {
 
           {/* Filter buttons */}
           <div className="flex gap-2 flex-wrap">
-            {(['ALL', 'STRONG_BUY', 'BUY', 'MONITOR'] as const).map(f => {
+            {(['ACTIONABLE', 'STRONG_BUY', 'BUY', 'MONITOR'] as const).map(f => {
               const counts: Record<string, number | undefined> = {
-                ALL: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0) + (entryData?.monitor ?? 0),
+                ACTIONABLE: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0),
                 STRONG_BUY: entryData?.strong_buy,
                 BUY: entryData?.buy,
                 MONITOR: entryData?.monitor,
               }
-              const labels: Record<string, string> = { ALL: 'Todos', STRONG_BUY: '🟢 Strong Buy', BUY: '🟡 Buy', MONITOR: '🔵 Monitor' }
+              const labels: Record<string, string> = { ACTIONABLE: '⚡ Accionables', STRONG_BUY: '🟢 Strong Buy', BUY: '🟡 Buy', MONITOR: '🔵 Monitor' }
               return (
                 <button
                   key={f}
@@ -306,7 +306,7 @@ export default function Cerebro() {
           ) : filteredEntry.length === 0 ? (
             <Card className="glass">
               <CardContent className="py-12 text-center text-muted-foreground">
-                {entryFilter === 'ALL'
+                {entryFilter === 'ACTIONABLE'
                   ? 'No hay señales de entrada claras hoy. Revisa mañana.'
                   : `No hay señales ${entryFilter.replace('_', ' ')} hoy.`}
               </CardContent>
