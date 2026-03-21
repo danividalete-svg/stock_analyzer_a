@@ -1085,6 +1085,34 @@ class SuperScoreIntegrator:
             print(f"   📐 Risk/Reward applied ({good_rr} tickers with R:R ≥ 2:1)")
             df.drop(columns=['_upside'], inplace=True, errors='ignore')
 
+        # UPSIDE CREDIBILITY CHECK: penalize implausibly high upside with low/no conviction
+        # High analyst upside + "none" recommendation or few analysts = unreliable target
+        if 'analyst_upside_pct' in df.columns and 'analyst_count' in df.columns:
+            _up  = pd.to_numeric(df['analyst_upside_pct'], errors='coerce')
+            _cnt = pd.to_numeric(df['analyst_count'],      errors='coerce')
+            _rec = df['analyst_recommendation'].fillna('none').str.lower() if 'analyst_recommendation' in df.columns else pd.Series('none', index=df.index)
+
+            # upside >60% with contradictory recommendation (none/nan): -12pts
+            mask_contra = (_up > 60) & (_rec.isin(['none', 'nan', '']))
+            df.loc[mask_contra, 'value_score'] -= 12
+            if mask_contra.sum():
+                tickers = df.loc[mask_contra, 'ticker'].tolist()
+                print(f"⚠️  Upside >60% pero analistas no recomiendan: {tickers} → -12pts")
+
+            # upside >60% with <5 analysts: -10pts (too few voices for big claim)
+            mask_thin = (_up > 60) & (_cnt < 5) & (~mask_contra)
+            df.loc[mask_thin, 'value_score'] -= 10
+            if mask_thin.sum():
+                tickers = df.loc[mask_thin, 'ticker'].tolist()
+                print(f"⚠️  Upside >60% con <5 analistas: {tickers} → -10pts")
+
+            # upside >80% with <10 analysts: additional -8pts
+            mask_extreme = (_up > 80) & (_cnt < 10)
+            df.loc[mask_extreme, 'value_score'] -= 8
+            if mask_extreme.sum():
+                tickers = df.loc[mask_extreme, 'ticker'].tolist()
+                print(f"⚠️  Upside extremo >80% con <10 analistas: {tickers} → -8pts adicionales")
+
         # ── PIOTROSKI F-SCORE (Proven +13.4% annual alpha) ─────────────────────────
         # Strong (8-9): buy signal — company improving on all fronts
         # Weak  (0-2): value trap warning — avoid even if cheap
