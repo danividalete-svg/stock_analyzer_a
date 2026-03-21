@@ -224,6 +224,12 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python3 telegram_briefing.py || echo "Daily briefing failed"
 
+      - name: Cerebro — Proactive AI Agent
+        continue-on-error: true
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python3 cerebro.py || echo "Cerebro failed"
+
       - name: Dividend Trap Scanner
         continue-on-error: true
         run: python3 dividend_trap_scanner.py || echo "Dividend trap scanner failed"
@@ -277,7 +283,11 @@ jobs:
             docs/options_flow.csv \
             docs/macro_radar.json \
             docs/dividend_traps.json \
-            docs/smart_portfolio.json; do
+            docs/smart_portfolio.json \
+            docs/cerebro_insights.json \
+            docs/cerebro_convergence.json \
+            docs/cerebro_alerts.json \
+            docs/cerebro_calibration.json; do
             [ -f "$f" ] && cp "$f" "${ARCHIVE_DIR}/" && echo "Archived: $f"
           done
 

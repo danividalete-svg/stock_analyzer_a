@@ -1273,6 +1273,23 @@ def market_regime():
     return jsonify({"us": us, "eu": eu})
 
 
+@app.route('/api/cerebro/insights')
+def cerebro_insights():
+    return jsonify(_load_json(DOCS / 'cerebro_insights.json'))
+
+@app.route('/api/cerebro/convergence')
+def cerebro_convergence():
+    return jsonify(_load_json(DOCS / 'cerebro_convergence.json'))
+
+@app.route('/api/cerebro/alerts')
+def cerebro_alerts():
+    return jsonify(_load_json(DOCS / 'cerebro_alerts.json'))
+
+@app.route('/api/cerebro/calibration')
+def cerebro_calibration():
+    return jsonify(_load_json(DOCS / 'cerebro_calibration.json'))
+
+
 @app.route('/api/market-breadth')
 def market_breadth():
     """Market breadth from fundamental_scores: % in uptrend, % with positive upside, etc."""

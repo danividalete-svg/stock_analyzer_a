@@ -261,6 +261,63 @@ export interface BreadthData {
 export const fetchMarketBreadth = () =>
   api.get<{ us: BreadthData; eu: BreadthData }>('/api/market-breadth')
 
+// ── Cerebro AI agent ─────────────────────────────────────────────────────────
+export interface CerebroTier {
+  label: string
+  win_rate_7d: number
+  avg_return_7d: number
+  n: number
+  vs_baseline_wr: number
+  vs_baseline_ret: number
+}
+export interface CerebroInsights {
+  generated_at: string
+  total_analyzed: number
+  baseline_win_rate_7d: number
+  baseline_avg_return_7d: number
+  score_tiers: CerebroTier[]
+  market_regimes: CerebroTier[]
+  sectors: CerebroTier[]
+  fcf_tiers: CerebroTier[]
+  best_combos: CerebroTier[]
+  period_stats: Record<string, { win_rate: number | null; avg_return: number; n: number }>
+  narrative: string | null
+}
+export interface CerebroSignal {
+  ticker: string
+  company_name: string
+  sector: string
+  strategies: string[]
+  strategy_count: number
+  convergence_score: number
+  value_score: number | null
+  conviction_grade: string
+  analyst_upside_pct: number | null
+  fcf_yield_pct: number | null
+  current_price: number | null
+  analysis: string | null
+}
+export interface CerebroAlert {
+  ticker: string
+  type: string
+  severity: 'HIGH' | 'MEDIUM' | 'LOW'
+  title: string
+  message: string
+  date: string
+  data?: Record<string, unknown>
+}
+export interface CerebroCalibration {
+  generated_at: string
+  recommendations: Array<{ type: string; factor: string; insight: string; n: number }>
+  narrative: string | null
+  total_recommendations: number
+}
+
+export const fetchCerebroInsights    = () => api.get<CerebroInsights>('/api/cerebro/insights')
+export const fetchCerebroConvergence = () => api.get<{ generated_at: string; total_convergences: number; triple_or_more: number; convergences: CerebroSignal[] }>('/api/cerebro/convergence')
+export const fetchCerebroAlerts      = () => api.get<{ generated_at: string; total: number; high_count: number; alerts: CerebroAlert[] }>('/api/cerebro/alerts')
+export const fetchCerebroCalibration = () => api.get<CerebroCalibration>('/api/cerebro/calibration')
+
 export const fetchMarketRegime = () =>
   api.get<MarketRegime>('/api/market-regime')
 

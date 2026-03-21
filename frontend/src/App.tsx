@@ -36,6 +36,7 @@ import HedgeFunds from './pages/HedgeFunds'
 import FactorStatus from './pages/FactorStatus'
 import PersonalPortfolio from './pages/PersonalPortfolio'
 import Comparador from './pages/Comparador'
+import Cerebro from './pages/Cerebro'
 import Alerts from './pages/Alerts'
 import Screener from './pages/Screener'
 import MacroCalendar from './pages/MacroCalendar'
@@ -225,6 +226,7 @@ export default function App() {
               <Route path="/factor-status" element={<FactorStatus />} />
               <Route path="/my-portfolio"  element={<PersonalPortfolio />} />
               <Route path="/compare"        element={<Comparador />} />
+              <Route path="/cerebro"        element={<Cerebro />} />
               <Route path="/alerts"         element={<Alerts />} />
               <Route path="/screener"       element={<Screener />} />
               <Route path="/macro-calendar" element={<MacroCalendar />} />

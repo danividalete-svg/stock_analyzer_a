@@ -2,7 +2,7 @@ import {
   Globe, TrendingUp, Users, Activity,
   ArrowLeftRight, PieChart, BarChart2, FlaskConical, Search, LayoutDashboard, Database,
   Ruler, Layers, Star, Radar, CalendarDays, AlertTriangle, Sparkles, Building2, Zap,
-  DollarSign, Euro, Wallet, GitCompare, Bell, SlidersHorizontal, CalendarCheck, CandlestickChart,
+  DollarSign, Euro, Wallet, GitCompare, Bell, SlidersHorizontal, CalendarCheck, CandlestickChart, Brain,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -41,6 +41,7 @@ export const NAV: NavItem[] = [
   { section: 'Herramientas' },
   { path: '/watchlist',      icon: Star,            label: 'Watchlist',           color: '#f59e0b', keywords: ['watchlist', 'seguimiento', 'favoritos'] },
   { path: '/compare',        icon: GitCompare,      label: 'Comparador',          color: '#0ea5e9', keywords: ['comparar', 'comparador', 'compare', 'side by side'] },
+  { path: '/cerebro',        icon: Brain,           label: 'Cerebro IA',          color: '#8b5cf6', keywords: ['cerebro', 'ia', 'agente', 'proactivo', 'aprendizaje', 'convergencia', 'alertas'] },
   { path: '/alerts',         icon: Bell,            label: 'Alertas',             color: '#f59e0b', keywords: ['alertas', 'email', 'notificaciones', 'precio'] },
   { path: '/search',         icon: Search,          label: 'Buscar Ticker',       color: '#94a3b8', keywords: ['buscar', 'ticker', 'search', 'analisis'] },
   { path: '/datos',          icon: Database,        label: 'Datos & Historial',   color: '#64748b', keywords: ['datos', 'historial', 'csv', 'descarga'] },

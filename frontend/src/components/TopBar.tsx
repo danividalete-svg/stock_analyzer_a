@@ -1,8 +1,10 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Clock, Sun, Moon, Menu, Search } from 'lucide-react'
+import { Clock, Sun, Moon, Menu, Search, Brain } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { Button } from '@/components/ui/button'
+import { fetchCerebroAlerts } from '../api/client'
+import { useApi } from '../hooks/useApi'
 
 const ROUTE_TITLES: Record<string, string> = {
   '/value':          'VALUE US — Oportunidades Fundamentales',
@@ -26,6 +28,8 @@ export default function TopBar({ onMenuClick, onOpenCmd }: Readonly<Props>) {
   const location = useLocation()
   const [time, setTime]   = useState(new Date())
   const { theme, toggle } = useTheme()
+  const { data: alertsData } = useApi(() => fetchCerebroAlerts(), [])
+  const highAlerts = alertsData?.high_count ?? 0
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 30_000)
@@ -72,6 +76,20 @@ export default function TopBar({ onMenuClick, onOpenCmd }: Readonly<Props>) {
           <Clock size={11} strokeWidth={1.5} />
           {dateStr} · {timeStr}
         </span>
+        {/* Cerebro bell */}
+        <Link
+          to="/cerebro"
+          className="relative flex items-center justify-center h-8 w-8 rounded-lg border border-border/60 bg-transparent hover:bg-accent/10 transition-colors"
+          title="Cerebro — IA Proactiva"
+        >
+          <Brain size={14} strokeWidth={1.75} className="text-muted-foreground" />
+          {highAlerts > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[0.45rem] font-bold text-white leading-none">
+              {highAlerts > 9 ? '9+' : highAlerts}
+            </span>
+          )}
+        </Link>
+
         <Button
           variant="outline"
           size="icon"
