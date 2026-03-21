@@ -342,6 +342,106 @@ export const fetchCerebroAlerts      = () => api.get<{ generated_at: string; tot
 export const fetchCerebroCalibration = () => api.get<CerebroCalibration>('/api/cerebro/calibration')
 export const fetchCerebroEntrySignals = () => api.get<{ generated_at: string; total: number; strong_buy: number; buy: number; monitor: number; wait: number; narrative: string | null; signals: EntrySignal[] }>('/api/cerebro/entry-signals')
 
+export interface ExitSignal {
+  ticker: string
+  severity: 'HIGH' | 'MEDIUM' | 'LOW'
+  entry_score: number
+  current_score: number | null
+  signal_date: string | null
+  reasons: string[]
+}
+export const fetchCerebroExitSignals = () => api.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; exits: ExitSignal[] }>('/api/cerebro/exit-signals')
+
+export interface ValueTrap {
+  ticker: string
+  company_name: string
+  severity: 'HIGH' | 'MEDIUM'
+  trap_score: number
+  value_score: number
+  flags: string[]
+  piotroski: number | null
+  fcf_yield_pct: number | null
+  fundamental_score: number | null
+}
+export const fetchCerebroValueTraps = () => api.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; traps: ValueTrap[] }>('/api/cerebro/value-traps')
+
+export interface SmartMoneySignal {
+  ticker: string
+  company_name: string
+  sector: string
+  value_score: number | null
+  n_hedge_funds: number
+  hedge_funds: string[]
+  n_insiders: number
+  insider_purchases: number
+  convergence_score: number
+  in_value: boolean
+}
+export const fetchCerebroSmartMoney = () => api.get<{ generated_at: string; total: number; narrative: string | null; signals: SmartMoneySignal[] }>('/api/cerebro/smart-money')
+
+export interface InsiderCluster {
+  sector: string
+  ticker_count: number
+  tickers: string[]
+  total_purchases: number
+  total_insiders: number
+  cluster_score: number
+  signal: 'STRONG' | 'MODERATE'
+}
+export const fetchCerebroInsiderClusters = () => api.get<{ generated_at: string; total: number; narrative: string | null; clusters: InsiderCluster[] }>('/api/cerebro/insider-clusters')
+
+export interface DividendSafety {
+  ticker: string
+  company_name: string
+  div_yield: number
+  payout_ratio: number | null
+  fcf_yield_pct: number | null
+  interest_coverage: number | null
+  safety_score: number
+  rating: 'AT_RISK' | 'WATCH' | 'SAFE'
+  risk_flags: string[]
+  value_score: number
+}
+export const fetchCerebroDividendSafety = () => api.get<{ generated_at: string; total: number; at_risk: number; narrative: string | null; dividends: DividendSafety[] }>('/api/cerebro/dividend-safety')
+
+export interface PiotroskiCandidate {
+  ticker: string
+  company_name: string
+  piotroski_current: number
+  piotroski_prev: number | null
+  delta: number
+  trend: 'IMPROVING' | 'SLIGHT_UP' | 'STABLE' | 'SLIGHT_DOWN' | 'DETERIORATING'
+  signal: 'STRONG' | 'NEUTRAL' | 'WEAK'
+  value_score: number
+}
+export const fetchCerebroPiotroski = () => api.get<{ generated_at: string; total: number; improving: number; narrative: string | null; candidates: PiotroskiCandidate[] }>('/api/cerebro/piotroski')
+
+export interface StressRisk {
+  type: string
+  severity: 'HIGH' | 'MEDIUM' | 'LOW'
+  message: string
+  detail: Record<string, unknown>
+}
+export const fetchCerebroStressTest = () => api.get<{ generated_at: string; total_positions: number; risks: StressRisk[]; narrative: string | null; sector_breakdown: Array<{ sector: string; count: number; pct: number }>; region_breakdown: Record<string, number> }>('/api/cerebro/stress-test')
+
+export interface CerebroBriefing {
+  generated_at: string
+  regime: string
+  narrative: string
+  sections: {
+    regime: string
+    strong_buy_count: number
+    buy_count: number
+    top_entries: [string, number][]
+    top_convergences: [string, number][]
+    high_alerts: [string, string][]
+    traps_warning: [string, number][]
+    exit_warnings: [string, string][]
+    smart_money: [string, number][]
+  }
+}
+export const fetchCerebroBriefing = () => api.get<CerebroBriefing>('/api/cerebro/briefing')
+
 export const fetchMarketRegime = () =>
   api.get<MarketRegime>('/api/market-regime')
 

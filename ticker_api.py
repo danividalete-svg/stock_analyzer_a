@@ -1293,6 +1293,38 @@ def cerebro_calibration():
 def cerebro_entry_signals():
     return jsonify(_load_json(DOCS / 'cerebro_entry_signals.json'))
 
+@app.route('/api/cerebro/exit-signals')
+def cerebro_exit_signals():
+    return jsonify(_load_json(DOCS / 'cerebro_exit_signals.json'))
+
+@app.route('/api/cerebro/value-traps')
+def cerebro_value_traps():
+    return jsonify(_load_json(DOCS / 'cerebro_value_traps.json'))
+
+@app.route('/api/cerebro/smart-money')
+def cerebro_smart_money():
+    return jsonify(_load_json(DOCS / 'cerebro_smart_money.json'))
+
+@app.route('/api/cerebro/insider-clusters')
+def cerebro_insider_clusters():
+    return jsonify(_load_json(DOCS / 'cerebro_insider_clusters.json'))
+
+@app.route('/api/cerebro/dividend-safety')
+def cerebro_dividend_safety():
+    return jsonify(_load_json(DOCS / 'cerebro_dividend_safety.json'))
+
+@app.route('/api/cerebro/piotroski')
+def cerebro_piotroski():
+    return jsonify(_load_json(DOCS / 'cerebro_piotroski.json'))
+
+@app.route('/api/cerebro/stress-test')
+def cerebro_stress_test():
+    return jsonify(_load_json(DOCS / 'cerebro_stress_test.json'))
+
+@app.route('/api/cerebro/briefing')
+def cerebro_briefing():
+    return jsonify(_load_json(DOCS / 'cerebro_briefing.json'))
+
 
 @app.route('/api/market-breadth')
 def market_breadth():

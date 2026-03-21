@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   fetchCerebroInsights, fetchCerebroConvergence, fetchCerebroAlerts, fetchCerebroCalibration,
-  fetchCerebroEntrySignals,
+  fetchCerebroEntrySignals, fetchCerebroExitSignals, fetchCerebroValueTraps, fetchCerebroSmartMoney,
+  fetchCerebroInsiderClusters, fetchCerebroDividendSafety, fetchCerebroPiotroski,
+  fetchCerebroStressTest, fetchCerebroBriefing,
   type CerebroTier, type CerebroAlert, type EntrySignal,
 } from '../api/client'
 import { useApi } from '../hooks/useApi'
@@ -11,7 +13,11 @@ import AiNarrativeCard from '../components/AiNarrativeCard'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import TickerLogo from '../components/TickerLogo'
-import { Brain, Crosshair, Bell, SlidersHorizontal, TrendingUp, TrendingDown, Minus, ChevronRight, Zap, CheckCircle2, XCircle } from 'lucide-react'
+import {
+  Brain, Crosshair, Bell, SlidersHorizontal, TrendingUp, TrendingDown, Minus, ChevronRight,
+  Zap, CheckCircle2, XCircle, Newspaper, Bot, AlertOctagon, ShieldAlert,
+  Building2, Users, Wallet, BarChart2, Activity,
+} from 'lucide-react'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -190,7 +196,16 @@ export default function Cerebro() {
   const { data: alertsData,  loading: loadingA }   = useApi(() => fetchCerebroAlerts(), [])
   const { data: calibration, loading: loadingCal } = useApi(() => fetchCerebroCalibration(), [])
   const { data: entryData,   loading: loadingE }   = useApi(() => fetchCerebroEntrySignals(), [])
-  const [activeTab, setActiveTab] = useState<'entry' | 'convergence' | 'insights' | 'alerts' | 'calibration'>('entry')
+  const { data: exitData }    = useApi(() => fetchCerebroExitSignals(), [])
+  const { data: trapsData }   = useApi(() => fetchCerebroValueTraps(), [])
+  const { data: smData }      = useApi(() => fetchCerebroSmartMoney(), [])
+  const { data: clustersData }= useApi(() => fetchCerebroInsiderClusters(), [])
+  const { data: divData }     = useApi(() => fetchCerebroDividendSafety(), [])
+  const { data: piotrData }   = useApi(() => fetchCerebroPiotroski(), [])
+  const { data: stressData }  = useApi(() => fetchCerebroStressTest(), [])
+  const { data: briefingData }= useApi(() => fetchCerebroBriefing(), [])
+
+  const [activeTab, setActiveTab] = useState<'briefing' | 'entry' | 'convergence' | 'agents' | 'alerts' | 'insights' | 'calibration'>('briefing')
   const [entryFilter, setEntryFilter] = useState<'ACTIONABLE' | 'STRONG_BUY' | 'BUY' | 'MONITOR'>('ACTIONABLE')
 
   const loading = loadingI && loadingC && loadingA && loadingCal && loadingE
@@ -207,10 +222,12 @@ export default function Cerebro() {
     : entrySignals.filter(s => s.signal === entryFilter)
 
   const tabs = [
-    { id: 'entry' as const,       label: 'Señales Entrada', icon: Zap,              count: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0), highlight: (entryData?.strong_buy ?? 0) > 0 },
+    { id: 'briefing' as const,    label: 'Briefing',        icon: Newspaper,        count: undefined, highlight: !!briefingData?.narrative },
+    { id: 'entry' as const,       label: 'Señales',         icon: Zap,              count: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0), highlight: (entryData?.strong_buy ?? 0) > 0 },
     { id: 'convergence' as const, label: 'Convergencias',   icon: Crosshair,        count: convergence?.total_convergences },
-    { id: 'insights' as const,    label: 'Patrones',        icon: Brain,            count: insights?.total_analyzed },
+    { id: 'agents' as const,      label: 'Agentes IA',      icon: Bot,              count: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0), highlight: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0) > 0 },
     { id: 'alerts' as const,      label: 'Alertas',         icon: Bell,             count: alertsData?.high_count, highlight: (alertsData?.high_count ?? 0) > 0 },
+    { id: 'insights' as const,    label: 'Patrones',        icon: Brain,            count: insights?.total_analyzed },
     { id: 'calibration' as const, label: 'Calibración',     icon: SlidersHorizontal, count: calibration?.total_recommendations },
   ]
 
@@ -266,6 +283,133 @@ export default function Cerebro() {
           </button>
         ))}
       </div>
+
+      {/* ── TAB: Briefing ─────────────────────────────────────────────────────── */}
+      {activeTab === 'briefing' && (
+        <div className="space-y-4 animate-fade-in-up">
+          {briefingData?.narrative ? (
+            <AiNarrativeCard narrative={briefingData.narrative} label={`Briefing diario · ${briefingData.generated_at} · Régimen ${briefingData.regime}`} />
+          ) : (
+            <Card className="glass"><CardContent className="py-8 text-center text-muted-foreground text-sm">Briefing no disponible aún — se genera al final del pipeline.</CardContent></Card>
+          )}
+
+          {briefingData?.sections && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Top entries */}
+              {briefingData.sections.top_entries.length > 0 && (
+                <Card className="glass border-emerald-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Zap size={13} className="text-emerald-400" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Entradas hoy</span>
+                      <span className="ml-auto text-[0.6rem] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30 font-bold">
+                        {briefingData.sections.strong_buy_count} SB · {briefingData.sections.buy_count} BUY
+                      </span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {briefingData.sections.top_entries.map(([ticker, score]) => (
+                        <div key={ticker} className="flex items-center gap-2">
+                          <Link to={`/search?q=${ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline w-14">{ticker}</Link>
+                          <div className="flex-1 h-1.5 rounded-full bg-muted/20 overflow-hidden">
+                            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${score}%` }} />
+                          </div>
+                          <span className="tabular-nums text-[0.7rem] text-muted-foreground w-6 text-right">{score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Smart money */}
+              {briefingData.sections.smart_money.length > 0 && (
+                <Card className="glass border-purple-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Building2 size={13} className="text-purple-400" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Smart Money</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {briefingData.sections.smart_money.map(([ticker, nHF]) => (
+                        <div key={ticker} className="flex items-center justify-between">
+                          <Link to={`/search?q=${ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{ticker}</Link>
+                          <span className="text-[0.65rem] text-purple-400">{nHF} HF</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Exits + traps */}
+              {(briefingData.sections.exit_warnings.length > 0 || briefingData.sections.traps_warning.length > 0) && (
+                <Card className="glass border-red-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ShieldAlert size={13} className="text-red-400" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Vigilar / Salir</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {briefingData.sections.exit_warnings.map(([ticker, reason]) => (
+                        <div key={`exit-${ticker}`} className="flex items-start gap-2">
+                          <Link to={`/search?q=${ticker}`} className="font-mono font-bold text-red-400 text-[0.8rem] hover:underline w-14 shrink-0">{ticker}</Link>
+                          <span className="text-[0.65rem] text-muted-foreground leading-tight">{reason}</span>
+                        </div>
+                      ))}
+                      {briefingData.sections.traps_warning.map(([ticker, score]) => (
+                        <div key={`trap-${ticker}`} className="flex items-center justify-between">
+                          <Link to={`/search?q=${ticker}`} className="font-mono font-bold text-amber-400 text-[0.8rem] hover:underline">{ticker}</Link>
+                          <span className="text-[0.65rem] text-amber-400">trampa {score}/10</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Convergences */}
+              {briefingData.sections.top_convergences.length > 0 && (
+                <Card className="glass border-cyan-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Crosshair size={13} className="text-cyan-400" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Convergencias</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {briefingData.sections.top_convergences.map(([ticker, score]) => (
+                        <div key={ticker} className="flex items-center justify-between">
+                          <Link to={`/search?q=${ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{ticker}</Link>
+                          <span className="text-[0.65rem] text-cyan-400">conv {score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Alerts */}
+              {briefingData.sections.high_alerts.length > 0 && (
+                <Card className="glass border-amber-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Bell size={13} className="text-amber-400" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Alertas HIGH</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {briefingData.sections.high_alerts.map(([ticker, type]) => (
+                        <div key={`alert-${ticker}-${type}`} className="flex items-center justify-between">
+                          <Link to={`/search?q=${ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{ticker}</Link>
+                          <span className="text-[0.65rem] text-amber-400">{type}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── TAB: Señales de Entrada ──────────────────────────────────────────── */}
       {activeTab === 'entry' && (
@@ -495,6 +639,221 @@ export default function Cerebro() {
             </Card>
           )}
           {loadingCal && <Loading />}
+        </div>
+      )}
+
+      {/* ── TAB: Agentes IA ───────────────────────────────────────────────────── */}
+      {activeTab === 'agents' && (
+        <div className="space-y-6 animate-fade-in-up">
+
+          {/* Exit Monitor */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingDown size={14} className="text-red-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Exit Monitor</h3>
+              {exitData && <span className="text-[0.6rem] text-red-400 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded font-bold">{exitData.high_count} HIGH · {exitData.total} total</span>}
+            </div>
+            {exitData?.narrative && <AiNarrativeCard narrative={exitData.narrative} label="" />}
+            <div className="space-y-2 mt-2">
+              {(exitData?.exits ?? []).slice(0, 6).map(e => (
+                <div key={e.ticker} className={`flex items-start gap-3 p-3 rounded-xl border ${e.severity === 'HIGH' ? 'border-red-500/25 bg-red-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <Link to={`/search?q=${e.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{e.ticker}</Link>
+                      <span className={`text-[0.55rem] font-bold px-1 py-0.5 rounded border ${e.severity === 'HIGH' ? 'bg-red-500/15 text-red-400 border-red-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'}`}>{e.severity}</span>
+                      {e.current_score != null && <span className="text-[0.65rem] text-muted-foreground ml-auto">Score {e.entry_score.toFixed(0)} → {e.current_score.toFixed(0)}</span>}
+                    </div>
+                    <p className="text-[0.7rem] text-muted-foreground leading-relaxed">{e.reasons.join(' · ')}</p>
+                  </div>
+                </div>
+              ))}
+              {!exitData?.exits?.length && <p className="text-sm text-muted-foreground text-center py-4">Sin señales de salida activas</p>}
+            </div>
+          </section>
+
+          {/* Value Trap Detector */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertOctagon size={14} className="text-amber-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Value Trap Detector</h3>
+              {trapsData && <span className="text-[0.6rem] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold">{trapsData.high_count} HIGH · {trapsData.total} total</span>}
+            </div>
+            {trapsData?.narrative && <AiNarrativeCard narrative={trapsData.narrative} label="" />}
+            <div className="space-y-2 mt-2">
+              {(trapsData?.traps ?? []).slice(0, 6).map(t => (
+                <div key={t.ticker} className={`p-3 rounded-xl border ${t.severity === 'HIGH' ? 'border-red-500/25 bg-red-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Link to={`/search?q=${t.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{t.ticker}</Link>
+                    <span className="text-[0.65rem] text-muted-foreground">{t.company_name}</span>
+                    <span className="ml-auto text-[0.65rem] text-amber-400">trampa {t.trap_score}/10</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {t.flags.map((f, i) => <span key={i} className="text-[0.6rem] text-muted-foreground/70 bg-muted/10 border border-border/20 px-1.5 py-0.5 rounded">{f}</span>)}
+                  </div>
+                </div>
+              ))}
+              {!trapsData?.traps?.length && <p className="text-sm text-muted-foreground text-center py-4">Sin value traps detectadas</p>}
+            </div>
+          </section>
+
+          {/* Smart Money */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 size={14} className="text-purple-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Smart Money Convergence</h3>
+              {smData && <span className="text-[0.6rem] text-purple-400 bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.5 rounded font-bold">{smData.total} señales</span>}
+            </div>
+            {smData?.narrative && <AiNarrativeCard narrative={smData.narrative} label="" />}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              {(smData?.signals ?? []).slice(0, 8).map(s => (
+                <div key={s.ticker} className="flex items-center gap-3 p-3 rounded-xl border border-purple-500/20 bg-purple-500/5">
+                  <TickerLogo ticker={s.ticker} size="sm" className="shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <Link to={`/search?q=${s.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{s.ticker}</Link>
+                      {s.in_value && <span className="text-[0.5rem] bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-1 py-0 rounded font-bold">VALUE</span>}
+                    </div>
+                    <div className="text-[0.65rem] text-muted-foreground">{s.n_hedge_funds} HF · {s.n_insiders} insiders · conv {s.convergence_score}</div>
+                  </div>
+                </div>
+              ))}
+              {!smData?.signals?.length && <p className="text-sm text-muted-foreground text-center py-4 col-span-2">Sin convergencias HF+insiders</p>}
+            </div>
+          </section>
+
+          {/* Insider Clusters */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <Users size={14} className="text-teal-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Insider Sector Clusters</h3>
+              {clustersData && <span className="text-[0.6rem] text-teal-400 bg-teal-500/10 border border-teal-500/20 px-1.5 py-0.5 rounded font-bold">{clustersData.total} clusters</span>}
+            </div>
+            {clustersData?.narrative && <AiNarrativeCard narrative={clustersData.narrative} label="" />}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              {(clustersData?.clusters ?? []).map(c => (
+                <div key={c.sector} className={`p-3 rounded-xl border ${c.signal === 'STRONG' ? 'border-teal-500/30 bg-teal-500/5' : 'border-border/30 bg-muted/5'}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[0.75rem] font-bold text-foreground/80">{c.sector}</span>
+                    <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded border ${c.signal === 'STRONG' ? 'bg-teal-500/20 text-teal-400 border-teal-500/30' : 'bg-muted/20 text-muted-foreground border-border/30'}`}>{c.signal}</span>
+                  </div>
+                  <div className="text-[0.65rem] text-muted-foreground mb-1">{c.ticker_count} empresas · {c.total_purchases} compras · score {c.cluster_score}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {c.tickers.slice(0, 6).map(t => (
+                      <Link key={t} to={`/search?q=${t}`} className="text-[0.6rem] font-mono text-primary hover:underline bg-muted/15 border border-border/20 px-1 py-0.5 rounded">{t}</Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {!clustersData?.clusters?.length && <p className="text-sm text-muted-foreground text-center py-4 col-span-2">Sin clusters sectoriales de insiders</p>}
+            </div>
+          </section>
+
+          {/* Dividend Safety */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <Wallet size={14} className="text-emerald-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Dividend Safety Monitor</h3>
+              {divData && <span className="text-[0.6rem] text-red-400 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded font-bold">{divData.at_risk} AT RISK · {divData.total} total</span>}
+            </div>
+            {divData?.narrative && <AiNarrativeCard narrative={divData.narrative} label="" />}
+            <div className="space-y-2 mt-2">
+              {(divData?.dividends ?? []).slice(0, 8).map(d => {
+                const ratingStyle = d.rating === 'AT_RISK' ? 'border-red-500/25 bg-red-500/5' : d.rating === 'WATCH' ? 'border-amber-500/20 bg-amber-500/5' : 'border-emerald-500/20 bg-emerald-500/5'
+                const ratingBadge = d.rating === 'AT_RISK' ? 'bg-red-500/15 text-red-400 border-red-500/30' : d.rating === 'WATCH' ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                return (
+                  <div key={d.ticker} className={`flex items-start gap-3 p-3 rounded-xl border ${ratingStyle}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <Link to={`/search?q=${d.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{d.ticker}</Link>
+                        <span className={`text-[0.55rem] font-bold px-1 py-0.5 rounded border ${ratingBadge}`}>{d.rating}</span>
+                        <span className="text-[0.65rem] text-emerald-400 ml-1">yield {d.div_yield.toFixed(1)}%</span>
+                        {d.payout_ratio != null && <span className="text-[0.65rem] text-muted-foreground">payout {d.payout_ratio.toFixed(0)}%</span>}
+                        <span className="text-[0.65rem] text-muted-foreground ml-auto">safety {d.safety_score}</span>
+                      </div>
+                      {d.risk_flags.length > 0 && <p className="text-[0.7rem] text-muted-foreground">{d.risk_flags[0]}</p>}
+                    </div>
+                  </div>
+                )
+              })}
+              {!divData?.dividends?.length && <p className="text-sm text-muted-foreground text-center py-4">Sin tickers con dividendo en VALUE</p>}
+            </div>
+          </section>
+
+          {/* Piotroski Momentum */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart2 size={14} className="text-blue-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Piotroski Momentum</h3>
+              {piotrData && <span className="text-[0.6rem] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-1.5 py-0.5 rounded font-bold">{piotrData.improving} mejorando · {piotrData.total} analizados</span>}
+            </div>
+            {piotrData?.narrative && <AiNarrativeCard narrative={piotrData.narrative} label="" />}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              {(piotrData?.candidates ?? []).slice(0, 10).map(c => {
+                const trendColor = c.trend === 'IMPROVING' ? 'text-emerald-400' : c.trend === 'SLIGHT_UP' ? 'text-blue-400' : c.trend === 'DETERIORATING' ? 'text-red-400' : c.trend === 'SLIGHT_DOWN' ? 'text-amber-400' : 'text-muted-foreground'
+                const trendIcon = c.trend === 'IMPROVING' || c.trend === 'SLIGHT_UP' ? <TrendingUp size={11} /> : c.trend === 'DETERIORATING' || c.trend === 'SLIGHT_DOWN' ? <TrendingDown size={11} /> : <Minus size={11} />
+                return (
+                  <div key={c.ticker} className="flex items-center gap-3 p-3 rounded-xl border border-border/30 bg-muted/5">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Link to={`/search?q=${c.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{c.ticker}</Link>
+                        <span className={`flex items-center gap-0.5 text-[0.65rem] font-semibold ${trendColor}`}>{trendIcon} {c.trend.replace('_', ' ')}</span>
+                      </div>
+                      <div className="text-[0.65rem] text-muted-foreground">
+                        F-score: {c.piotroski_prev != null ? `${c.piotroski_prev} → ` : ''}<strong className={c.piotroski_current >= 7 ? 'text-emerald-400' : c.piotroski_current <= 3 ? 'text-red-400' : 'text-foreground'}>{c.piotroski_current}/9</strong>
+                        {c.delta !== 0 && <span className={c.delta > 0 ? ' text-emerald-400' : ' text-red-400'}> ({c.delta > 0 ? '+' : ''}{c.delta})</span>}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+              {!piotrData?.candidates?.length && <p className="text-sm text-muted-foreground text-center py-4 col-span-2">Sin datos Piotroski destacables</p>}
+            </div>
+          </section>
+
+          {/* Portfolio Stress Test */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <Activity size={14} className="text-pink-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Portfolio Stress Test</h3>
+              {stressData && <span className="text-[0.6rem] text-foreground/60 bg-muted/15 border border-border/30 px-1.5 py-0.5 rounded font-bold">{stressData.total_positions} posiciones · {stressData.risks.length} riesgos</span>}
+            </div>
+            {stressData?.narrative && <AiNarrativeCard narrative={stressData.narrative} label="" />}
+            <div className="space-y-2 mt-2">
+              {(stressData?.risks ?? []).map((r, i) => (
+                <div key={i} className={`p-3 rounded-xl border ${r.severity === 'HIGH' ? 'border-red-500/25 bg-red-500/5' : r.severity === 'MEDIUM' ? 'border-amber-500/20 bg-amber-500/5' : 'border-border/30 bg-muted/5'}`}>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className={`text-[0.55rem] font-bold px-1 py-0.5 rounded border ${r.severity === 'HIGH' ? 'bg-red-500/15 text-red-400 border-red-500/30' : r.severity === 'MEDIUM' ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : 'bg-muted/15 text-muted-foreground border-border/30'}`}>{r.severity}</span>
+                    <span className="text-[0.65rem] font-semibold text-foreground/70">{r.type.replace(/_/g, ' ')}</span>
+                  </div>
+                  <p className="text-[0.72rem] text-muted-foreground">{r.message}</p>
+                </div>
+              ))}
+              {stressData && (stressData.risks ?? []).length === 0 && (
+                <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-center text-sm text-emerald-400">
+                  Sin riesgos de concentración detectados — cartera bien diversificada
+                </div>
+              )}
+            </div>
+            {stressData?.sector_breakdown && stressData.sector_breakdown.length > 0 && (
+              <Card className="glass mt-3">
+                <CardContent className="p-4">
+                  <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Distribución sectorial (últimas 60 días)</div>
+                  <div className="space-y-2">
+                    {stressData.sector_breakdown.map(s => (
+                      <div key={s.sector} className="flex items-center gap-2">
+                        <span className="text-[0.7rem] text-muted-foreground w-36 truncate">{s.sector}</span>
+                        <div className="flex-1 h-1.5 rounded-full bg-muted/20 overflow-hidden">
+                          <div className="h-full rounded-full bg-primary/50" style={{ width: `${s.pct}%` }} />
+                        </div>
+                        <span className="text-[0.65rem] text-muted-foreground w-10 text-right tabular-nums">{s.pct}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </section>
+
         </div>
       )}
     </>

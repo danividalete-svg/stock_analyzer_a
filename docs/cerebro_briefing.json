@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-03-21",
+  "regime": "NEUTRAL",
+  "narrative": "R\u00e9gimen NEUTRAL. 3 oportunidades de entrada, 3 se\u00f1ales de salida HIGH. Precauci\u00f3n: 2 value traps detectadas.",
+  "sections": {
+    "regime": "NEUTRAL",
+    "strong_buy_count": 0,
+    "buy_count": 3,
+    "top_entries": [
+      [
+        "INDV",
+        73
+      ],
+      [
+        "AMRZ",
+        68
+      ],
+      [
+        "EXPN.L",
+        68
+      ]
+    ],
+    "top_convergences": [
+      [
+        "THRY",
+        79
+      ],
+      [
+        "ALLY",
+        76
+      ],
+      [
+        "HUM",
+        70
+      ]
+    ],
+    "high_alerts": [
+      [
+        "AASP",
+        "INSIDER_BUYING"
+      ],
+      [
+        "ABCL",
+        "INSIDER_BUYING"
+      ],
+      [
+        "ABT",
+        "INSIDER_BUYING"
+      ]
+    ],
+    "traps_warning": [
+      [
+        "NEWT",
+        7
+      ],
+      [
+        "ATEX",
+        7
+      ]
+    ],
+    "exit_warnings": [
+      [
+        "TPC",
+        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+      ],
+      [
+        "NRIM",
+        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+      ],
+      [
+        "CNS",
+        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+      ]
+    ],
+    "smart_money": [
+      [
+        "HHH",
+        1
+      ],
+      [
+        "ALLY",
+        1
+      ],
+      [
+        "NAN",
+        2
+      ]
+    ]
+  }
+}

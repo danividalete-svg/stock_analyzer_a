@@ -754,6 +754,700 @@ def scan_entry_signals(convergence: dict) -> dict:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 7. EXIT MONITOR — cuándo salir de una posición
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_exit_signals() -> dict:
+    """
+    Reviews recent VALUE signals (last 60 days) from portfolio_tracker.
+    Flags positions where the thesis may have broken:
+      - Score dropped ≥15pts vs entry
+      - Earnings warning active
+      - Ticker no longer in VALUE list (score=0 or absent)
+      - Insider reversal (was buying, now absent)
+    """
+    print("[7/13] Exit signal scan...")
+    pt       = load_csv(DOCS / "portfolio_tracker" / "recommendations.csv")
+    value_df = load_csv(DOCS / "value_opportunities.csv")
+    eu_df    = load_csv(DOCS / "european_value_opportunities.csv")
+    insiders = load_csv(DOCS / "recurring_insiders.csv")
+
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    current   = {}
+    if not all_value.empty and "ticker" in all_value.columns:
+        for _, row in all_value.iterrows():
+            t = str(row.get("ticker","")).upper()
+            current[t] = {
+                "value_score":     sf(row.get("value_score")),
+                "earnings_warning": bool(row.get("earnings_warning", False)),
+                "days_to_earnings": sf(row.get("days_to_earnings")),
+            }
+
+    insider_active = set()
+    if not insiders.empty and "ticker" in insiders.columns:
+        insider_active = set(insiders["ticker"].str.upper().dropna())
+
+    exits = []
+    if pt.empty or "ticker" not in pt.columns:
+        return dict(generated_at=TODAY, total=0, high_count=0, exits=[])
+
+    # Only look at recent signals (last 60 days) without a return yet (still open)
+    pt["signal_date"] = pd.to_datetime(pt.get("signal_date", pd.NaT), errors="coerce")
+    cutoff = pd.Timestamp.today() - pd.Timedelta(days=60)
+    recent = pt[pt["signal_date"] >= cutoff] if "signal_date" in pt.columns else pt
+
+    # Deduplicate by ticker — use highest-scored entry
+    seen = {}
+    for _, row in recent.iterrows():
+        t   = str(row.get("ticker","")).upper()
+        vs  = sf(row.get("value_score")) or 0
+        if t not in seen or vs > seen[t]["entry_score"]:
+            seen[t] = {"entry_score": vs, "signal_date": str(row.get("signal_date",""))}
+
+    for ticker, meta in seen.items():
+        reasons  = []
+        severity = "LOW"
+        curr     = current.get(ticker, {})
+        curr_score = curr.get("value_score")
+        entry_score = meta["entry_score"]
+
+        # 1. Ticker no longer in VALUE list
+        if ticker not in current:
+            reasons.append("Ya no aparece en VALUE — tesis posiblemente rota")
+            severity = "HIGH"
+
+        # 2. Score dropped significantly
+        elif curr_score is not None and entry_score and (entry_score - curr_score) >= 15:
+            drop = entry_score - curr_score
+            reasons.append(f"Score cayó {drop:.0f}pts ({entry_score:.0f} → {curr_score:.0f})")
+            severity = "HIGH" if drop >= 25 else "MEDIUM"
+
+        # 3. Earnings warning
+        if curr.get("earnings_warning") and curr.get("days_to_earnings") is not None:
+            dte = curr["days_to_earnings"]
+            if dte <= 7:
+                reasons.append(f"Earnings en {int(dte)}d — alta incertidumbre, considera reducir")
+                if severity == "LOW": severity = "MEDIUM"
+
+        # 4. Insider buying stopped (was bought before, no longer active)
+        if ticker not in insider_active and entry_score and entry_score > 65:
+            reasons.append("Sin insider buying activo — señal de convicción perdida")
+            if severity == "LOW": severity = "LOW"
+
+        if reasons:
+            exits.append(dict(
+                ticker=ticker,
+                severity=severity,
+                entry_score=entry_score,
+                current_score=curr_score,
+                signal_date=meta["signal_date"][:10] if meta["signal_date"] else None,
+                reasons=reasons,
+            ))
+
+    exits.sort(key=lambda x: ({"HIGH":0,"MEDIUM":1,"LOW":2}.get(x["severity"],3), -(x["entry_score"] or 0)))
+    high_count = sum(1 for e in exits if e["severity"] == "HIGH")
+
+    narrative = ai(
+        f"Monitor de salida VALUE: {len(exits)} posiciones con señales de revisión ({high_count} HIGH).\n"
+        + "\n".join(f"- {e['ticker']}: {'; '.join(e['reasons'][:2])}" for e in exits[:5])
+        + "\n\n2 frases en español: qué implica esto para gestión de riesgo.", 150
+    ) if exits else None
+
+    print(f"  ✓ {len(exits)} señales de salida ({high_count} HIGH)")
+    return dict(generated_at=TODAY, total=len(exits), high_count=high_count, narrative=narrative, exits=exits)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 8. VALUE TRAP DETECTOR — identifica trampas de valor
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_value_traps() -> dict:
+    """
+    Scans VALUE tickers for trap indicators:
+      Piotroski ≤ 3, FCF negative, debt rising vs margins falling,
+      near-default fundamental score, no analyst coverage
+    Trap score: 0-10 (HIGH ≥6, MEDIUM 3-5)
+    """
+    print("[8/13] Value trap scan...")
+    value_df  = load_csv(DOCS / "value_opportunities.csv")
+    eu_df     = load_csv(DOCS / "european_value_opportunities.csv")
+    fund_df   = load_csv(DOCS / "fundamental_scores.csv")
+
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    if all_value.empty:
+        return dict(generated_at=TODAY, total=0, high_count=0, traps=[])
+
+    fund_map = {}
+    if not fund_df.empty and "ticker" in fund_df.columns:
+        for _, row in fund_df.iterrows():
+            t = str(row.get("ticker","")).upper()
+            fund_map[t] = row
+
+    traps = []
+    for _, row in all_value.iterrows():
+        t      = str(row.get("ticker","")).upper()
+        vscore = sf(row.get("value_score")) or 0
+        fcf    = sf(row.get("fcf_yield_pct"))
+        piotr  = sf(row.get("piotroski_score"))
+        an_cnt = sf(row.get("analyst_count"))
+        an_rec = str(row.get("analyst_recommendation","")).lower()
+        fund_s = sf(row.get("fundamental_score"))
+        debt   = sf(row.get("debt_to_equity"))
+        op_mar = sf(row.get("operating_margin_pct"))
+        company= str(row.get("company_name", t))
+
+        trap_score = 0
+        flags = []
+
+        # Piotroski weak (deteriorating quality)
+        if piotr is not None:
+            if piotr <= 2:
+                trap_score += 4; flags.append(f"Piotroski muy débil ({piotr:.0f}/9) — calidad financiera en deterioro")
+            elif piotr <= 4:
+                trap_score += 2; flags.append(f"Piotroski débil ({piotr:.0f}/9)")
+
+        # Negative FCF (burning cash despite "cheap" valuation)
+        if fcf is not None and fcf < 0:
+            trap_score += 3; flags.append(f"FCF negativo ({fcf:.1f}%) — quema caja pese a valuación barata")
+
+        # Near-default fundamental score (missing/unreliable data)
+        if fund_s is not None and 48 <= fund_s <= 53:
+            trap_score += 2; flags.append("Fundamental score cerca de default (50) — datos poco fiables")
+
+        # No analyst coverage with high score (unverified thesis)
+        if (an_cnt is None or an_cnt < 2) and vscore > 65:
+            trap_score += 2; flags.append("Sin cobertura de analistas — tesis sin verificar externamente")
+
+        # Analysts recommend hold/sell despite high score
+        if an_rec in ("hold", "sell") and vscore > 65:
+            trap_score += 2; flags.append(f"Analistas recomiendan '{an_rec}' pese a score alto")
+
+        # High debt + low/negative margins (structural weakness)
+        if debt is not None and op_mar is not None:
+            if debt > 2.0 and op_mar < 5:
+                trap_score += 2; flags.append(f"Deuda alta ({debt:.1f}x) + margen operativo bajo ({op_mar:.1f}%)")
+
+        if trap_score < 3 or not flags:
+            continue
+
+        level = "HIGH" if trap_score >= 6 else "MEDIUM"
+        traps.append(dict(
+            ticker=ticker if (ticker := t) else t,
+            company_name=company,
+            severity=level,
+            trap_score=trap_score,
+            value_score=vscore,
+            flags=flags,
+            piotroski=piotr,
+            fcf_yield_pct=fcf,
+            fundamental_score=fund_s,
+        ))
+
+    traps.sort(key=lambda x: (-x["trap_score"], -x["value_score"]))
+    high_count = sum(1 for t in traps if t["severity"] == "HIGH")
+
+    narrative = ai(
+        f"Trampas de valor detectadas: {len(traps)} tickers con señales de trampa ({high_count} HIGH).\n"
+        + "\n".join(f"- {t['ticker']}: {'; '.join(t['flags'][:2])}" for t in traps[:5])
+        + "\n\n2 frases en español: por qué estos tickers podrían ser value traps.", 150
+    ) if traps else None
+
+    print(f"  ✓ {len(traps)} value traps ({high_count} HIGH)")
+    return dict(generated_at=TODAY, total=len(traps), high_count=high_count, narrative=narrative, traps=traps)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 9. SMART MONEY CONVERGENCE — hedge funds + insiders compran lo mismo
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_smart_money() -> dict:
+    """
+    Finds tickers where hedge funds (13F) AND insiders are buying simultaneously.
+    Smart money convergence = maximum conviction signal.
+    """
+    print("[9/13] Smart money scan...")
+    hf_df    = load_csv(DOCS / "hedge_fund_holdings.csv")
+    ins_df   = load_csv(DOCS / "recurring_insiders.csv")
+    eu_ins   = load_csv(DOCS / "eu_recurring_insiders.csv")
+    value_df = load_csv(DOCS / "value_opportunities.csv")
+    eu_df    = load_csv(DOCS / "european_value_opportunities.csv")
+
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    value_map = {}
+    if not all_value.empty and "ticker" in all_value.columns:
+        for _, row in all_value.iterrows():
+            t = str(row.get("ticker","")).upper()
+            value_map[t] = {"value_score": sf(row.get("value_score")), "company_name": str(row.get("company_name", t)), "sector": str(row.get("sector",""))}
+
+    # Build hedge fund map: ticker → {funds, count}
+    hf_map = {}
+    if not hf_df.empty:
+        ticker_col = next((c for c in ["ticker","stock","symbol"] if c in hf_df.columns), None)
+        fund_col   = next((c for c in ["fund","fund_name","manager"] if c in hf_df.columns), None)
+        if ticker_col:
+            for _, row in hf_df.iterrows():
+                t = str(row.get(ticker_col,"")).upper()
+                if not t: continue
+                if t not in hf_map:
+                    hf_map[t] = {"funds": set(), "count": 0}
+                hf_map[t]["count"] += 1
+                if fund_col:
+                    hf_map[t]["funds"].add(str(row.get(fund_col,"")))
+
+    # Build insider map
+    all_ins = pd.concat([ins_df, eu_ins], ignore_index=True) if not ins_df.empty else eu_ins
+    ins_map = {}
+    if not all_ins.empty and "ticker" in all_ins.columns:
+        for _, row in all_ins.iterrows():
+            t = str(row.get("ticker","")).upper()
+            ins_map[t] = {"purchase_count": sf(row.get("purchase_count")) or 1, "unique_insiders": sf(row.get("unique_insiders")) or 1}
+
+    # Convergence: must be in BOTH
+    results = []
+    for ticker in set(hf_map.keys()) & set(ins_map.keys()):
+        hf   = hf_map[ticker]
+        ins  = ins_map[ticker]
+        meta = value_map.get(ticker, {})
+        n_funds   = len(hf["funds"]) if hf["funds"] else hf["count"]
+        n_ins     = int(ins["unique_insiders"] or 1)
+        conv_score = min(100, n_funds * 15 + n_ins * 10 + (meta.get("value_score") or 0) * 0.3)
+        results.append(dict(
+            ticker=ticker,
+            company_name=meta.get("company_name", ticker),
+            sector=meta.get("sector",""),
+            value_score=meta.get("value_score"),
+            n_hedge_funds=n_funds,
+            hedge_funds=list(hf["funds"])[:5],
+            n_insiders=n_ins,
+            insider_purchases=int(ins["purchase_count"] or 1),
+            convergence_score=round(conv_score),
+            in_value=ticker in value_map,
+        ))
+
+    results.sort(key=lambda x: -x["convergence_score"])
+
+    narrative = ai(
+        f"Smart money convergence: {len(results)} tickers donde hedge funds e insiders compran simultáneamente.\n"
+        + "\n".join(f"- {r['ticker']}: {r['n_hedge_funds']} HF + {r['n_insiders']} insiders, score {r['convergence_score']}" for r in results[:5])
+        + "\n\n2 frases en español: qué significa esta confluencia de capital inteligente.", 150
+    ) if results else None
+
+    print(f"  ✓ {len(results)} smart money convergences")
+    return dict(generated_at=TODAY, total=len(results), narrative=narrative, signals=results)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 10. INSIDER SECTOR CLUSTERS — señal a nivel sector
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_insider_clusters() -> dict:
+    """
+    Detects when insiders from 3+ DIFFERENT companies in the same sector
+    are buying simultaneously — sector-level intelligence signal.
+    """
+    print("[10/13] Insider sector clustering...")
+    ins_df   = load_csv(DOCS / "recurring_insiders.csv")
+    eu_ins   = load_csv(DOCS / "eu_recurring_insiders.csv")
+    value_df = load_csv(DOCS / "value_opportunities.csv")
+    eu_df    = load_csv(DOCS / "european_value_opportunities.csv")
+
+    all_ins   = pd.concat([ins_df, eu_ins], ignore_index=True) if not ins_df.empty else eu_ins
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+
+    sector_map = {}
+    if not all_value.empty and "ticker" in all_value.columns:
+        for _, row in all_value.iterrows():
+            t = str(row.get("ticker","")).upper()
+            s = str(row.get("sector","Unknown"))
+            sector_map[t] = s
+
+    if all_ins.empty or "ticker" not in all_ins.columns:
+        return dict(generated_at=TODAY, total=0, clusters=[])
+
+    # Group insiders by sector
+    from collections import defaultdict
+    sector_tickers = defaultdict(list)
+    for _, row in all_ins.iterrows():
+        t = str(row.get("ticker","")).upper()
+        sec = sector_map.get(t, "Unknown")
+        if sec and sec != "Unknown":
+            sector_tickers[sec].append({
+                "ticker": t,
+                "purchase_count": int(sf(row.get("purchase_count")) or 1),
+                "unique_insiders": int(sf(row.get("unique_insiders")) or 1),
+            })
+
+    clusters = []
+    for sector, tickers in sector_tickers.items():
+        if len(tickers) < 3:
+            continue
+        total_purchases = sum(t["purchase_count"] for t in tickers)
+        total_insiders  = sum(t["unique_insiders"] for t in tickers)
+        cluster_score   = min(100, len(tickers) * 20 + total_purchases * 2)
+        clusters.append(dict(
+            sector=sector,
+            ticker_count=len(tickers),
+            tickers=[t["ticker"] for t in tickers],
+            total_purchases=total_purchases,
+            total_insiders=total_insiders,
+            cluster_score=cluster_score,
+            signal="STRONG" if len(tickers) >= 5 else "MODERATE",
+        ))
+
+    clusters.sort(key=lambda x: -x["cluster_score"])
+
+    narrative = ai(
+        f"Clusters sectoriales de insiders: {len(clusters)} sectores con compras coordinadas.\n"
+        + "\n".join(f"- {c['sector']}: {c['ticker_count']} empresas, {c['total_purchases']} compras" for c in clusters[:4])
+        + "\n\n2 frases en español: qué implica cuando muchos directivos del mismo sector compran.", 150
+    ) if clusters else None
+
+    print(f"  ✓ {len(clusters)} sector clusters")
+    return dict(generated_at=TODAY, total=len(clusters), narrative=narrative, clusters=clusters)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 11. DIVIDEND SAFETY MONITOR — vigila la seguridad del dividendo
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_dividend_safety() -> dict:
+    """
+    For dividend-paying tickers in VALUE lists, assesses dividend sustainability.
+    AT RISK: payout_ratio >80% OR FCF negative with dividend
+    SAFE: payout_ratio <50% AND FCF covers dividend well
+    """
+    print("[11/13] Dividend safety scan...")
+    value_df = load_csv(DOCS / "value_opportunities.csv")
+    eu_df    = load_csv(DOCS / "european_value_opportunities.csv")
+
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    if all_value.empty:
+        return dict(generated_at=TODAY, total=0, at_risk=0, dividends=[])
+
+    dividends = []
+    for _, row in all_value.iterrows():
+        div_yield = sf(row.get("dividend_yield_pct"))
+        if div_yield is None or div_yield <= 0:
+            continue
+
+        t       = str(row.get("ticker","")).upper()
+        company = str(row.get("company_name", t))
+        payout  = sf(row.get("payout_ratio_pct"))
+        fcf     = sf(row.get("fcf_yield_pct"))
+        int_cov = sf(row.get("interest_coverage"))
+        vscore  = sf(row.get("value_score")) or 0
+
+        risk_flags = []
+        safety_score = 100  # start safe, subtract for risks
+
+        if payout is not None:
+            if payout > 90:
+                risk_flags.append(f"Payout {payout:.0f}% — insostenible"); safety_score -= 40
+            elif payout > 75:
+                risk_flags.append(f"Payout {payout:.0f}% — zona de riesgo"); safety_score -= 20
+            elif payout < 50:
+                safety_score += 10  # bonus for conservative payout
+
+        if fcf is not None:
+            if fcf < 0:
+                risk_flags.append("FCF negativo — dividendo no cubierto por caja"); safety_score -= 35
+            elif fcf < div_yield:
+                risk_flags.append(f"FCF ({fcf:.1f}%) < dividendo ({div_yield:.1f}%) — cobertura ajustada"); safety_score -= 15
+
+        if int_cov is not None and int_cov < 2:
+            risk_flags.append(f"Interest coverage {int_cov:.1f}x — deuda consume caja"); safety_score -= 15
+
+        safety_score = max(0, min(100, safety_score))
+        rating = "AT_RISK" if safety_score < 40 else "WATCH" if safety_score < 65 else "SAFE"
+
+        dividends.append(dict(
+            ticker=t,
+            company_name=company,
+            div_yield=div_yield,
+            payout_ratio=payout,
+            fcf_yield_pct=fcf,
+            interest_coverage=int_cov,
+            safety_score=safety_score,
+            rating=rating,
+            risk_flags=risk_flags,
+            value_score=vscore,
+        ))
+
+    dividends.sort(key=lambda x: x["safety_score"])
+    at_risk = sum(1 for d in dividends if d["rating"] == "AT_RISK")
+
+    narrative = ai(
+        f"Monitor de dividendos: {len(dividends)} tickers con dividendo en VALUE. {at_risk} en riesgo.\n"
+        + "\n".join(f"- {d['ticker']} ({d['div_yield']:.1f}% yield): {'; '.join(d['risk_flags'][:2]) if d['risk_flags'] else 'SAFE'}" for d in dividends[:5])
+        + "\n\n2 frases en español: cómo interpretar la seguridad de dividendos en VALUE investing.", 150
+    ) if dividends else None
+
+    print(f"  ✓ {len(dividends)} dividendos analizados ({at_risk} AT RISK)")
+    return dict(generated_at=TODAY, total=len(dividends), at_risk=at_risk, narrative=narrative, dividends=dividends)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 12. PIOTROSKI MOMENTUM — mejora de calidad financiera
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_piotroski_momentum() -> dict:
+    """
+    Identifies VALUE tickers with improving Piotroski F-scores.
+    A company going from 4→7 is more interesting than one stuck at 7.
+    Uses history folder to compare vs previous scores.
+    """
+    print("[12/13] Piotroski momentum scan...")
+    value_df = load_csv(DOCS / "value_opportunities.csv")
+    eu_df    = load_csv(DOCS / "european_value_opportunities.csv")
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+
+    if all_value.empty or "piotroski_score" not in all_value.columns:
+        return dict(generated_at=TODAY, total=0, improving=0, candidates=[])
+
+    # Load previous scores from history
+    history_dir = DOCS / "history"
+    prev_scores = {}
+    if history_dir.exists():
+        past_dates = sorted([d for d in history_dir.iterdir() if d.is_dir()], reverse=True)
+        # Look back up to 14 days for previous scores
+        for past_dir in past_dates[1:8]:  # skip today, check last 7 snapshots
+            for fname in ["value_opportunities.csv", "european_value_opportunities.csv"]:
+                fpath = past_dir / fname
+                if fpath.exists():
+                    try:
+                        old = pd.read_csv(fpath)
+                        if "piotroski_score" in old.columns and "ticker" in old.columns:
+                            for _, row in old.iterrows():
+                                t = str(row.get("ticker","")).upper()
+                                ps = sf(row.get("piotroski_score"))
+                                if t not in prev_scores and ps is not None:
+                                    prev_scores[t] = ps
+                    except Exception:
+                        pass
+
+    candidates = []
+    for _, row in all_value.iterrows():
+        t      = str(row.get("ticker","")).upper()
+        curr_p = sf(row.get("piotroski_score"))
+        if curr_p is None: continue
+
+        vscore  = sf(row.get("value_score")) or 0
+        company = str(row.get("company_name", t))
+        prev_p  = prev_scores.get(t)
+
+        trend = "STABLE"
+        delta = 0
+        if prev_p is not None:
+            delta = curr_p - prev_p
+            if delta >= 2: trend = "IMPROVING"
+            elif delta >= 1: trend = "SLIGHT_UP"
+            elif delta <= -2: trend = "DETERIORATING"
+            elif delta <= -1: trend = "SLIGHT_DOWN"
+
+        signal = "STRONG" if curr_p >= 7 else "WEAK" if curr_p <= 3 else "NEUTRAL"
+
+        if signal == "NEUTRAL" and trend == "STABLE":
+            continue  # skip unremarkable
+
+        candidates.append(dict(
+            ticker=t,
+            company_name=company,
+            piotroski_current=curr_p,
+            piotroski_prev=prev_p,
+            delta=delta,
+            trend=trend,
+            signal=signal,
+            value_score=vscore,
+        ))
+
+    candidates.sort(key=lambda x: (
+        {"IMPROVING": 0, "SLIGHT_UP": 1, "STRONG": 2, "NEUTRAL": 3, "SLIGHT_DOWN": 4, "DETERIORATING": 5}.get(x["trend"], 3),
+        -x["piotroski_current"]
+    ))
+
+    improving = sum(1 for c in candidates if c["trend"] in ("IMPROVING", "SLIGHT_UP"))
+
+    narrative = ai(
+        f"Piotroski momentum en VALUE: {improving} tickers con mejora de calidad financiera.\n"
+        + "\n".join(f"- {c['ticker']}: F-score {c['piotroski_prev'] or '?'} → {c['piotroski_current']} ({c['trend']})" for c in candidates[:5])
+        + "\n\n2 frases en español: por qué la mejora de Piotroski señala un posible re-rating.", 150
+    ) if candidates else None
+
+    print(f"  ✓ {len(candidates)} tickers Piotroski analizados ({improving} mejorando)")
+    return dict(generated_at=TODAY, total=len(candidates), improving=improving, narrative=narrative, candidates=candidates)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 13. PORTFOLIO STRESS TEST — concentración y riesgo oculto
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_portfolio_stress() -> dict:
+    """
+    Analyzes recent VALUE signals for hidden concentration risks:
+      - Sector concentration (>40% in one sector)
+      - Rate sensitivity (utilities/REITs/financials)
+      - Earnings risk (% with earnings_warning)
+      - Geographic spread (US vs EU)
+    """
+    print("[13/13] Portfolio stress test...")
+    pt       = load_csv(DOCS / "portfolio_tracker" / "recommendations.csv")
+    value_df = load_csv(DOCS / "value_opportunities.csv")
+    eu_df    = load_csv(DOCS / "european_value_opportunities.csv")
+
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    value_meta = {}
+    if not all_value.empty and "ticker" in all_value.columns:
+        for _, row in all_value.iterrows():
+            t = str(row.get("ticker","")).upper()
+            value_meta[t] = {
+                "sector": str(row.get("sector","")),
+                "earnings_warning": bool(row.get("earnings_warning", False)),
+                "region": "EU" if row.get("exchange","").endswith(".L") or row.get("exchange","").endswith(".MC") else "US",
+                "value_score": sf(row.get("value_score")) or 0,
+            }
+
+    if pt.empty or "ticker" not in pt.columns:
+        return dict(generated_at=TODAY, risks=[], narrative=None)
+
+    pt["signal_date"] = pd.to_datetime(pt.get("signal_date", pd.NaT), errors="coerce")
+    cutoff = pd.Timestamp.today() - pd.Timedelta(days=60)
+    recent = pt[pt["signal_date"] >= cutoff] if "signal_date" in pt.columns else pt.head(50)
+    recent_tickers = list(set(recent["ticker"].str.upper().dropna()))
+
+    if not recent_tickers:
+        return dict(generated_at=TODAY, risks=[], narrative=None)
+
+    from collections import Counter
+    sectors      = Counter()
+    regions      = Counter()
+    earn_risk    = 0
+    rate_sectors = {"Utilities", "Real Estate", "Financial Services", "Financials"}
+    rate_exposed = 0
+
+    for t in recent_tickers:
+        meta = value_meta.get(t, {})
+        sec  = meta.get("sector","Unknown")
+        sectors[sec] += 1
+        regions[meta.get("region","US")] += 1
+        if meta.get("earnings_warning"): earn_risk += 1
+        if any(rs.lower() in sec.lower() for rs in rate_sectors): rate_exposed += 1
+
+    total = len(recent_tickers)
+    risks = []
+
+    # Sector concentration
+    top_sector, top_count = sectors.most_common(1)[0] if sectors else ("", 0)
+    if total > 0 and top_count / total > 0.35:
+        pct = top_count / total * 100
+        risks.append(dict(type="SECTOR_CONCENTRATION", severity="HIGH" if pct > 50 else "MEDIUM",
+            message=f"{pct:.0f}% de señales en {top_sector} ({top_count}/{total}) — concentración elevada",
+            detail=dict(sector=top_sector, count=top_count, pct=round(pct))))
+
+    # Earnings risk
+    if total > 0 and earn_risk / total > 0.25:
+        pct = earn_risk / total * 100
+        risks.append(dict(type="EARNINGS_RISK", severity="MEDIUM",
+            message=f"{earn_risk} de {total} posiciones con earnings próximos — {pct:.0f}% expuesto",
+            detail=dict(count=earn_risk, pct=round(pct))))
+
+    # Rate sensitivity
+    if total > 0 and rate_exposed / total > 0.30:
+        pct = rate_exposed / total * 100
+        risks.append(dict(type="RATE_SENSITIVITY", severity="MEDIUM",
+            message=f"{pct:.0f}% expuesto a sectores sensibles a tipos de interés",
+            detail=dict(count=rate_exposed, pct=round(pct))))
+
+    # Geographic concentration
+    us_pct = regions.get("US",0) / total * 100 if total else 0
+    if us_pct > 85:
+        risks.append(dict(type="GEO_CONCENTRATION", severity="LOW",
+            message=f"{us_pct:.0f}% en mercado US — poca diversificación geográfica",
+            detail=dict(us=regions.get("US",0), eu=regions.get("EU",0))))
+
+    narrative = ai(
+        f"Stress test portfolio ({total} señales recientes): {len(risks)} riesgos detectados.\n"
+        + "\n".join(f"- {r['type']}: {r['message']}" for r in risks)
+        + "\n\n2 frases en español: cómo mitigar estos riesgos de concentración.", 150
+    ) if risks else None
+
+    sector_breakdown = [{"sector": s, "count": c, "pct": round(c/total*100)} for s,c in sectors.most_common(8)] if total else []
+
+    print(f"  ✓ Stress test: {len(risks)} riesgos · {total} posiciones analizadas")
+    return dict(generated_at=TODAY, total_positions=total, risks=risks, narrative=narrative,
+                sector_breakdown=sector_breakdown, region_breakdown=dict(regions))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 14. PERSONAL BRIEFING — resumen diario inteligente
+# ══════════════════════════════════════════════════════════════════════════════
+
+def generate_personal_briefing(entry_sigs: dict, convergence: dict, alerts: dict,
+                                 value_traps: dict, exit_sigs: dict, smart_money: dict) -> dict:
+    """
+    Generates a daily AI briefing combining all Cerebro outputs into
+    an actionable morning summary.
+    """
+    print("[14/14] Generating personal briefing...")
+    regime_json = load_json(DOCS / "market_regime.json")
+    us_regime   = str(regime_json.get("us", {}).get("regime","NEUTRAL")).upper()
+
+    strong_buy = [s for s in entry_sigs.get("signals",[]) if s["signal"] == "STRONG_BUY"]
+    buys       = [s for s in entry_sigs.get("signals",[]) if s["signal"] == "BUY"][:3]
+    high_alerts= [a for a in alerts.get("alerts",[]) if a["severity"] == "HIGH"][:3]
+    top_conv   = convergence.get("convergences",[])[:3]
+    traps_high = [t for t in value_traps.get("traps",[]) if t["severity"] == "HIGH"][:3]
+    exits_high = [e for e in exit_sigs.get("exits",[]) if e["severity"] == "HIGH"][:3]
+    smart_top  = smart_money.get("signals",[])[:3]
+
+    sections = {
+        "regime": us_regime,
+        "strong_buy_count": len(strong_buy),
+        "buy_count":        len(buys),
+        "top_entries":      [(s["ticker"], s["entry_score"]) for s in (strong_buy + buys)[:5]],
+        "top_convergences": [(s["ticker"], s["convergence_score"]) for s in top_conv],
+        "high_alerts":      [(a["ticker"], a["type"]) for a in high_alerts],
+        "traps_warning":    [(t["ticker"], t["trap_score"]) for t in traps_high],
+        "exit_warnings":    [(e["ticker"], "; ".join(e["reasons"][:1])) for e in exits_high],
+        "smart_money":      [(s["ticker"], s["n_hedge_funds"]) for s in smart_top],
+    }
+
+    # Build narrative prompt
+    prompt = f"""Briefing diario VALUE investing — {TODAY}
+Régimen de mercado: {us_regime}
+
+ENTRADAS: {len(strong_buy)} STRONG BUY + {len(buys)} BUY
+{chr(10).join(f"  {t[0]}: score {t[1]}" for t in sections['top_entries'][:3])}
+
+CONVERGENCIAS (multi-estrategia): {', '.join(t[0] for t in sections['top_convergences']) or 'ninguna'}
+
+ALERTAS HIGH: {', '.join(f"{t[0]}({t[1]})" for t in sections['high_alerts']) or 'ninguna'}
+
+TRAMPAS DETECTADAS: {', '.join(t[0] for t in sections['traps_warning']) or 'ninguna'}
+
+SEÑALES DE SALIDA: {', '.join(f"{t[0]}: {t[1]}" for t in sections['exit_warnings']) or 'ninguna'}
+
+SMART MONEY: {', '.join(f"{t[0]}({t[1]} HF)" for t in sections['smart_money']) or 'ningún cruce HF+insiders'}
+
+Redacta un briefing matutino en español (máx 5 frases) como si fuera un analista de confianza:
+qué hacer hoy, qué vigilar, qué evitar. Sé directo y conciso."""
+
+    narrative = ai(prompt, 300) or (
+        f"Régimen {us_regime}. "
+        f"{len(strong_buy)+len(buys)} oportunidades de entrada, "
+        f"{len(exits_high)} señales de salida HIGH. "
+        f"{'Precaución: ' + str(len(traps_high)) + ' value traps detectadas.' if traps_high else 'Sin trampas de valor relevantes.'}"
+    )
+
+    print(f"  ✓ Briefing generado — {len(strong_buy)} STRONG BUY · {len(exits_high)} salidas HIGH")
+    return dict(
+        generated_at=TODAY,
+        regime=us_regime,
+        narrative=narrative,
+        sections=sections,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -764,6 +1458,7 @@ def main():
     if not groq_client:
         print("⚠  No GROQ_API_KEY — rule-based mode (no AI narratives)")
 
+    # Original 6 modules
     insights    = mine_patterns()
     convergence = scan_convergence()
     alerts      = generate_alerts(convergence)
@@ -771,12 +1466,30 @@ def main():
     tuning      = auto_tune(insights, calibration)
     entry_sigs  = scan_entry_signals(convergence)
 
+    # New agent modules
+    exit_sigs   = scan_exit_signals()
+    value_traps = scan_value_traps()
+    smart_money = scan_smart_money()
+    ins_clusters= scan_insider_clusters()
+    div_safety  = scan_dividend_safety()
+    piotroski   = scan_piotroski_momentum()
+    stress      = scan_portfolio_stress()
+    briefing    = generate_personal_briefing(entry_sigs, convergence, alerts, value_traps, exit_sigs, smart_money)
+
     save_json(DOCS / "cerebro_insights.json",           insights)
     save_json(DOCS / "cerebro_convergence.json",         convergence)
     save_json(DOCS / "cerebro_alerts.json",              alerts)
     save_json(DOCS / "cerebro_calibration.json",         calibration)
     save_json(DOCS / "cerebro_entry_signals.json",       entry_sigs)
     save_json(DOCS / "scoring_weights_suggested.json",   tuning)
+    save_json(DOCS / "cerebro_exit_signals.json",        exit_sigs)
+    save_json(DOCS / "cerebro_value_traps.json",         value_traps)
+    save_json(DOCS / "cerebro_smart_money.json",         smart_money)
+    save_json(DOCS / "cerebro_insider_clusters.json",    ins_clusters)
+    save_json(DOCS / "cerebro_dividend_safety.json",     div_safety)
+    save_json(DOCS / "cerebro_piotroski.json",           piotroski)
+    save_json(DOCS / "cerebro_stress_test.json",         stress)
+    save_json(DOCS / "cerebro_briefing.json",            briefing)
 
     print("\n" + "=" * 60)
     print("SUMMARY")
@@ -784,6 +1497,13 @@ def main():
     print(f"  Convergences     : {convergence.get('total_convergences',0)} ({convergence.get('triple_or_more',0)} triple+)")
     print(f"  Alerts           : {alerts.get('total',0)} ({alerts.get('high_count',0)} HIGH)")
     print(f"  Entry signals    : {entry_sigs.get('strong_buy',0)} STRONG BUY · {entry_sigs.get('buy',0)} BUY")
+    print(f"  Exit signals     : {exit_sigs.get('total',0)} ({exit_sigs.get('high_count',0)} HIGH)")
+    print(f"  Value traps      : {value_traps.get('total',0)} ({value_traps.get('high_count',0)} HIGH)")
+    print(f"  Smart money      : {smart_money.get('total',0)} HF+insider convergences")
+    print(f"  Sector clusters  : {ins_clusters.get('total',0)} clusters")
+    print(f"  Dividends at risk: {div_safety.get('at_risk',0)} / {div_safety.get('total',0)}")
+    print(f"  Piotroski impr.  : {piotroski.get('improving',0)} / {piotroski.get('total',0)}")
+    print(f"  Stress risks     : {len(stress.get('risks',[]))}")
     print(f"  Calibration recs : {calibration.get('total_recommendations',0)}")
     print(f"  Weight proposals : {len(tuning.get('adjustments',[]))}")
     print("=" * 60)

@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-03-21",
+  "total_positions": 131,
+  "risks": [
+    {
+      "type": "RATE_SENSITIVITY",
+      "severity": "MEDIUM",
+      "message": "34% expuesto a sectores sensibles a tipos de inter\u00e9s",
+      "detail": {
+        "count": 45,
+        "pct": 34
+      }
+    },
+    {
+      "type": "GEO_CONCENTRATION",
+      "severity": "LOW",
+      "message": "100% en mercado US \u2014 poca diversificaci\u00f3n geogr\u00e1fica",
+      "detail": {
+        "us": 131,
+        "eu": 0
+      }
+    }
+  ],
+  "narrative": null,
+  "sector_breakdown": [
+    {
+      "sector": "Financial Services",
+      "count": 41,
+      "pct": 31
+    },
+    {
+      "sector": "Unknown",
+      "count": 23,
+      "pct": 18
+    },
+    {
+      "sector": "Industrials",
+      "count": 16,
+      "pct": 12
+    },
+    {
+      "sector": "Basic Materials",
+      "count": 10,
+      "pct": 8
+    },
+    {
+      "sector": "Technology",
+      "count": 10,
+      "pct": 8
+    },
+    {
+      "sector": "Consumer Cyclical",
+      "count": 7,
+      "pct": 5
+    },
+    {
+      "sector": "Healthcare",
+      "count": 7,
+      "pct": 5
+    },
+    {
+      "sector": "Consumer Defensive",
+      "count": 5,
+      "pct": 4
+    }
+  ],
+  "region_breakdown": {
+    "US": 131
+  }
+}
