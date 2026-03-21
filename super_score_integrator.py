@@ -1113,6 +1113,44 @@ class SuperScoreIntegrator:
                 tickers = df.loc[mask_extreme, 'ticker'].tolist()
                 print(f"⚠️  Upside extremo >80% con <10 analistas: {tickers} → -8pts adicionales")
 
+            # ANALYST QUALITY: recommendation weight bonus/penalty
+            # strong_buy from multiple analysts is meaningful signal; hold/sell is negative
+            rec_bonus = pd.Series(0.0, index=df.index)
+            rec_bonus[_rec == 'strong_buy'] = 5.0   # high conviction
+            rec_bonus[_rec == 'buy']        = 2.0   # positive but less strong
+            rec_bonus[_rec == 'hold']       = -3.0  # analysts not excited
+            rec_bonus[_rec == 'sell']       = -8.0  # analysts actively negative
+            # Weight by coverage: more analysts = more reliable signal
+            _cnt_norm = (_cnt.clip(upper=20) / 20).fillna(0)  # 0-1 scale, cap at 20
+            df['value_score'] += rec_bonus * _cnt_norm
+            strong_buy_n = int((_rec == 'strong_buy').sum())
+            hold_sell_n  = int(_rec.isin(['hold','sell']).sum())
+            if strong_buy_n or hold_sell_n:
+                print(f"   📊 Analyst quality: {strong_buy_n} strong_buy (+pts) · {hold_sell_n} hold/sell (-pts)")
+
+            # ANALYST SPREAD: high/low target dispersion = analyst disagreement = uncertainty
+            # (target_high - target_low) / current_price > 60% = wide disagreement → penalty
+            if all(c in df.columns for c in ['target_price_analyst_high', 'target_price_analyst_low', 'current_price']):
+                _high = pd.to_numeric(df['target_price_analyst_high'], errors='coerce')
+                _low  = pd.to_numeric(df['target_price_analyst_low'],  errors='coerce')
+                _px   = pd.to_numeric(df['current_price'],             errors='coerce')
+                _spread = ((_high - _low) / _px * 100).where(_px > 0)
+
+                # Wide spread (>80% of price): analysts very divided → -6pts
+                mask_wide = _spread > 80
+                df.loc[mask_wide, 'value_score'] -= 6
+                # Very wide (>150%): extreme disagreement → -4pts more
+                mask_vwide = _spread > 150
+                df.loc[mask_vwide, 'value_score'] -= 4
+                # Tight spread (<25%): analysts aligned → +3pts bonus
+                mask_tight = (_spread <= 25) & _spread.notna() & (_cnt >= 5)
+                df.loc[mask_tight, 'value_score'] += 3
+
+                wide_n  = int(mask_wide.sum())
+                tight_n = int(mask_tight.sum())
+                if wide_n or tight_n:
+                    print(f"   📐 Analyst spread: {tight_n} tight consensus (+3pts) · {wide_n} wide disagreement (-6pts+)")
+
         # ── PIOTROSKI F-SCORE (Proven +13.4% annual alpha) ─────────────────────────
         # Strong (8-9): buy signal — company improving on all fronts
         # Weak  (0-2): value trap warning — avoid even if cheap
