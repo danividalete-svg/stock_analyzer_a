@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, RefreshCw, TrendingUp, TrendingDown, Wallet, AlertTriangle, X, Loader2, BookOpen, Send, Trash2, ChevronDown, ChevronUp, Zap } from 'lucide-react'
+import { Plus, RefreshCw, TrendingUp, TrendingDown, Wallet, AlertTriangle, X, Loader2, BookOpen, Send, Trash2, ChevronDown, ChevronUp, Zap, Brain } from 'lucide-react'
 import axios from 'axios'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import TickerLogo from '../components/TickerLogo'
 import PriceChart from '../components/PriceChart'
+import { useCerebroSignals, type CerebroMaps } from '../hooks/useCerebroSignals'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -603,11 +604,12 @@ function OptionsPanel({ result, sym }: { result: PositionResult; sym: string }) 
 
 // ── Position Card ─────────────────────────────────────────────────────────────
 
-function PositionCard({ result, pos, userId, onRemove }: {
+function PositionCard({ result, pos, userId, onRemove, cerebro }: {
   result?: PositionResult
   pos: Position
   userId: string
   onRemove: () => void
+  cerebro: CerebroMaps
 }) {
   const ticker = pos.ticker
   const cur    = result?.current_price ?? pos.avg_price
@@ -666,6 +668,57 @@ function PositionCard({ result, pos, userId, onRemove }: {
           </button>
         </div>
       </div>
+
+      {/* Cerebro IA signals — shown prominently when owning the position */}
+      {(() => {
+        const exit  = cerebro.exitMap[ticker]
+        const trap  = cerebro.trapMap[ticker]
+        const sm    = cerebro.smMap[ticker]
+        const div   = cerebro.divMap[ticker]
+        if (!exit && !trap && !sm && !div) return null
+        return (
+          <div className="border-b border-border/30 divide-y divide-border/20">
+            {exit && (
+              <div className={`flex items-start gap-3 px-5 py-2.5 ${exit.severity === 'HIGH' ? 'bg-red-500/10' : 'bg-amber-500/8'}`}>
+                <Brain size={13} className={exit.severity === 'HIGH' ? 'text-red-400 mt-0.5 shrink-0' : 'text-amber-400 mt-0.5 shrink-0'} />
+                <div className="flex-1 min-w-0">
+                  <span className={`text-[0.6rem] font-black uppercase tracking-widest mr-2 ${exit.severity === 'HIGH' ? 'text-red-400' : 'text-amber-400'}`}>
+                    Cerebro · Señal de salida {exit.severity}
+                  </span>
+                  <p className="text-[0.7rem] text-foreground/70 leading-relaxed mt-0.5">{exit.reasons.slice(0, 2).join(' · ')}</p>
+                </div>
+              </div>
+            )}
+            {trap && !exit && (
+              <div className="flex items-start gap-3 px-5 py-2.5 bg-amber-500/8">
+                <Brain size={13} className="text-amber-400 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[0.6rem] font-black uppercase tracking-widest text-amber-400 mr-2">Cerebro · Value trap {trap.severity}</span>
+                  <p className="text-[0.7rem] text-foreground/70 leading-relaxed mt-0.5">{trap.flags.slice(0, 2).join(' · ')}</p>
+                </div>
+              </div>
+            )}
+            {div && (
+              <div className="flex items-start gap-3 px-5 py-2.5 bg-amber-500/5">
+                <Brain size={13} className="text-amber-400 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[0.6rem] font-black uppercase tracking-widest text-amber-400 mr-2">Cerebro · Dividendo {div.rating}</span>
+                  <p className="text-[0.7rem] text-foreground/70 mt-0.5">Yield {div.div_yield.toFixed(1)}% — safety score {div.safety_score}/100</p>
+                </div>
+              </div>
+            )}
+            {sm && (
+              <div className="flex items-start gap-3 px-5 py-2.5 bg-purple-500/8">
+                <Brain size={13} className="text-purple-400 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[0.6rem] font-black uppercase tracking-widest text-purple-400 mr-2">Cerebro · Smart Money</span>
+                  <p className="text-[0.7rem] text-foreground/70 mt-0.5">{sm.n_hedge_funds} hedge funds + {sm.n_insiders} insiders comprando · conv {sm.convergence_score}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Mini sparkline */}
       <div className="border-b border-border/20">
@@ -773,6 +826,7 @@ function PositionCard({ result, pos, userId, onRemove }: {
 
 export default function PersonalPortfolio() {
   const { user } = useAuth()
+  const cerebro = useCerebroSignals()
   const [positions, setPositions] = useState<Position[]>([])
   const [loadingDb, setLoadingDb] = useState(true)
   const [saving, setSaving]       = useState(false)
@@ -1085,15 +1139,42 @@ export default function PersonalPortfolio() {
             </div>
           ))}
 
-          {!analyzing && positions.map(pos => (
-            <PositionCard
-              key={pos.id}
-              pos={pos}
-              userId={user!.id}
-              result={result?.positions.find(r => r.ticker === pos.ticker)}
-              onRemove={() => removePosition(pos.id)}
-            />
-          ))}
+          {!analyzing && (() => {
+            const posWithAlerts = positions.filter(p =>
+              cerebro.exitMap[p.ticker] || cerebro.trapMap[p.ticker] || cerebro.divMap[p.ticker]
+            )
+            const criticalCount = positions.filter(p =>
+              cerebro.exitMap[p.ticker]?.severity === 'HIGH' || cerebro.trapMap[p.ticker]?.severity === 'HIGH'
+            ).length
+            return (
+              <>
+                {posWithAlerts.length > 0 && (
+                  <div className={`flex items-start gap-3 p-4 rounded-xl border ${criticalCount > 0 ? 'border-red-500/30 bg-red-500/8' : 'border-amber-500/25 bg-amber-500/6'}`}>
+                    <Brain size={16} className={criticalCount > 0 ? 'text-red-400 mt-0.5 shrink-0' : 'text-amber-400 mt-0.5 shrink-0'} />
+                    <div>
+                      <p className={`text-sm font-bold ${criticalCount > 0 ? 'text-red-400' : 'text-amber-400'}`}>
+                        Cerebro IA detectó alertas en {posWithAlerts.length} de {positions.length} posiciones
+                        {criticalCount > 0 && ` — ${criticalCount} crítica${criticalCount > 1 ? 's' : ''}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {posWithAlerts.map(p => p.ticker).join(', ')} · Ver detalles en cada posición
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {positions.map(pos => (
+                  <PositionCard
+                    key={pos.id}
+                    pos={pos}
+                    userId={user!.id}
+                    result={result?.positions.find(r => r.ticker === pos.ticker)}
+                    onRemove={() => removePosition(pos.id)}
+                    cerebro={cerebro}
+                  />
+                ))}
+              </>
+            )
+          })()}
         </div>
       )}
     </div>
