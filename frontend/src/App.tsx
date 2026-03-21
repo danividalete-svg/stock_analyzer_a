@@ -9,6 +9,7 @@ import { NAV } from '@/lib/nav'
 import TopBar from './components/TopBar'
 import ProtectedRoute from './components/ProtectedRoute'
 import CommandPalette from './components/CommandPalette'
+import ErrorBoundary from './components/ErrorBoundary'
 import ScrollToTop from './components/ScrollToTop'
 import Login from './pages/Login'
 import ValueUS from './pages/ValueUS'
@@ -193,6 +194,7 @@ export default function App() {
         {user && <TopBar onMenuClick={() => setSidebarOpen(o => !o)} onOpenCmd={openCmd} />}
         <ScrollToTop />
         <main className="flex-1 p-5 md:p-8 min-w-0" style={{ overflowX: 'clip' }}>
+          <ErrorBoundary>
           <Routes>
             {/* Public route */}
             <Route path="/login" element={<Login />} />
@@ -230,6 +232,7 @@ export default function App() {
               <Route path="/datos"           element={<Datos />} />
             </Route>
           </Routes>
+          </ErrorBoundary>
         </main>
       </div>
     </PersonalPortfolioProvider>

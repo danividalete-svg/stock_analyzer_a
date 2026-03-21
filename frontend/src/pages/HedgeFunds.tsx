@@ -41,7 +41,7 @@ function ConsensusBadge({ count }: { count: number }) {
 }
 
 /** Generate client-side AI insight from the 13F data */
-function generateInsight(rows: HedgeFundConsensusItem[], funds: string[]): string {
+function generateInsight(rows: HedgeFundConsensusItem[], _funds: string[]): string {
   if (rows.length === 0) return ''
 
   const multi = rows.filter(r => r.funds_count >= 2)

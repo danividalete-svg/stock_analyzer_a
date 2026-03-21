@@ -13,6 +13,28 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
+type Quality = 'good' | 'warn' | 'bad' | 'neutral'
+const qualBg = (q: Quality) =>
+  q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' :
+  q === 'bad'  ? 'bg-red-500/8 border-red-500/15' :
+  q === 'warn' ? 'bg-amber-500/8 border-amber-500/15' :
+                 'bg-muted/12 border-border/20'
+const qualText = (q: Quality) =>
+  q === 'good' ? 'text-emerald-400' :
+  q === 'bad'  ? 'text-red-400' :
+  q === 'warn' ? 'text-amber-400' :
+                 'text-foreground/70'
+
+function Metric({ label, value, quality = 'neutral' }: { label: string; value: string | null; quality?: Quality }) {
+  if (value == null) return null
+  return (
+    <div className={`rounded-lg border px-2.5 py-2 ${qualBg(quality)}`}>
+      <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${qualText(quality)}`}>{value}</div>
+      <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
+    </div>
+  )
+}
+
 export default function TickerSearch() {
   const [searchParams] = useSearchParams()
   const [ticker, setTicker] = useState(() => searchParams.get('q') ?? '')
@@ -134,38 +156,8 @@ export default function TickerSearch() {
   }
   const ss = (key: string) => r?.[key] != null ? String(r[key]) : null
 
-  type Quality = 'good' | 'warn' | 'bad' | 'neutral'
-  const qualBg = (q: Quality) =>
-    q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' :
-    q === 'bad'  ? 'bg-red-500/8 border-red-500/15' :
-    q === 'warn' ? 'bg-amber-500/8 border-amber-500/15' :
-                   'bg-muted/12 border-border/20'
-  const qualText = (q: Quality) =>
-    q === 'good' ? 'text-emerald-400' :
-    q === 'bad'  ? 'text-red-400' :
-    q === 'warn' ? 'text-amber-400' :
-                   'text-foreground/70'
-
-  const Metric = ({ label, value, quality = 'neutral' }: { label: string; value: string | null; quality?: Quality }) => {
-    if (value == null) return null
-    return (
-      <div className={`rounded-lg border px-2.5 py-2 ${qualBg(quality)}`}>
-        <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${qualText(quality)}`}>{value}</div>
-        <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
-      </div>
-    )
-  }
-
-  const Row = ({ label, value, cls }: { label: string; value: string | null; cls?: string }) => (
-    <div className="flex items-center justify-between py-1.5 border-b border-border/20 last:border-0">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={cn('text-xs font-medium tabular-nums', cls)}>{value ?? '—'}</span>
-    </div>
-  )
-
   const fmtPct    = (v: number | null, suffix = '%') => v != null ? `${v.toFixed(1)}${suffix}` : null
   const fmtDollar = (v: number | null) => v != null ? `$${v.toFixed(2)}` : null
-  const colorPct  = (v: number | null) => v == null ? '' : v >= 0 ? 'text-emerald-400' : 'text-red-400'
 
   const notFound = r != null && !r.current_price && r.source === 'live_yfinance'
 
@@ -381,8 +373,8 @@ export default function TickerSearch() {
                       quality={sf('revenue_growth') != null ? (sf('revenue_growth')! > 0 ? 'good' : 'bad') : 'neutral'} />
                     <Metric label="Dividend" value={sf('dividend_yield') != null ? `${sf('dividend_yield')!.toFixed(2)}%` : null}
                       quality={sf('dividend_yield') != null && sf('dividend_yield')! > 0 ? 'good' : 'neutral'} />
-                    <Metric label="Buyback" value={r?.buyback_active != null ? (r.buyback_active ? 'Activo' : 'No') : null}
-                      quality={r?.buyback_active ? 'good' : 'neutral'} />
+                    <Metric label="Buyback" value={r?.buyback_active === true ? 'Activo' : r?.buyback_active === false ? 'No' : null}
+                      quality={r?.buyback_active === true ? 'good' : 'neutral'} />
                   </div>
                 </div>
 
@@ -391,8 +383,8 @@ export default function TickerSearch() {
                     <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Técnicos</span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 p-3">
-                    <Metric label="MA Filter" value={r?.ma_passes != null ? (r.ma_passes ? 'PASS' : 'FAIL') : null}
-                      quality={r?.ma_passes ? 'good' : r?.ma_passes === false ? 'bad' : 'neutral'} />
+                    <Metric label="MA Filter" value={r?.ma_passes === true ? 'PASS' : r?.ma_passes === false ? 'FAIL' : null}
+                      quality={r?.ma_passes === true ? 'good' : r?.ma_passes === false ? 'bad' : 'neutral'} />
                     <Metric label="A/D Signal" value={ss('ad_signal')}
                       quality={ss('ad_signal')?.includes('ACCUM') ? 'good' : ss('ad_signal')?.includes('DIST') ? 'bad' : 'neutral'} />
                     <Metric label="RS Line" value={sf('rs_line_score')?.toFixed(1) ?? null} />
@@ -425,12 +417,12 @@ export default function TickerSearch() {
                         quality={sf('days_to_earnings') != null ? (sf('days_to_earnings')! <= 7 ? 'bad' : sf('days_to_earnings')! <= 21 ? 'warn' : 'good') : 'neutral'} />
                     </div>
                     {/* Warning/Catalyst badges */}
-                    {(r?.earnings_warning || r?.earnings_catalyst) && (
+                    {(Boolean(r?.earnings_warning) || Boolean(r?.earnings_catalyst)) && (
                       <div className="flex gap-2 flex-wrap">
-                        {r?.earnings_warning && (
+                        {Boolean(r?.earnings_warning) && (
                           <span className="text-[0.65rem] px-2 py-0.5 rounded-lg border bg-red-500/8 border-red-500/20 text-red-400">⚠ Risky entry</span>
                         )}
-                        {r?.earnings_catalyst && (
+                        {Boolean(r?.earnings_catalyst) && (
                           <span className="text-[0.65rem] px-2 py-0.5 rounded-lg border bg-emerald-500/8 border-emerald-500/20 text-emerald-400">🚀 Catalyst</span>
                         )}
                       </div>
@@ -487,7 +479,7 @@ export default function TickerSearch() {
               </div>
 
               {/* Señales */}
-              {(sf('insiders_score') != null || r?.insider_recurring || r?.options_flow || r?.mean_reversion) && (
+              {(sf('insiders_score') != null || !!r?.insider_recurring || !!r?.options_flow || !!r?.mean_reversion) && (
                 <div className="rounded-xl border border-border/30 border-l-2 border-l-purple-500/50 overflow-hidden">
                   <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
                     <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Señales</span>

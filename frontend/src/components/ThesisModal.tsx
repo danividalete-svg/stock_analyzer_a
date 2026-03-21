@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+
+let _openModalCount = 0
 import { X, TrendingUp, AlertTriangle, Copy, Check, ExternalLink, Shield, Award } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import GradeBadge from './GradeBadge'
@@ -158,9 +160,12 @@ export default function ThesisModal({ row, thesisText, onClose, currency = '$' }
   const [copied, setCopied] = useState(false)
 
   const copyTicker = () => {
-    navigator.clipboard.writeText(row.ticker).catch(() => {})
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
+    navigator.clipboard.writeText(row.ticker)
+      .then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1800)
+      })
+      .catch(() => {})
   }
 
   useEffect(() => {
@@ -170,8 +175,12 @@ export default function ThesisModal({ row, thesisText, onClose, currency = '$' }
   }, [onClose])
 
   useEffect(() => {
+    _openModalCount++
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    return () => {
+      _openModalCount--
+      if (_openModalCount === 0) document.body.style.overflow = ''
+    }
   }, [])
 
   const upside = row.analyst_upside_pct

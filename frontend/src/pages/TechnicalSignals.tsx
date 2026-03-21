@@ -107,8 +107,8 @@ function TickerCard({ row, signals }: { row: TechnicalSummary; signals: Technica
         {/* Top signals preview (collapsed) */}
         {!open && signals.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {sortedAll.slice(0, 4).map((s, i) => (
-              <DirectionPill key={i} dir={s.direction} tf={s.timeframe} />
+            {sortedAll.slice(0, 4).map((s) => (
+              <DirectionPill key={`${s.signal_name}-${s.timeframe}-${s.days_ago}`} dir={s.direction} tf={s.timeframe} />
             ))}
             {signals.length > 4 && (
               <span className="text-xs text-muted-foreground/50 self-center">+{signals.length - 4} más</span>
@@ -130,7 +130,7 @@ function TickerCard({ row, signals }: { row: TechnicalSummary; signals: Technica
                 <div className="divide-y divide-border/20">
                   {dailySignals
                     .sort((a, b) => a.days_ago - b.days_ago || b.strength - a.strength)
-                    .map((s, i) => <SignalRow key={i} sig={s} />)}
+                    .map((s) => <SignalRow key={`${s.signal_name}-${s.days_ago}`} sig={s} />)}
                 </div>
               </div>
             )}
@@ -142,7 +142,7 @@ function TickerCard({ row, signals }: { row: TechnicalSummary; signals: Technica
                 <div className="divide-y divide-border/20">
                   {weeklySignals
                     .sort((a, b) => a.days_ago - b.days_ago || b.strength - a.strength)
-                    .map((s, i) => <SignalRow key={i} sig={s} />)}
+                    .map((s) => <SignalRow key={`${s.signal_name}-${s.days_ago}`} sig={s} />)}
                 </div>
               </div>
             )}
@@ -183,7 +183,7 @@ export default function TechnicalSignals() {
     })
   }, [summary, biasFilter, sourceFilter, onlyMyPortfolio, isOwned])
 
-  useEffect(() => { setPage(1) }, [biasFilter, sourceFilter, onlyMyPortfolio])
+  useEffect(() => { setPage(1) }, [biasFilter, sourceFilter, onlyMyPortfolio, tfFilter, strengthFilter])
 
   const totalPages = Math.ceil(filteredSummary.length / PAGE_SIZE)
   const pagedSummary = filteredSummary.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -193,13 +193,18 @@ export default function TechnicalSignals() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
-  const getSignals = (ticker: string) => {
-    return signals.filter(s =>
-      s.ticker === ticker &&
-      (tfFilter === 'ALL' || s.timeframe === tfFilter) &&
-      s.strength >= strengthFilter
-    )
-  }
+  // O(N) pre-build once per filter change — O(1) lookup per card
+  const signalsMap = useMemo(() => {
+    const map = new Map<string, TechnicalSignal[]>()
+    for (const s of signals) {
+      if (tfFilter !== 'ALL' && s.timeframe !== tfFilter) continue
+      if (s.strength < strengthFilter) continue
+      const arr = map.get(s.ticker)
+      if (arr) arr.push(s)
+      else map.set(s.ticker, [s])
+    }
+    return map
+  }, [signals, tfFilter, strengthFilter])
 
   // Stats
   const bullishCount = summary.filter(r => r.bias === 'BULLISH').length
@@ -310,8 +315,8 @@ export default function TechnicalSignals() {
                       <span className="text-[0.6rem] text-muted-foreground/50">{SOURCE_LABELS[row.source] ?? row.source}</span>
                     </div>
                     <div className="space-y-1">
-                      {topSig.map((s, i) => (
-                        <div key={i} className="flex items-center gap-1.5">
+                      {topSig.map((s) => (
+                        <div key={`${s.signal_name}-${s.timeframe}`} className="flex items-center gap-1.5">
                           <span className={`flex gap-0.5 text-emerald-400`}>
                             {Array.from({ length: 3 }, (_, j) => (
                               <span key={j} className={`inline-block w-1 h-1 rounded-full ${j < s.strength ? 'bg-emerald-400' : 'bg-emerald-400/20'}`} />
@@ -432,7 +437,7 @@ export default function TechnicalSignals() {
       ) : (
         <div className="space-y-3">
           {pagedSummary.map(row => {
-            const rowSignals = getSignals(row.ticker)
+            const rowSignals = signalsMap.get(row.ticker) ?? []
             if (rowSignals.length === 0 && strengthFilter > 1) return null
             return (
               <TickerCard key={row.ticker} row={row} signals={rowSignals} />

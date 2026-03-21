@@ -3,16 +3,22 @@ import { supabase } from '@/lib/supabase'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
+// Cache session token — onAuthStateChange fires INITIAL_SESSION immediately
+// on setup, so no separate getSession() call needed. Interceptor stays sync.
+let _cachedToken: string | null = null
+supabase.auth.onAuthStateChange((_event, session) => {
+  _cachedToken = session?.access_token ?? null
+})
+
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 60000,
 })
 
-// Attach Supabase JWT to every request
-api.interceptors.request.use(async (config) => {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session?.access_token) {
-    config.headers.Authorization = `Bearer ${session.access_token}`
+// Attach Supabase JWT to every request — synchronous, no blocking getSession()
+api.interceptors.request.use((config) => {
+  if (_cachedToken) {
+    config.headers.Authorization = `Bearer ${_cachedToken}`
   }
   return config
 })

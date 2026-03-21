@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, type ValueOpportunity } from '../api/client'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
@@ -59,6 +59,8 @@ export default function ValueUS() {
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 50
 
+  const currentThesisTicker = useRef<string | null>(null)
+
   useEffect(() => { setPage(1) }, [filterGrade, filterSector, minFcf, minRr, hideEarnings, onlyOwned])
 
   if (loading) return <Loading />
@@ -97,16 +99,18 @@ export default function ValueUS() {
   }
 
   const toggleThesis = async (ticker: string, row: ValueOpportunity) => {
+    currentThesisTicker.current = ticker
     setExpandedRow(row)
     setThesisText('Cargando tesis...')
     try {
       const res = await fetchThesis(ticker)
+      if (currentThesisTicker.current !== ticker) return // stale response
       const t = res.data.thesis
       const text = !t ? 'Sin tesis disponible'
         : typeof t === 'string' ? t
         : (t as Record<string, string>).thesis_narrative || (t as Record<string, string>).overview || JSON.stringify(t)
       setThesisText(text)
-    } catch { setThesisText('Error cargando tesis') }
+    } catch { if (currentThesisTicker.current === ticker) setThesisText('Error cargando tesis') }
   }
 
   const thCls = (key: SortKey) =>

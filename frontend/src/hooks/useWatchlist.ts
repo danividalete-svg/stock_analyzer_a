@@ -45,13 +45,16 @@ export function useWatchlist() {
   useEffect(() => {
     if (!user) return
 
+    let cancelled = false
+
     // One-time migration: push existing localStorage entries to Supabase
     if (!_migrationDone) {
       _migrationDone = true
       const local = loadLocal()
       if (local.length > 0) {
         const rows = local.map(e => ({ user_id: user.id, ticker: e.ticker }))
-        supabase.from('watchlist').upsert(rows, { onConflict: 'user_id,ticker' }).then()
+        supabase.from('watchlist').upsert(rows, { onConflict: 'user_id,ticker' })
+          .then(({ error }) => { if (error) console.error('[watchlist] migration error', error) })
       }
     }
 
@@ -61,7 +64,9 @@ export function useWatchlist() {
       .select('ticker, added_at')
       .eq('user_id', user.id)
       .order('added_at', { ascending: false })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) { console.error('[watchlist] load error', error); return }
         if (!data) return
         const localMap = new Map(loadLocal().map(e => [e.ticker, e]))
         const merged: WatchlistEntry[] = data.map(row => {
@@ -73,6 +78,8 @@ export function useWatchlist() {
         setEntries(merged)
         saveLocal(merged)
       })
+
+    return () => { cancelled = true }
   }, [user?.id])
 
   const add = useCallback((entry: Omit<WatchlistEntry, 'added_at'>) => {
@@ -84,7 +91,8 @@ export function useWatchlist() {
       return next
     })
     if (user) {
-      supabase.from('watchlist').insert({ user_id: user.id, ticker: entry.ticker }).then()
+      supabase.from('watchlist').insert({ user_id: user.id, ticker: entry.ticker })
+        .then(({ error }) => { if (error) console.error('[watchlist] add error', error) })
     }
   }, [user])
 
@@ -95,7 +103,8 @@ export function useWatchlist() {
       return next
     })
     if (user) {
-      supabase.from('watchlist').delete().match({ user_id: user.id, ticker }).then()
+      supabase.from('watchlist').delete().match({ user_id: user.id, ticker })
+        .then(({ error }) => { if (error) console.error('[watchlist] remove error', error) })
     }
   }, [user])
 
@@ -103,12 +112,14 @@ export function useWatchlist() {
     setEntries(prev => {
       const exists = prev.some(e => e.ticker === entry.ticker)
       if (exists) {
-        if (user) supabase.from('watchlist').delete().match({ user_id: user.id, ticker: entry.ticker }).then()
+        if (user) supabase.from('watchlist').delete().match({ user_id: user.id, ticker: entry.ticker })
+          .then(({ error }) => { if (error) console.error('[watchlist] toggle-remove error', error) })
         const next = prev.filter(e => e.ticker !== entry.ticker)
         saveLocal(next)
         return next
       } else {
-        if (user) supabase.from('watchlist').insert({ user_id: user.id, ticker: entry.ticker }).then()
+        if (user) supabase.from('watchlist').insert({ user_id: user.id, ticker: entry.ticker })
+          .then(({ error }) => { if (error) console.error('[watchlist] toggle-add error', error) })
         const newEntry: WatchlistEntry = { ...entry, added_at: new Date().toISOString() }
         const next = [newEntry, ...prev]
         saveLocal(next)
