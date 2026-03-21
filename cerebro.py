@@ -607,8 +607,10 @@ def scan_entry_signals(convergence: dict) -> dict:
             grade   = str(row.get("conviction_grade", ""))
             price   = sf(row.get("current_price"))
             upside_raw = sf(row.get("analyst_upside_pct"))
-            an_rev  = sf(row.get("analyst_revision_momentum"))
-            company = str(row.get("company_name", t))
+            an_rev      = sf(row.get("analyst_revision_momentum"))
+            an_count    = sf(row.get("analyst_count"))
+            an_rec      = str(row.get("analyst_recommendation", "")).lower()
+            company     = str(row.get("company_name", t))
 
             # Hard filters — skip if fails
             if vscore is None or vscore < 60:
@@ -656,6 +658,24 @@ def scan_entry_signals(convergence: dict) -> dict:
                 missing.append(f"⚠ Earnings en {int(dte)}d — riesgo de entrada")
             if upside is not None and upside < 15:
                 penalty += 5
+
+            # ── Upside credibility filter ──────────────────────────────────
+            # High upside with few/no analysts or 'none' recommendation = unreliable
+            if upside is not None and upside > 60:
+                if an_count is not None and an_count < 3:
+                    penalty += 20
+                    missing.append(f"⚠ Upside {upside:.0f}% con solo {int(an_count)} analista(s) — poco creíble")
+                elif an_count is not None and an_count < 6:
+                    penalty += 12
+                    missing.append(f"⚠ Upside {upside:.0f}% con solo {int(an_count)} analistas — verificar")
+                elif an_rec in ("none", "", "nan") or not an_rec:
+                    penalty += 15
+                    missing.append(f"⚠ Upside {upside:.0f}% pero analistas no recomiendan — contradictorio")
+                else:
+                    penalty += 8
+                    missing.append(f"Upside {upside:.0f}% muy alto — confirmar con DCF")
+            if upside is not None and upside > 80 and an_count is not None and an_count < 10:
+                penalty += 10  # extra penalización para upside extremo con cobertura limitada
 
             entry_score_raw = sum(s["pts"] for s in fired) - penalty
             entry_score = max(0, min(100, entry_score_raw))
