@@ -265,7 +265,12 @@ export default function IndustryGroups() {
                   <TableCell className="tabular-nums text-muted-foreground text-[0.76rem]">
                     {r.rank != null ? `${r.rank}/${r.rank_total ?? '—'}` : '—'}
                   </TableCell>
-                  <TableCell className="font-semibold text-[0.82rem]">{r.industry}</TableCell>
+                  <TableCell className="font-semibold text-[0.82rem]">
+                    <div className="flex items-center gap-1.5">
+                      {r.industry}
+                      {r.rank === 1 && <Badge variant="green" className="text-[0.5rem] px-1 py-0 leading-4">BEST</Badge>}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-muted-foreground text-[0.76rem]">{r.sector}</TableCell>
                   <TableCell className="tabular-nums text-[0.78rem] text-muted-foreground">{r.num_tickers ?? '—'}</TableCell>
                   <TableCell>{rsBar(r.avg_rs_percentile)}</TableCell>

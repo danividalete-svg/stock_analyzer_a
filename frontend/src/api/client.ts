@@ -251,6 +251,16 @@ export const fetchRecurringInsiders = () =>
 export const fetchPortfolioTracker = () =>
   api.get<PortfolioSummary>('/api/portfolio-tracker')
 
+export interface BreadthData {
+  total: number
+  trend_pass?: number; trend_pass_pct?: number
+  rs_at_high?: number; rs_at_high_pct?: number
+  positive_upside?: number; positive_upside_pct?: number
+  earnings_warnings?: number
+}
+export const fetchMarketBreadth = () =>
+  api.get<{ us: BreadthData; eu: BreadthData }>('/api/market-breadth')
+
 export const fetchMarketRegime = () =>
   api.get<MarketRegime>('/api/market-regime')
 

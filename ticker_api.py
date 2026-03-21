@@ -1273,6 +1273,42 @@ def market_regime():
     return jsonify({"us": us, "eu": eu})
 
 
+@app.route('/api/market-breadth')
+def market_breadth():
+    """Market breadth from fundamental_scores: % in uptrend, % with positive upside, etc."""
+    def compute(df):
+        total = len(df)
+        if total == 0:
+            return {'total': 0}
+        result = {'total': total}
+        if 'trend_template_pass' in df.columns:
+            n = int(df['trend_template_pass'].sum())
+            result['trend_pass'] = n
+            result['trend_pass_pct'] = round(n / total * 100, 1)
+        if 'rs_line_at_new_high' in df.columns:
+            n = int(df['rs_line_at_new_high'].sum())
+            result['rs_at_high'] = n
+            result['rs_at_high_pct'] = round(n / total * 100, 1)
+        if 'analyst_upside_pct' in df.columns:
+            n = int((df['analyst_upside_pct'].dropna() > 0).sum())
+            result['positive_upside'] = n
+            result['positive_upside_pct'] = round(n / total * 100, 1)
+        if 'earnings_warning' in df.columns:
+            result['earnings_warnings'] = int(df['earnings_warning'].sum())
+        return result
+
+    us, eu = {}, {}
+    try:
+        us = compute(_load_csv(DOCS / 'fundamental_scores.csv'))
+    except Exception:
+        pass
+    try:
+        eu = compute(_load_csv(DOCS / 'european_fundamental_scores.csv'))
+    except Exception:
+        pass
+    return jsonify({'us': us, 'eu': eu})
+
+
 @app.route('/api/factor-status')
 def factor_status():
     """

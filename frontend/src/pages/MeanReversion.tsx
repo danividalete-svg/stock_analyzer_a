@@ -87,6 +87,8 @@ export default function MeanReversion() {
   const avgScore = items.length ? items.reduce((s, r) => s + (r.reversion_score || 0), 0) / items.length : 0
   const oversold = items.filter(i => i.rsi != null && i.rsi < 30).length
   const strategies = new Set(items.map(i => i.strategy))
+  const bestScore = items.length ? Math.max(...items.map(i => i.reversion_score || 0)) : 0
+  const bestTicker = items.find(i => i.reversion_score === bestScore)?.ticker
 
   return (
     <>
@@ -205,7 +207,7 @@ export default function MeanReversion() {
                     <div className="flex items-center gap-1.5">
                       <TickerLogo ticker={d.ticker} size="xs" />
                       <div>
-                        <div className="font-mono font-bold text-primary text-[0.8rem] tracking-wide flex items-center gap-1.5">{d.ticker}<OwnedBadge ticker={d.ticker} /></div>
+                        <div className="font-mono font-bold text-primary text-[0.8rem] tracking-wide flex items-center gap-1.5">{d.ticker}<OwnedBadge ticker={d.ticker} />{d.ticker === bestTicker && <Badge variant="green" className="text-[0.5rem] px-1 py-0 leading-4">BEST</Badge>}</div>
                         {d.company_name && d.company_name !== d.ticker && (
                           <div className="text-[0.65rem] text-muted-foreground truncate max-w-[100px]">{d.company_name}</div>
                         )}

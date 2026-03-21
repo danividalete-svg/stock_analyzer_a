@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
   fetchPortfolioTracker, fetchRecurringInsiders, fetchOptionsFlow, fetchMeanReversion,
-  fetchMacroRadar, fetchDailyBriefing,
-  type ValueOpportunity, type InsiderData, type PortfolioSummary,
+  fetchMacroRadar, fetchDailyBriefing, fetchMarketBreadth,
+  type ValueOpportunity, type InsiderData, type PortfolioSummary, type BreadthData,
 } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import { useApi } from '../hooks/useApi'
@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import GradeBadge from '../components/GradeBadge'
 import InfoTooltip from '../components/InfoTooltip'
 import TickerLogo from '../components/TickerLogo'
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar, Wallet, Zap } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar, Wallet, Zap, Crosshair, BarChart3 } from 'lucide-react'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 
 // ── helpers ─────────────────────────────────────────────────────────────────
@@ -448,6 +448,121 @@ function MeanReversionMini({ data, loading }: { data: unknown; loading: boolean 
   )
 }
 
+const STRATEGY_COLORS: Record<string, 'green' | 'blue' | 'yellow'> = {
+  VALUE: 'green', INSIDERS: 'blue', 'MEAN REV': 'yellow',
+}
+
+function ConvergenciaMini({
+  valueTickers, insiderTickers, mrTickers, loading,
+}: {
+  valueTickers: Set<string>; insiderTickers: Set<string>; mrTickers: Set<string>; loading: boolean
+}) {
+  const overlaps: Array<{ ticker: string; strategies: string[] }> = []
+  const allTickers = new Set([...valueTickers, ...insiderTickers, ...mrTickers])
+  for (const ticker of allTickers) {
+    const strategies: string[] = []
+    if (valueTickers.has(ticker)) strategies.push('VALUE')
+    if (insiderTickers.has(ticker)) strategies.push('INSIDERS')
+    if (mrTickers.has(ticker)) strategies.push('MEAN REV')
+    if (strategies.length >= 2) overlaps.push({ ticker, strategies })
+  }
+  overlaps.sort((a, b) => b.strategies.length - a.strategies.length)
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+          <Crosshair size={11} /> Convergencia
+        </span>
+        {!loading && <span className="text-[0.62rem] text-muted-foreground/60">{overlaps.length} tickers</span>}
+      </div>
+      <Card className="glass p-4">
+        {loading ? (
+          <div className="space-y-2">{['a','b','c'].map(k => <Skeleton key={k} className="h-4 w-full" />)}</div>
+        ) : overlaps.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-1">Sin convergencias</p>
+        ) : (
+          <div className="space-y-2">
+            {overlaps.slice(0, 5).map(({ ticker, strategies }) => (
+              <div key={ticker} className="flex items-center justify-between gap-2">
+                <Link to={`/search?q=${ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline shrink-0">
+                  {ticker}
+                </Link>
+                <div className="flex flex-wrap gap-0.5 justify-end">
+                  {strategies.length >= 3 && (
+                    <span className="text-[0.5rem] font-bold px-1 py-0 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">TRIPLE</span>
+                  )}
+                  {strategies.map(s => (
+                    <span key={s} className={`text-[0.5rem] font-bold px-1 py-0 rounded border ${
+                      STRATEGY_COLORS[s] === 'green' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+                      STRATEGY_COLORS[s] === 'blue'  ? 'bg-blue-500/15 text-blue-400 border-blue-500/30' :
+                      'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                    }`}>{s}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+function BreadthMini({ data, loading }: { data: { us: BreadthData; eu: BreadthData } | undefined; loading: boolean }) {
+  const us = data?.us
+  const eu = data?.eu
+
+  function BreadthRow({ label, pct, n, total }: { label: string; pct?: number; n?: number; total: number }) {
+    if (pct == null) return null
+    const color = pct >= 50 ? 'bg-emerald-500' : pct >= 30 ? 'bg-amber-500' : 'bg-red-500'
+    return (
+      <div>
+        <div className="flex justify-between text-[0.6rem] mb-0.5">
+          <span className="text-muted-foreground">{label}</span>
+          <span className="tabular-nums font-semibold">{n ?? 0}/{total} <span className="text-muted-foreground/60">({pct}%)</span></span>
+        </div>
+        <div className="h-1 w-full rounded-full bg-muted/30 overflow-hidden">
+          <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+          <BarChart3 size={11} /> Breadth
+        </span>
+        <Link to="/industry-groups" className="flex items-center gap-1 text-[0.65rem] text-muted-foreground hover:text-foreground transition-colors">
+          Grupos <ChevronRight size={11} />
+        </Link>
+      </div>
+      <Card className="glass p-4">
+        {loading ? (
+          <div className="space-y-3">{['a','b'].map(k => <div key={k}><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-1 w-full" /></div>)}</div>
+        ) : !us ? (
+          <p className="text-sm text-muted-foreground text-center py-1">Sin datos</p>
+        ) : (
+          <div className="space-y-2.5">
+            <div className="text-[0.58rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1">US · {us.total} tickers</div>
+            <BreadthRow label="En tendencia alcista" pct={us.trend_pass_pct} n={us.trend_pass} total={us.total} />
+            <BreadthRow label="Upside positivo" pct={us.positive_upside_pct} n={us.positive_upside} total={us.total} />
+            {eu && eu.total > 0 && (
+              <>
+                <div className="text-[0.58rem] font-bold uppercase tracking-widest text-muted-foreground/50 mt-2 mb-1">EU · {eu.total} tickers</div>
+                <BreadthRow label="En tendencia alcista" pct={eu.trend_pass_pct} n={eu.trend_pass} total={eu.total} />
+                <BreadthRow label="Upside positivo" pct={eu.positive_upside_pct} n={eu.positive_upside} total={eu.total} />
+              </>
+            )}
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
 // ── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -460,6 +575,7 @@ export default function Dashboard() {
   const { data: mrRaw, loading: loadingMR } = useApi(() => fetchMeanReversion(), [])
   const { data: macroRaw, loading: loadingMacro } = useApi(() => fetchMacroRadar(), [])
   const { data: briefingRaw } = useApi(() => fetchDailyBriefing(), [])
+  const { data: breadthRaw, loading: loadingBreadth } = useApi(() => fetchMarketBreadth(), [])
 
   const { positions: myPositions } = usePersonalPortfolio()
   const myTickers = new Set(myPositions.map(p => p.ticker.toUpperCase()))
@@ -469,6 +585,11 @@ export default function Dashboard() {
 
   const topUS = (valueUS?.data ?? []).slice(0, 5)
   const topEU = (valueEU?.data ?? []).slice(0, 5)
+
+  // ── Multi-strategy convergence ────────────────────────────────────────────
+  const valueTickers  = new Set([...(valueUS?.data ?? []), ...(valueEU?.data ?? [])].map(r => r.ticker))
+  const insiderTickers = new Set(((insiders?.data ?? []) as InsiderData[]).map(r => r.ticker))
+  const mrTickers = new Set(((mrRaw as { data?: { ticker: string }[] })?.data ?? []).map(r => r.ticker))
 
   // ── Portfolio Action Items ─────────────────────────────────────────
   const actionItems: { icon: React.ReactNode; text: string; color: string; link: string }[] = []
@@ -639,11 +760,22 @@ export default function Dashboard() {
       </div>
 
       {/* Signals Radar: Macro + Insiders + Options + Mean Reversion */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <MacroRadarMini data={macroRaw} loading={loadingMacro} />
         <InsidersMini data={insiders?.data} loading={loadingInsiders} />
         <OptionsFlowMini data={optionsRaw} loading={loadingOptions} />
         <MeanReversionMini data={mrRaw} loading={loadingMR} />
+      </div>
+
+      {/* Convergencia multi-estrategia + Market Breadth */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <ConvergenciaMini
+          valueTickers={valueTickers}
+          insiderTickers={insiderTickers}
+          mrTickers={mrTickers}
+          loading={loadingUS || loadingInsiders || loadingMR}
+        />
+        <BreadthMini data={breadthRaw ?? undefined} loading={loadingBreadth} />
       </div>
 
       {/* Quick Nav Cards */}
