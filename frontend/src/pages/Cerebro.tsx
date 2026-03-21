@@ -79,11 +79,11 @@ function strategyBadge(s: string) {
 
 // ── Entry signal helpers ───────────────────────────────────────────────────────
 
-const SIGNAL_STYLES: Record<EntrySignal['signal'], { label: string; border: string; badge: string; scoreColor: string }> = {
-  STRONG_BUY: { label: '🟢 STRONG BUY', border: 'border-emerald-500/40', badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', scoreColor: 'text-emerald-400' },
-  BUY:        { label: '🟡 BUY',         border: 'border-amber-500/30',   badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',     scoreColor: 'text-amber-400'   },
-  MONITOR:    { label: '🔵 MONITOR',     border: 'border-blue-500/25',    badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30',         scoreColor: 'text-blue-400'    },
-  WAIT:       { label: '⚪ WAIT',        border: 'border-border/30',      badge: 'bg-muted/20 text-muted-foreground border-border/30',      scoreColor: 'text-muted-foreground' },
+const SIGNAL_STYLES: Record<EntrySignal['signal'], { label: string; border: string; bg: string; badge: string; scoreColor: string }> = {
+  STRONG_BUY: { label: '🟢 STRONG BUY', border: 'border-emerald-500/50', bg: 'bg-emerald-500/8',  badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40', scoreColor: 'text-emerald-400' },
+  BUY:        { label: '🟡 BUY',         border: 'border-amber-500/40',   bg: 'bg-amber-500/6',   badge: 'bg-amber-500/20 text-amber-400 border-amber-500/40',     scoreColor: 'text-amber-400'   },
+  MONITOR:    { label: '🔵 MONITOR',     border: 'border-blue-500/30',    bg: 'bg-blue-500/5',    badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30',        scoreColor: 'text-blue-400'    },
+  WAIT:       { label: '⚪ WAIT',        border: 'border-border/20',      bg: 'bg-transparent',   badge: 'bg-muted/20 text-muted-foreground border-border/30',     scoreColor: 'text-muted-foreground' },
 }
 
 function EntryScoreBar({ score }: { score: number }) {
@@ -102,7 +102,7 @@ function EntrySignalCard({ sig }: Readonly<{ sig: EntrySignal }>) {
   const style = SIGNAL_STYLES[sig.signal]
   const [expanded, setExpanded] = useState(false)
   return (
-    <Card className={`glass border ${style.border} transition-all`}>
+    <Card className={`glass border ${style.border} ${style.bg} transition-all`}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <TickerLogo ticker={sig.ticker} size="sm" className="mt-0.5 shrink-0" />
