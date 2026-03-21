@@ -24,6 +24,60 @@ class MeanReversionDetector:
     def __init__(self):
         self.lookback_days = 180  # 6 meses de historia
         self.results = []
+        self._market_regime_cache: Dict = {}  # caché para no repetir llamadas
+
+    def get_market_regime(self) -> Dict:
+        """
+        Calcula el régimen de mercado actual usando SPY.
+        Devuelve dict con spy_above_ma50 (bool), spy_above_ma200 (bool),
+        spy_price, spy_ma50, spy_ma200 y regime_label.
+        Resultado cacheado en memoria para el ciclo de scan.
+        """
+        if self._market_regime_cache:
+            return self._market_regime_cache
+
+        try:
+            import yfinance as yf
+            spy = yf.Ticker('SPY')
+            hist = spy.history(period='1y')
+            if len(hist) < 50:
+                raise ValueError("Datos insuficientes SPY")
+
+            spy_price = float(hist['Close'].iloc[-1])
+            ma50  = float(hist['Close'].rolling(50).mean().iloc[-1])
+            ma200 = float(hist['Close'].rolling(200).mean().iloc[-1])
+
+            above_50  = spy_price > ma50
+            above_200 = spy_price > ma200
+
+            if above_50 and above_200:
+                label = 'ALCISTA'
+            elif above_200 and not above_50:
+                label = 'CORRECCIÓN'
+            elif not above_200:
+                label = 'BAJISTA'
+            else:
+                label = 'NEUTRAL'
+
+            result = {
+                'spy_price': round(spy_price, 2),
+                'spy_ma50':  round(ma50, 2),
+                'spy_ma200': round(ma200, 2),
+                'spy_above_ma50':  above_50,
+                'spy_above_ma200': above_200,
+                'regime_label': label,
+                'bounce_ok': above_50,  # solo operar rebotes si SPY > MA50
+            }
+        except Exception as e:
+            print(f"   ⚠️  No se pudo obtener régimen SPY: {e}")
+            result = {
+                'spy_price': None, 'spy_ma50': None, 'spy_ma200': None,
+                'spy_above_ma50': None, 'spy_above_ma200': None,
+                'regime_label': 'DESCONOCIDO', 'bounce_ok': None,
+            }
+
+        self._market_regime_cache = result
+        return result
 
     def calculate_rsi(self, prices: pd.Series, period: int = 14) -> pd.Series:
         """Calcula RSI (Relative Strength Index)"""
@@ -240,6 +294,15 @@ class MeanReversionDetector:
         """
         print(f"🔄 Mean Reversion Detector")
         print(f"   Escaneando {len(tickers)} tickers...")
+
+        # Régimen de mercado — advierte si SPY < MA50 (rebotes en bajista = falling knife)
+        regime = self.get_market_regime()
+        if regime['regime_label'] != 'DESCONOCIDO':
+            icon = '✅' if regime['bounce_ok'] else '⚠️ '
+            print(f"   {icon} Régimen mercado: {regime['regime_label']} "
+                  f"(SPY ${regime['spy_price']} vs MA50 ${regime['spy_ma50']})")
+            if not regime['bounce_ok']:
+                print("   ⚠️  SPY < MA50 → mercado bajista. Rebotes de alto riesgo.")
         print()
 
         opportunities = []
