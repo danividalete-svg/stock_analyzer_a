@@ -65,6 +65,8 @@ export default function ValueEU() {
   const [filterMarket, setFilterMarket] = useState<string>('ALL')
   const [minFcf, setMinFcf] = useState<string>('')
   const [minRr, setMinRr] = useState<string>('')
+  const [hideTraps, setHideTraps] = useState(true)
+  const [hideExits, setHideExits] = useState(true)
   const [onlyOwned, setOnlyOwned] = useState(false)
   const { isOwned, positions: myPos } = usePersonalPortfolio()
   const [page, setPage] = useState(1)
@@ -72,7 +74,7 @@ export default function ValueEU() {
 
   const currentThesisTicker = useRef<string | null>(null)
 
-  useEffect(() => { setPage(1) }, [filterGrade, filterSector, filterMarket, minFcf, minRr, onlyOwned])
+  useEffect(() => { setPage(1) }, [filterGrade, filterSector, filterMarket, minFcf, minRr, hideTraps, hideExits, onlyOwned])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -90,6 +92,8 @@ export default function ValueEU() {
     if (filterMarket !== 'ALL' && r.market !== filterMarket) return false
     if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
     if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
+    if (hideTraps && cerebro.trapMap[r.ticker]?.severity === 'HIGH') return false
+    if (hideExits && cerebro.exitMap[r.ticker]?.severity === 'HIGH') return false
     if (onlyOwned && !isOwned(r.ticker)) return false
     return true
   })
@@ -140,8 +144,10 @@ export default function ValueEU() {
   sorted.forEach(d => { const s = d.sector || 'Unknown'; sectorCounts[s] = (sectorCounts[s] || 0) + 1 })
   const concentrated = Object.entries(sectorCounts).filter(([, c]) => c >= 3)
 
-  const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || filterMarket !== 'ALL' || minFcf !== '' || minRr !== '' || onlyOwned
-  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setFilterMarket('ALL'); setMinFcf(''); setMinRr(''); setOnlyOwned(false) }
+  const hiddenByTraps = hideTraps ? Object.values(cerebro.trapMap).filter(t => t.severity === 'HIGH').length : 0
+  const hiddenByExits = hideExits ? Object.keys(cerebro.exitMap).filter(k => cerebro.exitMap[k].severity === 'HIGH').length : 0
+  const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || filterMarket !== 'ALL' || minFcf !== '' || minRr !== '' || hideTraps || hideExits || onlyOwned
+  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setFilterMarket('ALL'); setMinFcf(''); setMinRr(''); setHideTraps(false); setHideExits(false); setOnlyOwned(false) }
 
   const fmtFcf = (v?: number) => {
     if (v == null) return <span className="text-muted-foreground">—</span>
@@ -282,6 +288,22 @@ export default function ValueEU() {
             <input type="number" value={minRr} onChange={e => setMinRr(e.target.value)} placeholder="0"
               className="w-14 text-[0.72rem] px-2 py-0.5 rounded border border-border/40 bg-transparent text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50" />
           </div>
+
+          {/* Cerebro IA filters */}
+          <button
+            onClick={() => setHideTraps(v => !v)}
+            className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${hideTraps ? 'border-red-500/60 bg-red-500/15 text-red-400' : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'}`}
+            title="Ocultar tickers marcados como value trap HIGH por Cerebro IA"
+          >
+            {hideTraps && hiddenByTraps > 0 ? `⚠ TRAP ocultos (${hiddenByTraps})` : '⚠ Ocultar TRAP'}
+          </button>
+          <button
+            onClick={() => setHideExits(v => !v)}
+            className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${hideExits ? 'border-red-500/60 bg-red-500/15 text-red-400' : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'}`}
+            title="Ocultar tickers con señal de salida HIGH por Cerebro IA"
+          >
+            {hideExits && hiddenByExits > 0 ? `⬆ EXIT ocultos (${hiddenByExits})` : '⬆ Ocultar EXIT'}
+          </button>
 
           {/* Only owned toggle */}
           {myPos.length > 0 && (
