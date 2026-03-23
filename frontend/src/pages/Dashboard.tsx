@@ -1,10 +1,12 @@
+import React from 'react'
 import { Link } from 'react-router-dom'
 import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
   fetchPortfolioTracker, fetchRecurringInsiders, fetchOptionsFlow, fetchMeanReversion,
   fetchMacroRadar, fetchDailyBriefing, fetchMarketBreadth, fetchCerebroConvergence, fetchCerebroAlerts,
-  fetchCerebroEntrySignals,
+  fetchCerebroEntrySignals, fetchCerebroDailyPlan,
   type ValueOpportunity, type InsiderData, type PortfolioSummary, type BreadthData, type CerebroAlert,
+  type DailyPlan, type DailyPlanAction, type MacroPlay,
 } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import { useApi } from '../hooks/useApi'
@@ -14,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import GradeBadge from '../components/GradeBadge'
 import InfoTooltip from '../components/InfoTooltip'
 import TickerLogo from '../components/TickerLogo'
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar, Wallet, Zap, Crosshair, BarChart3, Brain } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar, Wallet, Zap, Crosshair, BarChart3, Brain, Target, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import { useWatchlist } from '../hooks/useWatchlist'
 
@@ -679,6 +681,273 @@ function EntrySignalsMini({ data, loading }: {
   )
 }
 
+// ── DailyPlanCard ────────────────────────────────────────────────────────────
+
+const SESGO_STYLES: Record<string, { border: string; text: string; bg: string; badge: string }> = {
+  ALCISTA:     { border: 'border-l-emerald-500',  text: 'text-emerald-400',  bg: 'bg-emerald-500/8',  badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' },
+  BAJISTA:     { border: 'border-l-red-500',       text: 'text-red-400',      bg: 'bg-red-500/8',      badge: 'bg-red-500/20 text-red-300 border-red-500/40' },
+  DEFENSIVO:   { border: 'border-l-amber-500',     text: 'text-amber-400',    bg: 'bg-amber-500/8',    badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  OPORTUNIDAD: { border: 'border-l-cyan-500',      text: 'text-cyan-400',     bg: 'bg-cyan-500/8',     badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' },
+  NEUTRO:      { border: 'border-l-blue-500',      text: 'text-blue-400',     bg: 'bg-blue-500/8',     badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40' },
+}
+
+const ACCION_STYLES: Record<string, string> = {
+  COMPRAR:  'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+  VENDER:   'bg-red-500/20 text-red-300 border-red-500/40',
+  REDUCIR:  'bg-orange-500/20 text-orange-300 border-orange-500/40',
+  ESPERAR:  'bg-blue-500/20 text-blue-300 border-blue-500/40',
+  VIGILAR:  'bg-yellow-500/20 text-yellow-300 border-yellow-500/40',
+  CUBRIR:   'bg-amber-500/20 text-amber-300 border-amber-500/40',
+}
+
+function ActionRow({ action, idx }: { action: DailyPlanAction; idx: number }) {
+  const accionKey = (action.accion ?? '').toUpperCase()
+  const badgeStyle = ACCION_STYLES[accionKey] ?? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+  return (
+    <div className="flex items-start gap-3 py-2.5 border-b border-border/15 last:border-0">
+      <div className="shrink-0 w-5 h-5 rounded-full bg-muted/20 flex items-center justify-center text-[0.6rem] font-bold text-muted-foreground mt-0.5">
+        {idx + 1}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <span className={`text-[0.62rem] font-bold px-1.5 py-0.5 rounded border ${badgeStyle}`}>
+            {action.accion}
+          </span>
+          <span className="font-mono font-bold text-primary text-[0.82rem] tracking-wide">{action.instrumento}</span>
+          {action.size_hint && (
+            <span className="text-[0.58rem] px-1.5 py-0.5 rounded bg-muted/20 text-muted-foreground border border-border/30">
+              {action.size_hint}
+            </span>
+          )}
+        </div>
+        <div className="text-[0.72rem] text-foreground/80 mb-0.5">{action.razon}</div>
+        {action.catalizador && (
+          <div className="text-[0.65rem] text-muted-foreground/70">
+            <span className="text-muted-foreground/50">Catalizador:</span> {action.catalizador}
+          </div>
+        )}
+        {action.invalidacion && (
+          <div className="text-[0.62rem] text-muted-foreground/50 mt-0.5">
+            <span className="text-red-400/50">Invalida si:</span> {action.invalidacion}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function MacroPlayRow({ play }: { play: MacroPlay }) {
+  return (
+    <div className="flex items-start gap-3 py-2 border-b border-border/10 last:border-0">
+      <div className="shrink-0 mt-0.5">
+        <div className="font-mono font-bold text-[0.78rem] text-primary">{play.instrument}</div>
+        {play.direction && (
+          <div className="text-[0.6rem] text-muted-foreground/60">{play.direction}</div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[0.7rem] text-foreground/80">{play.thesis}</div>
+        <div className="text-[0.62rem] text-muted-foreground/50 mt-0.5">{play.timeframe} · {play.risk}</div>
+      </div>
+      <div className="shrink-0 text-right">
+        <div className="text-[0.72rem] font-bold tabular-nums text-foreground">{play.score}</div>
+        <div className="w-10 h-1 rounded-full bg-muted/20 mt-1 overflow-hidden">
+          <div
+            className={`h-full rounded-full ${play.score >= 80 ? 'bg-emerald-500' : play.score >= 65 ? 'bg-amber-500' : 'bg-blue-500'}`}
+            style={{ width: `${play.score}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DailyPlanCard({ data, loading }: { data: DailyPlan | null | undefined; loading: boolean }) {
+  const [showMacroPlays, setShowMacroPlays] = React.useState(true)
+
+  if (loading) {
+    return (
+      <Card className="glass border-l-4 border-l-primary/40 p-5 mb-5">
+        <div className="flex items-center gap-3 mb-4">
+          <Skeleton className="h-5 w-5 rounded" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-5 w-16 ml-auto rounded-full" />
+        </div>
+        <Skeleton className="h-3 w-full mb-2" />
+        <Skeleton className="h-3 w-4/5 mb-4" />
+        <div className="space-y-3">
+          {['a','b','c'].map(k => <Skeleton key={k} className="h-12 w-full" />)}
+        </div>
+      </Card>
+    )
+  }
+
+  if (!data) return null
+
+  const sesgoKey = (data.sesgo ?? 'NEUTRO').toUpperCase()
+  const ss = SESGO_STYLES[sesgoKey] ?? SESGO_STYLES.NEUTRO
+
+  return (
+    <Card className={`glass border-l-4 ${ss.border} ${ss.bg} p-5 mb-5 animate-fade-in-up`}>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <Target size={16} className={ss.text} />
+          <span className="text-[0.7rem] font-bold uppercase tracking-widest text-muted-foreground">
+            Plan del Día — Cerebro IA
+          </span>
+          <span className="text-[0.6rem] text-muted-foreground/50">{data.generated_at}</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {data.ai_powered && (
+            <span className="flex items-center gap-1 text-[0.58rem] font-bold px-1.5 py-0.5 rounded border bg-purple-500/15 text-purple-300 border-purple-500/30">
+              <Sparkles size={9} /> AI
+            </span>
+          )}
+          <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-muted/20 text-muted-foreground border border-border/30 tabular-nums">
+            Confianza {data.confianza}%
+          </span>
+          <span className={`text-[0.7rem] font-extrabold px-2.5 py-1 rounded border ${ss.badge}`}>
+            {data.sesgo}
+          </span>
+        </div>
+      </div>
+
+      {/* Situacion */}
+      {data.situacion && (
+        <div className={`text-[0.85rem] font-semibold mb-1 ${ss.text}`}>{data.situacion}</div>
+      )}
+
+      {/* Narrativa */}
+      {data.narrativa && (
+        <div className="text-[0.72rem] text-muted-foreground/80 mb-4 leading-relaxed">{data.narrativa}</div>
+      )}
+
+      <div className="h-px bg-border/20 mb-4" />
+
+      {/* Acciones Inmediatas */}
+      {(data.acciones_inmediatas?.length ?? 0) > 0 && (
+        <div className="mb-4">
+          <div className="text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+            Acciones Inmediatas
+          </div>
+          <div>
+            {data.acciones_inmediatas.map((action, i) => (
+              <ActionRow key={i} action={action} idx={i} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Macro Plays */}
+      {(data.macro_plays?.length ?? 0) > 0 && (
+        <div className="mb-4">
+          <button
+            onClick={() => setShowMacroPlays(prev => !prev)}
+            className="flex items-center gap-2 text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground mb-2 hover:text-foreground transition-colors w-full text-left"
+          >
+            Macro Plays ({data.macro_plays.length})
+            {showMacroPlays ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+            {data.macro_plays_commentary && (
+              <span className="font-normal normal-case tracking-normal text-muted-foreground/60 ml-1 flex-1 text-left">
+                — {data.macro_plays_commentary}
+              </span>
+            )}
+          </button>
+          {showMacroPlays && (
+            <div>
+              {data.macro_plays.map((play, i) => (
+                <MacroPlayRow key={i} play={play} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* VALUE en este entorno + Evitar */}
+      <div className="flex gap-4 mb-4 flex-wrap">
+        {(data.value_en_entorno?.length ?? 0) > 0 && (
+          <div className="flex-1 min-w-0">
+            <div className="text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+              VALUE en este entorno
+            </div>
+            {data.value_en_entorno_razon && (
+              <div className="text-[0.62rem] text-muted-foreground/60 mb-2">{data.value_en_entorno_razon}</div>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              {data.value_en_entorno.map(v => (
+                <Link
+                  key={v.ticker}
+                  to={`/search?q=${v.ticker}`}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded border border-border/30 bg-muted/10 hover:bg-muted/20 transition-colors"
+                >
+                  <span className="font-mono font-bold text-primary text-[0.78rem]">{v.ticker}</span>
+                  {v.grade && (
+                    <span className="text-[0.55rem] font-bold px-1 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                      {v.grade}
+                    </span>
+                  )}
+                  <span className="text-[0.62rem] text-muted-foreground/60">{v.score}pts</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(data.evitar?.length ?? 0) > 0 && (
+          <div className="shrink-0">
+            <div className="text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+              Evitar
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {data.evitar.map(e => (
+                <span
+                  key={e.ticker}
+                  title={e.razon}
+                  className="font-mono font-bold text-[0.75rem] px-2 py-0.5 rounded border bg-red-500/10 text-red-400 border-red-500/25 cursor-help"
+                >
+                  {e.ticker}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Agenda */}
+      {(data.agenda_semana?.length ?? 0) > 0 && (
+        <div className="mb-3">
+          <div className="text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+            Agenda
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {data.agenda_semana.slice(0, 4).map((ev, i) => (
+              <div key={i} className={`flex items-center gap-1.5 px-2 py-1 rounded border text-[0.65rem] ${
+                ev.impacto === 'ALTO'
+                  ? 'border-red-500/25 bg-red-500/8 text-red-300'
+                  : ev.impacto === 'MEDIO'
+                  ? 'border-amber-500/25 bg-amber-500/8 text-amber-300'
+                  : 'border-blue-500/20 bg-blue-500/8 text-blue-300'
+              }`}>
+                <span className="font-mono text-muted-foreground/60">{ev.fecha}</span>
+                <span className="font-semibold">{ev.evento}</span>
+                <span className="text-[0.55rem] font-bold opacity-70">[{ev.impacto}]</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Frase del día */}
+      {data.frase_del_dia && (
+        <div className="pt-2 border-t border-border/15">
+          <p className="text-[0.68rem] italic text-muted-foreground/60">{data.frase_del_dia}</p>
+        </div>
+      )}
+    </Card>
+  )
+}
+
 // ── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -695,6 +964,7 @@ export default function Dashboard() {
   const { data: cerebroConv, loading: loadingConv } = useApi(() => fetchCerebroConvergence(), [])
   const { data: cerebroAlertsRaw, loading: loadingAlerts } = useApi(() => fetchCerebroAlerts(), [])
   const { data: cerebroEntry, loading: loadingEntry } = useApi(() => fetchCerebroEntrySignals(), [])
+  const { data: dailyPlanRaw, loading: loadingDailyPlan } = useApi(() => fetchCerebroDailyPlan(), [])
 
   const { positions: myPositions } = usePersonalPortfolio()
   const { entries: watchlistEntries } = useWatchlist()
@@ -779,6 +1049,9 @@ export default function Dashboard() {
           Resumen ejecutivo · Actualización diaria automática
         </p>
       </div>
+
+      {/* Daily Plan — most prominent feature, shown first */}
+      <DailyPlanCard data={dailyPlanRaw} loading={loadingDailyPlan} />
 
       {/* Earnings Warning Banner */}
       {earningsWarnings.length > 0 && (

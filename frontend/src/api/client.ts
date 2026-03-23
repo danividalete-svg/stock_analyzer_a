@@ -500,6 +500,71 @@ export interface SectorSummary {
 }
 export const fetchCerebroSectorRV = () => api.get<{ generated_at: string; total: number; rerate_sectors: number; narrative: string | null; standouts: SectorStandout[]; sector_summary: SectorSummary[] }>('/api/cerebro/sector-rv')
 
+// ── Cerebro Daily Action Plan ─────────────────────────────────────────────────
+export interface MacroPlay {
+  instrument: string
+  direction?: string
+  thesis: string
+  historical: string
+  risk: string
+  timeframe: string
+  score: number
+}
+
+export interface DailyPlanAction {
+  prioridad: number
+  accion: string
+  instrumento: string
+  razon: string
+  catalizador: string
+  size_hint: string
+  invalidacion: string
+}
+
+export interface DailyPlanEvitar {
+  ticker: string
+  razon: string
+}
+
+export interface AgendaEvent {
+  fecha: string
+  evento: string
+  impacto: 'ALTO' | 'MEDIO' | 'BAJO'
+  accion_sugerida?: string
+}
+
+export interface ValueEnEntorno {
+  ticker: string
+  score: number
+  sector: string
+  fcf_yield_pct?: number
+  grade?: string
+}
+
+export interface DailyPlan {
+  generated_at: string
+  macro_regime: string
+  composite_score: number
+  sesgo: string
+  confianza: number
+  situacion: string
+  narrativa: string
+  acciones_inmediatas: DailyPlanAction[]
+  macro_plays: MacroPlay[]
+  macro_plays_commentary?: string
+  value_en_entorno: ValueEnEntorno[]
+  value_en_entorno_razon?: string
+  evitar: DailyPlanEvitar[]
+  agenda_semana: AgendaEvent[]
+  frase_del_dia?: string
+  mensaje_telegram?: string
+  ai_powered: boolean
+}
+
+export async function fetchCerebroDailyPlan() {
+  return api.get<DailyPlan>('/api/cerebro/daily-plan')
+}
+
 export const fetchMarketRegime = () =>
   api.get<MarketRegime>('/api/market-regime')
 

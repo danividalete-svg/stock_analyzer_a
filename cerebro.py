@@ -2075,6 +2075,481 @@ def generate_ticker_signals_csv(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# DAILY ACTION PLAN — plan accionable del día con macro + VALUE + Groq AI
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squeeze: dict) -> dict:
+    """
+    Generates an actionable daily plan combining macro signals, VALUE picks,
+    and Cerebro agent outputs. Uses Groq AI when available; falls back to
+    rule-based logic otherwise.
+    Saves docs/cerebro_daily_plan.json and sends a Telegram message if configured.
+    """
+    print("[daily_plan] Generando Plan del Día...")
+
+    # ── Load data ─────────────────────────────────────────────────────────────
+    macro       = load_json(DOCS / "macro_radar.json")
+    value_df    = load_csv(DOCS / "value_opportunities.csv")
+    eu_df       = load_csv(DOCS / "european_value_opportunities.csv")
+    fund_df     = load_csv(DOCS / "fundamental_scores.csv")
+    signals_df  = load_csv(DOCS / "cerebro_ticker_signals.csv")
+    econ_cal    = load_json(DOCS / "economic_calendar.json")
+
+    regime_data = macro.get("regime", {})
+    regime_name = str(regime_data.get("name", "WATCH")).upper()
+    composite   = float(macro.get("composite_score", 0) or 0)
+    signals_map = macro.get("signals", {})
+    sys_risks   = macro.get("systemic_risks", [])
+    hist_analogs= macro.get("historical_analogs", [])
+
+    # ── Rule-based macro plays ────────────────────────────────────────────────
+    macro_plays: list[dict] = []
+
+    # 30yr yield
+    try:
+        import yfinance as yf
+        tyx_data = yf.Ticker("^TYX").fast_info
+        tyx_yield = float(getattr(tyx_data, "last_price", 0) or 0)
+    except Exception:
+        tyx_yield = 0.0
+
+    if tyx_yield >= 4.9:
+        score = min(95, int(70 + (tyx_yield - 4.5) * 50))
+        macro_plays.append(dict(
+            instrument="TLT/VGLT",
+            direction="LONG",
+            thesis=f"Yield 30yr en {tyx_yield:.2f}% — zona históricamente atractiva para bonos largos",
+            historical="2018-19: TLT +18% cuando yields revertieron desde 3.25%",
+            risk="La Fed puede mantener tipos altos más tiempo — size pequeño",
+            timeframe="3-6 meses",
+            score=score,
+        ))
+
+    # Gold/SPY ratio vs VIX
+    gold_sig   = signals_map.get("gold_spy",   {})
+    vix_sig    = signals_map.get("vix",         {})
+    copper_sig = signals_map.get("copper_gold", {})
+    oil_sig    = signals_map.get("oil",         {})
+    vvix_sig   = signals_map.get("vvix",        {})
+    sc_sig     = signals_map.get("small_cap",   {})
+    credit_sig = signals_map.get("credit",      {})
+
+    gold_pct = float(gold_sig.get("percentile", 0) or 0) if isinstance(gold_sig, dict) else 0
+    vix_val  = float(vix_sig.get("value", 0) or 0) if isinstance(vix_sig, dict) else 0
+    if gold_pct > 75 and vix_val > 22:
+        macro_plays.append(dict(
+            instrument="GLD + GDX",
+            direction="LONG",
+            thesis=f"Gold/SPY en percentil {gold_pct:.0f}% + VIX {vix_val:.1f} — huida hacia calidad activa",
+            historical="2020 COVID: GLD +25%, GDX +50% en 6 meses",
+            risk="Si VIX cae rápido, GDX puede retroceder agresivamente",
+            timeframe="1-3 meses",
+            score=80,
+        ))
+
+    copper_pct = float(copper_sig.get("percentile", 0) or 0) if isinstance(copper_sig, dict) else 0
+    if copper_pct < 20:
+        macro_plays.append(dict(
+            instrument="XLP/XLV/XLU",
+            direction="LONG",
+            thesis=f"Copper/Gold en percentil {copper_pct:.0f}% — señal de desaceleración, rotar a defensivos",
+            historical="2015-16: XLU +20% mientras IWM -20% en ciclo de subidas Fed",
+            risk="Recuperación económica inesperada revertiría la rotación",
+            timeframe="2-4 meses",
+            score=75,
+        ))
+
+    oil_pct    = float(oil_sig.get("percentile", 0) or 0) if isinstance(oil_sig, dict) else 0
+    oil_chg20  = float(oil_sig.get("change_20d", 0) or 0) if isinstance(oil_sig, dict) else 0
+    if oil_pct > 90 and oil_chg20 > 25:
+        macro_plays.append(dict(
+            instrument="XLE",
+            direction="LONG",
+            thesis=f"Petróleo en percentil {oil_pct:.0f}% con +{oil_chg20:.0f}% en 20d — componente geopolítico",
+            historical="2022 Ucrania: XLE +65% en 6 meses",
+            risk="Acuerdo geopolítico o recesión colapsa el oil — stop ajustado",
+            timeframe="1-2 meses",
+            score=70,
+        ))
+
+    vvix_pct = float(vvix_sig.get("percentile", 0) or 0) if isinstance(vvix_sig, dict) else 0
+    if vvix_pct > 85 and vix_val < 30:
+        macro_plays.append(dict(
+            instrument="UVXY",
+            direction="LONG (pequeño)",
+            thesis=f"VVIX en percentil {vvix_pct:.0f}% con VIX aún bajo — spike de volatilidad inminente",
+            historical="2018 VIXplosion: UVXY +200% en 2 días",
+            risk="El tiempo trabaja en contra de VIX products — size máximo 1%",
+            timeframe="1-4 semanas",
+            score=65,
+        ))
+
+    sc_pct     = float(sc_sig.get("percentile", 0) or 0) if isinstance(sc_sig, dict) else 0
+    credit_scr = float(credit_sig.get("score", 0) or 0) if isinstance(credit_sig, dict) else 0
+    if sc_pct < 25 and credit_scr > 0:
+        macro_plays.append(dict(
+            instrument="IWM",
+            direction="LONG (contrarian)",
+            thesis=f"Small caps en percentil {sc_pct:.0f}% pero crédito OK — divergencia excesiva",
+            historical="2016 post-elección: IWM +20% en 3 meses desde valuaciones deprimidas",
+            risk="Si crédito deteriora, small caps caen más — monitorizar HYG",
+            timeframe="2-3 meses",
+            score=60,
+        ))
+
+    if regime_name in ("ALERT", "CRISIS"):
+        macro_plays.append(dict(
+            instrument="SGOV/BIL",
+            direction="LONG (refugio)",
+            thesis=f"Régimen {regime_name} — T-bills dan rendimiento real con mínimo riesgo de duración",
+            historical="2022 CRISIS: BIL +4.5% cuando SPY -20%",
+            risk="Coste de oportunidad si mercado rebota violentamente",
+            timeframe="hasta cambio de régimen",
+            score=85,
+        ))
+
+    macro_plays.sort(key=lambda x: -x["score"])
+
+    # ── VALUE picks filtered by macro regime ──────────────────────────────────
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    value_en_entorno: list[dict] = []
+
+    if not all_value.empty:
+        stress_sectors = {"Health Care", "Consumer Defensive", "Utilities", "Financial Services"}
+        for _, row in all_value.sort_values("value_score", ascending=False).head(15).iterrows():
+            t      = str(row.get("ticker","")).upper()
+            vscore = sf(row.get("value_score")) or 0
+            sector = str(row.get("sector",""))
+            grade  = str(row.get("conviction_grade",""))
+            fcf    = sf(row.get("fcf_yield_pct"))
+
+            fits = False
+            if regime_name in ("STRESS", "ALERT", "CRISIS"):
+                fits = sector in stress_sectors and (fcf is None or fcf > 4)
+            else:
+                fits = True
+
+            if fits:
+                value_en_entorno.append(dict(
+                    ticker=t,
+                    score=round(vscore, 1),
+                    sector=sector,
+                    fcf_yield_pct=fcf,
+                    grade=grade,
+                ))
+            if len(value_en_entorno) >= 5:
+                break
+
+    # ── Build cerebro signal lists for context ────────────────────────────────
+    avoid_list  = []
+    exit_list   = []
+    squeeze_list= []
+    if not signals_df.empty and "ticker" in signals_df.columns:
+        for _, row in signals_df.iterrows():
+            sig = str(row.get("cerebro_signal",""))
+            t   = str(row.get("ticker","")).upper()
+            rsn = str(row.get("cerebro_reason",""))[:80]
+            if sig == "AVOID":
+                avoid_list.append({"ticker": t, "razon": rsn})
+            elif sig == "EXIT":
+                exit_list.append({"ticker": t, "razon": rsn})
+            elif sig == "SQUEEZE":
+                squeeze_list.append({"ticker": t, "razon": rsn})
+
+    # ── Upcoming earnings ─────────────────────────────────────────────────────
+    upcoming_earnings: list[dict] = []
+    if not fund_df.empty:
+        for _, row in fund_df.iterrows():
+            dte = sf(row.get("days_to_earnings"))
+            if dte is not None and 0 < dte < 10:
+                upcoming_earnings.append({
+                    "ticker": str(row.get("ticker","")).upper(),
+                    "days_to_earnings": int(dte),
+                    "earnings_date": str(row.get("earnings_date","")),
+                })
+        upcoming_earnings.sort(key=lambda x: x["days_to_earnings"])
+
+    # ── Upcoming economic events ───────────────────────────────────────────────
+    from datetime import timedelta
+    today_dt  = date.today()
+    cutoff_dt = today_dt + timedelta(days=7)
+    econ_events_raw = econ_cal.get("events", []) if isinstance(econ_cal, dict) else []
+    upcoming_events = []
+    for ev in econ_events_raw:
+        try:
+            ev_date = date.fromisoformat(str(ev.get("date",""))[:10])
+            if today_dt <= ev_date <= cutoff_dt:
+                upcoming_events.append(ev)
+        except Exception:
+            pass
+    upcoming_events.sort(key=lambda x: x.get("date",""))
+
+    # ── Top macro signals for context ─────────────────────────────────────────
+    sig_list = []
+    for k, v in signals_map.items():
+        if isinstance(v, dict) and "score" in v:
+            sig_list.append((k, v))
+
+    neg_signals = sorted(sig_list, key=lambda x: float(x[1].get("score", 0) or 0))[:3]
+    pos_signals = sorted(sig_list, key=lambda x: -float(x[1].get("score", 0) or 0))[:3]
+    pos_signals = [s for s in pos_signals if float(s[1].get("score", 0) or 0) > 0.5]
+
+    top_analog = hist_analogs[0] if hist_analogs else {}
+
+    # ── Groq AI prompt ────────────────────────────────────────────────────────
+    context_lines = [
+        f"Fecha: {TODAY}",
+        f"Régimen macro: {regime_name} (composite {composite:+.1f}/30)",
+        "",
+        "SEÑALES NEGATIVAS PRINCIPALES:",
+    ]
+    for k, v in neg_signals:
+        context_lines.append(f"  - {v.get('label', k)}: score {v.get('score',0):+.1f}, valor {v.get('value','')} (percentil {v.get('percentile','')})")
+
+    context_lines.append("\nSEÑALES POSITIVAS:")
+    for k, v in pos_signals:
+        context_lines.append(f"  - {v.get('label', k)}: score {v.get('score',0):+.1f}")
+
+    context_lines.append("\nRIESGOS SISTÉMICOS:")
+    for r in (sys_risks[:3] if sys_risks else []):
+        if isinstance(r, dict):
+            context_lines.append(f"  - {r.get('name','?')} (severidad {r.get('severity','?')}): {r.get('description','')[:80]}")
+
+    if top_analog:
+        context_lines.append(
+            f"\nANÁLOGO HISTÓRICO: {top_analog.get('name','?')} "
+            f"(similitud {top_analog.get('similarity','?')}%, SPY 30d: {top_analog.get('spy_30d_outcome','?')})"
+        )
+
+    context_lines.append("\nTOP 5 VALUE PICKS:")
+    for v in value_en_entorno[:5]:
+        context_lines.append(f"  - {v['ticker']}: score {v['score']}, sector {v['sector']}, grade {v['grade']}, FCF {v['fcf_yield_pct']}%")
+
+    context_lines.append(f"\nCEREBRO SIGNALS:")
+    context_lines.append(f"  AVOID ({len(avoid_list)}): {', '.join(a['ticker'] for a in avoid_list[:5])}")
+    context_lines.append(f"  EXIT  ({len(exit_list)}): {', '.join(a['ticker'] for a in exit_list[:3])}")
+    context_lines.append(f"  SQUEEZE ({len(squeeze_list)}): {', '.join(a['ticker'] for a in squeeze_list[:3])}")
+
+    if upcoming_earnings:
+        earn_strs = [e["ticker"] + "(" + str(e["days_to_earnings"]) + "d)" for e in upcoming_earnings[:6]]
+        context_lines.append("\nEARNINGS PRÓXIMOS (<10d): " + ", ".join(earn_strs))
+
+    if upcoming_events:
+        context_lines.append("\nEVENTOS ECONÓMICOS (7d):")
+        for ev in upcoming_events[:4]:
+            context_lines.append(f"  - {ev.get('date','')} {ev.get('event','')} [{ev.get('impact','?')}]")
+
+    context_lines.append("\nMACRO PLAYS RULE-BASED:")
+    for p in macro_plays[:4]:
+        context_lines.append(f"  - {p['instrument']} {p.get('direction','')}: {p['thesis'][:80]} (score {p['score']})")
+
+    context_str = "\n".join(context_lines)
+
+    json_schema = '''{
+  "situacion": "1 frase concisa del momento de mercado",
+  "narrativa": "2-3 frases explicando por qué el mercado está así y qué implica para inversores VALUE",
+  "sesgo": "ALCISTA|BAJISTA|DEFENSIVO|NEUTRO|OPORTUNIDAD",
+  "confianza": 0,
+  "acciones_inmediatas": [
+    {
+      "prioridad": 1,
+      "accion": "COMPRAR|VENDER|REDUCIR|ESPERAR|VIGILAR|CUBRIR",
+      "instrumento": "TICKER o nombre ETF",
+      "razon": "razón específica en 1 frase",
+      "catalizador": "qué evento/dato activa esta acción",
+      "size_hint": "pequeña (1-2%)|media (3-4%)|grande (5%+)",
+      "invalidacion": "qué cancelaría esta tesis"
+    }
+  ],
+  "macro_plays_commentary": "1 frase sobre las plays macro del día",
+  "value_en_entorno_razon": "por qué estos tickers VALUE encajan en el régimen actual",
+  "evitar": [{"ticker": "X", "razon": "razón concreta"}],
+  "agenda_semana": [{"fecha": "YYYY-MM-DD", "evento": "desc", "impacto": "ALTO|MEDIO|BAJO", "accion_sugerida": "qué hacer antes/después"}],
+  "mensaje_telegram": "máx 300 chars plan compacto para móvil con emojis sin saltos de línea",
+  "frase_del_dia": "1 frase motivacional de un inversor legendario relevante para el entorno"
+}'''
+
+    prompt = (
+        f"Eres un analista VALUE cuantitativo de alto nivel. Analiza el siguiente contexto de mercado "
+        f"y genera un plan de acción diario EXCLUSIVAMENTE como JSON válido, sin texto adicional, sin markdown.\n\n"
+        f"CONTEXTO:\n{context_str}\n\n"
+        f"Responde ÚNICAMENTE con un objeto JSON con esta estructura exacta:\n{json_schema}"
+    )
+
+    ai_plan: dict | None = None
+    ai_powered = False
+
+    if groq_client:
+        try:
+            r = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=1200,
+                temperature=0.15,
+            )
+            raw_text = r.choices[0].message.content.strip()
+
+            # Try direct JSON parse
+            try:
+                ai_plan = json.loads(raw_text)
+                ai_powered = True
+            except json.JSONDecodeError:
+                # Try extracting JSON block via regex
+                import re
+                match = re.search(r'\{[\s\S]*\}', raw_text)
+                if match:
+                    try:
+                        ai_plan = json.loads(match.group(0))
+                        ai_powered = True
+                    except json.JSONDecodeError:
+                        print("  [daily_plan] JSON extraction failed — usando fallback rule-based")
+        except Exception as e:
+            print(f"  [daily_plan] Groq error: {e}")
+
+    # ── Rule-based fallback ───────────────────────────────────────────────────
+    if ai_plan is None:
+        if composite < -6:
+            sesgo = "BAJISTA"
+        elif composite < -3:
+            sesgo = "DEFENSIVO"
+        elif composite > 3:
+            sesgo = "ALCISTA"
+        else:
+            sesgo = "NEUTRO"
+
+        acciones: list[dict] = []
+        prio = 1
+
+        for play in macro_plays[:3]:
+            acciones.append(dict(
+                prioridad=prio,
+                accion="COMPRAR" if "LONG" in play.get("direction","") else "VIGILAR",
+                instrumento=play["instrument"],
+                razon=play["thesis"][:100],
+                catalizador=play["historical"][:80],
+                size_hint="pequeña (1-2%)",
+                invalidacion=play["risk"][:80],
+            ))
+            prio += 1
+
+        for avoid in avoid_list[:2]:
+            acciones.append(dict(
+                prioridad=prio,
+                accion="VENDER",
+                instrumento=avoid["ticker"],
+                razon=avoid["razon"][:100],
+                catalizador="Señal AVOID activa en Cerebro",
+                size_hint="grande (5%+)",
+                invalidacion="Score Cerebro mejora a neutral",
+            ))
+            prio += 1
+
+        agenda = []
+        for ev in upcoming_events[:4]:
+            agenda.append(dict(
+                fecha=str(ev.get("date","")),
+                evento=str(ev.get("event","")),
+                impacto="ALTO" if str(ev.get("impact","")).upper() == "HIGH" else "MEDIO",
+                accion_sugerida="Reducir riesgo antes / evaluar reacción del mercado después",
+            ))
+
+        top_tickers = " ".join(v["ticker"] for v in value_en_entorno[:3])
+        avoid_tickers = " ".join(a["ticker"] for a in avoid_list[:3])
+
+        ai_plan = dict(
+            situacion=f"Régimen {regime_name}, composite {composite:+.1f}/30. "
+                      f"{len(macro_plays)} plays macro identificadas.",
+            narrativa=(
+                f"El mercado se encuentra en régimen {regime_name} con score {composite:+.1f}. "
+                f"{'Señales de riesgo activas requieren posicionamiento defensivo.' if composite < -3 else 'Contexto permite selección VALUE disciplinada.'} "
+                f"Cerebro detecta {len(avoid_list)} tickers a evitar y {len(squeeze_list)} potenciales short squeezes."
+            ),
+            sesgo=sesgo,
+            confianza=max(30, min(70, 50 + int(abs(composite) * 3))),
+            acciones_inmediatas=acciones[:5],
+            macro_plays_commentary=f"{len(macro_plays)} plays macro rule-based generadas sin IA.",
+            value_en_entorno_razon=f"Tickers VALUE seleccionados para régimen {regime_name}.",
+            evitar=[{"ticker": a["ticker"], "razon": a["razon"][:80]} for a in avoid_list[:5]],
+            agenda_semana=agenda,
+            frase_del_dia="El precio es lo que pagas. El valor es lo que obtienes. — Warren Buffett",
+            mensaje_telegram=(
+                f"🧠 CEREBRO {TODAY} | {regime_name} ({composite:+.1f}) | {sesgo} | "
+                f"VALUE: {top_tickers} | Evitar: {avoid_tickers}"
+            )[:300],
+        )
+
+    # ── Assemble final output ──────────────────────────────────────────────────
+    plan = dict(
+        generated_at=TODAY,
+        macro_regime=regime_name,
+        composite_score=composite,
+        sesgo=str(ai_plan.get("sesgo","NEUTRO")),
+        confianza=int(ai_plan.get("confianza", 50) or 50),
+        situacion=str(ai_plan.get("situacion","")),
+        narrativa=str(ai_plan.get("narrativa","")),
+        acciones_inmediatas=(ai_plan.get("acciones_inmediatas") or [])[:5],
+        macro_plays=macro_plays,
+        macro_plays_commentary=str(ai_plan.get("macro_plays_commentary","")),
+        value_en_entorno=value_en_entorno,
+        value_en_entorno_razon=str(ai_plan.get("value_en_entorno_razon","")),
+        evitar=(ai_plan.get("evitar") or [])[:8],
+        agenda_semana=(ai_plan.get("agenda_semana") or []),
+        frase_del_dia=str(ai_plan.get("frase_del_dia","")),
+        mensaje_telegram=str(ai_plan.get("mensaje_telegram","")),
+        ai_powered=ai_powered,
+    )
+
+    # ── Telegram notification ──────────────────────────────────────────────────
+    tg_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    tg_chat  = os.getenv("TELEGRAM_CHAT_ID")
+    if tg_token and tg_chat:
+        try:
+            acciones_list = plan["acciones_inmediatas"]
+            action_lines = "\n".join(
+                f"{i+1}. {a.get('accion','?')} {a.get('instrumento','?')}: {str(a.get('razon',''))[:60]}"
+                for i, a in enumerate(acciones_list[:3])
+            )
+            value_tks = " ".join(v["ticker"] for v in value_en_entorno[:3]) or "—"
+            evitar_tks= " ".join(e["ticker"] for e in plan["evitar"][:3]) or "—"
+            agenda_next= "; ".join(
+                f"{ev.get('fecha','')} {ev.get('evento','')[:30]}"
+                for ev in plan["agenda_semana"][:2]
+            ) or "—"
+
+            tg_text = (
+                f"🧠 CEREBRO — Plan del Día {TODAY}\n"
+                f"Régimen: {regime_name} ({composite:+.1f}/30) · Sesgo: {plan['sesgo']}\n\n"
+                f"{action_lines}\n\n"
+                f"💎 VALUE en este entorno: {value_tks}\n"
+                f"⚠️ Evitar: {evitar_tks}\n\n"
+                f"📅 Próx: {agenda_next}"
+            )
+
+            import urllib.request
+            import urllib.parse
+            payload = urllib.parse.urlencode({
+                "chat_id": tg_chat,
+                "text":    tg_text,
+                "parse_mode": "HTML",
+            }).encode()
+            req = urllib.request.Request(
+                f"https://api.telegram.org/bot{tg_token}/sendMessage",
+                data=payload, method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=10):
+                pass
+            print("  ✓ Telegram mensaje enviado")
+        except Exception as e:
+            print(f"  [Telegram] {e}")
+
+    sesgo_out = plan["sesgo"]
+    n_acc     = len(plan["acciones_inmediatas"])
+    n_plays   = len(plan["macro_plays"])
+    print(f"  ✓ Daily plan: sesgo={sesgo_out} · {n_acc} acciones · {n_plays} macro plays · AI={ai_powered}")
+    return plan
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -2105,6 +2580,7 @@ def main():
     decay       = scan_quality_decay()
     sector_rv   = scan_sector_relative_value()
     briefing    = generate_personal_briefing(entry_sigs, convergence, alerts, value_traps, exit_sigs, smart_money)
+    daily_plan  = scan_daily_plan(exit_sigs, value_traps, smart_money, squeeze)
 
     save_json(DOCS / "cerebro_insights.json",           insights)
     save_json(DOCS / "cerebro_convergence.json",         convergence)
@@ -2123,6 +2599,7 @@ def main():
     save_json(DOCS / "cerebro_short_squeeze.json",       squeeze)
     save_json(DOCS / "cerebro_quality_decay.json",       decay)
     save_json(DOCS / "cerebro_sector_rv.json",           sector_rv)
+    save_json(DOCS / "cerebro_daily_plan.json",          daily_plan)
 
     # Synthesize per-ticker CSV for pipeline integration
     generate_ticker_signals_csv(
@@ -2148,6 +2625,7 @@ def main():
     print(f"  Sector standouts : {sector_rv.get('total',0)} ({sector_rv.get('rerate_sectors',0)} re-rating sectors)")
     print(f"  Calibration recs : {calibration.get('total_recommendations',0)}")
     print(f"  Weight proposals : {len(tuning.get('adjustments',[]))}")
+    print(f"  Daily plan       : {daily_plan.get('sesgo','?')} · {len(daily_plan.get('acciones_inmediatas',[]))} acciones · {len(daily_plan.get('macro_plays',[]))} plays macro")
     print("=" * 60)
 
 if __name__ == "__main__":

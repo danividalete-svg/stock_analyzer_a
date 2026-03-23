@@ -1337,6 +1337,10 @@ def cerebro_quality_decay():
 def cerebro_sector_rv():
     return jsonify(_load_json(DOCS / 'cerebro_sector_rv.json'))
 
+@app.route('/api/cerebro/daily-plan')
+def cerebro_daily_plan():
+    return jsonify(_load_json(DOCS / 'cerebro_daily_plan.json'))
+
 
 @app.route('/api/market-breadth')
 def market_breadth():

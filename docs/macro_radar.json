@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-03-20T08:27:18.301966",
-  "date": "2026-03-20",
+  "timestamp": "2026-03-23T11:16:51.475584",
+  "date": "2026-03-23",
   "regime": {
     "name": "STRESS",
     "color": "#f59e0b",
@@ -11,162 +11,162 @@
   "max_score": 30,
   "signals": {
     "vix": {
-      "current": 23.76,
-      "percentile": 86.5,
-      "score": -0.5,
-      "change_5d": -12.9,
-      "interpretation": "VIX 23.8 (moderado)",
+      "current": 30.23,
+      "percentile": 96.0,
+      "score": -1.5,
+      "change_5d": 28.6,
+      "interpretation": "VIX 30.2 (alto)",
       "label": "Volatilidad (VIX)",
       "description": "Fear gauge. >30 = stress, >40 = crisis, <15 = complacency"
     },
     "yield_curve": {
-      "current": 66.9,
-      "percentile": 96.7,
-      "score": 0.5,
-      "interpretation": "Spread 2s10s: 67bps (normal)",
+      "current": 77.3,
+      "percentile": 99.6,
+      "score": 1.5,
+      "interpretation": "Spread 2s10s: 77bps (normal)",
       "label": "Curva Tipos (2s10s)",
       "description": "87.5% recession accuracy since 1968. Inversion = -2"
     },
     "credit": {
-      "current": 0.7296,
-      "percentile": 70.5,
+      "current": 0.7318,
+      "percentile": 85.8,
       "score": 2,
-      "change_5d": -0.2,
-      "change_20d": 0.8,
-      "interpretation": "HYG/LQD ratio en p71 (spreads apretados)",
+      "change_5d": -0.1,
+      "change_20d": 1.0,
+      "interpretation": "HYG/LQD ratio en p86 (spreads apretados)",
       "label": "Cr\u00e9dito HY/IG",
       "description": "HY spread >400bps = systemic stress. Ratio compression = risk-off"
     },
     "copper_gold": {
-      "current": 0.0127,
-      "percentile": 11.6,
+      "current": 0.0129,
+      "percentile": 15.0,
       "score": -2,
-      "change_5d": 2.1,
-      "change_20d": 2.2,
-      "interpretation": "Cobre/Oro en p12, subiendo (+2.1% 5d)",
+      "change_5d": 4.2,
+      "change_20d": 3.9,
+      "interpretation": "Cobre/Oro en p15, subiendo (+4.2% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
     },
     "gold_spy": {
-      "current": 0.6463,
-      "percentile": 85.8,
+      "current": 0.6374,
+      "percentile": 84.7,
       "score": -1,
-      "change_5d": -7.8,
-      "change_20d": -3.7,
-      "interpretation": "Oro superando mercado vs SPY (p86)",
+      "change_5d": -8.7,
+      "change_20d": -6.5,
+      "interpretation": "Oro superando mercado vs SPY (p85)",
       "label": "Oro vs Mercado",
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 93.57,
-      "percentile": 97.5,
+      "current": 99.24,
+      "percentile": 99.6,
       "score": -2,
-      "change_5d": -5.2,
-      "change_20d": 40.9,
-      "interpretation": "Petroleo $93.6 (spike geopolitico)",
+      "change_5d": 6.1,
+      "change_20d": 49.7,
+      "interpretation": "Petroleo $99.2 (spike geopolitico)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
     "defense": {
-      "current": 0.3445,
-      "percentile": 89.8,
+      "current": 0.3432,
+      "percentile": 89.1,
       "score": -1,
-      "change_5d": -0.8,
+      "change_5d": -1.1,
       "change_20d": -3.1,
-      "interpretation": "Defensa (ITA) superando vs SPY (p90)",
+      "interpretation": "Defensa (ITA) superando vs SPY (p89)",
       "label": "Defensa vs Mercado",
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 99.29,
-      "percentile": 63.8,
-      "score": 1,
-      "change_5d": -0.45,
-      "change_20d": 1.39,
-      "interpretation": "DXY 99.3 (rango neutro)",
+      "current": 100.1,
+      "percentile": 79.3,
+      "score": 0.5,
+      "change_5d": 0.39,
+      "change_20d": 2.45,
+      "interpretation": "DXY 100.1 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 158.28,
-      "percentile": 95.4,
+      "current": 159.57,
+      "percentile": 98.9,
       "score": 1,
-      "change_5d": -0.58,
-      "change_20d": 2.01,
-      "interpretation": "USD/JPY 158.3 (yen debil (risk-on))",
+      "change_5d": 0.0,
+      "change_20d": 3.39,
+      "interpretation": "USD/JPY 159.6 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
     },
     "breadth": {
-      "current": 659.8,
-      "ma50": 684.71,
-      "ma200": 658.02,
-      "pct_from_200": 0.3,
-      "pct_from_50": -3.6,
+      "current": 648.57,
+      "ma50": 682.06,
+      "ma200": 656.52,
+      "pct_from_200": -1.2,
+      "pct_from_50": -4.9,
       "score": 0,
-      "change_20d": -3.6,
-      "interpretation": "SPY +0.3% vs MA200 (en zona de soporte)",
+      "change_20d": -5.7,
+      "interpretation": "SPY -1.2% vs MA200 (en zona de soporte)",
       "label": "Amplitud Mercado",
       "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
     },
     "skew": {
-      "current": 138.26,
-      "percentile": 16.7,
+      "current": 139.12,
+      "percentile": 19.7,
       "score": -1.5,
-      "change_5d": -1.2,
-      "interpretation": "SKEW 138 (alta demanda put OTM)",
+      "change_5d": 1.0,
+      "interpretation": "SKEW 139 (alta demanda put OTM)",
       "label": "SKEW Index (Tail Risk)",
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
     "vvix": {
-      "current": 118.09,
-      "percentile": 89.5,
+      "current": 126.28,
+      "percentile": 94.5,
       "score": -2,
-      "change_5d": -9.3,
-      "interpretation": "VVIX 118.1 (p89, extrema incertidumbre sobre vol)",
+      "change_5d": -3.6,
+      "interpretation": "VVIX 126.3 (p95, extrema incertidumbre sobre vol)",
       "label": "VVIX (Vol of Vol)",
       "description": "Volatility of VIX. Rising VVIX while VIX is moderate = smart money buying vol insurance. Precedes VIX spikes."
     },
     "regional_banks": {
-      "current": 0.0958,
-      "percentile": 35.3,
-      "score": -0.5,
-      "change_5d": 0.5,
-      "change_20d": -7.7,
-      "interpretation": "KRE/SPY en l\u00ednea (p35, -7.7% 20d)",
+      "current": 0.0972,
+      "percentile": 50.0,
+      "score": 0,
+      "change_5d": 1.7,
+      "change_20d": -7.1,
+      "interpretation": "KRE/SPY en l\u00ednea (p50, -7.1% 20d)",
       "label": "Bancos Regionales (KRE)",
       "description": "KRE vs SPY. Regional banks lead credit stress. SVB was -40% before collapse. Underperformance = systemic risk brewing."
     },
     "small_cap": {
-      "current": 0.3753,
-      "percentile": 86.2,
+      "current": 0.3735,
+      "percentile": 82.1,
       "score": 1.5,
-      "change_5d": 1.2,
-      "change_20d": -2.7,
-      "interpretation": "IWM/SPY superando (risk-on) (p86)",
+      "change_5d": 0.2,
+      "change_20d": -2.8,
+      "interpretation": "IWM/SPY superando (risk-on) (p82)",
       "label": "Small Cap vs Large (IWM)",
       "description": "IWM/SPY ratio. Small caps access credit differently. Divergence = liquidity concentrating = late cycle signal."
     },
     "real_yields": {
-      "current": 1.27,
-      "percentile": 66.2,
+      "current": 1.2842,
+      "percentile": 87.2,
       "score": 1,
-      "change_5d": -0.4,
-      "change_20d": 2.0,
-      "interpretation": "TIP/TLT en p66 (yields reales bajando (favorable))",
+      "change_5d": 0.4,
+      "change_20d": 2.9,
+      "interpretation": "TIP/TLT en p87 (yields reales bajando (favorable))",
       "label": "Yields Reales (TIP/TLT)",
       "description": "TIP vs TLT proxy for real yield direction. Rising real yields crush growth stocks. Perfect 2022 crash signal."
     }
   },
   "errors": [],
-  "ai_narrative": "El r\u00e9gimen de mercado actual muestra signos de estr\u00e9s, con una puntuaci\u00f3n compuesta de -3.5/20. La volatilidad moderada y la curva de tipos normal contrastan con la incertidumbre extrema sobre la volatilidad (VVIX) y la alta demanda de put OTM (SKEW). El principal riesgo es la escalada geopol\u00edtica. Recomendamos una posici\u00f3n defensiva, reduciendo exposici\u00f3n a activos de riesgo.",
+  "ai_narrative": null,
   "historical_analogs": [
     {
       "id": "ukraine_war_2022",
       "name": "Guerra Ucrania",
       "date": "Feb 2022",
       "duration_days": 20,
-      "similarity": 81.7,
+      "similarity": 79.8,
       "outcome": {
         "spy_30d": -8,
         "spy_90d": -15,
@@ -175,12 +175,12 @@
       },
       "key_difference": "Geopol\u00edtica + inflaci\u00f3n estructural. No fue shock temporal \u2014 dio paso al ciclo bajista completo.",
       "closest_signals": [
+        "regional_banks",
         "oil",
-        "real_yields",
         "gold_spy"
       ],
       "diverging_signals": [
-        "copper_gold",
+        "credit",
         "small_cap"
       ]
     },
@@ -189,7 +189,7 @@
       "name": "Mercado Bajista 2022",
       "date": "Ene-Dic 2022",
       "duration_days": 280,
-      "similarity": 72.7,
+      "similarity": 67.8,
       "outcome": {
         "spy_30d": -8,
         "spy_90d": -18,
@@ -198,13 +198,13 @@
       },
       "key_difference": "Impulsado por yields reales al alza. Las growth stocks sufrieron m\u00e1s.",
       "closest_signals": [
-        "regional_banks",
         "defense",
+        "regional_banks",
         "oil"
       ],
       "diverging_signals": [
-        "real_yields",
-        "small_cap"
+        "credit",
+        "real_yields"
       ]
     },
     {
@@ -212,7 +212,7 @@
       "name": "Desaceleraci\u00f3n China",
       "date": "Ago 2015",
       "duration_days": 45,
-      "similarity": 68.0,
+      "similarity": 63.6,
       "outcome": {
         "spy_30d": -11,
         "spy_90d": -5,
@@ -222,8 +222,8 @@
       "key_difference": "Cobre/Oro muy bajo = preocupaci\u00f3n recesi\u00f3n global. Correcci\u00f3n sin crisis bancaria.",
       "closest_signals": [
         "copper_gold",
-        "vix",
-        "regional_banks"
+        "regional_banks",
+        "vix"
       ],
       "diverging_signals": [
         "small_cap",
@@ -237,32 +237,24 @@
       "name": "Escalada Geopol\u00edtica",
       "severity": "HIGH",
       "color": "#ef4444",
-      "description": "Defensa (ITA) en p90 + petr\u00f3leo +41% (20d). Institucionales rotando a sectores de guerra.",
+      "description": "Defensa (ITA) en p89 + petr\u00f3leo +50% (20d). Institucionales rotando a sectores de guerra.",
       "implication": "Reducir c\u00edclicos. Energ\u00eda y defensa como cobertura parcial."
-    },
-    {
-      "id": "recession_signal",
-      "name": "Se\u00f1al de Recesi\u00f3n (Dr. Copper)",
-      "severity": "HIGH",
-      "color": "#f97316",
-      "description": "Cobre/Oro en p12 \u2014 el mercado descuenta contracci\u00f3n econ\u00f3mica global.",
-      "implication": "Sobreponderar defensivos: consumer staples, healthcare, utilities."
     },
     {
       "id": "vol_regime",
       "name": "Cambio de R\u00e9gimen de Volatilidad",
       "severity": "HIGH",
       "color": "#f97316",
-      "description": "VVIX p90 + SKEW 138 \u2014 institucionales comprando seguro tail risk masivamente.",
+      "description": "VVIX p94 + SKEW 139 \u2014 institucionales comprando seguro tail risk masivamente.",
       "implication": "Reducir apalancamiento. Puts como cobertura eficiente vs caro en vol alta."
     },
     {
-      "id": "safe_haven_rotation",
-      "name": "Rotaci\u00f3n a Activos Refugio",
-      "severity": "MEDIUM",
-      "color": "#f59e0b",
-      "description": "Oro supera al mercado en p86 \u2014 capital saliendo de renta variable hacia activos seguros.",
-      "implication": "El smart money est\u00e1 reduciendo riesgo. Se\u00f1al de cautela para nuevas entradas."
+      "id": "vix_spike",
+      "name": "Spike de Volatilidad",
+      "severity": "HIGH",
+      "color": "#ef4444",
+      "description": "VIX 30 (+29% en 5d) \u2014 m\u00e1ximo miedo de corto plazo.",
+      "implication": "Momento de m\u00e1ximo miedo = posible punto de entrada value si los fundamentales no han cambiado."
     }
   ],
   "signal_order": [
