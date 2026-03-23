@@ -192,13 +192,6 @@ jobs:
         continue-on-error: true
         run: python3 vcp_scanner_usa.py --sp500 --parallel || echo "VCP Scanner failed"
 
-      - name: ML Scoring
-        continue-on-error: true
-        run: python3 ml_scoring.py || echo "ML scoring failed"
-
-      - name: Update 5D Data Enrichment
-        continue-on-error: true
-        run: python3 enrich_5d.py || echo "5D enrichment failed"
 
       - name: Trading Analysis (Ultra Enhanced)
         continue-on-error: true
