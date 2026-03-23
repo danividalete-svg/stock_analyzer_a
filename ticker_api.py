@@ -44,7 +44,12 @@ from pathlib import Path
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=[
+    "https://tantancansado.github.io",
+    "http://localhost:5173",
+    "http://localhost:4173",
+    "http://127.0.0.1:5173",
+])
 
 # ─────────────────────────────────────────────────────────────────────────────
 # JWT AUTH (Supabase — JWKS, works with ECC P-256 and legacy HS256)
@@ -1025,11 +1030,9 @@ def analyze(ticker):
 
     except Exception as e:
         import traceback
-        tb = traceback.format_exc()
-        print(f"ERROR en /api/analyze/{ticker}: {e}\n{tb}")
+        print(f"ERROR en /api/analyze/{ticker}: {e}\n{traceback.format_exc()}")
         return jsonify({
-            "error": str(e),
-            "traceback": tb,
+            "error": "Internal server error",
             "ticker": ticker,
         }), 500
 
@@ -2594,10 +2597,16 @@ def options_chain(ticker: str):
     import yfinance as _yf, json as _json, os as _os, re as _re, math as _math
     from datetime import datetime as _dt
 
-    ticker    = ticker.upper().strip()
-    cur_price = float(request.args.get('price', 0) or 0)
-    pl_pct    = float(request.args.get('pl', 0) or 0)
-    upside    = float(request.args.get('upside', 0) or 0)
+    def _safe_float(val, default=0.0):
+        try:
+            return float(val or default)
+        except (TypeError, ValueError):
+            return default
+
+    ticker    = ticker.upper().strip()[:10]
+    cur_price = _safe_float(request.args.get('price'), 0.0)
+    pl_pct    = _safe_float(request.args.get('pl'), 0.0)
+    upside    = _safe_float(request.args.get('upside'), 0.0)
     action    = request.args.get('action', 'MANTENER')
     conviction= request.args.get('conviction', 'MEDIA')
     thesis    = (request.args.get('thesis', '') or '')[:800]   # AI analysis text
@@ -2864,10 +2873,7 @@ def live_prices():
 
         for key, (sym, label, kind) in TICKERS.items():
             try:
-                try:
-                    closes = raw[sym]['Close'].dropna()
-                except Exception:
-                    closes = raw['Close'].dropna()
+                closes = raw[sym]['Close'].dropna()
 
                 if closes is None or len(closes) < 1:
                     result[key] = {'symbol': sym, 'label': label, 'kind': kind,

@@ -351,7 +351,7 @@ jobs:
           git commit -m "chore: Daily full pipeline - ${SCAN_DATE}" \
             -m "Automated via GitHub Actions" || echo "No changes to commit"
 
-          git push || echo "Push failed"
+          git pull --rebase origin main && git push || echo "Push failed"
 
       - name: Trigger GitHub Pages Deployment
         if: always()
