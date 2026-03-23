@@ -1325,6 +1325,18 @@ def cerebro_stress_test():
 def cerebro_briefing():
     return jsonify(_load_json(DOCS / 'cerebro_briefing.json'))
 
+@app.route('/api/cerebro/short-squeeze')
+def cerebro_short_squeeze():
+    return jsonify(_load_json(DOCS / 'cerebro_short_squeeze.json'))
+
+@app.route('/api/cerebro/quality-decay')
+def cerebro_quality_decay():
+    return jsonify(_load_json(DOCS / 'cerebro_quality_decay.json'))
+
+@app.route('/api/cerebro/sector-rv')
+def cerebro_sector_rv():
+    return jsonify(_load_json(DOCS / 'cerebro_sector_rv.json'))
+
 
 @app.route('/api/market-breadth')
 def market_breadth():

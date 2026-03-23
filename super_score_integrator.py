@@ -1244,6 +1244,38 @@ class SuperScoreIntegrator:
 
         df['value_score'] = df['value_score'].clip(lower=0, upper=100)
 
+        # ── Cerebro IA adjustment (Phase 2) ───────────────────────────────────
+        cerebro_csv = Path("docs/cerebro_ticker_signals.csv")
+        if cerebro_csv.exists():
+            try:
+                cerebro_df = pd.read_csv(cerebro_csv)
+                if not cerebro_df.empty and "ticker" in cerebro_df.columns:
+                    adj_map = dict(zip(
+                        cerebro_df["ticker"].str.upper(),
+                        pd.to_numeric(cerebro_df["cerebro_score_adj"], errors="coerce").fillna(0)
+                    ))
+                    sig_map = dict(zip(
+                        cerebro_df["ticker"].str.upper(),
+                        cerebro_df["cerebro_signal"].fillna("")
+                    ))
+                    def apply_cerebro(row):
+                        t   = str(row.get("ticker","")).upper()
+                        adj = adj_map.get(t, 0)
+                        sig = sig_map.get(t, "")
+                        if sig == "AVOID":
+                            return 0.0   # Hard reject — value trap HIGH
+                        return max(0.0, min(100.0, float(row["value_score"]) + adj))
+                    df["value_score"]      = df.apply(apply_cerebro, axis=1)
+                    df["cerebro_signal"]   = df["ticker"].str.upper().map(sig_map).fillna("")
+                    df["cerebro_score_adj"]= df["ticker"].str.upper().map(adj_map).fillna(0)
+                    avoid_n  = (df["cerebro_signal"] == "AVOID").sum()
+                    exit_n   = (df["cerebro_signal"] == "EXIT").sum()
+                    confirm_n= (df["cerebro_signal"] == "CONFIRM").sum()
+                    print(f"🧠 Cerebro IA applied: {avoid_n} AVOID · {exit_n} EXIT · {confirm_n} CONFIRM")
+            except Exception as e:
+                print(f"⚠️  Cerebro CSV load failed (skipping): {e}")
+        # ──────────────────────────────────────────────────────────────────────
+
         value_top = int((df['value_score'] >= 60).sum())
         value_avg = df['value_score'].mean()
         print(f"✅ Value score ≥60: {value_top}/{len(df)} ({value_top/len(df)*100:.1f}%)")

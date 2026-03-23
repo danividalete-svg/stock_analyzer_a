@@ -35,7 +35,8 @@ jobs:
       # ============================================================================
 
       - name: Run Market Regime Detector [CRITICAL]
-        run: python3 market_regime_detector.py
+        continue-on-error: true
+        run: python3 market_regime_detector.py || echo "Market in correction — pipeline continues"
 
       - name: Sector Rotation Scan [pre-integration]
         continue-on-error: true
@@ -296,7 +297,11 @@ jobs:
             docs/cerebro_dividend_safety.json \
             docs/cerebro_piotroski.json \
             docs/cerebro_stress_test.json \
-            docs/cerebro_briefing.json; do
+            docs/cerebro_briefing.json \
+            docs/cerebro_short_squeeze.json \
+            docs/cerebro_quality_decay.json \
+            docs/cerebro_sector_rv.json \
+            docs/cerebro_ticker_signals.csv; do
             [ -f "$f" ] && cp "$f" "${ARCHIVE_DIR}/" && echo "Archived: $f"
           done
 

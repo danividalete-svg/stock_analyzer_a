@@ -17,6 +17,22 @@ class ThesisGenerator:
         self.csv_5d = None
         self.vcp_data = None
         self.ai_client = None
+        # Load Cerebro IA per-ticker signals (optional — silently skip if missing)
+        self._cerebro_map: dict = {}
+        cerebro_csv = Path("docs/cerebro_ticker_signals.csv")
+        if cerebro_csv.exists():
+            try:
+                cdf = pd.read_csv(cerebro_csv)
+                for _, r in cdf.iterrows():
+                    t = str(r.get("ticker", "")).upper()
+                    self._cerebro_map[t] = {
+                        "signal":    str(r.get("cerebro_signal", "")),
+                        "score_adj": r.get("cerebro_score_adj", 0),
+                        "reason":    str(r.get("cerebro_reason", "")),
+                    }
+                print(f"✅ Cerebro IA signals loaded: {len(self._cerebro_map)} tickers")
+            except Exception:
+                pass
         if use_ai:
             try:
                 import os
@@ -495,6 +511,23 @@ class ThesisGenerator:
 
         return catalysts
 
+    def _cerebro_context(self, ticker: str) -> str:
+        """Returns a Cerebro IA context block for the AI prompt, or empty string."""
+        c = self._cerebro_map.get(str(ticker).upper())
+        if not c or not c.get("signal"):
+            return ""
+        signal   = c["signal"]
+        adj      = c["score_adj"]
+        reason   = c["reason"]
+        adj_str  = f"+{adj}" if adj > 0 else str(adj)
+        return (
+            f"\nCEREBRO IA (sistema de agentes proactivo):\n"
+            f"- Señal: {signal} (ajuste score: {adj_str} pts)\n"
+            f"- Razones detectadas: {reason}\n"
+            f"- IMPORTANTE: si la señal es AVOID o EXIT, destaca los riesgos en la conclusión.\n"
+            f"  Si es CONFIRM o WATCH, refuerza la tesis con esta confluencia de señales.\n"
+        )
+
     def _generate_narrative(self, row, vcp_row):
         """Genera la narrativa/tesis escrita — adaptada al tipo de oportunidad"""
         source = row.get('_source', '5d')
@@ -574,7 +607,7 @@ CONTEXTO MERCADO:
 - Flujo opciones: {_fmt(row.get('sentiment'))}
 - Bonus sector rotation: {float(row.get('tier_boost', 0) or 0):.1f}
 - Señal mean reversion: {float(row.get('mr_bonus', 0) or 0) > 0}
-
+{self._cerebro_context(ticker)}
 Eres un analista de inversión value/GARP profesional (estilo Peter Lynch).
 Escribe una tesis de inversión breve y accionable en español basada EXCLUSIVAMENTE en los datos anteriores.
 

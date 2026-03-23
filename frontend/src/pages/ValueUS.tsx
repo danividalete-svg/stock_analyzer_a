@@ -458,6 +458,9 @@ export default function ValueUS() {
                         exitInfo={cerebro.exitMap[d.ticker]}
                         divInfo={cerebro.divMap[d.ticker]}
                         piotrInfo={cerebro.piotrMap[d.ticker]}
+                        squeezeInfo={cerebro.squeezeMap[d.ticker]}
+                        decayInfo={cerebro.decayMap[d.ticker]}
+                        sectorInfo={cerebro.sectorMap[d.ticker]}
                       />
                     </div>
                   </TableCell>

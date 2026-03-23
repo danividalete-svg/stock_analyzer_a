@@ -1,0 +1,143 @@
+ticker,cerebro_signal,cerebro_score_adj,cerebro_reason,updated_at
+ADMQ,CAUTION,-11,Value trap MEDIUM: FCF negativo (-77.2%) — quema caja pese a valuación barata | Caro vs peers en Industrials (FCF rank 34/34),2026-03-21
+ADS.DE,CAUTION,-11,"Señal salida MEDIUM: Earnings en 5d — alta incertidumbre, considera reducir | Caro vs peers en Consumer Cyclical (FCF rank 13/13)",2026-03-21
+AHT.L,BEST,5,Mejor FCF en Industrials (15.4% vs media sector 2.4%),2026-03-21
+AI.PA,WATCH,-3,Caro vs peers en Basic Materials (FCF rank 12/13),2026-03-21
+AIR.PA,CAUTION,-11,Value trap MEDIUM: FCF negativo (-0.8%) — quema caja pese a valuación barata | Caro vs peers en Industrials (FCF rank 30/34),2026-03-21
+AKZA.AS,BEST,5,Mejor FCF en Basic Materials (9.0% vs media sector 5.2%),2026-03-21
+ALIT,CONFIRM,8,Smart money: 1 HF + 2 insiders (conv 35),2026-03-21
+ALLY,CONFIRM,8,Smart money: 1 HF + 2 insiders (conv 45),2026-03-21
+AMH,WATCH,3,Piotroski fuerte (8.0/9),2026-03-21
+AMS.MC,CAUTION,-8,"Señal salida MEDIUM: Earnings en 0d — alta incertidumbre, considera reducir",2026-03-21
+AMTB,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+APG,WATCH,3,Piotroski fuerte (9.0/9),2026-03-21
+ASML.AS,WATCH,-3,Caro vs peers en Technology (FCF rank 10/11),2026-03-21
+ATEX,AVOID,-17,Value trap HIGH (score 7/10): Piotroski muy débil (2/9) — calidad financiera en deterioro | Caro vs peers en Communication Services (FCF rank 7/7) | Short squeeze MEDIUM: 14.3% short · Short moderado (14.3% del float); Insiders comprando — contradice tesis bajista,2026-03-21
+ATLO,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+ATO.PA,BEST,5,Mejor FCF en Technology (59.3% vs media sector 16.0%),2026-03-21
+BATRK,CONFIRM,8,Smart money: 1 HF + 1 insiders (conv 25),2026-03-21
+BDL,BEST,8,Piotroski fuerte (9.0/9) | Mejor FCF en Consumer Cyclical (100.0% vs media sector 16.7%),2026-03-21
+BFST,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+BMW.DE,BEST,5,Mejor FCF en Consumer Cyclical (64.1% vs media sector 16.7%),2026-03-21
+BN.PA,BEST,5,Mejor FCF en Consumer Defensive (5.3% vs media sector 4.4%),2026-03-21
+BUKS,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+CCFN,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+CCNE,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+CHUC,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+CMPR,BEST,5,Mejor FCF en Industrials (10.6% vs media sector 2.4%),2026-03-21
+CNK,WATCH,6,Short squeeze MEDIUM: 15.1% short · Short elevado (15.1% del float); Insiders comprando — contradice tesis bajista,2026-03-21
+CNS,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+CR,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+CWBC,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+CWT,CAUTION,-11,Value trap MEDIUM: FCF negativo (-10.9%) — quema caja pese a valuación barata | Caro vs peers en Utilities (FCF rank 5/5),2026-03-21
+DLX,BEST,5,Mejor FCF en Industrials (15.7% vs media sector 2.4%),2026-03-21
+DOMH,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+EML,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+ENG.MC,BEST,5,Mejor FCF en Utilities (6.0% vs media sector -0.9%),2026-03-21
+ENR,BEST,5,Mejor FCF en Industrials (15.2% vs media sector 2.4%),2026-03-21
+EXEL,WATCH,6,Short squeeze MEDIUM: 14.2% short · Short moderado (14.2% del float); Piotroski 6/9 — calidad mejorando,2026-03-21
+EXP,WATCH,-3,Caro vs peers en Basic Materials (FCF rank 11/13),2026-03-21
+FAST,WATCH,0,Caro vs peers en Industrials (FCF rank 28/34) | Piotroski fuerte (8.0/9),2026-03-21
+FCNCA,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+FIGR,WATCH,2,"Caro vs peers en Financial Services (FCF rank 17/18) | Piotroski IMPROVING (2.0 → 6.0, Δ+4)",2026-03-21
+FME.DE,BEST,5,Mejor FCF en Healthcare (13.7% vs media sector 4.3%),2026-03-21
+FPI,CAUTION,-11,Value trap MEDIUM: FCF negativo (-9.4%) — quema caja pese a valuación barata | Caro vs peers en Real Estate (FCF rank 10/11),2026-03-21
+FTAI,CAUTION,-11,Value trap MEDIUM: FCF negativo (-3.1%) — quema caja pese a valuación barata | Caro vs peers en Industrials (FCF rank 32/34),2026-03-21
+FUNC,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+GABC,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+GBLI,CAUTION,-3,Value trap MEDIUM: Piotroski débil (3/9) | Mejor FCF en Financial Services (66.1% vs media sector 3.1%),2026-03-21
+GCBC,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+GLEN.L,BEST,5,Mejor FCF en Basic Materials (9.9% vs media sector 5.2%),2026-03-21
+GOOD,BEST,5,Mejor FCF en Real Estate (12.1% vs media sector -0.8%),2026-03-21
+GPK,CONFIRM,8,Smart money: 1 HF + 2 insiders (conv 35),2026-03-21
+GRF.MC,BEST,5,Mejor FCF en Healthcare (10.3% vs media sector 4.3%),2026-03-21
+HHH,CONFIRM,13,Smart money: 1 HF + 2 insiders (conv 49) | Mejor FCF en Real Estate (12.8% vs media sector -0.8%),2026-03-21
+HKHC,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+HNR1.DE,BEST,5,Mejor FCF en Financial Services (10.8% vs media sector 3.1%),2026-03-21
+HOLN.SW,CAUTION,-3,"Señal salida MEDIUM: Earnings en 0d — alta incertidumbre, considera reducir | Mejor FCF en Basic Materials (10.3% vs media sector 5.2%)",2026-03-21
+HQI,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+IMB.L,BEST,5,Mejor FCF en Consumer Defensive (9.6% vs media sector 4.4%),2026-03-21
+IMCD.AS,BEST,5,Mejor FCF en Basic Materials (6.6% vs media sector 5.2%),2026-03-21
+INR,CAUTION,-8,Value trap MEDIUM: FCF negativo (-56.5%) — quema caja pese a valuación barata | Caro vs peers en Energy (FCF rank 10/10) | Piotroski fuerte (7.0/9),2026-03-21
+INSE,BEST,5,Mejor FCF en Consumer Cyclical (15.3% vs media sector 16.7%),2026-03-21
+IT,WATCH,6,Short squeeze MEDIUM: 12.5% short · Short moderado (12.5% del float); Insiders comprando — contradice tesis bajista,2026-03-21
+J,BEST,8,Piotroski fuerte (7.0/9) | Mejor FCF en Industrials (7.2% vs media sector 2.4%),2026-03-21
+LAND.L,CAUTION,-13,"Value trap MEDIUM: FCF negativo (-4.3%) — quema caja pese a valuación barata | Dividendo AT RISK (yield 11.6%, safety 25)",2026-03-21
+LB,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+LOB,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+LONN.SW,CAUTION,-11,Value trap MEDIUM: FCF negativo (-8.6%) — quema caja pese a valuación barata | Caro vs peers en Healthcare (FCF rank 14/15),2026-03-21
+LPX,CONFIRM,8,Smart money: 1 HF + 1 insiders (conv 25),2026-03-21
+LYFT,CAUTION,3,Value trap MEDIUM: Piotroski débil (4/9) | Short squeeze MEDIUM: 17.1% short · Short elevado (17.1% del float); Insiders comprando — contradice tesis bajista | Mejor FCF en Technology (22.3% vs media sector 16.0%),2026-03-21
+MCY,BEST,5,Mejor FCF en Financial Services (51.8% vs media sector 3.1%),2026-03-21
+MDBH,CAUTION,-8,Value trap MEDIUM: Piotroski débil (3/9),2026-03-21
+MDLN,WATCH,-3,Caro vs peers en Healthcare (FCF rank 13/15),2026-03-21
+MMLP,BEST,5,Mejor FCF en Energy (32.6% vs media sector -1.8%),2026-03-21
+MNDI.L,WATCH,-3,Caro vs peers en Basic Materials (FCF rank 13/13),2026-03-21
+MNR,CAUTION,-16,"Value trap MEDIUM: Piotroski débil (4/9) | Dividendo AT RISK (yield 14.1%, safety 25) | Caro vs peers en Energy (FCF rank 9/10)",2026-03-21
+MRK.DE,CAUTION,-8,"Señal salida MEDIUM: Earnings en 6d — alta incertidumbre, considera reducir",2026-03-21
+MRP,CAUTION,-16,"Value trap MEDIUM: FCF negativo (-74.2%) — quema caja pese a valuación barata | Dividendo AT RISK (yield 8.8%, safety 10) | Caro vs peers en Real Estate (FCF rank 11/11)",2026-03-21
+MSFT,WATCH,-3,Caro vs peers en Technology (FCF rank 11/11),2026-03-21
+MTDR,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+MTX.DE,CAUTION,-11,Value trap MEDIUM: FCF negativo (-4.2%) — quema caja pese a valuación barata | Caro vs peers en Industrials (FCF rank 33/34),2026-03-21
+MWA,WATCH,3,Piotroski fuerte (8.0/9),2026-03-21
+NAN,CONFIRM,8,Smart money: 2 HF + 1 insiders (conv 40),2026-03-21
+NBTB,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+NEWT,AVOID,-31,Value trap HIGH (score 7/10): Piotroski muy débil (2/9) — calidad financiera en deterioro | Señal salida MEDIUM: Score cayó 18pts (60 → 42) | Caro vs peers en Financial Services (FCF rank 18/18),2026-03-21
+NGS,CAUTION,-5,Value trap MEDIUM: FCF negativo (-13.9%) — quema caja pese a valuación barata | Piotroski fuerte (8.0/9),2026-03-21
+NIC,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+NLCP,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+NOG,CAUTION,1,"Dividendo AT RISK (yield 6.3%, safety 30) | Short squeeze MEDIUM: 30.7% short · Short muy alto (30.7% del float); Piotroski 6/9 — calidad mejorando",2026-03-21
+NP,WATCH,3,Caro vs peers en Financial Services (FCF rank 16/18) | Short squeeze MEDIUM: 15.3% short · Short elevado (15.3% del float); Insiders comprando — contradice tesis bajista,2026-03-21
+NRIM,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+NSC,WATCH,-3,Caro vs peers en Industrials (FCF rank 27/34),2026-03-21
+NTGY.MC,BEST,5,Mejor FCF en Utilities (5.0% vs media sector -0.9%),2026-03-21
+OHI,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+OR.PA,WATCH,-3,Caro vs peers en Consumer Defensive (FCF rank 10/12),2026-03-21
+P911.DE,BEST,5,Mejor FCF en Consumer Cyclical (9.1% vs media sector 16.7%),2026-03-21
+PACS,WATCH,3,Piotroski fuerte (8.0/9),2026-03-21
+PGHN.SW,WATCH,-3,Caro vs peers en Financial Services (FCF rank 15/18),2026-03-21
+PKBK,WATCH,5,"Piotroski IMPROVING (4.0 → 7.0, Δ+3)",2026-03-21
+POOL,CONFIRM,8,Smart money: 1 HF + 2 insiders (conv 35),2026-03-21
+PRIM,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+PROP,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+PRX.AS,WATCH,-3,Caro vs peers en Consumer Cyclical (FCF rank 11/13),2026-03-21
+PSON.L,CAUTION,-3,"Señal salida MEDIUM: Earnings en 0d — alta incertidumbre, considera reducir | Mejor FCF en Communication Services (13.3% vs media sector 5.3%)",2026-03-21
+PUB.PA,BEST,5,Mejor FCF en Communication Services (8.6% vs media sector 5.3%),2026-03-21
+RAND.AS,BEST,5,Mejor FCF en Industrials (15.7% vs media sector 2.4%),2026-03-21
+RBKB,WATCH,5,"Piotroski IMPROVING (4.0 → 7.0, Δ+3)",2026-03-21
+RCKY,WATCH,0,Caro vs peers en Consumer Cyclical (FCF rank 12/13) | Piotroski fuerte (8.0/9),2026-03-21
+RHM.DE,WATCH,-3,Caro vs peers en Industrials (FCF rank 29/34),2026-03-21
+RI.PA,BEST,5,Mejor FCF en Consumer Defensive (7.8% vs media sector 4.4%),2026-03-21
+RLI,BEST,5,Mejor FCF en Financial Services (21.8% vs media sector 3.1%),2026-03-21
+RRBI,WATCH,5,"Piotroski SLIGHT_UP (5.0 → 6.0, Δ+1)",2026-03-21
+RWE.DE,CAUTION,-8,Value trap MEDIUM: FCF negativo (-5.9%) — quema caja pese a valuación barata,2026-03-21
+SAF.PA,CAUTION,-11,Value trap MEDIUM: FCF negativo (-1.2%) — quema caja pese a valuación barata | Caro vs peers en Industrials (FCF rank 31/34),2026-03-21
+SAMG,BEST,8,Piotroski fuerte (7.0/9) | Mejor FCF en Financial Services (10.7% vs media sector 3.1%),2026-03-21
+SAN.PA,BEST,5,Mejor FCF en Healthcare (17.0% vs media sector 4.3%),2026-03-21
+SEI,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+SGO.PA,BEST,5,Mejor FCF en Industrials (6.7% vs media sector 2.4%),2026-03-21
+SGU,CAUTION,0,Value trap MEDIUM: Fundamental score cerca de default (50) — datos poco fiables | Piotroski fuerte (8.0/9) | Mejor FCF en Energy (9.7% vs media sector -1.8%),2026-03-21
+SHBI,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+SHEL.L,BEST,5,Mejor FCF en Energy (12.7% vs media sector -1.8%),2026-03-21
+SIE.DE,CAUTION,-8,Señal salida MEDIUM: Score cayó 15pts (51 → 36),2026-03-21
+SMBK,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+SPGI,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+STKL,CAUTION,-8,Value trap MEDIUM: FCF negativo (-0.8%) — quema caja pese a valuación barata | Caro vs peers en Consumer Defensive (FCF rank 12/12) | Piotroski fuerte (9.0/9),2026-03-21
+STRW,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+SUNS,CAUTION,-8,Señal salida MEDIUM: Score cayó 19pts (56 → 36),2026-03-21
+SY1.DE,CAUTION,-8,"Señal salida MEDIUM: Earnings en 5d — alta incertidumbre, considera reducir",2026-03-21
+TBBK,WATCH,6,Short squeeze MEDIUM: 11.1% short · Short moderado (11.1% del float); Insiders comprando — contradice tesis bajista,2026-03-21
+TBRG,BEST,5,Mejor FCF en Healthcare (13.9% vs media sector 4.3%),2026-03-21
+TCBI,WATCH,3,Piotroski fuerte (7.0/9),2026-03-21
+TEP.PA,BEST,5,Mejor FCF en Industrials (9.6% vs media sector 2.4%),2026-03-21
+THRY,CAUTION,3,Quality decay MEDIUM: FCF yield cayó 4.1pp (60.0% → 55.9%) | Short squeeze MEDIUM: 11.6% short · Short moderado (11.6% del float); Insiders comprando — contradice tesis bajista | Mejor FCF en Technology (55.9% vs media sector 16.0%),2026-03-21
+TPC,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21
+UBER,CONFIRM,8,Smart money: 1 HF + 1 insiders (conv 25),2026-03-21
+ULVR.L,BEST,5,Mejor FCF en Consumer Defensive (5.5% vs media sector 4.4%),2026-03-21
+UMH,CAUTION,-2,"Dividendo AT RISK (yield 6.2%, safety 30) | Piotroski fuerte (7.0/9)",2026-03-21
+UTI,WATCH,0,Caro vs peers en Consumer Defensive (FCF rank 11/12) | Piotroski fuerte (7.0/9),2026-03-21
+VNA.DE,BEST,5,Mejor FCF en Real Estate (16.0% vs media sector -0.8%),2026-03-21
+VTRS,CONFIRM,8,Smart money: 1 HF + 1 insiders (conv 25),2026-03-21
+VXRT,CAUTION,-11,Value trap MEDIUM: FCF negativo (-19.8%) — quema caja pese a valuación barata | Caro vs peers en Healthcare (FCF rank 15/15),2026-03-21
+WKL.AS,BEST,5,Mejor FCF en Industrials (6.8% vs media sector 2.4%),2026-03-21
+WMG,EXIT,-15,Señal salida HIGH: Ya no aparece en VALUE — tesis posiblemente rota,2026-03-21

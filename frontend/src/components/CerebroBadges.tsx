@@ -1,15 +1,18 @@
-import type { TrapInfo, SmartInfo, ExitInfo, DivRiskInfo, PiotrInfo } from '../hooks/useCerebroSignals'
+import type { TrapInfo, SmartInfo, ExitInfo, DivRiskInfo, PiotrInfo, SqueezeInfo, DecayInfo, SectorRVInfo } from '../hooks/useCerebroSignals'
 
 interface Props {
-  trapInfo?:  TrapInfo
-  smInfo?:    SmartInfo
-  exitInfo?:  ExitInfo
-  divInfo?:   DivRiskInfo
-  piotrInfo?: PiotrInfo
+  trapInfo?:    TrapInfo
+  smInfo?:      SmartInfo
+  exitInfo?:    ExitInfo
+  divInfo?:     DivRiskInfo
+  piotrInfo?:   PiotrInfo
+  squeezeInfo?: SqueezeInfo
+  decayInfo?:   DecayInfo
+  sectorInfo?:  SectorRVInfo
 }
 
-export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, piotrInfo }: Props) {
-  if (!trapInfo && !smInfo && !exitInfo && !divInfo && !piotrInfo) return null
+export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, piotrInfo, squeezeInfo, decayInfo, sectorInfo }: Props) {
+  if (!trapInfo && !smInfo && !exitInfo && !divInfo && !piotrInfo && !squeezeInfo && !decayInfo && !sectorInfo) return null
 
   return (
     <div className="flex items-center gap-0.5 flex-wrap mt-0.5">
@@ -28,6 +31,20 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
         </span>
       )}
 
+      {/* QUALITY DECAY — early warning before trap */}
+      {decayInfo && (
+        <span
+          title={`Quality decay ${decayInfo.severity}: ${decayInfo.flags.slice(0, 2).join(' · ')}`}
+          className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide ${
+            decayInfo.severity === 'HIGH'
+              ? 'bg-orange-500/20 text-orange-400 border-orange-500/35'
+              : 'bg-amber-500/15 text-amber-400 border-amber-500/25'
+          }`}
+        >
+          ↘ DECAY
+        </span>
+      )}
+
       {/* TRAP — value trap warning */}
       {trapInfo && (
         <span
@@ -42,6 +59,20 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
         </span>
       )}
 
+      {/* SQUEEZE — short squeeze setup */}
+      {squeezeInfo && (
+        <span
+          title={`Short squeeze ${squeezeInfo.severity}: ${squeezeInfo.short_pct_float.toFixed(1)}% short · ${squeezeInfo.flags.slice(0, 2).join(' · ')}`}
+          className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide ${
+            squeezeInfo.severity === 'HIGH'
+              ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+              : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/25'
+          }`}
+        >
+          ↑ SQZ
+        </span>
+      )}
+
       {/* SMART MONEY — hedge funds + insiders buying */}
       {smInfo && (
         <span
@@ -49,6 +80,24 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
           className="inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide bg-purple-500/20 text-purple-300 border-purple-500/35"
         >
           ◆ SMART$
+        </span>
+      )}
+
+      {/* BEST IN SECTOR / PRICEY VS PEERS */}
+      {sectorInfo && (
+        <span
+          title={
+            sectorInfo.label === 'BEST_IN_SECTOR'
+              ? `Mejor FCF en ${sectorInfo.sector}: rank ${sectorInfo.fcf_rank}/${sectorInfo.fcf_rank_of} (${sectorInfo.fcf_yield_pct.toFixed(1)}% FCF yield)`
+              : `Caro vs peers en ${sectorInfo.sector}: rank ${sectorInfo.fcf_rank}/${sectorInfo.fcf_rank_of}`
+          }
+          className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide ${
+            sectorInfo.label === 'BEST_IN_SECTOR'
+              ? 'bg-teal-500/15 text-teal-400 border-teal-500/30'
+              : 'bg-slate-500/15 text-slate-400 border-slate-500/25'
+          }`}
+        >
+          {sectorInfo.label === 'BEST_IN_SECTOR' ? '★ BEST' : '↑ PRICEY'}
         </span>
       )}
 

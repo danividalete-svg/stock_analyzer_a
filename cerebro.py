@@ -366,6 +366,42 @@ def generate_alerts(convergence: dict) -> dict:
                         f"Señal persistente de alta convicción.",
                 date=TODAY, data=dict(streak_days=c["streak_days"], strategies=c["strategies"])))
 
+    # ── VALUE_CONTRADICTION — Cerebro signal contradicts current VALUE pick ──────
+    # Only runs if cerebro_ticker_signals.csv already exists (previous pipeline run)
+    cerebro_csv = DOCS / "cerebro_ticker_signals.csv"
+    if not value_df.empty and cerebro_csv.exists():
+        try:
+            csig = pd.read_csv(cerebro_csv)
+            sig_map = dict(zip(csig["ticker"].str.upper(), csig["cerebro_signal"].fillna("")))
+            adj_map = dict(zip(csig["ticker"].str.upper(), pd.to_numeric(csig["cerebro_score_adj"], errors="coerce").fillna(0)))
+            reason_map = dict(zip(csig["ticker"].str.upper(), csig["cerebro_reason"].fillna("")))
+            for _, row in value_df.iterrows():
+                t      = str(row.get("ticker", "")).upper()
+                vscore = sf(row.get("value_score")) or 0
+                grade  = str(row.get("conviction_grade", ""))
+                sig    = sig_map.get(t, "")
+                adj    = adj_map.get(t, 0)
+                reason = reason_map.get(t, "")
+                # Flag: AVOID always (strongest signal), EXIT only if score still meaningful
+                if sig == "AVOID" or (sig == "EXIT" and vscore >= 50):
+                    severity = "HIGH" if sig == "AVOID" or grade == "A" else "MEDIUM"
+                    label    = "trampa de valor" if sig == "AVOID" else "candidato a salida"
+                    alerts.append(dict(
+                        ticker=t, type="VALUE_CONTRADICTION",
+                        severity=severity,
+                        title=f"Contradicción IA: {t} en VALUE pero Cerebro dice {sig}",
+                        message=(
+                            f"Score VALUE {vscore:.0f} (Grado {grade or '?'}) — "
+                            f"pero Cerebro detecta {label} (adj {adj:+.0f}pts). "
+                            f"Razón: {reason.split(' | ')[0] if reason else 'ver Cerebro IA'}."
+                        ),
+                        date=TODAY,
+                        data=dict(value_score=vscore, conviction_grade=grade,
+                                  cerebro_signal=sig, cerebro_score_adj=adj, cerebro_reason=reason),
+                    ))
+        except Exception as e:
+            print(f"  [alerts] VALUE_CONTRADICTION skip: {e}")
+
     # Deduplicate by ticker+type, sort HIGH first
     seen, deduped = set(), []
     for a in alerts:
@@ -1448,6 +1484,597 @@ qué hacer hoy, qué vigilar, qué evitar. Sé directo y conciso."""
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 14. SHORT SQUEEZE SETUP — high short + improving fundamentals
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_short_squeeze() -> dict:
+    """
+    Finds VALUE tickers with high short interest (>10% of float) whose
+    fundamentals are simultaneously improving — the setup for a violent squeeze.
+
+    Unlike a pure momentum short-squeeze play, here the catalyst is VALUE:
+    short sellers are betting against a company that may re-rate upward.
+    That's the riskiest position for shorts and the most asymmetric for longs.
+
+    Squeeze score (0-100):
+      short_pct    : >25%=40pts  >15%=25pts  >10%=10pts
+      insider_buy  : +20pts
+      piotroski ≥6 : +15pts  (improving quality contradicts short thesis)
+      smart_money  : +15pts
+      value_score  : up to +10pts (score≥70=10, ≥55=6)
+    """
+    print("[14/16] Short squeeze setup scan...")
+    value_df  = load_csv(DOCS / "value_opportunities.csv")
+    eu_df     = load_csv(DOCS / "european_value_opportunities.csv")
+    fund_df   = load_csv(DOCS / "fundamental_scores.csv")
+    ins_df    = load_csv(DOCS / "recurring_insiders.csv")
+    eu_ins    = load_csv(DOCS / "eu_recurring_insiders.csv")
+    hf_df     = load_csv(DOCS / "hedge_fund_holdings.csv")
+
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    if all_value.empty:
+        return dict(generated_at=TODAY, total=0, setups=[])
+
+    # Build insider / smart-money presence sets
+    all_ins = pd.concat([ins_df, eu_ins], ignore_index=True) if not ins_df.empty else eu_ins
+    insider_tickers: set[str] = set()
+    if not all_ins.empty and "ticker" in all_ins.columns:
+        insider_tickers = set(all_ins["ticker"].str.upper().dropna())
+
+    hf_tickers: set[str] = set()
+    if not hf_df.empty:
+        col = next((c for c in ["ticker", "stock", "symbol"] if c in hf_df.columns), None)
+        if col:
+            hf_tickers = set(hf_df[col].str.upper().dropna())
+
+    # Build fundamental short data map
+    fund_short: dict[str, float] = {}
+    if not fund_df.empty and "ticker" in fund_df.columns:
+        for _, row in fund_df.iterrows():
+            t = str(row.get("ticker", "")).upper()
+            s = sf(row.get("short_percent_float") or row.get("short_pct_float"))
+            if s is not None:
+                fund_short[t] = s
+
+    setups = []
+    for _, row in all_value.iterrows():
+        t        = str(row.get("ticker", "")).upper()
+        vscore   = sf(row.get("value_score")) or 0
+        short_pct= sf(row.get("short_percent_float")) or fund_short.get(t)
+        piotr    = sf(row.get("piotroski_score"))
+        company  = str(row.get("company_name", t))
+        sector   = str(row.get("sector", ""))
+
+        if short_pct is None or short_pct < 10:
+            continue  # not enough short interest to matter
+
+        squeeze_score = 0
+        flags = []
+
+        # Short interest level
+        if short_pct >= 25:
+            squeeze_score += 40; flags.append(f"Short muy alto ({short_pct:.1f}% del float)")
+        elif short_pct >= 15:
+            squeeze_score += 25; flags.append(f"Short elevado ({short_pct:.1f}% del float)")
+        else:
+            squeeze_score += 10; flags.append(f"Short moderado ({short_pct:.1f}% del float)")
+
+        # Insider buying (contradicts short thesis)
+        if t in insider_tickers:
+            squeeze_score += 20; flags.append("Insiders comprando — contradice tesis bajista")
+
+        # Strong Piotroski (fundamentals improving)
+        if piotr is not None and piotr >= 6:
+            squeeze_score += 15; flags.append(f"Piotroski {piotr:.0f}/9 — calidad mejorando")
+
+        # Hedge fund presence (institutional conviction)
+        if t in hf_tickers:
+            squeeze_score += 15; flags.append("Hedge funds con posición larga")
+
+        # Value score contribution
+        if vscore >= 70:
+            squeeze_score += 10
+        elif vscore >= 55:
+            squeeze_score += 6
+
+        if squeeze_score < 25 or len(flags) < 2:
+            continue  # need at least 2 convergent signals
+
+        severity = "HIGH" if squeeze_score >= 60 else "MEDIUM"
+        setups.append(dict(
+            ticker=t,
+            company_name=company,
+            sector=sector,
+            severity=severity,
+            squeeze_score=squeeze_score,
+            short_pct_float=short_pct,
+            piotroski=piotr,
+            value_score=vscore,
+            insider_buying=t in insider_tickers,
+            hf_present=t in hf_tickers,
+            flags=flags,
+        ))
+
+    setups.sort(key=lambda x: -x["squeeze_score"])
+    high_count = sum(1 for s in setups if s["severity"] == "HIGH")
+
+    narrative = ai(
+        f"Short squeeze setups en VALUE: {len(setups)} tickers con short alto + fundamentales mejorando ({high_count} HIGH).\n"
+        + "\n".join(f"- {s['ticker']}: {s['short_pct_float']:.1f}% short, score squeeze {s['squeeze_score']}, {'; '.join(s['flags'][:2])}" for s in setups[:5])
+        + "\n\n2 frases en español: por qué un short squeeze en un valor fundamentalmente sólido es especialmente explosivo.", 150
+    ) if setups else None
+
+    print(f"  ✓ {len(setups)} short squeeze setups ({high_count} HIGH)")
+    return dict(generated_at=TODAY, total=len(setups), high_count=high_count, narrative=narrative, setups=setups)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 15. QUALITY DECAY EARLY WARNING — deterioro silencioso antes del Piotroski
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _parse_health(row) -> dict:
+    """Extract roe_pct / operating_margin_pct from health_details JSON column if present."""
+    raw = row.get("health_details")
+    if not raw:
+        return {}
+    try:
+        d = json.loads(raw) if isinstance(raw, str) else raw
+        return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def scan_quality_decay() -> dict:
+    """
+    Compares current quality metrics vs the most recent historical snapshot.
+    Uses columns available in both current and historical CSVs:
+      - piotroski_score (direct proxy for financial health)
+      - fcf_yield_pct (cash generation quality)
+      - financial_health_score (composite sub-score)
+      - operating_margin_pct from health_details JSON (when available)
+
+    Decay flags:
+      Piotroski drop ≥2      : -4pts HIGH, ≥1: -2pts MEDIUM
+      FCF drop ≥3pp          : -3pts, ≥1.5pp: -1pt
+      Health score drop ≥10  : -3pts, ≥5: -1pt
+      Op margin drop ≥5pp    : -3pts (from health_details JSON)
+      Multiple signals        : +2pts extra
+
+    Severity: HIGH ≥6pts, MEDIUM 3-5pts
+    """
+    print("[15/16] Quality decay scan...")
+    value_df  = load_csv(DOCS / "value_opportunities.csv")
+    eu_df     = load_csv(DOCS / "european_value_opportunities.csv")
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+
+    if all_value.empty:
+        return dict(generated_at=TODAY, total=0, high_count=0, decays=[])
+
+    # Load historical snapshot — use columns confirmed present in history
+    history_dir = DOCS / "history"
+    prev_map: dict[str, dict] = {}
+    snapshot_date = ""
+    if history_dir.exists():
+        past_dirs = sorted([d for d in history_dir.iterdir() if d.is_dir()], reverse=True)
+        for past_dir in past_dirs[1:10]:  # skip today
+            loaded = 0
+            for fname in ["value_opportunities.csv", "european_value_opportunities.csv"]:
+                fpath = past_dir / fname
+                if not fpath.exists():
+                    continue
+                try:
+                    old = pd.read_csv(fpath)
+                    if "ticker" not in old.columns:
+                        continue
+                    for _, row in old.iterrows():
+                        t = str(row.get("ticker", "")).upper()
+                        if t not in prev_map:
+                            h = _parse_health(row)
+                            prev_map[t] = {
+                                "piotr":  sf(row.get("piotroski_score")),
+                                "fcf":    sf(row.get("fcf_yield_pct")),
+                                "health": sf(row.get("financial_health_score")),
+                                "margin": sf(h.get("operating_margin_pct")),
+                            }
+                            loaded += 1
+                except Exception:
+                    pass
+            if loaded > 5:
+                snapshot_date = past_dir.name
+                break
+
+    if not prev_map:
+        print("  ⚠ No historical snapshots found — skipping quality decay scan")
+        return dict(generated_at=TODAY, total=0, high_count=0, decays=[], note="no_history")
+
+    print(f"  Comparing vs snapshot {snapshot_date} ({len(prev_map)} tickers)")
+
+    decays = []
+    for _, row in all_value.iterrows():
+        t    = str(row.get("ticker", "")).upper()
+        prev = prev_map.get(t)
+        if not prev:
+            continue
+
+        h           = _parse_health(row)
+        curr_piotr  = sf(row.get("piotroski_score"))
+        curr_fcf    = sf(row.get("fcf_yield_pct"))
+        curr_health = sf(row.get("financial_health_score"))
+        curr_margin = sf(h.get("operating_margin_pct"))
+        vscore      = sf(row.get("value_score")) or 0
+        company     = str(row.get("company_name", t))
+
+        decay_score = 0
+        flags: list[str] = []
+
+        if curr_piotr is not None and prev["piotr"] is not None:
+            drop = prev["piotr"] - curr_piotr
+            if drop >= 2:
+                decay_score += 4; flags.append(f"Piotroski cayó {drop:.0f}pts ({prev['piotr']:.0f} → {curr_piotr:.0f}/9)")
+            elif drop >= 1:
+                decay_score += 2; flags.append(f"Piotroski bajó {drop:.0f}pt ({prev['piotr']:.0f} → {curr_piotr:.0f}/9)")
+
+        if curr_fcf is not None and prev["fcf"] is not None:
+            drop = prev["fcf"] - curr_fcf
+            if drop >= 3:
+                decay_score += 3; flags.append(f"FCF yield cayó {drop:.1f}pp ({prev['fcf']:.1f}% → {curr_fcf:.1f}%)")
+            elif drop >= 1.5:
+                decay_score += 1; flags.append(f"FCF yield cayó {drop:.1f}pp ({prev['fcf']:.1f}% → {curr_fcf:.1f}%)")
+
+        if curr_health is not None and prev["health"] is not None:
+            drop = prev["health"] - curr_health
+            if drop >= 10:
+                decay_score += 3; flags.append(f"Salud financiera cayó {drop:.0f}pts ({prev['health']:.0f} → {curr_health:.0f}/100)")
+            elif drop >= 5:
+                decay_score += 1; flags.append(f"Salud financiera cayó {drop:.0f}pts ({prev['health']:.0f} → {curr_health:.0f}/100)")
+
+        if curr_margin is not None and prev["margin"] is not None:
+            drop = prev["margin"] - curr_margin
+            if drop >= 5:
+                decay_score += 3; flags.append(f"Margen op. cayó {drop:.1f}pp ({prev['margin']:.1f}% → {curr_margin:.1f}%)")
+
+        # Multiple concurrent deterioration signals → systemic
+        if len(flags) >= 3:
+            decay_score += 2; flags.append("Deterioro sistémico: múltiples métricas en caída simultánea")
+
+        if decay_score < 3 or not flags:
+            continue
+
+        severity = "HIGH" if decay_score >= 6 else "MEDIUM"
+        decays.append(dict(
+            ticker=t,
+            company_name=company,
+            severity=severity,
+            decay_score=decay_score,
+            value_score=vscore,
+            snapshot_date=snapshot_date,
+            piotr_prev=prev["piotr"], piotr_curr=curr_piotr,
+            fcf_prev=prev["fcf"],    fcf_curr=curr_fcf,
+            health_prev=prev["health"], health_curr=curr_health,
+            margin_prev=prev["margin"], margin_curr=curr_margin,
+            flags=flags,
+        ))
+
+    decays.sort(key=lambda x: (-x["decay_score"], -x["value_score"]))
+    high_count = sum(1 for d in decays if d["severity"] == "HIGH")
+
+    narrative = ai(
+        f"Deterioro de calidad detectado: {len(decays)} tickers VALUE con compresión de márgenes/ROE ({high_count} HIGH).\n"
+        + "\n".join(f"- {d['ticker']}: {'; '.join(d['flags'][:2])}" for d in decays[:5])
+        + "\n\n2 frases en español: por qué la compresión de márgenes es una señal más temprana que el Piotroski.", 150
+    ) if decays else None
+
+    print(f"  ✓ {len(decays)} quality decay warnings ({high_count} HIGH)")
+    return dict(generated_at=TODAY, total=len(decays), high_count=high_count, narrative=narrative, decays=decays)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 16. RELATIVE VALUE SECTORIAL — el más barato dentro de su sector
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_sector_relative_value() -> dict:
+    """
+    Peter Lynch principle: find the cheapest stock in the healthiest sector.
+    For each sector with ≥3 VALUE picks, ranks tickers by FCF yield and
+    P/E forward within their peer group.
+
+    A ticker at the 75th+ percentile of cheapness within its sector gets
+    a BEST_IN_SECTOR badge (+5pts). The most expensive relative to peers
+    gets a PRICEY_VS_PEERS flag (-3pts).
+
+    Also flags sectors where ALL picks look cheap (sector re-rating potential).
+    """
+    print("[16/16] Relative sector value scan...")
+    value_df = load_csv(DOCS / "value_opportunities.csv")
+    eu_df    = load_csv(DOCS / "european_value_opportunities.csv")
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+
+    if all_value.empty or "sector" not in all_value.columns:
+        return dict(generated_at=TODAY, total=0, standouts=[], sector_summary=[])
+
+    from collections import defaultdict
+    sectors: dict[str, list[dict]] = defaultdict(list)
+
+    for _, row in all_value.iterrows():
+        t      = str(row.get("ticker", "")).upper()
+        sec    = str(row.get("sector", "Unknown"))
+        fcf    = sf(row.get("fcf_yield_pct"))
+        pe_fwd = sf(row.get("pe_forward") or row.get("forward_pe"))
+        vscore = sf(row.get("value_score")) or 0
+        upside = sf(row.get("analyst_upside_pct"))
+        company= str(row.get("company_name", t))
+
+        if sec in ("Unknown", "", "None"):
+            continue
+
+        # Cap FCF yield at 100% to avoid distorting sector averages (data artifacts)
+        if fcf is not None:
+            fcf = min(fcf, 100.0)
+
+        sectors[sec].append(dict(
+            ticker=t,
+            company_name=company,
+            value_score=vscore,
+            fcf_yield_pct=fcf,
+            pe_forward=pe_fwd,
+            analyst_upside_pct=upside,
+        ))
+
+    standouts = []
+    sector_summary = []
+
+    for sec, peers in sectors.items():
+        if len(peers) < 3:
+            continue
+
+        # Rank by FCF yield (higher = cheaper / better) — primary metric
+        peers_with_fcf = [p for p in peers if p["fcf_yield_pct"] is not None]
+        fcf_sorted = sorted(peers_with_fcf, key=lambda x: -x["fcf_yield_pct"])
+        n = len(fcf_sorted)
+
+        avg_fcf    = sum(p["fcf_yield_pct"] for p in peers_with_fcf) / n if n else None
+        avg_vscore = sum(p["value_score"] for p in peers) / len(peers)
+
+        # Label top (cheapest by FCF) and bottom (most expensive)
+        for rank, peer in enumerate(fcf_sorted):
+            pct_rank = (n - rank) / n  # 1.0 = cheapest, 0.0 = most expensive
+            label = None
+
+            if pct_rank >= 0.75 and n >= 3:
+                label = "BEST_IN_SECTOR"
+            elif pct_rank <= 0.25 and n >= 4:
+                label = "PRICEY_VS_PEERS"
+
+            if label:
+                standouts.append(dict(
+                    ticker=peer["ticker"],
+                    company_name=peer["company_name"],
+                    sector=sec,
+                    label=label,
+                    fcf_yield_pct=peer["fcf_yield_pct"],
+                    fcf_rank=rank + 1,
+                    fcf_rank_of=n,
+                    value_score=peer["value_score"],
+                    analyst_upside_pct=peer["analyst_upside_pct"],
+                    sector_avg_fcf=round(avg_fcf, 2) if avg_fcf else None,
+                    peers_in_sector=n,
+                ))
+
+        # Sector re-rating potential: all peers above avg FCF threshold
+        rerate = avg_fcf is not None and avg_fcf >= 6 and avg_vscore >= 60
+        sector_summary.append(dict(
+            sector=sec,
+            count=len(peers),
+            avg_value_score=round(avg_vscore, 1),
+            avg_fcf_yield=round(avg_fcf, 2) if avg_fcf else None,
+            rerate_potential=rerate,
+            tickers=[p["ticker"] for p in sorted(peers, key=lambda x: -x["value_score"])[:5]],
+        ))
+
+    standouts.sort(key=lambda x: (x["label"] == "PRICEY_VS_PEERS", -x.get("fcf_yield_pct", 0)))
+    sector_summary.sort(key=lambda x: -x["avg_value_score"])
+    rerate_sectors = [s for s in sector_summary if s["rerate_potential"]]
+
+    narrative = ai(
+        f"Valor relativo sectorial: {len(standouts)} tickers destacados. {len(rerate_sectors)} sectores con potencial re-rating.\n"
+        + "\n".join(
+            f"- {s['ticker']} ({s['sector']}): {s['label']}, FCF {s['fcf_yield_pct']:.1f}% (rank {s['fcf_rank']}/{s['fcf_rank_of']} en sector)"
+            for s in standouts[:5]
+        )
+        + "\n\n2 frases en español: por qué ser el más barato dentro de un sector sólido es una ventaja diferencial.", 150
+    ) if standouts else None
+
+    print(f"  ✓ {len(standouts)} sector standouts · {len(rerate_sectors)} re-rating sectors")
+    return dict(
+        generated_at=TODAY,
+        total=len(standouts),
+        rerate_sectors=len(rerate_sectors),
+        narrative=narrative,
+        standouts=standouts,
+        sector_summary=sector_summary,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SYNTHESIZER — produce one row per ticker for pipeline integration
+# ══════════════════════════════════════════════════════════════════════════════
+
+def generate_ticker_signals_csv(
+    exit_sigs:    dict,
+    value_traps:  dict,
+    smart_money:  dict,
+    div_safety:   dict,
+    piotroski:    dict,
+    short_squeeze: dict,
+    quality_decay: dict,
+    sector_rv:    dict,
+) -> pd.DataFrame:
+    """
+    Synthesizes all agent module outputs into one row per ticker.
+    Columns: ticker, cerebro_signal, cerebro_score_adj, cerebro_reason, updated_at
+
+    Priority (most severe wins):
+      AVOID   — value trap HIGH or quality decay HIGH
+      EXIT    — exit signal HIGH
+      SQUEEZE — short squeeze HIGH (asymmetric upside signal)
+      CAUTION — exit/trap/decay MEDIUM or dividend AT_RISK
+      CONFIRM — smart money + no warnings
+      BEST    — best in sector by FCF (no negatives)
+      WATCH   — piotroski improving / piotroski strong
+
+    Score adjustments (additive):
+      trap HIGH       : -20   quality decay HIGH  : -15
+      trap MEDIUM     : -8    quality decay MED   : -8
+      exit HIGH       : -15   exit MEDIUM         : -8
+      div AT_RISK     : -5    pricey vs peers     : -3
+      smart money     : +8    squeeze HIGH        : +10
+      piotroski impr  : +5    piotroski strong ≥7 : +3
+      best in sector  : +5    sector re-rating    : +3
+    """
+    print("[synthesis] Generando cerebro_ticker_signals.csv...")
+
+    # Build per-ticker signal maps
+    exit_sig_map:   dict[str, dict] = {e["ticker"]: e for e in exit_sigs.get("exits", [])}
+    trap_sig_map:   dict[str, dict] = {t["ticker"]: t for t in value_traps.get("traps", [])}
+    sm_map:         dict[str, dict] = {s["ticker"]: s for s in smart_money.get("signals", [])}
+    div_map:        dict[str, dict] = {d["ticker"]: d for d in div_safety.get("dividends", []) if d.get("rating") in ("AT_RISK", "WATCH")}
+    piotr_map:      dict[str, dict] = {c["ticker"]: c for c in piotroski.get("candidates", [])}
+    squeeze_map:    dict[str, dict] = {s["ticker"]: s for s in short_squeeze.get("setups", [])}
+    decay_map:      dict[str, dict] = {d["ticker"]: d for d in quality_decay.get("decays", [])}
+    sector_map:     dict[str, dict] = {s["ticker"]: s for s in sector_rv.get("standouts", [])}
+
+    all_tickers = (
+        set(exit_sig_map) | set(trap_sig_map) | set(sm_map) | set(div_map) | set(piotr_map)
+        | set(squeeze_map) | set(decay_map) | set(sector_map)
+    )
+
+    rows = []
+    for ticker in sorted(all_tickers):
+        exit_signal  = exit_sig_map.get(ticker)
+        trap_signal  = trap_sig_map.get(ticker)
+        sm           = sm_map.get(ticker)
+        div          = div_map.get(ticker)
+        piotr        = piotr_map.get(ticker)
+        squeeze      = squeeze_map.get(ticker)
+        decay        = decay_map.get(ticker)
+        sector_st    = sector_map.get(ticker)
+
+        score_adj = 0
+        reasons   = []
+
+        # ── Negative signals ──────────────────────────────────────────────────
+        if trap_signal:
+            sev = trap_signal.get("severity", "MEDIUM")
+            if sev == "HIGH":
+                score_adj -= 20
+                reasons.append(f"Value trap HIGH (score {trap_signal.get('trap_score',0)}/10): {trap_signal.get('flags',[''])[0]}")
+            else:
+                score_adj -= 8
+                reasons.append(f"Value trap MEDIUM: {trap_signal.get('flags',[''])[0]}")
+
+        if decay:
+            sev = decay.get("severity", "MEDIUM")
+            if sev == "HIGH":
+                score_adj -= 15
+                reasons.append(f"Quality decay HIGH: {decay.get('flags',[''])[0]}")
+            else:
+                score_adj -= 8
+                reasons.append(f"Quality decay MEDIUM: {decay.get('flags',[''])[0]}")
+
+        if exit_signal:
+            sev = exit_signal.get("severity", "MEDIUM")
+            if sev == "HIGH":
+                score_adj -= 15
+                reasons.append(f"Señal salida HIGH: {exit_signal.get('reasons',[''])[0]}")
+            elif sev == "MEDIUM":
+                score_adj -= 8
+                reasons.append(f"Señal salida MEDIUM: {exit_signal.get('reasons',[''])[0]}")
+
+        if div and div.get("rating") == "AT_RISK":
+            score_adj -= 5
+            reasons.append(f"Dividendo AT RISK (yield {div.get('div_yield',0):.1f}%, safety {div.get('safety_score',0)})")
+
+        if sector_st and sector_st.get("label") == "PRICEY_VS_PEERS":
+            score_adj -= 3
+            reasons.append(f"Caro vs peers en {sector_st.get('sector','')} (FCF rank {sector_st.get('fcf_rank','?')}/{sector_st.get('fcf_rank_of','?')})")
+
+        # ── Positive signals ──────────────────────────────────────────────────
+        if squeeze:
+            sev = squeeze.get("severity", "MEDIUM")
+            bonus = 10 if sev == "HIGH" else 6
+            score_adj += bonus
+            reasons.append(f"Short squeeze {sev}: {squeeze.get('short_pct_float',0):.1f}% short · {'; '.join(squeeze.get('flags',[''])[:2])}")
+
+        if sm:
+            score_adj += 8
+            reasons.append(f"Smart money: {sm.get('n_hedge_funds',0)} HF + {sm.get('n_insiders',0)} insiders (conv {sm.get('convergence_score',0)})")
+
+        if piotr:
+            trend = piotr.get("trend", "STABLE")
+            curr  = piotr.get("piotroski_current", 0)
+            if trend in ("IMPROVING", "SLIGHT_UP"):
+                score_adj += 5
+                delta = piotr.get("delta", 0)
+                reasons.append(f"Piotroski {trend} ({piotr.get('piotroski_prev','?')} → {curr}, Δ{int(delta):+d})")
+            elif curr >= 7:
+                score_adj += 3
+                reasons.append(f"Piotroski fuerte ({curr}/9)")
+
+        if sector_st and sector_st.get("label") == "BEST_IN_SECTOR":
+            score_adj += 5
+            reasons.append(
+                f"Mejor FCF en {sector_st.get('sector','')} "
+                f"({sector_st.get('fcf_yield_pct',0):.1f}% vs media sector {sector_st.get('sector_avg_fcf',0):.1f}%)"
+            )
+
+        if not reasons:
+            continue
+
+        # ── Primary signal (most severe wins) ─────────────────────────────────
+        has_high_negative = (
+            (trap_signal and trap_signal.get("severity") == "HIGH")
+            or (decay and decay.get("severity") == "HIGH")
+        )
+        has_medium_negative = (
+            (trap_signal and trap_signal.get("severity") == "MEDIUM")
+            or (decay and decay.get("severity") == "MEDIUM")
+            or (exit_signal and exit_signal.get("severity") == "MEDIUM")
+            or (div and div.get("rating") == "AT_RISK")
+        )
+
+        if has_high_negative:
+            signal = "AVOID"
+        elif exit_signal and exit_signal.get("severity") == "HIGH":
+            signal = "EXIT"
+        elif squeeze and squeeze.get("severity") == "HIGH" and not has_medium_negative:
+            signal = "SQUEEZE"
+        elif has_medium_negative:
+            signal = "CAUTION"
+        elif sm:
+            signal = "CONFIRM"
+        elif sector_st and sector_st.get("label") == "BEST_IN_SECTOR":
+            signal = "BEST"
+        else:
+            signal = "WATCH"
+
+        rows.append({
+            "ticker":           ticker,
+            "cerebro_signal":   signal,
+            "cerebro_score_adj": score_adj,
+            "cerebro_reason":   " | ".join(reasons),
+            "updated_at":       TODAY,
+        })
+
+    df = pd.DataFrame(rows, columns=["ticker", "cerebro_signal", "cerebro_score_adj", "cerebro_reason", "updated_at"])
+    out = DOCS / "cerebro_ticker_signals.csv"
+    df.to_csv(out, index=False)
+
+    counts = df["cerebro_signal"].value_counts().to_dict() if not df.empty else {}
+    print(f"  ✓ {len(df)} tickers → {out.name}  {counts}")
+    return df
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -1474,6 +2101,9 @@ def main():
     div_safety  = scan_dividend_safety()
     piotroski   = scan_piotroski_momentum()
     stress      = scan_portfolio_stress()
+    squeeze     = scan_short_squeeze()
+    decay       = scan_quality_decay()
+    sector_rv   = scan_sector_relative_value()
     briefing    = generate_personal_briefing(entry_sigs, convergence, alerts, value_traps, exit_sigs, smart_money)
 
     save_json(DOCS / "cerebro_insights.json",           insights)
@@ -1490,6 +2120,15 @@ def main():
     save_json(DOCS / "cerebro_piotroski.json",           piotroski)
     save_json(DOCS / "cerebro_stress_test.json",         stress)
     save_json(DOCS / "cerebro_briefing.json",            briefing)
+    save_json(DOCS / "cerebro_short_squeeze.json",       squeeze)
+    save_json(DOCS / "cerebro_quality_decay.json",       decay)
+    save_json(DOCS / "cerebro_sector_rv.json",           sector_rv)
+
+    # Synthesize per-ticker CSV for pipeline integration
+    generate_ticker_signals_csv(
+        exit_sigs, value_traps, smart_money, div_safety, piotroski,
+        squeeze, decay, sector_rv,
+    )
 
     print("\n" + "=" * 60)
     print("SUMMARY")
@@ -1504,6 +2143,9 @@ def main():
     print(f"  Dividends at risk: {div_safety.get('at_risk',0)} / {div_safety.get('total',0)}")
     print(f"  Piotroski impr.  : {piotroski.get('improving',0)} / {piotroski.get('total',0)}")
     print(f"  Stress risks     : {len(stress.get('risks',[]))}")
+    print(f"  Short squeezes   : {squeeze.get('total',0)} ({squeeze.get('high_count',0)} HIGH)")
+    print(f"  Quality decay    : {decay.get('total',0)} ({decay.get('high_count',0)} HIGH)")
+    print(f"  Sector standouts : {sector_rv.get('total',0)} ({sector_rv.get('rerate_sectors',0)} re-rating sectors)")
     print(f"  Calibration recs : {calibration.get('total_recommendations',0)}")
     print(f"  Weight proposals : {len(tuning.get('adjustments',[]))}")
     print("=" * 60)

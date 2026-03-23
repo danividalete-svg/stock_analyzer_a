@@ -66,6 +66,9 @@ export interface ValueOpportunity {
   revenue_growth_pct?: number
   pe_forward?: number
   pe_trailing?: number
+  // Cerebro IA synthesized signal (written by cerebro.py → read by super_score_integrator)
+  cerebro_signal?: string
+  cerebro_score_adj?: number
 }
 
 export interface MomentumOpportunity {
@@ -441,6 +444,61 @@ export interface CerebroBriefing {
   }
 }
 export const fetchCerebroBriefing = () => api.get<CerebroBriefing>('/api/cerebro/briefing')
+
+export interface ShortSqueezeSetup {
+  ticker: string
+  company_name: string
+  sector: string
+  severity: 'HIGH' | 'MEDIUM'
+  squeeze_score: number
+  short_pct_float: number
+  piotroski: number | null
+  value_score: number
+  insider_buying: boolean
+  hf_present: boolean
+  flags: string[]
+}
+export const fetchCerebroShortSqueeze = () => api.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; setups: ShortSqueezeSetup[] }>('/api/cerebro/short-squeeze')
+
+export interface QualityDecay {
+  ticker: string
+  company_name: string
+  severity: 'HIGH' | 'MEDIUM'
+  decay_score: number
+  value_score: number
+  snapshot_date: string
+  roe_prev: number | null
+  roe_curr: number | null
+  margin_prev: number | null
+  margin_curr: number | null
+  fcf_prev: number | null
+  fcf_curr: number | null
+  flags: string[]
+}
+export const fetchCerebroQualityDecay = () => api.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; decays: QualityDecay[] }>('/api/cerebro/quality-decay')
+
+export interface SectorStandout {
+  ticker: string
+  company_name: string
+  sector: string
+  label: 'BEST_IN_SECTOR' | 'PRICEY_VS_PEERS'
+  fcf_yield_pct: number
+  fcf_rank: number
+  fcf_rank_of: number
+  value_score: number
+  analyst_upside_pct: number | null
+  sector_avg_fcf: number | null
+  peers_in_sector: number
+}
+export interface SectorSummary {
+  sector: string
+  count: number
+  avg_value_score: number
+  avg_fcf_yield: number | null
+  rerate_potential: boolean
+  tickers: string[]
+}
+export const fetchCerebroSectorRV = () => api.get<{ generated_at: string; total: number; rerate_sectors: number; narrative: string | null; standouts: SectorStandout[]; sector_summary: SectorSummary[] }>('/api/cerebro/sector-rv')
 
 export const fetchMarketRegime = () =>
   api.get<MarketRegime>('/api/market-regime')

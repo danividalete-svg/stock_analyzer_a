@@ -226,6 +226,9 @@ export default function Watchlist() {
                       exitInfo={cerebro.exitMap[e.ticker]}
                       divInfo={cerebro.divMap[e.ticker]}
                       piotrInfo={cerebro.piotrMap[e.ticker]}
+                      squeezeInfo={cerebro.squeezeMap[e.ticker]}
+                      decayInfo={cerebro.decayMap[e.ticker]}
+                      sectorInfo={cerebro.sectorMap[e.ticker]}
                     />
                   </TableCell>
                   <TableCell className="hidden sm:table-cell text-[0.76rem] text-muted-foreground max-w-[140px] truncate">
