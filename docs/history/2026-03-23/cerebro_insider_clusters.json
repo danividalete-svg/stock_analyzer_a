@@ -1,0 +1,180 @@
+{
+  "generated_at": "2026-03-21",
+  "total": 9,
+  "narrative": null,
+  "clusters": [
+    {
+      "sector": "Financial Services",
+      "ticker_count": 38,
+      "tickers": [
+        "CMTV",
+        "TCBI",
+        "FMBM",
+        "NEWT",
+        "RMBI",
+        "TBBK",
+        "FRST",
+        "LIFE",
+        "BWFG",
+        "CBK",
+        "AMTB",
+        "RLI",
+        "PEBO",
+        "FKYS",
+        "MDBH",
+        "SPGI",
+        "BFST",
+        "BY",
+        "SMBK",
+        "NBBK",
+        "PKBK",
+        "ATLO",
+        "CSBB",
+        "OVLY",
+        "NP",
+        "FCCO",
+        "BFC",
+        "UBSI",
+        "AROW",
+        "CCXIU",
+        "RRBI",
+        "SHBI",
+        "NAD",
+        "BARC.L",
+        "LLOY.L",
+        "PRU.L",
+        "NWG.L",
+        "MUV2.DE"
+      ],
+      "total_purchases": 331,
+      "total_insiders": 86,
+      "cluster_score": 100,
+      "signal": "STRONG"
+    },
+    {
+      "sector": "Industrials",
+      "ticker_count": 13,
+      "tickers": [
+        "BUKS",
+        "EML",
+        "FAST",
+        "MWA",
+        "ADMQ",
+        "NVT",
+        "PRIM",
+        "APG",
+        "ESOA",
+        "BA.L",
+        "EXPN.L",
+        "MTX.DE",
+        "RHM.DE"
+      ],
+      "total_purchases": 106,
+      "total_insiders": 34,
+      "cluster_score": 100,
+      "signal": "STRONG"
+    },
+    {
+      "sector": "Healthcare",
+      "ticker_count": 4,
+      "tickers": [
+        "MANE",
+        "MDLN",
+        "INDV",
+        "FRE.DE"
+      ],
+      "total_purchases": 39,
+      "total_insiders": 8,
+      "cluster_score": 100,
+      "signal": "MODERATE"
+    },
+    {
+      "sector": "Real Estate",
+      "ticker_count": 8,
+      "tickers": [
+        "AMH",
+        "HHH",
+        "LTC",
+        "STRW",
+        "FPI",
+        "SUNS",
+        "GOOD",
+        "LAND.L"
+      ],
+      "total_purchases": 40,
+      "total_insiders": 11,
+      "cluster_score": 100,
+      "signal": "STRONG"
+    },
+    {
+      "sector": "Basic Materials",
+      "ticker_count": 3,
+      "tickers": [
+        "AMRZ",
+        "GLEN.L",
+        "MNDI.L"
+      ],
+      "total_purchases": 51,
+      "total_insiders": 19,
+      "cluster_score": 100,
+      "signal": "MODERATE"
+    },
+    {
+      "sector": "Technology",
+      "ticker_count": 6,
+      "tickers": [
+        "THRY",
+        "MSFT",
+        "LYFT",
+        "IT",
+        "SGE.L",
+        "SAP.DE"
+      ],
+      "total_purchases": 34,
+      "total_insiders": 21,
+      "cluster_score": 100,
+      "signal": "STRONG"
+    },
+    {
+      "sector": "Energy",
+      "ticker_count": 5,
+      "tickers": [
+        "SGU",
+        "LPG",
+        "EPD",
+        "BP.L",
+        "SHEL.L"
+      ],
+      "total_purchases": 41,
+      "total_insiders": 14,
+      "cluster_score": 100,
+      "signal": "STRONG"
+    },
+    {
+      "sector": "Communication Services",
+      "ticker_count": 3,
+      "tickers": [
+        "CNK",
+        "ATEX",
+        "BT-A.L"
+      ],
+      "total_purchases": 12,
+      "total_insiders": 8,
+      "cluster_score": 84,
+      "signal": "MODERATE"
+    },
+    {
+      "sector": "Consumer Cyclical",
+      "ticker_count": 3,
+      "tickers": [
+        "BDL",
+        "WTB.L",
+        "CPG.L"
+      ],
+      "total_purchases": 7,
+      "total_insiders": 4,
+      "cluster_score": 74,
+      "signal": "MODERATE"
+    }
+  ]
+}

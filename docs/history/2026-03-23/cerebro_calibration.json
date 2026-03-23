@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-03-21",
+  "recommendations": [
+    {
+      "type": "BOOST",
+      "factor": "FCF Yield \u22655%",
+      "insight": "FCF alto mejora WR +8.3pp. Aumentar peso FCF.",
+      "n": 177
+    },
+    {
+      "type": "BOOST",
+      "factor": "R:R \u22653",
+      "insight": "R:R alto mejora WR +15.8pp. Aumentar peso R:R.",
+      "n": 243
+    }
+  ],
+  "narrative": "El sistema contin\u00faa aprendiendo. Se necesitan m\u00e1s se\u00f1ales completadas para recomendaciones precisas.",
+  "total_recommendations": 2
+}

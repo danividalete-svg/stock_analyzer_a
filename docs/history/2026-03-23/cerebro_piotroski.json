@@ -1,0 +1,418 @@
+{
+  "generated_at": "2026-03-21",
+  "total": 41,
+  "improving": 4,
+  "narrative": null,
+  "candidates": [
+    {
+      "ticker": "PKBK",
+      "company_name": "Parke Bancorp, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 4.0,
+      "delta": 3.0,
+      "trend": "IMPROVING",
+      "signal": "STRONG",
+      "value_score": 56.236
+    },
+    {
+      "ticker": "RBKB",
+      "company_name": "Rhinebeck Bancorp, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 4.0,
+      "delta": 3.0,
+      "trend": "IMPROVING",
+      "signal": "STRONG",
+      "value_score": 41.514
+    },
+    {
+      "ticker": "FIGR",
+      "company_name": "Figure Technology Solutions, In",
+      "piotroski_current": 6.0,
+      "piotroski_prev": 2.0,
+      "delta": 4.0,
+      "trend": "IMPROVING",
+      "signal": "NEUTRAL",
+      "value_score": 56.4
+    },
+    {
+      "ticker": "RRBI",
+      "company_name": "Red River Bancshares, Inc.",
+      "piotroski_current": 6.0,
+      "piotroski_prev": 5.0,
+      "delta": 1.0,
+      "trend": "SLIGHT_UP",
+      "signal": "NEUTRAL",
+      "value_score": 56.400000000000006
+    },
+    {
+      "ticker": "BDL",
+      "company_name": "Flanigan's Enterprises, Inc.",
+      "piotroski_current": 9.0,
+      "piotroski_prev": 9.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 65.11
+    },
+    {
+      "ticker": "APG",
+      "company_name": "APi Group Corporation",
+      "piotroski_current": 9.0,
+      "piotroski_prev": 9.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 54.36
+    },
+    {
+      "ticker": "STKL",
+      "company_name": "SunOpta, Inc.",
+      "piotroski_current": 9.0,
+      "piotroski_prev": 9.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 36.760000000000005
+    },
+    {
+      "ticker": "SGU",
+      "company_name": "Star Group L.P.",
+      "piotroski_current": 8.0,
+      "piotroski_prev": 8.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 72.828
+    },
+    {
+      "ticker": "MWA",
+      "company_name": "MUELLER WATER PRODUCTS",
+      "piotroski_current": 8.0,
+      "piotroski_prev": 8.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 72.52
+    },
+    {
+      "ticker": "PACS",
+      "company_name": "PACS Group, Inc.",
+      "piotroski_current": 8.0,
+      "piotroski_prev": 8.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 66.92
+    },
+    {
+      "ticker": "RCKY",
+      "company_name": "Rocky Brands, Inc.",
+      "piotroski_current": 8.0,
+      "piotroski_prev": 8.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 64.92
+    },
+    {
+      "ticker": "FAST",
+      "company_name": "Fastenal Company",
+      "piotroski_current": 8.0,
+      "piotroski_prev": null,
+      "delta": 0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 60.72
+    },
+    {
+      "ticker": "NGS",
+      "company_name": "Natural Gas Services Group, Inc",
+      "piotroski_current": 8.0,
+      "piotroski_prev": 8.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 60.0
+    },
+    {
+      "ticker": "AMH",
+      "company_name": "American Homes 4 Rent",
+      "piotroski_current": 8.0,
+      "piotroski_prev": 8.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 58.2
+    },
+    {
+      "ticker": "BUKS",
+      "company_name": "Butler National Corp.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 69.7
+    },
+    {
+      "ticker": "SPGI",
+      "company_name": "S&P Global Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 67.6
+    },
+    {
+      "ticker": "BFST",
+      "company_name": "Business First Bancshares, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 63.92
+    },
+    {
+      "ticker": "STRW",
+      "company_name": "Strawberry Fields REIT, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 60.4
+    },
+    {
+      "ticker": "SHBI",
+      "company_name": "Shore Bancshares, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 58.92
+    },
+    {
+      "ticker": "NIC",
+      "company_name": "Nicolet Bankshares Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 58.4
+    },
+    {
+      "ticker": "PRIM",
+      "company_name": "Primoris Services Corporation",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 53.92
+    },
+    {
+      "ticker": "ATLO",
+      "company_name": "Ames National Corporation",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 53.448
+    },
+    {
+      "ticker": "TCBI",
+      "company_name": "Texas Capital Bancshares, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 53.4
+    },
+    {
+      "ticker": "INR",
+      "company_name": "Infinity Natural Resources, Inc",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 50.68
+    },
+    {
+      "ticker": "SMBK",
+      "company_name": "SmartFinancial, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 50.31999999999999
+    },
+    {
+      "ticker": "NLCP",
+      "company_name": "NewLake Capital Partners, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 48.879999999999995
+    },
+    {
+      "ticker": "UMH",
+      "company_name": "UMH Properties, Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 47.48
+    },
+    {
+      "ticker": "J",
+      "company_name": "Jacobs Solutions Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 46.68
+    },
+    {
+      "ticker": "UTI",
+      "company_name": "Universal Technical Institute I",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 43.239999999999995
+    },
+    {
+      "ticker": "AMTB",
+      "company_name": "Amerant Bancorp Inc.",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 42.64
+    },
+    {
+      "ticker": "SAMG",
+      "company_name": "Silvercrest Asset Management Gr",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 36.48
+    },
+    {
+      "ticker": "EML",
+      "company_name": "Eastern Company (The)",
+      "piotroski_current": 7.0,
+      "piotroski_prev": 7.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "STRONG",
+      "value_score": 33.728
+    },
+    {
+      "ticker": "CMTV",
+      "company_name": "Community Bancorp.",
+      "piotroski_current": 3.0,
+      "piotroski_prev": 3.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "WEAK",
+      "value_score": 52.19
+    },
+    {
+      "ticker": "FMFG",
+      "company_name": "Farmers and Merchants Bancshare",
+      "piotroski_current": 3.0,
+      "piotroski_prev": 3.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "WEAK",
+      "value_score": 44.913999999999994
+    },
+    {
+      "ticker": "MNSB",
+      "company_name": "MainStreet Bancshares, Inc.",
+      "piotroski_current": 3.0,
+      "piotroski_prev": 3.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "WEAK",
+      "value_score": 41.0
+    },
+    {
+      "ticker": "GOOD",
+      "company_name": "Gladstone Commercial Corporatio",
+      "piotroski_current": 3.0,
+      "piotroski_prev": 3.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "WEAK",
+      "value_score": 40.32
+    },
+    {
+      "ticker": "GBLI",
+      "company_name": "Global Indemnity Group, LLC",
+      "piotroski_current": 3.0,
+      "piotroski_prev": 3.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "WEAK",
+      "value_score": 37.8
+    },
+    {
+      "ticker": "MDBH",
+      "company_name": "MDB Capital Holdings, LLC",
+      "piotroski_current": 3.0,
+      "piotroski_prev": 3.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "WEAK",
+      "value_score": 33.32
+    },
+    {
+      "ticker": "NEWT",
+      "company_name": "NewtekOne, Inc.",
+      "piotroski_current": 2.0,
+      "piotroski_prev": 2.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "WEAK",
+      "value_score": 42.12
+    },
+    {
+      "ticker": "ATEX",
+      "company_name": "Anterix Inc.",
+      "piotroski_current": 2.0,
+      "piotroski_prev": 2.0,
+      "delta": 0.0,
+      "trend": "STABLE",
+      "signal": "WEAK",
+      "value_score": 40.31999999999999
+    },
+    {
+      "ticker": "ACNB",
+      "company_name": "ACNB Corporation",
+      "piotroski_current": 5.0,
+      "piotroski_prev": 6.0,
+      "delta": -1.0,
+      "trend": "SLIGHT_DOWN",
+      "signal": "NEUTRAL",
+      "value_score": 58.12
+    }
+  ]
+}
