@@ -565,6 +565,25 @@ export async function fetchCerebroDailyPlan() {
   return api.get<DailyPlan>('/api/cerebro/daily-plan')
 }
 
+export interface LivePrice {
+  symbol: string
+  label: string
+  kind: string
+  current: number | null
+  prev_close: number | null
+  change_pct: number | null
+}
+
+export interface LivePricesData {
+  prices: Record<string, LivePrice>
+  market_open: boolean
+  fetched_at: string
+}
+
+export async function fetchLivePrices() {
+  return api.get<LivePricesData>('/api/live-prices')
+}
+
 export const fetchMarketRegime = () =>
   api.get<MarketRegime>('/api/market-regime')
 

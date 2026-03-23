@@ -2834,6 +2834,80 @@ def technical_signals():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/live-prices')
+def live_prices():
+    """Real-time key market prices — VIX, SPY, Oil, Gold, 10Y, 30Y, DXY.
+    Cached 30s to avoid hammering yfinance on every frontend poll."""
+    import yfinance as yf
+    import time
+
+    cache = getattr(live_prices, '_cache', None)
+    now = time.time()
+    if cache and now - cache['ts'] < 30:
+        return jsonify(cache['data'])
+
+    TICKERS = {
+        'vix':  ('^VIX',     'VIX',       'volatility'),
+        'spy':  ('SPY',      'S&P 500',   'equity'),
+        'oil':  ('CL=F',     'Petróleo',  'commodity'),
+        'gold': ('GLD',      'Oro',       'commodity'),
+        'tnx':  ('^TNX',     '10Y Yield', 'rate'),
+        'tyx':  ('^TYX',     '30Y Yield', 'rate'),
+        'dxy':  ('DX-Y.NYB', 'Dólar DXY', 'currency'),
+    }
+
+    result = {}
+    try:
+        symbols = [v[0] for v in TICKERS.values()]
+        raw = yf.download(symbols, period='2d', interval='1d',
+                          progress=False, auto_adjust=True, group_by='ticker')
+
+        for key, (sym, label, kind) in TICKERS.items():
+            try:
+                try:
+                    closes = raw[sym]['Close'].dropna()
+                except Exception:
+                    closes = raw['Close'].dropna()
+
+                if closes is None or len(closes) < 1:
+                    result[key] = {'symbol': sym, 'label': label, 'kind': kind,
+                                   'current': None, 'prev_close': None, 'change_pct': None}
+                    continue
+
+                current    = float(closes.iloc[-1])
+                prev_close = float(closes.iloc[-2]) if len(closes) >= 2 else current
+                change_pct = (current / prev_close - 1) * 100 if prev_close else 0.0
+
+                result[key] = {
+                    'symbol':     sym,
+                    'label':      label,
+                    'kind':       kind,
+                    'current':    round(current, 2),
+                    'prev_close': round(prev_close, 2),
+                    'change_pct': round(change_pct, 2),
+                }
+            except Exception:
+                result[key] = {'symbol': sym, 'label': label, 'kind': kind,
+                               'current': None, 'prev_close': None, 'change_pct': None}
+
+    except Exception as e:
+        return jsonify({'error': str(e), 'prices': {}}), 500
+
+    from datetime import datetime, timezone, timedelta
+    eastern  = datetime.now(timezone(timedelta(hours=-4)))
+    weekday  = eastern.weekday()
+    hour     = eastern.hour + eastern.minute / 60
+    market_open = (weekday < 5) and (9.5 <= hour < 16.0)
+
+    payload = {
+        'prices':      result,
+        'market_open': market_open,
+        'fetched_at':  datetime.utcnow().isoformat() + 'Z',
+    }
+    live_prices._cache = {'ts': now, 'data': payload}
+    return jsonify(payload)
+
+
 @app.route('/api/price-history/<ticker>')
 def price_history(ticker: str):
     """Return 6-month weekly closing prices for mini charts / sparklines."""

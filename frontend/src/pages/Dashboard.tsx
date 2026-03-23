@@ -4,9 +4,9 @@ import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
   fetchPortfolioTracker, fetchRecurringInsiders, fetchOptionsFlow, fetchMeanReversion,
   fetchMacroRadar, fetchDailyBriefing, fetchMarketBreadth, fetchCerebroConvergence, fetchCerebroAlerts,
-  fetchCerebroEntrySignals, fetchCerebroDailyPlan,
+  fetchCerebroEntrySignals, fetchCerebroDailyPlan, fetchLivePrices,
   type ValueOpportunity, type InsiderData, type PortfolioSummary, type BreadthData, type CerebroAlert,
-  type DailyPlan, type DailyPlanAction, type MacroPlay,
+  type DailyPlan, type DailyPlanAction, type MacroPlay, type LivePricesData,
 } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import { useApi } from '../hooks/useApi'
@@ -681,6 +681,106 @@ function EntrySignalsMini({ data, loading }: {
   )
 }
 
+// ── LivePricesBar ─────────────────────────────────────────────────────────────
+
+const LIVE_ORDER = ['vix', 'spy', 'oil', 'gold', 'tnx', 'tyx', 'dxy'] as const
+
+function useLivePrices(intervalMs = 60_000) {
+  const [data, setData]           = React.useState<LivePricesData | null>(null)
+  const [loading, setLoading]     = React.useState(true)
+  const [lastUpdate, setLastUpdate] = React.useState<Date | null>(null)
+  const [secsAgo, setSecsAgo]     = React.useState(0)
+
+  React.useEffect(() => {
+    let cancelled = false
+    const doFetch = async () => {
+      try {
+        const res = await fetchLivePrices()
+        if (!cancelled) { setData(res.data); setLastUpdate(new Date()); setSecsAgo(0) }
+      } catch { /* silent */ } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    doFetch()
+    const fetchId = setInterval(doFetch, intervalMs)
+    const tickId  = setInterval(() => setSecsAgo(s => s + 1), 1000)
+    return () => { cancelled = true; clearInterval(fetchId); clearInterval(tickId) }
+  }, [intervalMs])
+
+  return { data, loading, lastUpdate, secsAgo }
+}
+
+function LivePriceItem({ id, price }: { id: string; price: { label: string; kind: string; current: number | null; change_pct: number | null } }) {
+  const chg = price.change_pct ?? 0
+  const isRate = price.kind === 'rate'
+
+  // VIX: green <20, yellow 20-25, red >25
+  const vixColor = id === 'vix'
+    ? (price.current ?? 0) > 25 ? 'text-red-400' : (price.current ?? 0) > 20 ? 'text-amber-400' : 'text-emerald-400'
+    : null
+
+  const chgColor = vixColor ?? (
+    isRate
+      ? chg > 0.03 ? 'text-red-400' : chg < -0.03 ? 'text-emerald-400' : 'text-muted-foreground'
+      : chg >= 0.5 ? 'text-emerald-400' : chg <= -0.5 ? 'text-red-400' : 'text-muted-foreground'
+  )
+
+  const fmtVal = () => {
+    if (price.current == null) return '—'
+    if (id === 'vix') return price.current.toFixed(1)
+    if (price.kind === 'rate') return `${price.current.toFixed(2)}%`
+    return price.current.toFixed(2)
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 border-r border-border/20 last:border-0">
+      <span className="text-[0.62rem] text-muted-foreground/60 hidden sm:inline">{price.label}</span>
+      <span className={`font-mono font-bold text-[0.75rem] tabular-nums ${chgColor}`}>{fmtVal()}</span>
+      {price.change_pct != null && (
+        <span className={`text-[0.6rem] tabular-nums ${chgColor}`}>
+          {chg >= 0 ? '+' : ''}{chg.toFixed(2)}%
+        </span>
+      )}
+    </div>
+  )
+}
+
+function LivePricesBar() {
+  const { data, loading, secsAgo } = useLivePrices(60_000)
+
+  if (loading) return (
+    <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg border border-border/20 bg-muted/5 animate-pulse h-9" />
+  )
+  if (!data) return null
+
+  const isOpen   = data.market_open
+  const freshness = secsAgo < 90 ? 'text-emerald-400' : secsAgo < 180 ? 'text-amber-400' : 'text-muted-foreground/40'
+
+  return (
+    <div className="flex items-center gap-0 mb-4 rounded-lg border border-border/20 bg-muted/5 overflow-x-auto scrollbar-none animate-fade-in-up">
+      {/* Status pill */}
+      <div className="flex items-center gap-1.5 px-3 py-2 border-r border-border/20 shrink-0">
+        <span className={`w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground/30'}`} />
+        <span className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/60">
+          {isOpen ? 'Live' : 'Closed'}
+        </span>
+      </div>
+
+      {/* Prices */}
+      {LIVE_ORDER.map(id => {
+        const p = data.prices[id]
+        if (!p) return null
+        return <LivePriceItem key={id} id={id} price={p} />
+      })}
+
+      {/* Freshness */}
+      <div className={`ml-auto px-3 text-[0.58rem] tabular-nums shrink-0 ${freshness}`}>
+        {secsAgo < 5 ? 'ahora' : `${secsAgo}s`}
+      </div>
+    </div>
+  )
+}
+
 // ── DailyPlanCard ────────────────────────────────────────────────────────────
 
 const SESGO_STYLES: Record<string, { border: string; text: string; bg: string; badge: string }> = {
@@ -1049,6 +1149,9 @@ export default function Dashboard() {
           Resumen ejecutivo · Actualización diaria automática
         </p>
       </div>
+
+      {/* Live prices bar — real-time, polls every 60s */}
+      <LivePricesBar />
 
       {/* Daily Plan — most prominent feature, shown first */}
       <DailyPlanCard data={dailyPlanRaw} loading={loadingDailyPlan} />

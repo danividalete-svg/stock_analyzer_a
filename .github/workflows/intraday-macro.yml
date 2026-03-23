@@ -1,0 +1,65 @@
+name: Intraday Macro Radar
+
+on:
+  schedule:
+    # Every 5 min Mon-Fri 13:30-21:00 UTC (9:30am-5pm ET)
+    - cron: '*/5 13-20 * * 1-5'
+    - cron: '0 21 * * 1-5'        # Final update at 5pm ET close
+  workflow_dispatch:               # Manual trigger anytime
+
+jobs:
+  intraday-update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install minimal deps
+        run: pip install pandas numpy yfinance
+
+      - name: Run Intraday Macro Radar
+        id: macro
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python3 macro_radar_intraday.py
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Commit if significant change
+        if: steps.macro.outcome == 'success'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name  "GitHub Actions Bot"
+
+          git add docs/macro_radar.json docs/cerebro_daily_plan.json \
+                  docs/macro_radar_intraday_alerts.json 2>/dev/null || true
+
+          TIMESTAMP=$(date -u +"%H:%M UTC")
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: Intraday macro update — ${TIMESTAMP}" \
+            -m "Automated via GitHub Actions (intraday-macro.yml)"
+
+          git push || echo "Push failed (concurrent update?)"
+
+      - name: Trigger Pages Deployment
+        if: steps.macro.outcome == 'success'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run pages-deploy.yml
+
+env:
+  PYTHONUNBUFFERED: 1
