@@ -46,7 +46,7 @@
       "analysis": "Convergencia de 3 estrategias: VALUE, INSIDERS, OPTIONS."
     },
     {
-      "ticker": "PODD",
+      "ticker": "HUM",
       "company_name": "",
       "sector": "",
       "strategies": [
@@ -67,7 +67,7 @@
       "analysis": "Convergencia de 3 estrategias: INSIDERS, MR, OPTIONS."
     },
     {
-      "ticker": "LAW",
+      "ticker": "ABT",
       "company_name": "",
       "sector": "",
       "strategies": [
@@ -109,91 +109,7 @@
       "analysis": null
     },
     {
-      "ticker": "KKR",
-      "company_name": "",
-      "sector": "",
-      "strategies": [
-        "INSIDERS",
-        "MR",
-        "OPTIONS"
-      ],
-      "strategy_count": 3,
-      "convergence_score": 70,
-      "value_score": null,
-      "conviction_grade": "",
-      "analyst_upside_pct": null,
-      "fcf_yield_pct": null,
-      "current_price": null,
-      "streak_days": 1,
-      "earnings_warning": false,
-      "days_to_earnings": null,
-      "analysis": null
-    },
-    {
       "ticker": "URI",
-      "company_name": "",
-      "sector": "",
-      "strategies": [
-        "INSIDERS",
-        "MR",
-        "OPTIONS"
-      ],
-      "strategy_count": 3,
-      "convergence_score": 70,
-      "value_score": null,
-      "conviction_grade": "",
-      "analyst_upside_pct": null,
-      "fcf_yield_pct": null,
-      "current_price": null,
-      "streak_days": 1,
-      "earnings_warning": false,
-      "days_to_earnings": null,
-      "analysis": null
-    },
-    {
-      "ticker": "ROP",
-      "company_name": "",
-      "sector": "",
-      "strategies": [
-        "INSIDERS",
-        "MR",
-        "OPTIONS"
-      ],
-      "strategy_count": 3,
-      "convergence_score": 70,
-      "value_score": null,
-      "conviction_grade": "",
-      "analyst_upside_pct": null,
-      "fcf_yield_pct": null,
-      "current_price": null,
-      "streak_days": 1,
-      "earnings_warning": false,
-      "days_to_earnings": null,
-      "analysis": null
-    },
-    {
-      "ticker": "FIS",
-      "company_name": "",
-      "sector": "",
-      "strategies": [
-        "INSIDERS",
-        "MR",
-        "OPTIONS"
-      ],
-      "strategy_count": 3,
-      "convergence_score": 70,
-      "value_score": null,
-      "conviction_grade": "",
-      "analyst_upside_pct": null,
-      "fcf_yield_pct": null,
-      "current_price": null,
-      "streak_days": 1,
-      "earnings_warning": false,
-      "days_to_earnings": null,
-      "analysis": null
-    },
-    {
-      "ticker": "MSTR",
       "company_name": "",
       "sector": "",
       "strategies": [
@@ -235,6 +151,69 @@
       "analysis": null
     },
     {
+      "ticker": "MSTR",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "FIS",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "HYMC",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
       "ticker": "ENPH",
       "company_name": "",
       "sector": "",
@@ -256,7 +235,49 @@
       "analysis": null
     },
     {
-      "ticker": "CRM",
+      "ticker": "PODD",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "KKR",
+      "company_name": "",
+      "sector": "",
+      "strategies": [
+        "INSIDERS",
+        "MR",
+        "OPTIONS"
+      ],
+      "strategy_count": 3,
+      "convergence_score": 70,
+      "value_score": null,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": null,
+      "current_price": null,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "LAW",
       "company_name": "",
       "sector": "",
       "strategies": [
@@ -319,7 +340,7 @@
       "analysis": null
     },
     {
-      "ticker": "HYMC",
+      "ticker": "ROP",
       "company_name": "",
       "sector": "",
       "strategies": [
@@ -340,28 +361,7 @@
       "analysis": null
     },
     {
-      "ticker": "ABT",
-      "company_name": "",
-      "sector": "",
-      "strategies": [
-        "INSIDERS",
-        "MR",
-        "OPTIONS"
-      ],
-      "strategy_count": 3,
-      "convergence_score": 70,
-      "value_score": null,
-      "conviction_grade": "",
-      "analyst_upside_pct": null,
-      "fcf_yield_pct": null,
-      "current_price": null,
-      "streak_days": 1,
-      "earnings_warning": false,
-      "days_to_earnings": null,
-      "analysis": null
-    },
-    {
-      "ticker": "HUM",
+      "ticker": "CRM",
       "company_name": "",
       "sector": "",
       "strategies": [
@@ -397,46 +397,6 @@
       "analyst_upside_pct": null,
       "fcf_yield_pct": null,
       "current_price": null,
-      "streak_days": 1,
-      "earnings_warning": false,
-      "days_to_earnings": null,
-      "analysis": null
-    },
-    {
-      "ticker": "INDV",
-      "company_name": "Indivior Pharmaceuticals, Inc.",
-      "sector": "Healthcare",
-      "strategies": [
-        "VALUE",
-        "INSIDERS"
-      ],
-      "strategy_count": 2,
-      "convergence_score": 64,
-      "value_score": 71.32,
-      "conviction_grade": "",
-      "analyst_upside_pct": 53.6,
-      "fcf_yield_pct": 5.81,
-      "current_price": 30.5,
-      "streak_days": 1,
-      "earnings_warning": false,
-      "days_to_earnings": 41.0,
-      "analysis": null
-    },
-    {
-      "ticker": "LIFE",
-      "company_name": "Ethos Technologies Inc.",
-      "sector": "Financial Services",
-      "strategies": [
-        "VALUE",
-        "INSIDERS"
-      ],
-      "strategy_count": 2,
-      "convergence_score": 64,
-      "value_score": 73.6,
-      "conviction_grade": "",
-      "analyst_upside_pct": 102.5,
-      "fcf_yield_pct": 8.12,
-      "current_price": 10.0,
       "streak_days": 1,
       "earnings_warning": false,
       "days_to_earnings": null,
@@ -483,43 +443,83 @@
       "analysis": null
     },
     {
-      "ticker": "LPG",
-      "company_name": "Dorian LPG Ltd.",
-      "sector": "Energy",
+      "ticker": "INDV",
+      "company_name": "Indivior Pharmaceuticals, Inc.",
+      "sector": "Healthcare",
       "strategies": [
         "VALUE",
         "INSIDERS"
       ],
       "strategy_count": 2,
-      "convergence_score": 63,
-      "value_score": 69.36,
+      "convergence_score": 64,
+      "value_score": 71.32,
       "conviction_grade": "",
-      "analyst_upside_pct": 6.9,
-      "fcf_yield_pct": 7.03,
-      "current_price": 33.79,
+      "analyst_upside_pct": 53.6,
+      "fcf_yield_pct": 5.81,
+      "current_price": 30.5,
       "streak_days": 1,
       "earnings_warning": false,
-      "days_to_earnings": 62.0,
+      "days_to_earnings": 41.0,
       "analysis": null
     },
     {
-      "ticker": "SPGI",
-      "company_name": "S&P Global Inc.",
+      "ticker": "LIFE",
+      "company_name": "Ethos Technologies Inc.",
       "sector": "Financial Services",
       "strategies": [
         "VALUE",
         "INSIDERS"
       ],
       "strategy_count": 2,
-      "convergence_score": 63,
-      "value_score": 67.6,
+      "convergence_score": 64,
+      "value_score": 73.6,
       "conviction_grade": "",
-      "analyst_upside_pct": 26.4,
-      "fcf_yield_pct": 3.78,
-      "current_price": 426.14,
+      "analyst_upside_pct": 102.5,
+      "fcf_yield_pct": 8.12,
+      "current_price": 10.0,
       "streak_days": 1,
       "earnings_warning": false,
-      "days_to_earnings": 39.0,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "BDL",
+      "company_name": "Flanigan's Enterprises, Inc.",
+      "sector": "Consumer Cyclical",
+      "strategies": [
+        "VALUE",
+        "INSIDERS"
+      ],
+      "strategy_count": 2,
+      "convergence_score": 63,
+      "value_score": 65.11,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": 2998.02,
+      "current_price": 34.6,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
+      "analysis": null
+    },
+    {
+      "ticker": "BUKS",
+      "company_name": "Butler National Corp.",
+      "sector": "Industrials",
+      "strategies": [
+        "VALUE",
+        "INSIDERS"
+      ],
+      "strategy_count": 2,
+      "convergence_score": 63,
+      "value_score": 69.7,
+      "conviction_grade": "",
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": 4.47,
+      "current_price": 3.91,
+      "streak_days": 1,
+      "earnings_warning": false,
+      "days_to_earnings": null,
       "analysis": null
     }
   ]
