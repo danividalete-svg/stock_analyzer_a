@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-03-24",
   "macro_regime": "STRESS",
-  "composite_score": -2.0,
+  "composite_score": -1.0,
   "sesgo": "NEUTRO",
   "confianza": 57,
   "situacion": "R\u00e9gimen STRESS, composite -2.5/30. 3 plays macro identificadas.",
@@ -75,7 +75,7 @@
     {
       "instrument": "UVXY (small)",
       "direction": "LONG",
-      "thesis": "VVIX en p92 con VIX moderado \u2014 spike de volatilidad inminente",
+      "thesis": "VVIX en p94 con VIX moderado \u2014 spike de volatilidad inminente",
       "historical": "VIX sube >30% en las 2 semanas siguientes al 80% de las veces con VVIX >p85",
       "risk": "Theta decay si spike no materializa en <2 semanas",
       "timeframe": "1-2 semanas",
@@ -121,5 +121,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-03-24 | STRESS (-2.5) | NEUTRO | VALUE: PRU.L AON | Evitar: ATEX NEWT",
   "ai_powered": false,
-  "intraday_refresh": "2026-03-24T19:42:43.742513"
+  "intraday_refresh": "2026-03-24T20:26:23.227506"
 }
