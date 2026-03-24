@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-03-24",
   "macro_regime": "STRESS",
-  "composite_score": -2.5,
+  "composite_score": -1.0,
   "sesgo": "NEUTRO",
   "confianza": 57,
   "situacion": "R\u00e9gimen STRESS, composite -2.5/30. 3 plays macro identificadas.",
@@ -55,30 +55,30 @@
   ],
   "macro_plays": [
     {
-      "instrument": "TLT/VGLT",
+      "instrument": "GLD / GDX",
       "direction": "LONG",
-      "thesis": "Yield 30yr en 4.91% \u2014 zona hist\u00f3ricamente atractiva para bonos largos",
-      "historical": "2018-19: TLT +18% cuando yields revertieron desde 3.25%",
-      "risk": "La Fed puede mantener tipos altos m\u00e1s tiempo \u2014 size peque\u00f1o",
-      "timeframe": "3-6 meses",
-      "score": 90
+      "thesis": "Oro superando al mercado (p84) con VIX elevado \u2014 refugio activo",
+      "historical": "GLD +15% promedio en entornos VIX>25 sostenido",
+      "risk": "Subida de tipos reales puede frenar el oro",
+      "timeframe": "1-3 meses",
+      "score": 80
     },
     {
       "instrument": "XLE",
       "direction": "LONG",
-      "thesis": "Petr\u00f3leo en percentil 96% con +36% en 20d \u2014 componente geopol\u00edtico",
-      "historical": "2022 Ucrania: XLE +65% en 6 meses",
-      "risk": "Acuerdo geopol\u00edtico o recesi\u00f3n colapsa el oil \u2014 stop ajustado",
-      "timeframe": "1-2 meses",
+      "thesis": "Petr\u00f3leo en p97 con +40% en 20d \u2014 componente geopol\u00edtico real",
+      "historical": "XLE +8% adicional en picos geopol\u00edticos de 3+ semanas",
+      "risk": "Resoluci\u00f3n diplom\u00e1tica o recesi\u00f3n colapsar\u00eda demanda",
+      "timeframe": "2-8 semanas",
       "score": 70
     },
     {
-      "instrument": "UVXY",
-      "direction": "LONG (peque\u00f1o)",
-      "thesis": "VVIX en percentil 93% con VIX a\u00fan bajo \u2014 spike de volatilidad inminente",
-      "historical": "2018 VIXplosion: UVXY +200% en 2 d\u00edas",
-      "risk": "El tiempo trabaja en contra de VIX products \u2014 size m\u00e1ximo 1%",
-      "timeframe": "1-4 semanas",
+      "instrument": "UVXY (small)",
+      "direction": "LONG",
+      "thesis": "VVIX en p93 con VIX moderado \u2014 spike de volatilidad inminente",
+      "historical": "VIX sube >30% en las 2 semanas siguientes al 80% de las veces con VVIX >p85",
+      "risk": "Theta decay si spike no materializa en <2 semanas",
+      "timeframe": "1-2 semanas",
       "score": 65
     }
   ],
@@ -120,5 +120,6 @@
   ],
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-03-24 | STRESS (-2.5) | NEUTRO | VALUE: PRU.L AON | Evitar: ATEX NEWT",
-  "ai_powered": false
+  "ai_powered": false,
+  "intraday_refresh": "2026-03-24T16:42:41.772321"
 }
