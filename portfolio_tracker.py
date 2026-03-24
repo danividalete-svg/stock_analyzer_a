@@ -57,11 +57,20 @@ class PortfolioTracker:
 
         signals_recorded = 0
 
-        # Record VALUE opportunities
-        value_path = Path('docs/value_opportunities_filtered.csv')
+        # Record VALUE opportunities — only high-conviction signals (score ≥ 55, grade A/B)
+        # Prefer value_conviction.csv (already pre-filtered), fallback to filtered with score gate
+        for value_path in [Path('docs/value_conviction.csv'), Path('docs/value_opportunities_filtered.csv')]:
+            if value_path.exists():
+                break
         if value_path.exists():
             vdf = pd.read_csv(value_path)
             if not vdf.empty:
+                # Apply minimum quality gate
+                if 'value_score' in vdf.columns:
+                    vdf = vdf[vdf['value_score'] >= 55]
+                if 'conviction_grade' in vdf.columns:
+                    vdf = vdf[vdf['conviction_grade'].isin(['A', 'B'])]
+                vdf = vdf.head(6)  # max 6 picks per day
                 for _, row in vdf.iterrows():
                     price = row.get('current_price', 0)
                     if not price or pd.isna(price) or float(price) <= 0:
@@ -128,12 +137,19 @@ class PortfolioTracker:
                     mom_recorded += 1
                 print(f"  Recorded {mom_recorded} MOMENTUM signals")
 
-        # Record EUROPEAN VALUE opportunities
+        # Record EUROPEAN VALUE opportunities — only high-conviction signals (score ≥ 55, grade A/B)
         eu_recorded = 0
-        eu_path = Path('docs/european_value_opportunities_filtered.csv')
+        for eu_path in [Path('docs/european_value_conviction.csv'), Path('docs/european_value_opportunities_filtered.csv')]:
+            if eu_path.exists():
+                break
         if eu_path.exists():
             edf = pd.read_csv(eu_path)
             if not edf.empty:
+                if 'value_score' in edf.columns:
+                    edf = edf[edf['value_score'] >= 55]
+                if 'conviction_grade' in edf.columns:
+                    edf = edf[edf['conviction_grade'].isin(['A', 'B'])]
+                edf = edf.head(6)
                 for _, row in edf.iterrows():
                     price = row.get('current_price', 0)
                     if not price or pd.isna(price) or float(price) <= 0:
@@ -288,6 +304,9 @@ class PortfolioTracker:
         value_df = df[df['strategy'] == 'VALUE']
         mom_df = df[df['strategy'] == 'MOMENTUM']
 
+        # Conviction slice: value_score ≥ 55 (matches frontend default filter)
+        conviction_df = df[df['value_score'].notna() & (df['value_score'] >= 55)]
+
         # Sector analysis
         sector_perf = {}
         for sector in df['sector'].unique():
@@ -347,6 +366,17 @@ class PortfolioTracker:
                 '7d': win_stats('return_7d', 'win_7d'),
                 '14d': win_stats('return_14d', 'win_14d'),
                 '30d': win_stats('return_30d', 'win_30d'),
+            },
+
+            # High-conviction only (score ≥ 55) — the real signal quality metric
+            'conviction': {
+                '7d': (lambda d: {
+                    'count': 0, 'win_rate': None, 'avg_return': None
+                } if d.empty or d['return_7d'].notna().sum() == 0 else {
+                    'count': int(d['return_7d'].notna().sum()),
+                    'win_rate': round((d[d['win_7d'] == True]['return_7d'].notna().sum()) / d['return_7d'].notna().sum() * 100, 1),
+                    'avg_return': round(d['return_7d'].dropna().mean(), 2),
+                })(conviction_df),
             },
 
             'value_strategy': {

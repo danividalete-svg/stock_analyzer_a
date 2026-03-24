@@ -2243,6 +2243,10 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             grade  = str(row.get("conviction_grade",""))
             fcf    = sf(row.get("fcf_yield_pct"))
 
+            # Hard quality gate: only A/B grade, score ≥ 55
+            if grade not in ("A", "B") or vscore < 55:
+                continue
+
             fits = False
             if regime_name in ("STRESS", "ALERT", "CRISIS"):
                 fits = sector in stress_sectors and (fcf is None or fcf > 4)

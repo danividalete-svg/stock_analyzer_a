@@ -2155,6 +2155,8 @@ def backtest():
         })
 
     all_7d = [t["return_7d"] for t in trades_7d]
+    # Conviction slice: only value_score ≥ 55 (matches frontend default filter)
+    conviction_7d = [t["return_7d"] for t in trades_7d if t["value_score"] is not None and t["value_score"] >= 55]
     trades_7d_sorted = sorted(trades_7d, key=lambda x: x["return_7d"], reverse=True)
 
     # Date range
@@ -2169,6 +2171,7 @@ def backtest():
         "periods": {
             "7d": {
                 "overall": _stats_for(all_7d),
+                "conviction": _stats_for(conviction_7d),
                 "by_strategy": {s: _stats_for(rets) for s, rets in strat_7d.items()},
                 "by_score": {bucket: _stats_for(rets) for bucket, rets in score_buckets_7d.items()},
             }

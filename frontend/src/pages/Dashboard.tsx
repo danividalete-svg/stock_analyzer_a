@@ -1136,7 +1136,9 @@ export default function Dashboard() {
   const usRegime = regime?.us as Record<string, unknown> | undefined
   const euRegime = regime?.eu as Record<string, unknown> | undefined
 
-  const winRate7d = overall?.['7d']
+  const conviction = (pf as Record<string, unknown>).conviction as Record<string, { count: number; win_rate: number; avg_return: number }> | undefined
+  const winRate7d = conviction?.['7d']?.count ? conviction['7d'] : overall?.['7d']
+  const winRateIsConviction = !!conviction?.['7d']?.count
   const totalSignals = pf.total_signals ?? 0
   const activeSignals = pf.active_signals ?? totalSignals
 
@@ -1230,7 +1232,7 @@ export default function Dashboard() {
         <RegimeCard label="Mercado US" data={usRegime} loading={loadingRegime} />
         <RegimeCard label="Mercado EU" data={euRegime} loading={loadingRegime} />
         <StatCard
-          label="Win Rate 7d"
+          label={winRateIsConviction ? 'Win Rate 7d (≥55pts)' : 'Win Rate 7d (base)'}
           value={winRate7d?.win_rate != null ? `${winRate7d.win_rate.toFixed(1)}%` : '—'}
           countTo={winRate7d?.win_rate ?? undefined}
           countDecimals={1}
