@@ -2113,6 +2113,19 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
     except Exception:
         tyx_yield = 0.0
 
+    # ── EU/UCITS alternative mapping (DEGIRO + Interactive Brokers España) ─────
+    # MiFID II/PRIIPs: US leveraged/inverse ETPs not sellable to EU retail
+    _EU_ALT: dict[str, dict] = {
+        "TLT/VGLT":  {"ticker": "DTLA",  "name": "Xtrackers US Treasuries 20yr+ UCITS ETF",     "exchange": "Xetra", "available": "DEGIRO/IB"},
+        "GLD + GDX": {"ticker": "IGLN+GDXU", "name": "iShares Physical Gold ETC + VanEck Gold Miners UCITS ETF", "exchange": "LSE/AMS", "available": "DEGIRO/IB"},
+        "GLD":       {"ticker": "IGLN",  "name": "iShares Physical Gold ETC",                    "exchange": "LSE",   "available": "DEGIRO/IB"},
+        "XLP/XLV/XLU": {"ticker": "WCOS/WHCS/WUTS", "name": "iShares MSCI World Consumer Staples / Health Care / Utilities UCITS ETF", "exchange": "LSE", "available": "DEGIRO/IB"},
+        "XLE":       {"ticker": "IUES",  "name": "iShares S&P 500 Energy Sector UCITS ETF",      "exchange": "Xetra", "available": "DEGIRO/IB"},
+        "UVXY":      {"ticker": None,    "name": "Sin equivalente UCITS directo (productos VIX restringidos por MiFID II)", "exchange": None, "available": "IB: opciones sobre VIX · DEGIRO: no disponible"},
+        "IWM":       {"ticker": "CSUS",  "name": "iShares MSCI USA Small Cap UCITS ETF",          "exchange": "LSE",   "available": "DEGIRO/IB"},
+        "SGOV/BIL":  {"ticker": "IB01",  "name": "iShares $ Treasury Bond 0-1yr UCITS ETF",       "exchange": "LSE",   "available": "DEGIRO/IB"},
+    }
+
     if tyx_yield >= 4.9:
         score = min(95, int(70 + (tyx_yield - 4.5) * 50))
         macro_plays.append(dict(
@@ -2123,6 +2136,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             risk="La Fed puede mantener tipos altos más tiempo — size pequeño",
             timeframe="3-6 meses",
             score=score,
+            eu_alternative=_EU_ALT["TLT/VGLT"],
         ))
 
     # Gold/SPY ratio vs VIX
@@ -2145,6 +2159,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             risk="Si VIX cae rápido, GDX puede retroceder agresivamente",
             timeframe="1-3 meses",
             score=80,
+            eu_alternative=_EU_ALT["GLD + GDX"],
         ))
 
     copper_pct = float(copper_sig.get("percentile", 0) or 0) if isinstance(copper_sig, dict) else 0
@@ -2157,6 +2172,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             risk="Recuperación económica inesperada revertiría la rotación",
             timeframe="2-4 meses",
             score=75,
+            eu_alternative=_EU_ALT["XLP/XLV/XLU"],
         ))
 
     oil_pct    = float(oil_sig.get("percentile", 0) or 0) if isinstance(oil_sig, dict) else 0
@@ -2170,6 +2186,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             risk="Acuerdo geopolítico o recesión colapsa el oil — stop ajustado",
             timeframe="1-2 meses",
             score=70,
+            eu_alternative=_EU_ALT["XLE"],
         ))
 
     vvix_pct = float(vvix_sig.get("percentile", 0) or 0) if isinstance(vvix_sig, dict) else 0
@@ -2182,6 +2199,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             risk="El tiempo trabaja en contra de VIX products — size máximo 1%",
             timeframe="1-4 semanas",
             score=65,
+            eu_alternative=_EU_ALT["UVXY"],
         ))
 
     sc_pct     = float(sc_sig.get("percentile", 0) or 0) if isinstance(sc_sig, dict) else 0
@@ -2195,6 +2213,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             risk="Si crédito deteriora, small caps caen más — monitorizar HYG",
             timeframe="2-3 meses",
             score=60,
+            eu_alternative=_EU_ALT["IWM"],
         ))
 
     if regime_name in ("ALERT", "CRISIS"):
@@ -2206,6 +2225,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             risk="Coste de oportunidad si mercado rebota violentamente",
             timeframe="hasta cambio de régimen",
             score=85,
+            eu_alternative=_EU_ALT["SGOV/BIL"],
         ))
 
     macro_plays.sort(key=lambda x: -x["score"])

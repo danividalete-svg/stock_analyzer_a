@@ -848,6 +848,15 @@ function MacroPlayRow({ play }: { play: MacroPlay }) {
       <div className="flex-1 min-w-0">
         <div className="text-[0.7rem] text-foreground/80">{play.thesis}</div>
         <div className="text-[0.62rem] text-muted-foreground/50 mt-0.5">{play.timeframe} · {play.risk}</div>
+        {play.eu_alternative && (
+          <div className="mt-1 flex items-center gap-1">
+            <span className="text-[0.55rem] font-bold uppercase tracking-wide text-blue-400/70 border border-blue-400/30 px-1 py-px rounded">EU</span>
+            {play.eu_alternative.ticker ? (
+              <span className="text-[0.62rem] font-mono text-blue-300/80">{play.eu_alternative.ticker}</span>
+            ) : null}
+            <span className="text-[0.58rem] text-muted-foreground/40 truncate">{play.eu_alternative.available}</span>
+          </div>
+        )}
       </div>
       <div className="shrink-0 text-right">
         <div className="text-[0.72rem] font-bold tabular-nums text-foreground">{play.score}</div>
@@ -1074,8 +1083,8 @@ export default function Dashboard() {
   const pf = (portfolio as PortfolioSummary) ?? {}
   const overall = pf.overall as Record<string, { count: number; win_rate: number; avg_return: number }> | undefined
 
-  const topUS = (valueUS?.data ?? []).slice(0, 5)
-  const topEU = (valueEU?.data ?? []).slice(0, 5)
+  const topUS = [...(valueUS?.data ?? [])].sort((a, b) => (b.value_score ?? 0) - (a.value_score ?? 0)).slice(0, 5)
+  const topEU = [...(valueEU?.data ?? [])].sort((a, b) => (b.value_score ?? 0) - (a.value_score ?? 0)).slice(0, 5)
 
   // ── Portfolio Action Items ─────────────────────────────────────────
   const actionItems: { icon: React.ReactNode; text: string; color: string; link: string }[] = []

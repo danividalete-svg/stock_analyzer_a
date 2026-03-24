@@ -509,6 +509,12 @@ export interface MacroPlay {
   risk: string
   timeframe: string
   score: number
+  eu_alternative?: {
+    ticker: string | null
+    name: string
+    exchange: string | null
+    available: string
+  }
 }
 
 export interface DailyPlanAction {
