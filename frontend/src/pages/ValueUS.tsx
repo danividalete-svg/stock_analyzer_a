@@ -54,6 +54,7 @@ export default function ValueUS() {
   // Filters
   const [filterGrade, setFilterGrade] = useState<string>('ALL')
   const [filterSector, setFilterSector] = useState<string>('ALL')
+  const [minScore, setMinScore] = useState<string>('55')
   const [minFcf, setMinFcf] = useState<string>('')
   const [minRr, setMinRr] = useState<string>('')
   const [hideEarnings, setHideEarnings] = useState(false)
@@ -66,7 +67,7 @@ export default function ValueUS() {
 
   const currentThesisTicker = useRef<string | null>(null)
 
-  useEffect(() => { setPage(1) }, [filterGrade, filterSector, minFcf, minRr, hideEarnings, hideTraps, hideExits, onlyOwned])
+  useEffect(() => { setPage(1) }, [filterGrade, filterSector, minScore, minFcf, minRr, hideEarnings, hideTraps, hideExits, onlyOwned])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -81,6 +82,7 @@ export default function ValueUS() {
   const filtered = rows.filter(r => {
     if (filterGrade !== 'ALL' && r.conviction_grade !== filterGrade) return false
     if (filterSector !== 'ALL' && r.sector !== filterSector) return false
+    if (minScore !== '' && (r.value_score == null || r.value_score < Number(minScore))) return false
     if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
     if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
     if (hideEarnings && r.earnings_warning) return false
@@ -138,8 +140,8 @@ export default function ValueUS() {
 
   const hiddenByTraps = hideTraps ? Object.values(cerebro.trapMap).filter(t => t.severity === 'HIGH').length : 0
   const hiddenByExits = hideExits ? rows.filter(r => cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT').length : 0
-  const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || minFcf !== '' || minRr !== '' || hideEarnings || hideTraps || hideExits || onlyOwned
-  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setMinFcf(''); setMinRr(''); setHideEarnings(false); setHideTraps(false); setHideExits(false); setOnlyOwned(false) }
+  const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || minScore !== '55' || minFcf !== '' || minRr !== '' || hideEarnings || hideTraps || hideExits || onlyOwned
+  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setMinScore('55'); setMinFcf(''); setMinRr(''); setHideEarnings(false); setHideTraps(false); setHideExits(false); setOnlyOwned(false) }
 
   const fmtFcf = (v?: number) => {
     if (v == null) return <span className="text-muted-foreground">—</span>
@@ -241,6 +243,24 @@ export default function ValueUS() {
       {/* Filter Bar */}
       <Card className="glass px-4 py-3 mb-3 animate-fade-in-up">
         <div className="flex flex-wrap gap-x-5 gap-y-2.5 items-center">
+
+          {/* Min Score */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground/60 mr-0.5">Score≥</span>
+            {[['ALL', ''], ['50+', '50'], ['55+', '55'], ['60+', '60'], ['65+', '65']].map(([label, val]) => (
+              <button
+                key={val}
+                onClick={() => setMinScore(val)}
+                className={`text-[0.68rem] font-semibold px-2 py-0.5 rounded border transition-colors ${
+                  minScore === val
+                    ? 'border-primary/60 bg-primary/15 text-primary'
+                    : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
           {/* Grade */}
           <div className="flex items-center gap-1.5">
