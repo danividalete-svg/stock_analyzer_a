@@ -283,7 +283,6 @@ export default function GlobalValue() {
                           <span className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">{row.ticker.replace(/\.(SA|KS|T|HK)$/, '')}</span>
                           <OwnedBadge ticker={row.ticker} />
                           {row.ai_verdict === 'RISKY' && <span title={row.ai_notes} className="text-red-400 text-xs">🚫</span>}
-                          {row.ai_verdict === 'SUSPECT' && <span title={row.ai_notes} className="text-amber-400 text-xs">⚠️</span>}
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[160px]">

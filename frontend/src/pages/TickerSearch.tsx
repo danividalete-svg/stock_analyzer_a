@@ -185,25 +185,36 @@ export default function TickerSearch() {
           </Button>
         </div>
 
-        {showSuggestions && suggestions.length > 0 && (
-          <ul className="absolute top-full left-0 right-0 mt-1 z-50 bg-card border border-border rounded-lg shadow-xl overflow-hidden">
-            {suggestions.map((s, i) => (
-              <li
-                key={s.ticker}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors',
-                  i === activeIdx ? 'bg-primary/10' : 'hover:bg-muted/50'
-                )}
-                onMouseDown={() => selectSuggestion(s)}
-                onMouseEnter={() => setActiveIdx(i)}
-              >
-                <span className="font-mono font-bold text-primary text-sm w-20 shrink-0">{s.ticker}</span>
-                <span className="text-sm text-muted-foreground truncate flex-1">{s.company_name}</span>
-                {s.sector && <Badge variant="blue" className="text-[0.6rem] shrink-0">{s.sector}</Badge>}
-              </li>
-            ))}
-          </ul>
-        )}
+        {showSuggestions && suggestions.length > 0 && (() => {
+          // Deduplicate by company_name — keeps first hit (US ticker, no dot) and drops foreign dupes
+          const seen = new Set<string>()
+          const deduped = suggestions.filter(s => {
+            const key = s.company_name.toLowerCase().trim()
+            if (seen.has(key)) return false
+            seen.add(key)
+            return true
+          }).slice(0, 6)
+          const KNOWN_SECTORS = new Set(['Technology','Financial Services','Healthcare','Energy','Consumer Cyclical','Consumer Defensive','Industrials','Real Estate','Basic Materials','Communication Services','Utilities'])
+          return (
+            <ul className="absolute top-full left-0 right-0 mt-1 z-50 bg-background border border-border rounded-lg shadow-xl overflow-hidden">
+              {deduped.map((s, i) => (
+                <li
+                  key={s.ticker}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors',
+                    i === activeIdx ? 'bg-primary/10' : 'hover:bg-muted/50'
+                  )}
+                  onMouseDown={() => selectSuggestion(s)}
+                  onMouseEnter={() => setActiveIdx(i)}
+                >
+                  <span className="font-mono font-bold text-primary text-sm w-20 shrink-0">{s.ticker}</span>
+                  <span className="text-sm text-muted-foreground truncate flex-1">{s.company_name}</span>
+                  {s.sector && KNOWN_SECTORS.has(s.sector) && <Badge variant="blue" className="text-[0.6rem] shrink-0">{s.sector}</Badge>}
+                </li>
+              ))}
+            </ul>
+          )
+        })()}
       </div>
 
       {!r && !loading && !error && (
