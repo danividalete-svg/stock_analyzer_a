@@ -1,0 +1,46 @@
+{
+  "generated_at": "2026-03-24",
+  "total": 2,
+  "high_count": 0,
+  "narrative": null,
+  "decays": [
+    {
+      "ticker": "STRW",
+      "company_name": "Strawberry Fields REIT, Inc.",
+      "severity": "MEDIUM",
+      "decay_score": 3,
+      "value_score": 52.72,
+      "snapshot_date": "2026-03-20",
+      "piotr_prev": 7.0,
+      "piotr_curr": 7.0,
+      "fcf_prev": null,
+      "fcf_curr": 11.07,
+      "health_prev": 65.0,
+      "health_curr": 50.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "Salud financiera cay\u00f3 15pts (65 \u2192 50/100)"
+      ]
+    },
+    {
+      "ticker": "THRY",
+      "company_name": "Thryv Holdings, Inc.",
+      "severity": "MEDIUM",
+      "decay_score": 3,
+      "value_score": 36.8,
+      "snapshot_date": "2026-03-20",
+      "piotr_prev": 6.0,
+      "piotr_curr": 6.0,
+      "fcf_prev": 55.86,
+      "fcf_curr": 51.73,
+      "health_prev": 40.0,
+      "health_curr": 40.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "FCF yield cay\u00f3 4.1pp (55.9% \u2192 51.7%)"
+      ]
+    }
+  ]
+}

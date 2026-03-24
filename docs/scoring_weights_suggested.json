@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-21",
+  "generated_at": "2026-03-24",
   "status": "PENDING_REVIEW",
   "note": "These weights are suggestions only. Apply manually after review.",
   "current_weights": {
@@ -36,16 +36,22 @@
     {
       "factor": "fcf_yield_bonus",
       "change": "+3",
-      "reason": "FCF alto mejora WR +8.3pp. Aumentar peso FCF.",
-      "n": 177
+      "reason": "FCF alto mejora WR +6.4pp. Aumentar peso FCF.",
+      "n": 224
     },
     {
       "factor": "risk_reward_bonus",
       "change": "+2",
-      "reason": "R:R alto mejora WR +15.8pp. Aumentar peso R:R.",
-      "n": 243
+      "reason": "R:R alto mejora WR +14.6pp. Aumentar peso R:R.",
+      "n": 317
+    },
+    {
+      "factor": "score_threshold_note",
+      "change": "Consider raising minimum threshold to 70+ for published picks",
+      "reason": "Score 80+ has 50.0% WR vs 20% base",
+      "n": 4
     }
   ],
-  "expected_impact": "Based on 812 historical signals",
-  "narrative": "Ajustes propuestos basados en an\u00e1lisis hist\u00f3rico. Requieren revisi\u00f3n antes de aplicar al pipeline."
+  "expected_impact": "Based on 1004 historical signals",
+  "narrative": "Los ajustes propuestos en el sistema de scoring VALUE tienen como objetivo mejorar la precisi\u00f3n de las predicciones al aumentar el peso de factores como el flujo de caja libre (FCF) y la relaci\u00f3n riesgo-recompensa (R:R), lo que podr\u00eda llevar a un aumento en la tasa de acierto (WR) de las predicciones. Al establecer un umbral m\u00ednimo de puntuaci\u00f3n m\u00e1s alto, se busca filtrar las predicciones de menor calidad y obtener un conjunto de resultados m\u00e1s confiables y precisos."
 }

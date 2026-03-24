@@ -1014,5 +1014,14 @@
   "SENS": "SENS",
   "CPS": "CPS",
   "CPNG": "CPNG",
-  "FLNT": "FLNT"
+  "FLNT": "FLNT",
+  "FOA": "FOA",
+  "SDHC": "SDHC",
+  "HBIO": "HBIO",
+  "ARQ": "ARQ",
+  "BW": "BW",
+  "AWRE": "AWRE",
+  "MX": "MX",
+  "GPGI": "GPGI",
+  "WAT": "WAT"
 }

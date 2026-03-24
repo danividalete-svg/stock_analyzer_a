@@ -1,81 +1,81 @@
 {
-  "date": "2026-03-20",
-  "timestamp": "2026-03-20T08:37:37.087823",
+  "date": "2026-03-24",
+  "timestamp": "2026-03-24T08:30:47.533366",
   "narrative": null,
   "macro_regime": "STRESS",
   "top_sectors": [
     {
-      "industry": "Engineering & Construction",
-      "sector": "Industrials",
-      "avg_rs_percentile": 69.3,
-      "num_tickers": 5,
-      "label": "Top 10%"
-    },
-    {
-      "industry": "Oil & Gas E&P",
-      "sector": "Energy",
-      "avg_rs_percentile": 69.1,
-      "num_tickers": 5,
+      "industry": "Computer Hardware",
+      "sector": "Technology",
+      "avg_rs_percentile": 86.2,
+      "num_tickers": 2,
       "label": "Top 10%"
     },
     {
       "industry": "Banks - Regional",
       "sector": "Financial Services",
-      "avg_rs_percentile": 68.8,
-      "num_tickers": 42,
+      "avg_rs_percentile": 74.9,
+      "num_tickers": 36,
       "label": "Top 10%"
     },
     {
-      "industry": "REIT - Healthcare Facilities",
-      "sector": "Real Estate",
-      "avg_rs_percentile": 68.2,
-      "num_tickers": 3,
-      "label": "Top 10%"
-    },
-    {
-      "industry": "Drug Manufacturers - Specialty & Generic",
-      "sector": "Healthcare",
-      "avg_rs_percentile": 66.8,
+      "industry": "Engineering & Construction",
+      "sector": "Industrials",
+      "avg_rs_percentile": 70.6,
       "num_tickers": 5,
       "label": "Top 10%"
+    },
+    {
+      "industry": "Specialty Chemicals",
+      "sector": "Basic Materials",
+      "avg_rs_percentile": 66.6,
+      "num_tickers": 2,
+      "label": "Top 10%"
+    },
+    {
+      "industry": "Oil & Gas E&P",
+      "sector": "Energy",
+      "avg_rs_percentile": 66.3,
+      "num_tickers": 6,
+      "label": "Top 25%"
     }
   ],
   "bottom_sectors": [
     {
-      "industry": "Software - Infrastructure",
-      "sector": "Technology",
-      "avg_rs_percentile": 10.7,
-      "num_tickers": 3,
-      "label": "Bottom 25%"
-    },
-    {
-      "industry": "Farm Products",
-      "sector": "Consumer Defensive",
-      "avg_rs_percentile": 7.0,
+      "industry": "REIT - Mortgage",
+      "sector": "Real Estate",
+      "avg_rs_percentile": 11.0,
       "num_tickers": 2,
       "label": "Bottom 25%"
     },
     {
-      "industry": "REIT - Mortgage",
+      "industry": "Capital Markets",
+      "sector": "Financial Services",
+      "avg_rs_percentile": 10.8,
+      "num_tickers": 2,
+      "label": "Bottom 25%"
+    },
+    {
+      "industry": "REIT - Residential",
       "sector": "Real Estate",
-      "avg_rs_percentile": 7.0,
-      "num_tickers": 4,
+      "avg_rs_percentile": 9.5,
+      "num_tickers": 7,
       "label": "Bottom 25%"
     },
     {
       "industry": "Information Technology Services",
       "sector": "Technology",
-      "avg_rs_percentile": 6.8,
-      "num_tickers": 2,
+      "avg_rs_percentile": 8.4,
+      "num_tickers": 4,
       "label": "Bottom 25%"
     },
     {
-      "industry": "Software - Application",
-      "sector": "Technology",
-      "avg_rs_percentile": 4.9,
-      "num_tickers": 5,
+      "industry": "Packaged Foods",
+      "sector": "Consumer Defensive",
+      "avg_rs_percentile": 1.4,
+      "num_tickers": 2,
       "label": "Bottom 25%"
     }
   ],
-  "total_groups": 42
+  "total_groups": 38
 }

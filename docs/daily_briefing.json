@@ -1,43 +1,43 @@
 {
-  "date": "2026-03-20",
-  "timestamp": "2026-03-20T08:37:36.920831",
-  "narrative": "En el actual entorno macro de estr\u00e9s, los inversores value pueden encontrar oportunidades atractivas en activos subvaluados. Destacamos a LIFE, con un upside del 102.5%, y EXEL, con un upside del 13.5%, debido a su s\u00f3lida fundamentaci\u00f3n y potencial de recuperaci\u00f3n. Recomendamos una posici\u00f3n moderada, con un tama\u00f1o del 5-7% del portafolio, y un enfoque a largo plazo, con un nivel de cautela alto debido a la volatilidad actual.",
+  "date": "2026-03-24",
+  "timestamp": "2026-03-24T08:30:47.357895",
+  "narrative": null,
   "macro_regime": "STRESS",
   "picks_count": 8,
   "top_picks": [
     {
+      "ticker": "EXE",
+      "sector": "Energy",
+      "value_score": 69.72,
+      "analyst_upside_pct": 21.5,
+      "conviction_grade": null
+    },
+    {
       "ticker": "EXEL",
       "sector": "Healthcare",
-      "value_score": 75.12,
-      "analyst_upside_pct": 13.5,
+      "value_score": 67.91999999999999,
+      "analyst_upside_pct": 13.1,
       "conviction_grade": null
     },
     {
-      "ticker": "LIFE",
-      "sector": "Financial Services",
-      "value_score": 73.6,
-      "analyst_upside_pct": 102.5,
-      "conviction_grade": null
-    },
-    {
-      "ticker": "INDV",
+      "ticker": "BMY",
       "sector": "Healthcare",
-      "value_score": 71.32,
-      "analyst_upside_pct": 53.6,
+      "value_score": 67.0,
+      "analyst_upside_pct": 10.0,
       "conviction_grade": null
     },
     {
-      "ticker": "BUKS",
-      "sector": "Industrials",
-      "value_score": 69.7,
-      "analyst_upside_pct": null,
+      "ticker": "AVGO",
+      "sector": "Technology",
+      "value_score": 66.4,
+      "analyst_upside_pct": 46.4,
       "conviction_grade": null
     },
     {
-      "ticker": "LPG",
-      "sector": "Energy",
-      "value_score": 69.36,
-      "analyst_upside_pct": 6.9,
+      "ticker": "AON",
+      "sector": "Financial Services",
+      "value_score": 66.38,
+      "analyst_upside_pct": 21.9,
       "conviction_grade": null
     }
   ]
