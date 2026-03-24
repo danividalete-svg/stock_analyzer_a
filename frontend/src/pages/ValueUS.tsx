@@ -459,16 +459,16 @@ export default function ValueUS() {
                         {d.ticker}
                         <OwnedBadge ticker={d.ticker} />
                         {d.proximity_to_52w_high != null && d.proximity_to_52w_high > -5 && (
-                          <span className="text-[0.55rem] font-bold px-1 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/25" title={`${d.proximity_to_52w_high.toFixed(1)}% vs 52w high`}>
-                            52w
+                          <span className="text-[0.55rem] font-bold px-1 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/25" title={`A ${Math.abs(d.proximity_to_52w_high).toFixed(1)}% del máximo 52 semanas — posible entrada en techo`}>
+                            TECHO
                           </span>
                         )}
                         {(d.hedge_fund_count ?? 0) >= 1 && (
                           <span
-                            className={`text-[0.55rem] font-bold px-1 py-0.5 rounded border ${(d.hedge_fund_count ?? 0) >= 2 ? 'bg-amber-500/15 text-amber-400 border-amber-500/25' : 'bg-muted/20 text-muted-foreground border-border/30'}`}
-                            title={d.hedge_fund_names || `${d.hedge_fund_count} hedge fund(s)`}
+                            className={`text-[0.55rem] font-bold px-1 py-0.5 rounded border ${(d.hedge_fund_count ?? 0) >= 2 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : 'bg-muted/20 text-muted-foreground border-border/30'}`}
+                            title={d.hedge_fund_names || `${d.hedge_fund_count} hedge fund(s) en posición`}
                           >
-                            HF{(d.hedge_fund_count ?? 0) >= 2 ? `×${d.hedge_fund_count}` : ''}
+                            {d.hedge_fund_count ?? 1} {(d.hedge_fund_count ?? 1) === 1 ? 'FONDO' : 'FONDOS'}
                           </span>
                         )}
                       </div>

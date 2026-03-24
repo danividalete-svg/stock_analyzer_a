@@ -34,14 +34,14 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
       {/* QUALITY DECAY — early warning before trap */}
       {decayInfo && (
         <span
-          title={`Quality decay ${decayInfo.severity}: ${decayInfo.flags.slice(0, 2).join(' · ')}`}
+          title={`Deterioro de calidad ${decayInfo.severity}: ${decayInfo.flags.slice(0, 2).join(' · ')}`}
           className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide ${
             decayInfo.severity === 'HIGH'
               ? 'bg-orange-500/20 text-orange-400 border-orange-500/35'
               : 'bg-amber-500/15 text-amber-400 border-amber-500/25'
           }`}
         >
-          ↘ DECAY
+          ↘ DETERIORO
         </span>
       )}
 
@@ -69,7 +69,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
               : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/25'
           }`}
         >
-          ↑ SQZ
+          ↑ SHORT SQZ
         </span>
       )}
 
@@ -79,7 +79,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
           title={`Smart Money: ${smInfo.n_hedge_funds} HF + ${smInfo.n_insiders} insiders · conv ${smInfo.convergence_score}`}
           className="inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide bg-purple-500/20 text-purple-300 border-purple-500/35"
         >
-          ◆ SMART$
+          ◆ SMART MONEY
         </span>
       )}
 
@@ -111,7 +111,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
               : 'bg-amber-500/10 text-amber-400 border-amber-500/25'
           }`}
         >
-          💰 DIV⚠
+          ⚠ DIV RIESGO
         </span>
       )}
 
