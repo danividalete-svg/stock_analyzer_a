@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-03-24T21:06:54.481773",
+  "timestamp": "2026-03-24T21:30:07.233117",
   "date": "2026-03-24",
   "intraday_update": true,
   "regime": {
-    "name": "STRESS",
-    "color": "#f59e0b",
-    "description": "Estr\u00e9s moderado. Reducir exposici\u00f3n, gestionar riesgo."
+    "name": "WATCH",
+    "color": "#84cc16",
+    "description": "Precauci\u00f3n. Se\u00f1ales mixtas, mantener vigilancia."
   },
-  "composite_score": -0.5,
-  "composite_pct": 49.2,
+  "composite_score": 0.5,
+  "composite_pct": 50.8,
   "max_score": 30,
   "signals": {
     "vix": {
@@ -39,12 +39,12 @@
       "description": "HY spread >400bps = systemic stress. Ratio compression = risk-off"
     },
     "copper_gold": {
-      "current": 0.0137,
-      "percentile": 36.6,
-      "score": -1,
-      "change_5d": 9.6,
-      "change_20d": 9.5,
-      "interpretation": "Cobre/Oro en p37, subiendo (+9.6% 5d)",
+      "current": 0.0138,
+      "percentile": 40.6,
+      "score": 0,
+      "change_5d": 10.3,
+      "change_20d": 10.2,
+      "interpretation": "Cobre/Oro en p41, subiendo (+10.3% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
     },
@@ -59,12 +59,12 @@
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 88.53,
+      "current": 88.39,
       "percentile": 96.4,
       "score": -2,
-      "change_5d": -8.0,
-      "change_20d": 34.9,
-      "interpretation": "Petroleo $88.5 (spike geopolitico)",
+      "change_5d": -8.1,
+      "change_20d": 34.7,
+      "interpretation": "Petroleo $88.4 (spike geopolitico)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
@@ -79,22 +79,22 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 99.22,
-      "percentile": 60.6,
+      "current": 99.24,
+      "percentile": 62.1,
       "score": 1,
-      "change_5d": -0.36,
-      "change_20d": 1.37,
+      "change_5d": -0.34,
+      "change_20d": 1.39,
       "interpretation": "DXY 99.2 (rango neutro)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 158.69,
-      "percentile": 96.8,
+      "current": 158.55,
+      "percentile": 96.5,
       "score": 1,
-      "change_5d": -0.26,
-      "change_20d": 2.62,
-      "interpretation": "USD/JPY 158.7 (yen debil (risk-on))",
+      "change_5d": -0.35,
+      "change_20d": 2.53,
+      "interpretation": "USD/JPY 158.6 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
     },
@@ -111,11 +111,11 @@
       "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
     },
     "skew": {
-      "current": 142.02,
-      "percentile": 34.2,
+      "current": 142.63,
+      "percentile": 36.2,
       "score": -1.5,
-      "change_5d": 0.4,
-      "interpretation": "SKEW 142 (alta demanda put OTM)",
+      "change_5d": -1.7,
+      "interpretation": "SKEW 143 (alta demanda put OTM)",
       "label": "SKEW Index (Tail Risk)",
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
