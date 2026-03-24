@@ -85,7 +85,7 @@ export default function ValueUS() {
     if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
     if (hideEarnings && r.earnings_warning) return false
     if (hideTraps && cerebro.trapMap[r.ticker]?.severity === 'HIGH') return false
-    if (hideExits && cerebro.exitMap[r.ticker]?.severity === 'HIGH') return false
+    if (hideExits && (cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT')) return false
     if (onlyOwned && !isOwned(r.ticker)) return false
     return true
   })
@@ -137,7 +137,7 @@ export default function ValueUS() {
   const concentrated = Object.entries(sectorCounts).filter(([, c]) => c >= 3)
 
   const hiddenByTraps = hideTraps ? Object.values(cerebro.trapMap).filter(t => t.severity === 'HIGH').length : 0
-  const hiddenByExits = hideExits ? Object.keys(cerebro.exitMap).filter(k => cerebro.exitMap[k].severity === 'HIGH').length : 0
+  const hiddenByExits = hideExits ? rows.filter(r => cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT').length : 0
   const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || minFcf !== '' || minRr !== '' || hideEarnings || hideTraps || hideExits || onlyOwned
   const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setMinFcf(''); setMinRr(''); setHideEarnings(false); setHideTraps(false); setHideExits(false); setOnlyOwned(false) }
 

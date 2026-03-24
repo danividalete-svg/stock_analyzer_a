@@ -127,7 +127,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
               : 'bg-blue-500/10 text-blue-300 border-blue-500/20'
           }`}
         >
-          ▲ F{piotrInfo.piotroski_current}
+          ▲ F-Score {piotrInfo.piotroski_current}/9
         </span>
       )}
     </div>

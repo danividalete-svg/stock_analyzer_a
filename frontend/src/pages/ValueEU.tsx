@@ -93,7 +93,7 @@ export default function ValueEU() {
     if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
     if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
     if (hideTraps && cerebro.trapMap[r.ticker]?.severity === 'HIGH') return false
-    if (hideExits && cerebro.exitMap[r.ticker]?.severity === 'HIGH') return false
+    if (hideExits && (cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT')) return false
     if (onlyOwned && !isOwned(r.ticker)) return false
     return true
   })
@@ -145,7 +145,7 @@ export default function ValueEU() {
   const concentrated = Object.entries(sectorCounts).filter(([, c]) => c >= 3)
 
   const hiddenByTraps = hideTraps ? Object.values(cerebro.trapMap).filter(t => t.severity === 'HIGH').length : 0
-  const hiddenByExits = hideExits ? Object.keys(cerebro.exitMap).filter(k => cerebro.exitMap[k].severity === 'HIGH').length : 0
+  const hiddenByExits = hideExits ? rows.filter(r => cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT').length : 0
   const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || filterMarket !== 'ALL' || minFcf !== '' || minRr !== '' || hideTraps || hideExits || onlyOwned
   const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setFilterMarket('ALL'); setMinFcf(''); setMinRr(''); setHideTraps(false); setHideExits(false); setOnlyOwned(false) }
 

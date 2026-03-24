@@ -824,6 +824,11 @@ export const getCsvUrl = (dataset: string): string => {
   return `/api/download/${dataset}`
 }
 
+// Reverse lookup: filename → CSV_FILES key (for dev API download endpoint)
+const CSV_KEY_BY_FILE: Record<string, string> = Object.fromEntries(
+  Object.entries(CSV_FILES).map(([k, v]) => [v, k])
+)
+
 /** Fetch ticker→sector mapping from fundamental_scores CSVs (broad coverage) */
 export const fetchTickerSectorMap = async (): Promise<Record<string, string>> => {
   const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
@@ -831,7 +836,8 @@ export const fetchTickerSectorMap = async (): Promise<Record<string, string>> =>
 
   const fetchCsv = async (filename: string) => {
     try {
-      const url = csvBase ? `${csvBase}/${filename}` : `/api/download/${filename.replace('.csv', '')}`
+      const key = CSV_KEY_BY_FILE[filename] ?? filename.replace('.csv', '')
+      const url = csvBase ? `${csvBase}/${filename}` : `/api/download/${key}`
       const res = await fetch(url)
       if (!res.ok) return
       const rows = parseCsvRows(await res.text())
