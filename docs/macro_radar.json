@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-25T21:30:29.193020",
+  "timestamp": "2026-03-25T21:42:27.916627",
   "date": "2026-03-25",
   "intraday_update": true,
   "regime": {
@@ -7,8 +7,8 @@
     "color": "#f59e0b",
     "description": "Estr\u00e9s moderado. Reducir exposici\u00f3n, gestionar riesgo."
   },
-  "composite_score": -3.0,
-  "composite_pct": 45.0,
+  "composite_score": -4.0,
+  "composite_pct": 43.3,
   "max_score": 30,
   "signals": {
     "vix": {
@@ -83,7 +83,7 @@
       "percentile": 73.0,
       "score": 0.5,
       "change_5d": -0.47,
-      "change_20d": 1.97,
+      "change_20d": 1.96,
       "interpretation": "DXY 99.6 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
@@ -130,11 +130,11 @@
     },
     "regional_banks": {
       "current": 0.0983,
-      "percentile": 66.1,
-      "score": 1,
-      "change_5d": 4.2,
-      "change_20d": -2.2,
-      "interpretation": "KRE/SPY superando (p66, -2.2% 20d)",
+      "percentile": 58.1,
+      "score": 0,
+      "change_5d": 3.6,
+      "change_20d": -2.7,
+      "interpretation": "KRE/SPY en l\u00ednea (p58, -2.7% 20d)",
       "label": "Bancos Regionales (KRE)",
       "description": "KRE vs SPY. Regional banks lead credit stress. SVB was -40% before collapse. Underperformance = systemic risk brewing."
     },
