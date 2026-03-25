@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-25T20:55:17.321759",
+  "timestamp": "2026-03-25T21:30:29.193020",
   "date": "2026-03-25",
   "intraday_update": true,
   "regime": {
@@ -59,7 +59,7 @@
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 91.27,
+      "current": 91.29,
       "percentile": 96.4,
       "score": -2,
       "change_5d": -5.2,
@@ -79,21 +79,21 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 99.65,
-      "percentile": 74.1,
+      "current": 99.62,
+      "percentile": 73.0,
       "score": 0.5,
-      "change_5d": -0.44,
-      "change_20d": 2.0,
-      "interpretation": "DXY 99.7 (ligeramente fuerte)",
+      "change_5d": -0.47,
+      "change_20d": 1.97,
+      "interpretation": "DXY 99.6 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 159.44,
+      "current": 159.38,
       "percentile": 98.9,
       "score": 1,
-      "change_5d": 0.35,
-      "change_20d": 2.29,
+      "change_5d": 0.31,
+      "change_20d": 2.24,
       "interpretation": "USD/JPY 159.4 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
@@ -111,11 +111,11 @@
       "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
     },
     "skew": {
-      "current": 142.63,
-      "percentile": 36.2,
+      "current": 140.88,
+      "percentile": 27.1,
       "score": -1.5,
-      "change_5d": -1.7,
-      "interpretation": "SKEW 143 (alta demanda put OTM)",
+      "change_5d": 3.2,
+      "interpretation": "SKEW 141 (alta demanda put OTM)",
       "label": "SKEW Index (Tail Risk)",
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
