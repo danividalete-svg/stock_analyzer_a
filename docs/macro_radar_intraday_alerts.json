@@ -34,5 +34,14 @@
     "delta": 3.5,
     "vix_spike": false,
     "oil_surge": false
+  },
+  {
+    "ts": "2026-03-25T16:46:59.758397",
+    "regime": "STRESS",
+    "prev_regime": "STRESS",
+    "composite": -5.0,
+    "delta": 2.0,
+    "vix_spike": false,
+    "oil_surge": false
   }
 ]
