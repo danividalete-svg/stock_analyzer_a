@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-27T20:33:32.614570",
+  "timestamp": "2026-03-27T21:07:31.059524",
   "date": "2026-03-27",
   "intraday_update": true,
   "regime": {
@@ -42,9 +42,9 @@
       "current": 0.0132,
       "percentile": 17.7,
       "score": -2,
-      "change_5d": 2.0,
-      "change_20d": 6.2,
-      "interpretation": "Cobre/Oro en p18, subiendo (+2.0% 5d)",
+      "change_5d": 1.9,
+      "change_20d": 6.1,
+      "interpretation": "Cobre/Oro en p18, subiendo (+1.9% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
     },
@@ -59,12 +59,12 @@
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 100.67,
+      "current": 100.96,
       "percentile": 99.6,
       "score": -2,
-      "change_5d": 2.4,
-      "change_20d": 50.2,
-      "interpretation": "Petroleo $100.7 (spike geopolitico)",
+      "change_5d": 2.7,
+      "change_20d": 50.6,
+      "interpretation": "Petroleo $101.0 (spike geopolitico)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
@@ -79,21 +79,21 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 100.14,
-      "percentile": 80.9,
+      "current": 100.16,
+      "percentile": 81.3,
       "score": 0.5,
-      "change_5d": 0.49,
-      "change_20d": 2.59,
-      "interpretation": "DXY 100.1 (ligeramente fuerte)",
+      "change_5d": 0.51,
+      "change_20d": 2.62,
+      "interpretation": "DXY 100.2 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 160.31,
+      "current": 160.29,
       "percentile": 99.6,
       "score": 1,
-      "change_5d": 1.51,
-      "change_20d": 2.86,
+      "change_5d": 1.5,
+      "change_20d": 2.84,
       "interpretation": "USD/JPY 160.3 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
