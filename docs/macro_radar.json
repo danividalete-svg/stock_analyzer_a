@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-27T21:07:31.059524",
+  "timestamp": "2026-03-27T21:27:30.122535",
   "date": "2026-03-27",
   "intraday_update": true,
   "regime": {
@@ -59,12 +59,12 @@
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 100.96,
+      "current": 101.18,
       "percentile": 99.6,
       "score": -2,
-      "change_5d": 2.7,
-      "change_20d": 50.6,
-      "interpretation": "Petroleo $101.0 (spike geopolitico)",
+      "change_5d": 2.9,
+      "change_20d": 51.0,
+      "interpretation": "Petroleo $101.2 (spike geopolitico)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
@@ -79,11 +79,11 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 100.16,
-      "percentile": 81.3,
+      "current": 100.19,
+      "percentile": 81.7,
       "score": 0.5,
-      "change_5d": 0.51,
-      "change_20d": 2.62,
+      "change_5d": 0.54,
+      "change_20d": 2.65,
       "interpretation": "DXY 100.2 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
@@ -111,11 +111,11 @@
       "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
     },
     "skew": {
-      "current": 143.99,
-      "percentile": 44.9,
+      "current": 139.0,
+      "percentile": 18.8,
       "score": -1.5,
-      "change_5d": 4.1,
-      "interpretation": "SKEW 144 (alta demanda put OTM)",
+      "change_5d": -0.1,
+      "interpretation": "SKEW 139 (alta demanda put OTM)",
       "label": "SKEW Index (Tail Risk)",
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
@@ -130,11 +130,11 @@
     },
     "regional_banks": {
       "current": 0.0999,
-      "percentile": 75.5,
+      "percentile": 80.9,
       "score": 1,
-      "change_5d": 2.8,
-      "change_20d": 2.4,
-      "interpretation": "KRE/SPY superando (p75, +2.4% 20d)",
+      "change_5d": 3.4,
+      "change_20d": 3.0,
+      "interpretation": "KRE/SPY superando (p81, +3.0% 20d)",
       "label": "Bancos Regionales (KRE)",
       "description": "KRE vs SPY. Regional banks lead credit stress. SVB was -40% before collapse. Underperformance = systemic risk brewing."
     },
