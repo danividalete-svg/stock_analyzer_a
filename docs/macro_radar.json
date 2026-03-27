@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-27T15:11:35.667619",
+  "timestamp": "2026-03-27T16:07:26.142895",
   "date": "2026-03-27",
   "intraday_update": true,
   "regime": {
@@ -7,21 +7,21 @@
     "color": "#f59e0b",
     "description": "Estr\u00e9s moderado. Reducir exposici\u00f3n, gestionar riesgo."
   },
-  "composite_score": -1.0,
-  "composite_pct": 48.3,
+  "composite_score": -2.0,
+  "composite_pct": 46.7,
   "max_score": 30,
   "signals": {
     "vix": {
-      "current": 29.42,
+      "current": 28.86,
       "percentile": 94.6,
       "score": -1,
-      "change_5d": 9.9,
-      "interpretation": "VIX 29.4 (alto)",
+      "change_5d": 7.8,
+      "interpretation": "VIX 28.9 (alto)",
       "label": "Volatilidad (VIX)",
       "description": "Fear gauge. >30 = stress, >40 = crisis, <15 = complacency"
     },
     "yield_curve": {
-      "current": 81.5,
+      "current": 80.7,
       "percentile": 99.6,
       "score": 1.5,
       "interpretation": "Spread 2s10s: 81bps (normal)",
@@ -29,7 +29,7 @@
       "description": "87.5% recession accuracy since 1968. Inversion = -2"
     },
     "credit": {
-      "current": 0.7313,
+      "current": 0.7311,
       "percentile": 82.3,
       "score": 2,
       "change_5d": -0.1,
@@ -40,31 +40,31 @@
     },
     "copper_gold": {
       "current": 0.0133,
-      "percentile": 21.7,
-      "score": -1,
-      "change_5d": 2.9,
-      "change_20d": 7.1,
-      "interpretation": "Cobre/Oro en p22, subiendo (+2.9% 5d)",
+      "percentile": 19.5,
+      "score": -2,
+      "change_5d": 2.5,
+      "change_20d": 6.8,
+      "interpretation": "Cobre/Oro en p19, subiendo (+2.5% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
     },
     "gold_spy": {
-      "current": 0.6477,
-      "percentile": 85.6,
+      "current": 0.65,
+      "percentile": 86.3,
       "score": -1,
-      "change_5d": 1.6,
-      "change_20d": -8.4,
+      "change_5d": 2.0,
+      "change_20d": -8.1,
       "interpretation": "Oro superando mercado vs SPY (p86)",
       "label": "Oro vs Mercado",
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 98.16,
+      "current": 98.12,
       "percentile": 98.9,
       "score": -2,
       "change_5d": -0.2,
-      "change_20d": 46.5,
-      "interpretation": "Petroleo $98.2 (spike geopolitico)",
+      "change_20d": 46.4,
+      "interpretation": "Petroleo $98.1 (spike geopolitico)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
@@ -79,34 +79,34 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 99.95,
-      "percentile": 78.8,
+      "current": 100.04,
+      "percentile": 79.9,
       "score": 0.5,
-      "change_5d": 0.3,
-      "change_20d": 2.4,
+      "change_5d": 0.39,
+      "change_20d": 2.49,
       "interpretation": "DXY 100.0 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 159.89,
+      "current": 160.15,
       "percentile": 99.6,
       "score": 1,
-      "change_5d": 1.24,
-      "change_20d": 2.59,
-      "interpretation": "USD/JPY 159.9 (yen debil (risk-on))",
+      "change_5d": 1.41,
+      "change_20d": 2.75,
+      "interpretation": "USD/JPY 160.1 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
     },
     "breadth": {
-      "current": 639.99,
+      "current": 639.84,
       "ma50": 678.0,
       "ma200": 657.99,
-      "pct_from_200": -2.7,
+      "pct_from_200": -2.8,
       "pct_from_50": -5.6,
       "score": 0,
       "change_20d": -6.5,
-      "interpretation": "SPY -2.7% vs MA200 (en zona de soporte)",
+      "interpretation": "SPY -2.8% vs MA200 (en zona de soporte)",
       "label": "Amplitud Mercado",
       "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
     },
@@ -120,41 +120,41 @@
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
     "vvix": {
-      "current": 129.86,
-      "percentile": 96.0,
+      "current": 127.49,
+      "percentile": 94.9,
       "score": -2,
-      "change_5d": 2.8,
-      "interpretation": "VVIX 129.9 (p96, extrema incertidumbre sobre vol)",
+      "change_5d": 1.0,
+      "interpretation": "VVIX 127.5 (p95, extrema incertidumbre sobre vol)",
       "label": "VVIX (Vol of Vol)",
       "description": "Volatility of VIX. Rising VVIX while VIX is moderate = smart money buying vol insurance. Precedes VIX spikes."
     },
     "regional_banks": {
       "current": 0.0998,
-      "percentile": 79.4,
+      "percentile": 74.4,
       "score": 1,
-      "change_5d": 3.3,
-      "change_20d": 2.9,
-      "interpretation": "KRE/SPY superando (p79, +2.9% 20d)",
+      "change_5d": 2.6,
+      "change_20d": 2.2,
+      "interpretation": "KRE/SPY superando (p74, +2.2% 20d)",
       "label": "Bancos Regionales (KRE)",
       "description": "KRE vs SPY. Regional banks lead credit stress. SVB was -40% before collapse. Underperformance = systemic risk brewing."
     },
     "small_cap": {
-      "current": 0.3831,
+      "current": 0.3832,
       "percentile": 92.4,
       "score": 1.5,
       "change_5d": 2.6,
-      "change_20d": 0.4,
+      "change_20d": 0.5,
       "interpretation": "IWM/SPY superando (risk-on) (p92)",
       "label": "Small Cap vs Large (IWM)",
       "description": "IWM/SPY ratio. Small caps access credit differently. Divergence = liquidity concentrating = late cycle signal."
     },
     "real_yields": {
-      "current": 1.2787,
-      "percentile": 80.5,
+      "current": 1.2773,
+      "percentile": 79.1,
       "score": 1,
-      "change_5d": -0.4,
-      "change_20d": 3.5,
-      "interpretation": "TIP/TLT en p81 (yields reales bajando (favorable))",
+      "change_5d": -0.5,
+      "change_20d": 3.3,
+      "interpretation": "TIP/TLT en p79 (yields reales bajando (favorable))",
       "label": "Yields Reales (TIP/TLT)",
       "description": "TIP vs TLT proxy for real yield direction. Rising real yields crush growth stocks. Perfect 2022 crash signal."
     }
