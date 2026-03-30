@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-03-24",
-  "macro_regime": "STRESS",
-  "composite_score": -6.0,
+  "macro_regime": "ALERT",
+  "composite_score": -7.0,
   "sesgo": "NEUTRO",
   "confianza": 57,
   "situacion": "R\u00e9gimen STRESS, composite -2.5/30. 3 plays macro identificadas.",
@@ -55,6 +55,15 @@
   ],
   "macro_plays": [
     {
+      "instrument": "SGOV / BIL",
+      "direction": "LONG",
+      "thesis": "R\u00e9gimen ALERT \u2014 T-bills con yield >5% como refugio de capital",
+      "historical": "Cash outperforms en CRISIS: SPY -15% promedio desde inicio CRISIS",
+      "risk": "Coste de oportunidad si recuperaci\u00f3n r\u00e1pida",
+      "timeframe": "Indefinido",
+      "score": 85
+    },
+    {
       "instrument": "GLD / GDX",
       "direction": "LONG",
       "thesis": "Oro superando al mercado (p87) con VIX elevado \u2014 refugio activo",
@@ -64,9 +73,18 @@
       "score": 80
     },
     {
+      "instrument": "XLP / XLV / XLU",
+      "direction": "LONG",
+      "thesis": "Cobre/Oro en p20 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
+      "historical": "XLP supera S&P +12% en los 6m siguientes a Copper/Gold < p20",
+      "risk": "Rebote econ\u00f3mico revertir\u00eda rotaci\u00f3n",
+      "timeframe": "2-4 meses",
+      "score": 75
+    },
+    {
       "instrument": "XLE",
       "direction": "LONG",
-      "thesis": "Petr\u00f3leo en p100 con +45% en 20d \u2014 componente geopol\u00edtico real",
+      "thesis": "Petr\u00f3leo en p100 con +46% en 20d \u2014 componente geopol\u00edtico real",
       "historical": "XLE +8% adicional en picos geopol\u00edticos de 3+ semanas",
       "risk": "Resoluci\u00f3n diplom\u00e1tica o recesi\u00f3n colapsar\u00eda demanda",
       "timeframe": "2-8 semanas",
@@ -121,5 +139,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-03-24 | STRESS (-2.5) | NEUTRO | VALUE: PRU.L AON | Evitar: ATEX NEWT",
   "ai_powered": false,
-  "intraday_refresh": "2026-03-30T18:41:27.537991"
+  "intraday_refresh": "2026-03-30T19:43:46.087375"
 }
