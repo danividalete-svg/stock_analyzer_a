@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-30T20:30:00.101213",
+  "timestamp": "2026-03-30T21:23:26.233543",
   "date": "2026-03-30",
   "intraday_update": true,
   "regime": {
@@ -29,21 +29,21 @@
       "description": "87.5% recession accuracy since 1968. Inversion = -2"
     },
     "credit": {
-      "current": 0.7277,
-      "percentile": 60.1,
+      "current": 0.7276,
+      "percentile": 59.1,
       "score": 1,
       "change_5d": -0.6,
       "change_20d": 0.5,
-      "interpretation": "HYG/LQD ratio en p60 (spreads apretados)",
+      "interpretation": "HYG/LQD ratio en p59 (spreads neutros)",
       "label": "Cr\u00e9dito HY/IG",
       "description": "HY spread >400bps = systemic stress. Ratio compression = risk-off"
     },
     "copper_gold": {
       "current": 0.0132,
-      "percentile": 19.9,
+      "percentile": 19.6,
       "score": -2,
       "change_5d": -1.7,
-      "change_20d": 10.1,
+      "change_20d": 10.0,
       "interpretation": "Cobre/Oro en p20, cayendo (-1.7% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
@@ -59,12 +59,12 @@
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 104.73,
+      "current": 105.01,
       "percentile": 99.6,
       "score": -2,
-      "change_5d": 18.8,
-      "change_20d": 47.0,
-      "interpretation": "Petroleo $104.7 (spike geopolitico)",
+      "change_5d": 19.2,
+      "change_20d": 47.4,
+      "interpretation": "Petroleo $105.0 (spike geopolitico)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
@@ -89,11 +89,11 @@
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 159.69,
-      "percentile": 98.9,
+      "current": 159.73,
+      "percentile": 99.3,
       "score": 1,
-      "change_5d": 0.29,
-      "change_20d": 1.95,
+      "change_5d": 0.31,
+      "change_20d": 1.98,
       "interpretation": "USD/JPY 159.7 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
@@ -111,16 +111,16 @@
       "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
     },
     "skew": {
-      "current": 139.0,
-      "percentile": 18.9,
+      "current": 142.23,
+      "percentile": 35.1,
       "score": -1.5,
-      "change_5d": -0.1,
-      "interpretation": "SKEW 139 (alta demanda put OTM)",
+      "change_5d": 0.1,
+      "interpretation": "SKEW 142 (alta demanda put OTM)",
       "label": "SKEW Index (Tail Risk)",
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
     "vvix": {
-      "current": 127.85,
+      "current": 127.84,
       "percentile": 94.6,
       "score": -2,
       "change_5d": 4.1,
@@ -143,7 +143,7 @@
       "percentile": 87.3,
       "score": 1.5,
       "change_5d": 0.4,
-      "change_20d": -1.5,
+      "change_20d": -1.4,
       "interpretation": "IWM/SPY superando (risk-on) (p87)",
       "label": "Small Cap vs Large (IWM)",
       "description": "IWM/SPY ratio. Small caps access credit differently. Divergence = liquidity concentrating = late cycle signal."
