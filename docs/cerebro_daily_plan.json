@@ -66,7 +66,7 @@
     {
       "instrument": "XLP / XLV / XLU",
       "direction": "LONG",
-      "thesis": "Cobre/Oro en p16 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
+      "thesis": "Cobre/Oro en p17 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
       "historical": "XLP supera S&P +12% en los 6m siguientes a Copper/Gold < p20",
       "risk": "Rebote econ\u00f3mico revertir\u00eda rotaci\u00f3n",
       "timeframe": "2-4 meses",
@@ -75,7 +75,7 @@
     {
       "instrument": "XLE",
       "direction": "LONG",
-      "thesis": "Petr\u00f3leo en p99 con +37% en 20d \u2014 componente geopol\u00edtico real",
+      "thesis": "Petr\u00f3leo en p99 con +36% en 20d \u2014 componente geopol\u00edtico real",
       "historical": "XLE +8% adicional en picos geopol\u00edticos de 3+ semanas",
       "risk": "Resoluci\u00f3n diplom\u00e1tica o recesi\u00f3n colapsar\u00eda demanda",
       "timeframe": "2-8 semanas",
@@ -121,5 +121,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-03-24 | STRESS (-2.5) | NEUTRO | VALUE: PRU.L AON | Evitar: ATEX NEWT",
   "ai_powered": false,
-  "intraday_refresh": "2026-03-31T20:27:33.202901"
+  "intraday_refresh": "2026-03-31T21:06:21.351568"
 }

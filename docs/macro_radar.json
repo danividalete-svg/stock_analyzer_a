@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-31T20:27:32.646588",
+  "timestamp": "2026-03-31T21:06:21.064474",
   "date": "2026-03-31",
   "intraday_update": true,
   "regime": {
@@ -12,11 +12,11 @@
   "max_score": 30,
   "signals": {
     "vix": {
-      "current": 25.29,
+      "current": 25.25,
       "percentile": 88.8,
       "score": -1,
-      "change_5d": -6.2,
-      "interpretation": "VIX 25.3 (alto)",
+      "change_5d": -6.3,
+      "interpretation": "VIX 25.2 (alto)",
       "label": "Volatilidad (VIX)",
       "description": "Fear gauge. >30 = stress, >40 = crisis, <15 = complacency"
     },
@@ -29,27 +29,27 @@
       "description": "87.5% recession accuracy since 1968. Inversion = -2"
     },
     "credit": {
-      "current": 0.7301,
-      "percentile": 74.4,
+      "current": 0.73,
+      "percentile": 73.3,
       "score": 2,
       "change_5d": -0.1,
       "change_20d": 1.0,
-      "interpretation": "HYG/LQD ratio en p74 (spreads apretados)",
+      "interpretation": "HYG/LQD ratio en p73 (spreads apretados)",
       "label": "Cr\u00e9dito HY/IG",
       "description": "HY spread >400bps = systemic stress. Ratio compression = risk-off"
     },
     "copper_gold": {
       "current": 0.0131,
-      "percentile": 16.2,
+      "percentile": 16.6,
       "score": -2,
-      "change_5d": -2.3,
-      "change_20d": 6.3,
-      "interpretation": "Cobre/Oro en p16, cayendo (-2.3% 5d)",
+      "change_5d": -2.1,
+      "change_20d": 6.5,
+      "interpretation": "Cobre/Oro en p17, cayendo (-2.1% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
     },
     "gold_spy": {
-      "current": 0.6617,
+      "current": 0.6616,
       "percentile": 88.1,
       "score": -1,
       "change_5d": 6.9,
@@ -59,18 +59,18 @@
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 101.93,
+      "current": 101.43,
       "percentile": 99.3,
       "score": -2,
-      "change_5d": 10.4,
-      "change_20d": 36.7,
-      "interpretation": "Petroleo $101.9 (spike geopolitico)",
+      "change_5d": 9.8,
+      "change_20d": 36.0,
+      "interpretation": "Petroleo $101.4 (spike geopolitico)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
     "defense": {
       "current": 0.3364,
-      "percentile": 81.9,
+      "percentile": 82.3,
       "score": -1,
       "change_5d": -1.3,
       "change_20d": -6.8,
@@ -79,27 +79,27 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 99.84,
-      "percentile": 77.3,
+      "current": 99.88,
+      "percentile": 77.7,
       "score": 0.5,
-      "change_5d": 0.42,
-      "change_20d": 0.8,
-      "interpretation": "DXY 99.8 (ligeramente fuerte)",
+      "change_5d": 0.45,
+      "change_20d": 0.84,
+      "interpretation": "DXY 99.9 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 158.68,
-      "percentile": 95.4,
+      "current": 158.74,
+      "percentile": 95.8,
       "score": 1,
-      "change_5d": 0.12,
-      "change_20d": 0.9,
+      "change_5d": 0.16,
+      "change_20d": 0.94,
       "interpretation": "USD/JPY 158.7 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
     },
     "breadth": {
-      "current": 650.35,
+      "current": 650.34,
       "ma50": 675.93,
       "ma200": 658.41,
       "pct_from_200": -1.2,
@@ -120,27 +120,27 @@
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
     "vvix": {
-      "current": 116.01,
-      "percentile": 83.8,
+      "current": 116.05,
+      "percentile": 84.1,
       "score": -1,
       "change_5d": -6.5,
-      "interpretation": "VVIX 116.0 (p84, incertidumbre elevada)",
+      "interpretation": "VVIX 116.1 (p84, incertidumbre elevada)",
       "label": "VVIX (Vol of Vol)",
       "description": "Volatility of VIX. Rising VVIX while VIX is moderate = smart money buying vol insurance. Precedes VIX spikes."
     },
     "regional_banks": {
-      "current": 0.1001,
-      "percentile": 84.5,
+      "current": 0.1002,
+      "percentile": 85.9,
       "score": 1,
       "change_5d": 1.7,
-      "change_20d": 1.5,
-      "interpretation": "KRE/SPY superando (p84, +1.5% 20d)",
+      "change_20d": 1.6,
+      "interpretation": "KRE/SPY superando (p86, +1.6% 20d)",
       "label": "Bancos Regionales (KRE)",
       "description": "KRE vs SPY. Regional banks lead credit stress. SVB was -40% before collapse. Underperformance = systemic risk brewing."
     },
     "small_cap": {
-      "current": 0.3812,
-      "percentile": 88.8,
+      "current": 0.3813,
+      "percentile": 89.2,
       "score": 1.5,
       "change_5d": 0.1,
       "change_20d": -0.0,
