@@ -4,6 +4,7 @@ import { LayoutDashboard, X, LogOut } from 'lucide-react'
 import { ThemeProvider } from './context/ThemeContext'
 import { useAuth } from './context/AuthContext'
 import { PersonalPortfolioProvider } from './context/PersonalPortfolioContext'
+import { ToastProvider } from './components/Toast'
 import { cn } from '@/lib/utils'
 import { NAV } from '@/lib/nav'
 import TopBar from './components/TopBar'
@@ -39,6 +40,7 @@ import Comparador from './pages/Comparador'
 import Cerebro from './pages/Cerebro'
 import Alerts from './pages/Alerts'
 import Screener from './pages/Screener'
+import MicroCap from './pages/MicroCap'
 import MacroCalendar from './pages/MacroCalendar'
 import TechnicalSignals from './pages/TechnicalSignals'
 
@@ -149,6 +151,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
+    <ToastProvider>
     <PersonalPortfolioProvider>
       {/* Aurora top line */}
       <div className="aurora-line" aria-hidden="true" />
@@ -229,6 +232,7 @@ export default function App() {
               <Route path="/cerebro"        element={<Cerebro />} />
               <Route path="/alerts"         element={<Alerts />} />
               <Route path="/screener"       element={<Screener />} />
+              <Route path="/micro-cap"      element={<MicroCap />} />
               <Route path="/macro-calendar" element={<MacroCalendar />} />
               <Route path="/technical"      element={<TechnicalSignals />} />
               <Route path="/datos"           element={<Datos />} />
@@ -238,6 +242,7 @@ export default function App() {
         </main>
       </div>
     </PersonalPortfolioProvider>
+    </ToastProvider>
     </ThemeProvider>
   )
 }

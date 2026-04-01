@@ -63,12 +63,12 @@ function SnapshotRow({ snap, csvBase }: { snap: HistorySnapshot; csvBase: string
   return (
     <div className="border-b border-border/30 last:border-0">
       <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors"
+        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/5 active:scale-[0.99] transition-all"
         onClick={() => setOpen(o => !o)}
       >
         <div className="flex items-center gap-3">
-          <span className="text-sm font-mono font-semibold text-foreground">{snap.date}</span>
-          <span className="text-xs text-muted-foreground">{snap.files.length} archivos</span>
+          <span className="text-sm font-mono font-bold text-primary">{snap.date}</span>
+          <span className="text-[0.65rem] font-semibold text-muted-foreground/60 bg-muted/30 px-2 py-0.5 rounded">{snap.files.length} archivos</span>
         </div>
         <span className="text-muted-foreground text-xs">{open ? '▲' : '▼'}</span>
       </div>
@@ -112,14 +112,14 @@ export default function Datos() {
       </div>
 
       {/* Current CSVs */}
-      <div className="mb-8">
+      <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '60ms' }}>
         <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
           Datos Actuales
         </h3>
         <div className="space-y-6">
-          {CSV_CATALOG.map(group => (
-            <div key={group.group}>
-              <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2 px-1">
+          {CSV_CATALOG.map((group, gi) => (
+            <div key={group.group} className="animate-fade-in-up" style={{ animationDelay: `${(gi + 1) * 80}ms` }}>
+              <div className="text-xs font-bold uppercase tracking-widest gradient-title mb-2 px-1">
                 {group.group}
               </div>
               <Card className="glass">
@@ -139,7 +139,7 @@ export default function Datos() {
                         download={item.file}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs px-3 py-1 rounded border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
+                        className="text-xs px-3 py-1 rounded border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary active:scale-[0.98] transition-all"
                       >
                         ↓ CSV
                       </a>
@@ -153,9 +153,9 @@ export default function Datos() {
       </div>
 
       {/* Historical archive */}
-      <div>
+      <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
         <div className="flex items-center gap-3 mb-4">
-          <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+          <h3 className="text-sm font-bold uppercase tracking-widest gradient-title">
             Historial
           </h3>
           {historyUpdated && (

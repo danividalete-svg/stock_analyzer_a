@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
@@ -14,6 +14,7 @@ import { useCountUp } from '../hooks/useCountUp'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import GradeBadge from '../components/GradeBadge'
+import ScoreRing from '../components/ScoreRing'
 import InfoTooltip from '../components/InfoTooltip'
 import TickerLogo from '../components/TickerLogo'
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, ChevronRight, Radar, Wallet, Zap, Crosshair, BarChart3, Brain, Target, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
@@ -1086,6 +1087,20 @@ export default function Dashboard() {
   const topUS = [...(valueUS?.data ?? [])].sort((a, b) => (b.value_score ?? 0) - (a.value_score ?? 0)).slice(0, 5)
   const topEU = [...(valueEU?.data ?? [])].sort((a, b) => (b.value_score ?? 0) - (a.value_score ?? 0)).slice(0, 5)
 
+  const bestPick = useMemo(() => {
+    const rows = valueUS?.data ?? []
+    return rows
+      .filter((r) =>
+        (r.value_score ?? 0) >= 65 &&
+        ['A', 'B', 'EXCELLENT', 'STRONG'].includes((r.conviction_grade ?? '').toUpperCase()) &&
+        !r.earnings_warning &&
+        (r.days_to_earnings == null || r.days_to_earnings > 7) &&
+        r.cerebro_signal !== 'EXIT' &&
+        r.cerebro_signal !== 'TRAP'
+      )
+      .sort((a, b) => (b.value_score ?? 0) - (a.value_score ?? 0))[0] ?? null
+  }, [valueUS])
+
   // ── Portfolio Action Items ─────────────────────────────────────────
   const actionItems: { icon: React.ReactNode; text: string; color: string; link: string }[] = []
   if (myTickers.size > 0) {
@@ -1166,6 +1181,44 @@ export default function Dashboard() {
 
       {/* Daily Plan — most prominent feature, shown first */}
       <DailyPlanCard data={dailyPlanRaw} loading={loadingDailyPlan} />
+
+      {/* Cerebro IA — acceso rápido */}
+      {(() => {
+        const entryCount = (cerebroEntry?.strong_buy ?? 0) + (cerebroEntry?.buy ?? 0)
+        const convCount = cerebroConv?.convergences?.length ?? 0
+        const alertCount = cerebroAlertsRaw?.alerts?.length ?? 0
+        return (
+          <div className="mb-5 animate-fade-in-up">
+            <Link
+              to="/cerebro"
+              className="flex items-center gap-4 glass rounded-xl p-4 border border-primary/20 hover:border-primary/40 transition-colors group"
+            >
+              <div className="p-2.5 rounded-lg bg-purple-500/10 border border-purple-500/20 shrink-0">
+                <Brain size={18} className="text-purple-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[0.72rem] font-bold uppercase tracking-widest text-foreground/80">Cerebro IA</span>
+                  {!loadingEntry && !loadingConv && (entryCount > 0 || convCount > 0) && (
+                    <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">
+                      {entryCount > 0 ? `${entryCount} señales` : `${convCount} convergencias`}
+                    </span>
+                  )}
+                  {!loadingAlerts && alertCount > 0 && (
+                    <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 font-bold">
+                      {alertCount} alertas
+                    </span>
+                  )}
+                </div>
+                <p className="text-[0.7rem] text-muted-foreground/60">
+                  Agente IA que analiza convergencia de señales y genera alertas automáticas
+                </p>
+              </div>
+              <ChevronRight size={14} className="text-muted-foreground/40 group-hover:text-primary transition-colors shrink-0" />
+            </Link>
+          </div>
+        )
+      })()}
 
       {/* Earnings Warning Banner */}
       {earningsWarnings.length > 0 && (
@@ -1255,6 +1308,68 @@ export default function Dashboard() {
           loading={false}
         />
       </div>
+
+      {/* Setup del día — hero card */}
+      {bestPick && (
+        <Link to="/value" className="block mb-6 group">
+          <div className="glass rounded-2xl overflow-clip border border-emerald-500/25 animate-fade-in-up transition-all duration-200 group-hover:border-emerald-500/50 group-hover:bg-emerald-500/6">
+            {/* Thin accent top bar */}
+            <div className="h-0.5 bg-gradient-to-r from-emerald-500/60 via-emerald-400/80 to-emerald-500/20" />
+            <div className="p-5">
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[0.58rem] font-bold tracking-[0.18em] text-emerald-400/60 uppercase">
+                  Setup del día
+                </span>
+                <span className="inline-flex items-center gap-1 text-[0.58rem] font-bold text-emerald-400/80 tracking-wide">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  LISTO
+                </span>
+              </div>
+              {/* Main content */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-3xl font-black tracking-tight text-foreground group-hover:text-emerald-400 transition-colors">
+                    {bestPick.ticker}
+                  </div>
+                  <div className="text-xs text-muted-foreground/70 mt-0.5 truncate">{bestPick.company_name}</div>
+                  {/* Metrics row */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+                    {bestPick.analyst_upside_pct != null && (
+                      <div>
+                        <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">Upside</div>
+                        <div className="text-sm font-bold text-emerald-400">+{bestPick.analyst_upside_pct.toFixed(0)}%</div>
+                      </div>
+                    )}
+                    {bestPick.fcf_yield_pct != null && (
+                      <div>
+                        <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">FCF Yield</div>
+                        <div className="text-sm font-semibold text-foreground/80">{bestPick.fcf_yield_pct.toFixed(1)}%</div>
+                      </div>
+                    )}
+                    {bestPick.risk_reward_ratio != null && (
+                      <div>
+                        <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">R:R</div>
+                        <div className="text-sm font-semibold text-foreground/80">{bestPick.risk_reward_ratio.toFixed(1)}x</div>
+                      </div>
+                    )}
+                    {bestPick.sector && (
+                      <div>
+                        <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">Sector</div>
+                        <div className="text-xs text-muted-foreground/70 truncate max-w-[100px]">{bestPick.sector}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Score ring */}
+                <div className="flex-shrink-0">
+                  <ScoreRing score={bestPick.value_score ?? 0} size="lg" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </Link>
+      )}
 
       {/* Top VALUE Picks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

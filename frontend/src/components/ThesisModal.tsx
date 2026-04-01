@@ -7,6 +7,7 @@ import GradeBadge from './GradeBadge'
 import ThesisBody from './ThesisBody'
 import TickerLogo from './TickerLogo'
 import PriceChart from './PriceChart'
+import WatchlistButton from './WatchlistButton'
 import type { ValueOpportunity, TechnicalSignal } from '../api/client'
 import { useTechnicalSignals } from '../hooks/useTechnicalSignals'
 
@@ -123,6 +124,20 @@ function ConvictionPanel({ row }: { row: ValueOpportunity }) {
               </span>
             )
           })}
+        </div>
+      )}
+
+      {row.piotroski_score != null && (
+        <div className="flex items-center gap-1.5 text-xs mt-3">
+          <span className="text-muted-foreground/60">Piotroski</span>
+          <span className={
+            row.piotroski_score >= 7 ? 'font-bold tabular-nums text-emerald-400' :
+            row.piotroski_score >= 5 ? 'font-bold tabular-nums text-cyan-400/80' :
+            'font-bold tabular-nums text-muted-foreground'
+          }>
+            {row.piotroski_score}/9
+          </span>
+          {row.piotroski_label && <span className="text-muted-foreground/40 text-[0.6rem]">{row.piotroski_label}</span>}
         </div>
       )}
     </div>
@@ -244,13 +259,23 @@ export default function ThesisModal({ row, thesisText, onClose, currency = '$' }
                   )}
                 </div>
               )}
+              <WatchlistButton
+                ticker={row.ticker}
+                company_name={row.company_name}
+                sector={row.sector}
+                current_price={row.current_price}
+                value_score={row.value_score}
+                conviction_grade={row.conviction_grade}
+                analyst_upside_pct={row.analyst_upside_pct}
+                fcf_yield_pct={row.fcf_yield_pct}
+              />
               <button onClick={copyTicker} className="p-1.5 rounded-lg text-muted-foreground/50 hover:bg-muted/40 hover:text-foreground transition-colors" title="Copiar ticker">
                 {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
               </button>
               <a href={`https://www.tradingview.com/chart/?symbol=${row.ticker}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-muted-foreground/50 hover:bg-muted/40 hover:text-foreground transition-colors" title="TradingView">
                 <ExternalLink size={14} />
               </a>
-              <button onClick={onClose} className="p-1.5 rounded-lg text-muted-foreground/50 hover:bg-muted/40 hover:text-foreground transition-colors">
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground/60 hover:bg-red-500/15 hover:text-red-400 hover:border hover:border-red-500/30 transition-all" title="Cerrar (Esc)">
                 <X size={16} />
               </button>
             </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import api from '../api/client'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
@@ -47,6 +47,8 @@ export default function PositionSizing() {
   const [portfolioSize, setPortfolioSize] = useState(BASE_PORTFOLIO)
   const [sortKey, setSortKey] = useState<keyof PositionRow>('position_size_pct')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [focusedIdx, setFocusedIdx] = useState(-1)
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -81,6 +83,72 @@ export default function PositionSizing() {
   }
 
   return (
+    <PositionSizingInner
+      rows={rows}
+      sorted={sorted}
+      scale={scale}
+      portfolioSize={portfolioSize}
+      setPortfolioSize={setPortfolioSize}
+      sortKey={sortKey}
+      sortDir={sortDir}
+      onSort={onSort}
+      thCls={thCls}
+      totalRisk={totalRisk}
+      totalValue={totalValue}
+      avgSize={avgSize}
+      riskColor={riskColor}
+      focusedIdx={focusedIdx}
+      setFocusedIdx={setFocusedIdx}
+      compact={compact}
+      setCompact={setCompact}
+    />
+  )
+}
+
+function PositionSizingInner({
+  rows, sorted, scale, portfolioSize, setPortfolioSize,
+  sortKey, sortDir, onSort, thCls, totalRisk, totalValue, avgSize,
+  riskColor, focusedIdx, setFocusedIdx, compact, setCompact,
+}: {
+  rows: PositionRow[]
+  sorted: PositionRow[]
+  scale: number
+  portfolioSize: number
+  setPortfolioSize: (v: number) => void
+  sortKey: keyof PositionRow
+  sortDir: 'asc' | 'desc'
+  onSort: (k: keyof PositionRow) => void
+  thCls: (k: keyof PositionRow) => string
+  totalRisk: number
+  totalValue: number
+  avgSize: number
+  riskColor: (pct: number) => string
+  focusedIdx: number
+  setFocusedIdx: (fn: ((i: number) => number) | number) => void
+  compact: boolean
+  setCompact: (v: boolean) => void
+}) {
+  const pagedRef = useRef(sorted)
+  pagedRef.current = sorted
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => { const next = Math.min(i + 1, pagedRef.current.length - 1); setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0); return next })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => { const prev = Math.max(i - 1, 0); setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0); return prev })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [pagedRef, setFocusedIdx])
+
+  return (
     <>
       <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -89,14 +157,22 @@ export default function PositionSizing() {
             Kelly criterion · Ajuste por volatilidad, score y timing
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground/60">Portfolio ($)</span>
-          <input
-            type="number"
-            value={portfolioSize}
-            onChange={e => setPortfolioSize(Math.max(1000, Number(e.target.value)))}
-            className="w-28 text-sm px-2.5 py-1.5 rounded border border-border/50 bg-transparent text-foreground focus:outline-none focus:border-primary/50 tabular-nums"
-          />
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <button
+            onClick={() => setCompact(!compact)}
+            className={`text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded border transition-colors ${compact ? 'border-primary/50 text-primary bg-primary/10' : 'border-border/50 text-muted-foreground/60 hover:text-foreground hover:border-border'}`}
+          >
+            Compact
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground/60">Portfolio ($)</span>
+            <input
+              type="number"
+              value={portfolioSize}
+              onChange={e => setPortfolioSize(Math.max(1000, Number(e.target.value)))}
+              className="w-28 text-sm px-2.5 py-1.5 rounded border border-border/50 bg-transparent text-foreground focus:outline-none focus:border-primary/50 tabular-nums"
+            />
+          </div>
         </div>
       </div>
 
@@ -138,125 +214,185 @@ export default function PositionSizing() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="glass animate-fade-in-up">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker</TableHead>
-                <TableHead className={thCls('current_price')} onClick={() => onSort('current_price')}>Precio</TableHead>
-                <TableHead className={thCls('position_size_pct')} onClick={() => onSort('position_size_pct')}>
-                  Tamaño %
-                  <InfoTooltip
-                    text="% del portfolio asignado a esta posición. Calculado como Kelly ajustado × multiplicadores de calidad."
-                    align="left"
-                  />
-                </TableHead>
-                <TableHead className={thCls('position_value')} onClick={() => onSort('position_value')}>Valor ($)</TableHead>
-                <TableHead className={thCls('shares')} onClick={() => onSort('shares')}>Acciones</TableHead>
-                <TableHead className={thCls('stop_loss_price')} onClick={() => onSort('stop_loss_price')}>Stop Loss</TableHead>
-                <TableHead className={thCls('stop_loss_pct')} onClick={() => onSort('stop_loss_pct')}>
-                  Stop %
-                  <InfoTooltip text="Distancia en % desde el precio actual hasta el nivel de stop loss. Suele ser ~8% (Minervini)." />
-                </TableHead>
-                <TableHead className={thCls('risk_pct_portfolio')} onClick={() => onSort('risk_pct_portfolio')}>
-                  Riesgo %
-                  <InfoTooltip
-                    text="Pérdida máxima del portfolio si el precio cae al stop loss. = Tamaño% × Stop%. Rojo >4%, Ámbar >2%, Verde ≤2%."
-                  />
-                </TableHead>
-                <TableHead className={thCls('kelly_pct')} onClick={() => onSort('kelly_pct')}>
-                  Kelly %
-                  <InfoTooltip
-                    text="Kelly Criterion: fracción matemáticamente óptima del portfolio. Basado en win rate y ratio ganancia/pérdida histórico. Se aplica dividido por 2-4 (half-Kelly) por seguridad."
-                  />
-                </TableHead>
-                <TableHead className={thCls('volatility')} onClick={() => onSort('volatility')}>
-                  Volatilidad
-                  <InfoTooltip
-                    text="Volatilidad histórica anualizada a 30 días (desviación estándar de retornos diarios × √252). Mayor volatilidad → posición más pequeña."
-                  />
-                </TableHead>
-                <TableHead>
-                  Mult.
-                  <InfoTooltip
-                    text={
-                      <span>
-                        Multiplicadores que ajustan el tamaño Kelly:<br />
-                        <span className="text-emerald-400">≥1.1×</span> — aumenta posición (alta calidad)<br />
-                        <span className="text-muted-foreground">~1.0×</span> — sin ajuste<br />
-                        <span className="text-red-400">≤0.8×</span> — reduce posición (baja calidad)<br />
-                        Factores: score, timing, sector, volatilidad.
-                      </span>
-                    }
-                    align="right"
-                  />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sorted.map(r => {
-                const mults = parseMultipliers(r.multipliers)
-                const scaledValue = (r.position_value ?? 0) * scale
-                const scaledShares = Math.round((r.shares ?? 0) * scale)
-                return (
-                  <TableRow key={r.ticker}>
-                    <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">{r.ticker}</TableCell>
-                    <TableCell className="tabular-nums text-[0.8rem]">
-                      {r.current_price != null ? `$${r.current_price.toFixed(2)}` : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="relative h-1.5 w-12 rounded-full bg-white/10 overflow-hidden">
-                          <div
-                            className="absolute inset-y-0 left-0 bg-primary/60 rounded-full"
-                            style={{ width: `${Math.min((r.position_size_pct ?? 0) * 5, 100)}%` }}
-                          />
-                        </div>
-                        <span className="tabular-nums text-[0.8rem]">{(r.position_size_pct ?? 0).toFixed(1)}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="tabular-nums text-[0.8rem] text-foreground">
-                      ${scaledValue.toLocaleString('en', { maximumFractionDigits: 0 })}
-                    </TableCell>
-                    <TableCell className="tabular-nums text-[0.8rem]">{scaledShares}</TableCell>
-                    <TableCell className="tabular-nums text-[0.8rem] text-red-400">
-                      {r.stop_loss_price != null ? `$${r.stop_loss_price.toFixed(2)}` : '—'}
-                    </TableCell>
-                    <TableCell className="tabular-nums text-[0.8rem] text-red-400">
-                      {r.stop_loss_pct != null ? `${r.stop_loss_pct.toFixed(0)}%` : '—'}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`tabular-nums text-[0.8rem] font-semibold ${riskColor(r.risk_pct_portfolio ?? 0)}`}>
-                        {(r.risk_pct_portfolio ?? 0).toFixed(2)}%
-                      </span>
-                    </TableCell>
-                    <TableCell className="tabular-nums text-[0.8rem]">
-                      {r.kelly_pct != null ? `${r.kelly_pct.toFixed(1)}%` : '—'}
-                    </TableCell>
-                    <TableCell className="tabular-nums text-[0.8rem] text-amber-400">
-                      {r.volatility != null ? `${r.volatility.toFixed(0)}%` : '—'}
-                    </TableCell>
-                    <TableCell>
-                      {mults ? (
-                        <div className="flex gap-1 flex-wrap">
-                          {Object.entries(mults).map(([k, v]) => (
-                            <Badge
-                              key={k}
-                              variant={v >= 1.1 ? 'green' : v <= 0.8 ? 'red' : 'gray'}
-                              className="text-[0.55rem] px-1 py-0"
-                            >
-                              {k}: {v.toFixed(1)}×
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : '—'}
-                    </TableCell>
+        <>
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-2 mb-2">
+            {sorted.map((r, i) => {
+              const posVal = (r.position_value ?? 0) * scale
+              const posSize = r.position_size_pct ?? 0
+              return (
+                <div
+                  key={r.ticker}
+                  data-row-idx={i}
+                  className={`glass rounded-2xl p-4 transition-colors cursor-pointer ${i === focusedIdx ? 'border border-primary/30' : 'border border-transparent'}`}
+                  onClick={() => setFocusedIdx(i)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-mono font-bold text-base text-primary">{r.ticker}</span>
+                      {r.current_price != null && (
+                        <div className="text-[0.65rem] text-muted-foreground">${r.current_price.toFixed(2)}</div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-foreground">{posSize.toFixed(1)}%</div>
+                      <div className="text-[0.65rem] text-muted-foreground">${posVal.toLocaleString('en-US', { maximumFractionDigits: 0 })}</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-2 text-[0.62rem] text-muted-foreground/60">
+                    {r.stop_loss_pct != null && <span>Stop {r.stop_loss_pct.toFixed(1)}%</span>}
+                    {r.risk_pct_portfolio != null && <span className={riskColor(r.risk_pct_portfolio)}>Riesgo {r.risk_pct_portfolio.toFixed(1)}%</span>}
+                    {r.kelly_pct != null && <span>Kelly {r.kelly_pct.toFixed(1)}%</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block">
+            <Card className="glass animate-fade-in-up">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/50 hover:bg-transparent">
+                    <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker</TableHead>
+                    <TableHead className={thCls('current_price')} onClick={() => onSort('current_price')}>Precio</TableHead>
+                    <TableHead className={thCls('position_size_pct')} onClick={() => onSort('position_size_pct')}>
+                      Tamaño %
+                      <InfoTooltip
+                        text="% del portfolio asignado a esta posición. Calculado como Kelly ajustado × multiplicadores de calidad."
+                        align="left"
+                      />
+                    </TableHead>
+                    <TableHead className={thCls('position_value')} onClick={() => onSort('position_value')}>Valor ($)</TableHead>
+                    <TableHead className={thCls('shares')} onClick={() => onSort('shares')}>Acciones</TableHead>
+                    {!compact && (
+                      <TableHead className={thCls('stop_loss_price')} onClick={() => onSort('stop_loss_price')}>Stop Loss</TableHead>
+                    )}
+                    <TableHead className={thCls('stop_loss_pct')} onClick={() => onSort('stop_loss_pct')}>
+                      Stop %
+                      <InfoTooltip text="Distancia en % desde el precio actual hasta el nivel de stop loss. Suele ser ~8% (Minervini)." />
+                    </TableHead>
+                    <TableHead className={thCls('risk_pct_portfolio')} onClick={() => onSort('risk_pct_portfolio')}>
+                      Riesgo %
+                      <InfoTooltip
+                        text="Pérdida máxima del portfolio si el precio cae al stop loss. = Tamaño% × Stop%. Rojo >4%, Ámbar >2%, Verde ≤2%."
+                      />
+                    </TableHead>
+                    {!compact && (
+                      <TableHead className={thCls('kelly_pct')} onClick={() => onSort('kelly_pct')}>
+                        Kelly %
+                        <InfoTooltip
+                          text="Kelly Criterion: fracción matemáticamente óptima del portfolio. Basado en win rate y ratio ganancia/pérdida histórico. Se aplica dividido por 2-4 (half-Kelly) por seguridad."
+                        />
+                      </TableHead>
+                    )}
+                    {!compact && (
+                      <TableHead className={thCls('volatility')} onClick={() => onSort('volatility')}>
+                        Volatilidad
+                        <InfoTooltip
+                          text="Volatilidad histórica anualizada a 30 días (desviación estándar de retornos diarios × √252). Mayor volatilidad → posición más pequeña."
+                        />
+                      </TableHead>
+                    )}
+                    {!compact && (
+                      <TableHead>
+                        Mult.
+                        <InfoTooltip
+                          text={
+                            <span>
+                              Multiplicadores que ajustan el tamaño Kelly:<br />
+                              <span className="text-emerald-400">≥1.1×</span> — aumenta posición (alta calidad)<br />
+                              <span className="text-muted-foreground">~1.0×</span> — sin ajuste<br />
+                              <span className="text-red-400">≤0.8×</span> — reduce posición (baja calidad)<br />
+                              Factores: score, timing, sector, volatilidad.
+                            </span>
+                          }
+                          align="right"
+                        />
+                      </TableHead>
+                    )}
                   </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {sorted.map((r, i) => {
+                    const mults = parseMultipliers(r.multipliers)
+                    const scaledValue = (r.position_value ?? 0) * scale
+                    const scaledShares = Math.round((r.shares ?? 0) * scale)
+                    return (
+                      <TableRow
+                        key={r.ticker}
+                        data-row-idx={i}
+                        onClick={() => setFocusedIdx(i)}
+                        className={`cursor-pointer transition-colors ${i === focusedIdx ? 'bg-primary/5 ring-1 ring-inset ring-primary/20' : ''}`}
+                      >
+                        <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">{r.ticker}</TableCell>
+                        <TableCell className="tabular-nums text-[0.8rem]">
+                          {r.current_price != null ? `$${r.current_price.toFixed(2)}` : '—'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="relative h-1.5 w-12 rounded-full bg-white/10 overflow-clip">
+                              <div
+                                className="absolute inset-y-0 left-0 bg-primary/60 rounded-full"
+                                style={{ width: `${Math.min((r.position_size_pct ?? 0) * 5, 100)}%` }}
+                              />
+                            </div>
+                            <span className="tabular-nums text-[0.8rem]">{(r.position_size_pct ?? 0).toFixed(1)}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="tabular-nums text-[0.8rem] text-foreground">
+                          ${scaledValue.toLocaleString('en', { maximumFractionDigits: 0 })}
+                        </TableCell>
+                        <TableCell className="tabular-nums text-[0.8rem]">{scaledShares}</TableCell>
+                        {!compact && (
+                          <TableCell className="tabular-nums text-[0.8rem] text-red-400">
+                            {r.stop_loss_price != null ? `$${r.stop_loss_price.toFixed(2)}` : '—'}
+                          </TableCell>
+                        )}
+                        <TableCell className="tabular-nums text-[0.8rem] text-red-400">
+                          {r.stop_loss_pct != null ? `${r.stop_loss_pct.toFixed(0)}%` : '—'}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`tabular-nums text-[0.8rem] font-semibold ${riskColor(r.risk_pct_portfolio ?? 0)}`}>
+                            {(r.risk_pct_portfolio ?? 0).toFixed(2)}%
+                          </span>
+                        </TableCell>
+                        {!compact && (
+                          <TableCell className="tabular-nums text-[0.8rem]">
+                            {r.kelly_pct != null ? `${r.kelly_pct.toFixed(1)}%` : '—'}
+                          </TableCell>
+                        )}
+                        {!compact && (
+                          <TableCell className="tabular-nums text-[0.8rem] text-amber-400">
+                            {r.volatility != null ? `${r.volatility.toFixed(0)}%` : '—'}
+                          </TableCell>
+                        )}
+                        {!compact && (
+                          <TableCell>
+                            {mults ? (
+                              <div className="flex gap-1 flex-wrap">
+                                {Object.entries(mults).map(([k, v]) => (
+                                  <Badge
+                                    key={k}
+                                    variant={v >= 1.1 ? 'green' : v <= 0.8 ? 'red' : 'gray'}
+                                    className="text-[0.55rem] px-1 py-0"
+                                  >
+                                    {k}: {v.toFixed(1)}×
+                                  </Badge>
+                                ))}
+                              </div>
+                            ) : '—'}
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+        </>
       )}
     </>
   )

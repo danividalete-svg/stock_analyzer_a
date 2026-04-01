@@ -3,7 +3,6 @@ import { fetchSectorRotation, fetchTickerSectorMap, type SectorRotationData } fr
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
-import { Badge } from '@/components/ui/badge'
 import InfoTooltip from '../components/InfoTooltip'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
@@ -18,6 +17,47 @@ const SECTOR_MAP: Record<string, string> = {
   'Financial Services': 'Financials',
 }
 const toRotationSector = (s: string) => SECTOR_MAP[s] || s
+
+type AlertVariant = 'green' | 'red' | 'yellow'
+
+const alertVariant = (type: string): AlertVariant => {
+  if (type.includes('IN')) return 'green'
+  if (type.includes('OUT')) return 'red'
+  return 'yellow'
+}
+
+const ALERT_BADGE_CLS: Record<AlertVariant, string> = {
+  green:  'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  red:    'bg-red-500/15 text-red-400 border-red-500/30',
+  yellow: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+}
+
+function AlertBadge({ type, variant }: { type: string; variant: AlertVariant }) {
+  return (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[0.65rem] font-bold border ${ALERT_BADGE_CLS[variant]}`}>
+      {type}
+    </span>
+  )
+}
+
+type SRResult = { sector: string; relative_strength?: number; velocity?: number | null }
+
+function QuadrantItems({ items, colorCls }: { items: SRResult[]; colorCls: string }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map(r => (
+        <div key={r.sector} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-current/20 bg-current/5 ${colorCls}`}>
+          <span className="text-xs font-medium text-foreground/90">{r.sector}</span>
+          <span className={`text-[0.65rem] font-semibold ${colorCls}`}>
+            {r.relative_strength?.toFixed(1)}
+            {r.velocity != null && <span className="ml-1 opacity-70">{r.velocity > 0 ? '+' : ''}{Number(r.velocity).toFixed(1)}</span>}
+          </span>
+        </div>
+      ))}
+      {items.length === 0 && <div className="text-xs text-muted-foreground italic py-1">Ninguno</div>}
+    </div>
+  )
+}
 
 export default function SectorRotation() {
   const { data, loading, error } = useApi(() => fetchSectorRotation(), [])
@@ -51,37 +91,36 @@ export default function SectorRotation() {
   const weakening = results.filter(r => r.status === 'WEAKENING')
   const lagging = results.filter(r => r.status === 'LAGGING')
 
-  const alertVariant = (type: string): 'green' | 'red' | 'yellow' => {
-    if (type.includes('IN')) return 'green'
-    if (type.includes('OUT')) return 'red'
-    return 'yellow'
-  }
-
   const rotationIn = alerts.filter(a => a.type?.includes('IN')).length
   const rotationOut = alerts.filter(a => a.type?.includes('OUT')).length
 
-  type SRResult = typeof results[0]
-  const QuadrantItems = ({ items, colorCls }: { items: SRResult[], colorCls: string }) => (
-    <>
-      {items.map(r => (
-        <div key={r.sector} className="flex items-center justify-between py-1.5 border-b border-border/30 last:border-0">
-          <span className="text-sm font-medium">{r.sector}</span>
-          <span className={`text-xs font-semibold ${colorCls}`}>
-            RS {r.relative_strength?.toFixed(1)}
-            {r.velocity != null && <span className="ml-1.5 opacity-70">{r.velocity > 0 ? '+' : ''}{Number(r.velocity).toFixed(1)}</span>}
-          </span>
-        </div>
-      ))}
-      {items.length === 0 && <div className="text-sm text-muted-foreground italic py-2">Ninguno</div>}
-    </>
-  )
-
   return (
     <>
-      <div className="mb-7 animate-fade-in-up">
-        <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Rotacion Sectorial</h2>
+      <div className="mb-5 animate-fade-in-up">
+        <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Rotación Sectorial</h2>
         <p className="text-sm text-muted-foreground">Modelo de rotacion de sectores — identifica liderazgo y debilidad relativa</p>
       </div>
+
+      {/* Compact summary strip — pill style */}
+      {results.length > 0 && (
+        <div className="flex gap-3 flex-wrap mb-5 animate-fade-in-up">
+          {[
+            { label: 'LEADING',   items: leading,   color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' },
+            { label: 'IMPROVING', items: improving, color: 'text-blue-400',    bg: 'bg-blue-500/10 border-blue-500/30' },
+            { label: 'WEAKENING', items: weakening, color: 'text-amber-400',   bg: 'bg-amber-500/10 border-amber-500/30' },
+            { label: 'LAGGING',   items: lagging,   color: 'text-red-400',     bg: 'bg-red-500/10 border-red-500/30' },
+          ].map(({ label, items, color, bg }) => (
+            <div key={label} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ${bg} ${color}`}>
+              {label} <span className="font-normal opacity-70">{items.length}</span>
+            </div>
+          ))}
+          {alerts.length > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold bg-primary/10 border-primary/30 text-primary ml-auto">
+              {alerts.length} ALERTAS <span className="font-normal opacity-70">({rotationIn} IN · {rotationOut} OUT)</span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
@@ -90,7 +129,7 @@ export default function SectorRotation() {
           { label: 'Improving', value: improving.length, sub: 'ganando fuerza', color: 'text-blue-400', idx: 3 },
           { label: 'Alertas', value: alerts.length, sub: `${rotationIn} rotacion IN, ${rotationOut} OUT`, idx: 4 },
         ].map(({ label, value, sub, color, idx }) => (
-          <Card key={label} className={`glass p-5 stagger-${idx}`}>
+          <Card key={label} className={`glass p-5 stagger-${idx} animate-fade-in-up`}>
             <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">{label}</div>
             <div className={`text-3xl font-extrabold tracking-tight tabular-nums leading-none mb-2 ${color ?? ''}`}>{value}</div>
             <div className="text-[0.66rem] text-muted-foreground">{sub}</div>
@@ -98,29 +137,29 @@ export default function SectorRotation() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <Card className="glass p-5 border-emerald-500/20">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+        <Card className="glass p-5 border-emerald-500/20 stagger-1 animate-fade-in-up">
           <h4 className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-3 flex items-center">
             Leading ({leading.length})
             <InfoTooltip text="RS alta y momentum positivo (acelerando). Sectores líderes del mercado — buscar oportunidades de compra." />
           </h4>
           <QuadrantItems items={leading} colorCls="text-emerald-400" />
         </Card>
-        <Card className="glass p-5 border-blue-500/20">
+        <Card className="glass p-5 border-blue-500/20 stagger-2 animate-fade-in-up">
           <h4 className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-3 flex items-center">
             Improving ({improving.length})
             <InfoTooltip text="RS baja pero momentum positivo (ganando fuerza). Sectores que empiezan a rotar al alza — posibles candidatos emergentes." />
           </h4>
           <QuadrantItems items={improving} colorCls="text-blue-400" />
         </Card>
-        <Card className="glass p-5 border-amber-500/20">
+        <Card className="glass p-5 border-amber-500/20 stagger-3 animate-fade-in-up">
           <h4 className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-3 flex items-center">
             Weakening ({weakening.length})
             <InfoTooltip text="RS alta pero momentum negativo (perdiendo fuerza). Sectores que fueron líderes pero empiezan a girar — considerar reducir exposición." />
           </h4>
           <QuadrantItems items={weakening} colorCls="text-amber-400" />
         </Card>
-        <Card className="glass p-5 border-red-500/20">
+        <Card className="glass p-5 border-red-500/20 stagger-4 animate-fade-in-up">
           <h4 className="text-xs font-bold uppercase tracking-widest text-red-400 mb-3 flex items-center">
             Lagging ({lagging.length})
             <InfoTooltip text="RS baja y momentum negativo. Sectores rezagados — evitar nuevas posiciones largas." side="bottom" />
@@ -166,7 +205,7 @@ export default function SectorRotation() {
             </h4>
 
             {/* Summary bar */}
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
               {favorable > 0 && (
                 <div className="flex items-center gap-1.5 text-sm">
                   <CheckCircle size={14} className="text-emerald-400" />
@@ -184,7 +223,7 @@ export default function SectorRotation() {
             </div>
 
             {/* Ticker list grouped by quadrant */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {(['LEADING', 'IMPROVING', 'WEAKENING', 'LAGGING'] as const).map(status => {
                 const items = groups[status]
                 if (items.length === 0) return null
@@ -216,27 +255,32 @@ export default function SectorRotation() {
 
       {alerts.length > 0 && (
         <Card className="glass animate-fade-in-up">
-          <div className="px-5 py-3 border-b border-border/50">
-            <h3 className="text-sm font-semibold">Alertas de Rotacion</h3>
+          <div className="px-5 py-3 border-b border-border/50 flex items-center gap-2">
+            <h3 className="text-sm font-semibold">Alertas de Rotación</h3>
+            <span className="text-[0.6rem] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">{alerts.length}</span>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead>Tipo</TableHead>
-                <TableHead>Sector</TableHead>
-                <TableHead>Mensaje</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {alerts.map((a, i) => (
-                <TableRow key={i}>
-                  <TableCell><Badge variant={alertVariant(a.type)}>{a.type}</Badge></TableCell>
-                  <TableCell className="font-mono font-bold text-primary text-[0.8rem]">{a.sector}</TableCell>
-                  <TableCell className="whitespace-normal max-w-sm text-muted-foreground text-xs">{a.message}</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Sector</TableHead>
+                  <TableHead>Mensaje</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {alerts.map((a) => (
+                  <TableRow key={`${a.type}-${a.sector}`} className="animate-fade-in-up">
+                    <TableCell>
+                      <AlertBadge type={a.type} variant={alertVariant(a.type)} />
+                    </TableCell>
+                    <TableCell className="font-mono font-bold text-primary text-[0.8rem]">{a.sector}</TableCell>
+                    <TableCell className="whitespace-normal max-w-sm text-muted-foreground text-xs">{a.message}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       )}
 

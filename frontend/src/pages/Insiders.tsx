@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { fetchRecurringInsiders, fetchInsidersInsight, downloadCsv, type InsiderData } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
+import ScoreRing from '../components/ScoreRing'
 import Loading, { ErrorState } from '../components/Loading'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -41,6 +42,8 @@ export default function Insiders() {
   const [filterMarket, setFilterMarket] = useState<'ALL' | 'US' | 'EU'>('ALL')
   const [expanded, setExpanded] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [focusedIdx, setFocusedIdx] = useState(-1)
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
   const PAGE_SIZE = 30
 
   useEffect(() => { setPage(1) }, [filterMarket, sortKey])
@@ -61,6 +64,44 @@ export default function Insiders() {
     if (typeof av === 'string' || typeof bv === 'string') return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av))
     return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
   })
+
+  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const pagedRef = useRef(paged)
+  pagedRef.current = paged
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const next = Math.min(i + 1, pagedRef.current.length - 1)
+          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return next
+        })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const prev = Math.max(i - 1, 0)
+          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return prev
+        })
+      } else if (e.key === 'Enter') {
+        setFocusedIdx(i => {
+          if (i >= 0 && pagedRef.current[i]) {
+            const d = pagedRef.current[i]
+            setExpanded(prev => prev === d.ticker ? null : d.ticker)
+          }
+          return i
+        })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -192,6 +233,13 @@ export default function Insiders() {
             {m === 'ALL' ? `Todos (${allRows.length})` : m === 'US' ? `US (${usRows.length})` : `EU (${euRows.length})`}
           </button>
         ))}
+        <button
+          onClick={() => setCompact(v => !v)}
+          className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${compact ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'}`}
+          title="Alternar entre vista compacta y completa"
+        >
+          {compact ? '⊟ Compacta' : '⊞ Completa'}
+        </button>
         <div className="ml-auto flex gap-2">
           <button
             onClick={() => downloadCsv('insiders')}
@@ -208,107 +256,169 @@ export default function Insiders() {
         </div>
       </div>
 
-      <Card className="glass animate-fade-in-up">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-border/50 hover:bg-transparent">
-              <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker / Empresa</TableHead>
-              <TableHead className="hidden sm:table-cell">Mercado</TableHead>
-              <TableHead className={thCls('purchase_count')} onClick={() => onSort('purchase_count')}>Compras</TableHead>
-              <TableHead className={thCls('unique_insiders')} onClick={() => onSort('unique_insiders')}>Direct.</TableHead>
-              <TableHead className={`hidden md:table-cell ${thCls('total_qty')}`} onClick={() => onSort('total_qty')}>Acciones</TableHead>
-              <TableHead className={`hidden md:table-cell ${thCls('first_purchase')}`} onClick={() => onSort('first_purchase')}>Desde</TableHead>
-              <TableHead className={`hidden sm:table-cell ${thCls('last_purchase')}`} onClick={() => onSort('last_purchase')}>Última Compra</TableHead>
-              <TableHead className={thCls('confidence_score')} onClick={() => onSort('confidence_score')}>Confianza</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(d => {
-              const company = getCompany(d)
-              const normConf = normScore(d.confidence_score, maxScore)
-              const isEu = d.market && d.market !== 'US'
-              return (
-                <>
-                  <TableRow
-                    key={d.ticker}
-                    className="cursor-pointer"
-                    onClick={() => setExpanded(expanded === d.ticker ? null : d.ticker)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-1.5">
-                        <TickerLogo ticker={d.ticker} size="xs" />
-                        <div>
-                          <div className="font-mono font-bold text-primary text-[0.8rem] tracking-wide flex items-center gap-1.5">{d.ticker}<OwnedBadge ticker={d.ticker} /></div>
-                          {company !== d.ticker && (
-                            <div className="text-[0.65rem] text-muted-foreground truncate max-w-[180px]">{company}</div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell"><Badge variant={marketVariant(d.market)}>{d.market ?? 'US'}</Badge></TableCell>
-                    <TableCell className="font-bold tabular-nums">{d.purchase_count}</TableCell>
-                    <TableCell>
-                      <span className={d.unique_insiders >= 3 ? 'text-emerald-400 font-bold' : d.unique_insiders >= 2 ? 'text-amber-400 font-semibold' : ''}>
-                        {d.unique_insiders}
-                      </span>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell tabular-nums text-muted-foreground">{fmtQty(d.total_qty)}</TableCell>
-                    <TableCell className="hidden md:table-cell text-muted-foreground text-[0.75rem]">{d.first_purchase || '—'}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-muted-foreground text-[0.75rem]">{d.last_purchase}</TableCell>
-                    <TableCell>
-                      {isEu && d.confidence_label
-                        ? <Badge variant={confVariant(d.confidence_score, maxScore)}>{d.confidence_label}</Badge>
-                        : (
-                          <div className="flex items-center gap-2">
-                            <Badge variant={confVariant(d.confidence_score, maxScore)}>{normConf}</Badge>
-                            {d.confidence_score > 100 && (
-                              <span className="text-[0.6rem] text-muted-foreground">raw: {d.confidence_score}</span>
-                            )}
-                          </div>
-                        )}
-                    </TableCell>
-                  </TableRow>
-                  {expanded === d.ticker && (
-                    <tr className="thesis-row">
-                      <td colSpan={8}>
-                        <div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-[0.75rem]">
-                          {[
-                            { label: 'Empresa', value: company, q: '' },
-                            { label: 'Mercado', value: d.market ?? 'US', q: '' },
-                            { label: 'Total compras', value: d.purchase_count, q: Number(d.purchase_count) >= 5 ? 'good' : Number(d.purchase_count) >= 3 ? 'warn' : '' },
-                            { label: 'Directivos únicos', value: d.unique_insiders, q: d.unique_insiders >= 3 ? 'good' : d.unique_insiders >= 2 ? 'warn' : '' },
-                            { label: 'Acciones compradas', value: fmtQty(d.total_qty), q: '' },
-                            { label: 'Periodo activo', value: `${d.days_span} días`, q: d.days_span >= 30 ? 'good' : '' },
-                            { label: 'Primera compra', value: d.first_purchase || '—', q: '' },
-                            { label: 'Última compra', value: d.last_purchase, q: '' },
-                          ].map(({ label, value, q }) => (
-                            <div key={label} className={`rounded-lg border px-2.5 py-2 ${
-                              q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' :
-                              q === 'warn' ? 'bg-amber-500/8 border-amber-500/15' :
-                              'bg-muted/12 border-border/20'
-                            }`}>
-                              <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${
-                                q === 'good' ? 'text-emerald-400' : q === 'warn' ? 'text-amber-400' : 'text-foreground/70'
-                              }`}>{String(value)}</div>
-                              <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-2 mb-2">
+        {paged.map((d, i) => {
+          const company = getCompany(d)
+          const normConf = normScore(d.confidence_score, maxScore)
+          return (
+            <div
+              key={d.ticker}
+              onClick={() => { setFocusedIdx(i); setExpanded(expanded === d.ticker ? null : d.ticker) }}
+              className={`glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform ${focusedIdx === i ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ScoreRing score={normConf} size="sm" />
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <TickerLogo ticker={d.ticker} size="xs" />
+                      <span className="font-mono font-bold text-sm">{d.ticker}</span>
+                      <OwnedBadge ticker={d.ticker} />
+                    </div>
+                    <span className="text-[0.65rem] text-muted-foreground block truncate max-w-[140px]">{company !== d.ticker ? company : ''}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {d.confidence_label && d.market && d.market !== 'US'
+                    ? <Badge variant={confVariant(d.confidence_score, maxScore)}>{d.confidence_label}</Badge>
+                    : <Badge variant={confVariant(d.confidence_score, maxScore)}>{normConf}</Badge>
+                  }
+                  {d.market && d.market !== 'US' && (
+                    <div className="mt-1">
+                      <Badge variant={marketVariant(d.market)}>{d.market}</Badge>
+                    </div>
                   )}
-                </>
-              )
-            })}
-          </TableBody>
-        </Table>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-2.5 text-[0.62rem] text-muted-foreground/60">
+                <span>{d.purchase_count} compras</span>
+                <span>{d.unique_insiders} direct.</span>
+                {d.last_purchase && <span>últ. {d.last_purchase}</span>}
+              </div>
+            </div>
+          )
+        })}
         {allRows.length === 0 && (
-          <CardContent className="py-16 text-center">
+          <div className="py-16 text-center">
             <div className="text-4xl mb-4 opacity-20">👤</div>
             <p className="font-medium text-muted-foreground">Sin datos de insiders disponibles</p>
-          </CardContent>
+          </div>
         )}
-      </Card>
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block">
+        <Card className="glass animate-fade-in-up">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker / Empresa</TableHead>
+                  <TableHead className="hidden sm:table-cell">Mercado</TableHead>
+                  <TableHead className={thCls('purchase_count')} onClick={() => onSort('purchase_count')}>Compras</TableHead>
+                  <TableHead className={thCls('unique_insiders')} onClick={() => onSort('unique_insiders')}>Direct.</TableHead>
+                  {!compact && <TableHead className={`hidden md:table-cell ${thCls('total_qty')}`} onClick={() => onSort('total_qty')}>Acciones</TableHead>}
+                  {!compact && <TableHead className={`hidden md:table-cell ${thCls('first_purchase')}`} onClick={() => onSort('first_purchase')}>Desde</TableHead>}
+                  <TableHead className={`hidden sm:table-cell ${thCls('last_purchase')}`} onClick={() => onSort('last_purchase')}>Última Compra</TableHead>
+                  <TableHead className={thCls('confidence_score')} onClick={() => onSort('confidence_score')}>Confianza</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paged.map((d, i) => {
+                  const company = getCompany(d)
+                  const normConf = normScore(d.confidence_score, maxScore)
+                  const isEu = d.market && d.market !== 'US'
+                  return (
+                    <>
+                      <TableRow
+                        key={d.ticker}
+                        data-row-idx={i}
+                        className={`cursor-pointer transition-colors ${focusedIdx === i ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+                        onClick={() => { setFocusedIdx(i); setExpanded(expanded === d.ticker ? null : d.ticker) }}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            <TickerLogo ticker={d.ticker} size="xs" />
+                            <div>
+                              <div className="font-mono font-bold text-primary text-[0.8rem] tracking-wide flex items-center gap-1.5">{d.ticker}<OwnedBadge ticker={d.ticker} /></div>
+                              {company !== d.ticker && (
+                                <div className="text-[0.65rem] text-muted-foreground truncate max-w-[180px]">{company}</div>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell"><Badge variant={marketVariant(d.market)}>{d.market ?? 'US'}</Badge></TableCell>
+                        <TableCell className="font-bold tabular-nums">{d.purchase_count}</TableCell>
+                        <TableCell>
+                          <span className={d.unique_insiders >= 3 ? 'text-emerald-400 font-bold' : d.unique_insiders >= 2 ? 'text-amber-400 font-semibold' : ''}>
+                            {d.unique_insiders}
+                          </span>
+                        </TableCell>
+                        {!compact && <TableCell className="hidden md:table-cell tabular-nums text-muted-foreground">{fmtQty(d.total_qty)}</TableCell>}
+                        {!compact && <TableCell className="hidden md:table-cell text-muted-foreground text-[0.75rem]">{d.first_purchase || '—'}</TableCell>}
+                        <TableCell className="hidden sm:table-cell text-muted-foreground text-[0.75rem]">{d.last_purchase}</TableCell>
+                        <TableCell>
+                          {isEu && d.confidence_label
+                            ? <Badge variant={confVariant(d.confidence_score, maxScore)}>{d.confidence_label}</Badge>
+                            : (
+                              <div className="flex items-center gap-2">
+                                <Badge variant={confVariant(d.confidence_score, maxScore)}>{normConf}</Badge>
+                                {d.confidence_score > 100 && (
+                                  <span className="text-[0.6rem] text-muted-foreground">raw: {d.confidence_score}</span>
+                                )}
+                              </div>
+                            )}
+                        </TableCell>
+                      </TableRow>
+                      {expanded === d.ticker && (
+                        <tr className="thesis-row">
+                          <td colSpan={8}>
+                            <div className="px-5 py-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-[0.75rem]">
+                              {[
+                                { label: 'Empresa', value: company, q: '' },
+                                { label: 'Mercado', value: d.market ?? 'US', q: '' },
+                                { label: 'Total compras', value: d.purchase_count, q: Number(d.purchase_count) >= 5 ? 'good' : Number(d.purchase_count) >= 3 ? 'warn' : '' },
+                                { label: 'Directivos únicos', value: d.unique_insiders, q: d.unique_insiders >= 3 ? 'good' : d.unique_insiders >= 2 ? 'warn' : '' },
+                                { label: 'Acciones compradas', value: fmtQty(d.total_qty), q: '' },
+                                { label: 'Periodo activo', value: `${d.days_span} días`, q: d.days_span >= 30 ? 'good' : '' },
+                                { label: 'Primera compra', value: d.first_purchase || '—', q: '' },
+                                { label: 'Última compra', value: d.last_purchase, q: '' },
+                              ].map(({ label, value, q }) => (
+                                <div key={label} className={`rounded-lg border px-2.5 py-2 ${
+                                  q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' :
+                                  q === 'warn' ? 'bg-amber-500/8 border-amber-500/15' :
+                                  'bg-muted/12 border-border/20'
+                                }`}>
+                                  <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${
+                                    q === 'good' ? 'text-emerald-400' : q === 'warn' ? 'text-amber-400' : 'text-foreground/70'
+                                  }`}>{String(value)}</div>
+                                  <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+          {allRows.length === 0 && (
+            <CardContent className="py-16 text-center">
+              <div className="text-4xl mb-4 opacity-20">👤</div>
+              <p className="font-medium text-muted-foreground">Sin datos de insiders disponibles</p>
+            </CardContent>
+          )}
+          {sorted.length > 0 && (
+            <div className="text-[0.6rem] text-muted-foreground/25 text-right px-3 py-1.5 border-t border-border/10">
+              j / k navegar · Enter abrir · Esc cerrar
+            </div>
+          )}
+        </Card>
+      </div>
       <PaginationBar page={page} totalPages={Math.ceil(sorted.length / PAGE_SIZE)} onPage={setPage} />
     </>
   )

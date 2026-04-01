@@ -6,8 +6,17 @@ const API_BASE = import.meta.env.VITE_API_URL || ''
 // Cache session token — onAuthStateChange fires INITIAL_SESSION immediately
 // on setup, so no separate getSession() call needed. Interceptor stays sync.
 let _cachedToken: string | null = null
+let _tokenExpiresAt: number | null = null
 supabase.auth.onAuthStateChange((_event, session) => {
   _cachedToken = session?.access_token ?? null
+  if (session?.access_token) {
+    try {
+      const payload = JSON.parse(atob(session.access_token.split('.')[1]))
+      _tokenExpiresAt = payload.exp ? payload.exp * 1000 : null
+    } catch { _tokenExpiresAt = null }
+  } else {
+    _tokenExpiresAt = null
+  }
 })
 
 const api = axios.create({
@@ -15,8 +24,19 @@ const api = axios.create({
   timeout: 60000,
 })
 
-// Attach Supabase JWT to every request — synchronous, no blocking getSession()
-api.interceptors.request.use((config) => {
+// Attach Supabase JWT to every request; refresh proactively if expiring soon
+api.interceptors.request.use(async (config) => {
+  // Refresh token if it expires in less than 2 minutes
+  if (_cachedToken && _tokenExpiresAt && Date.now() > _tokenExpiresAt - 120_000) {
+    try {
+      const { data: { session } } = await supabase.auth.refreshSession()
+      _cachedToken = session?.access_token ?? null
+      if (session?.access_token) {
+        const payload = JSON.parse(atob(session.access_token.split('.')[1]))
+        _tokenExpiresAt = payload.exp ? payload.exp * 1000 : null
+      }
+    } catch { /* keep old token */ }
+  }
   if (_cachedToken) {
     config.headers.Authorization = `Bearer ${_cachedToken}`
   }
@@ -81,6 +101,29 @@ export interface MomentumOpportunity {
   trend_template_score?: number
   target_price_analyst?: number
   analyst_upside_pct?: number
+}
+
+export interface MicroCapOpportunity {
+  ticker: string
+  company_name?: string
+  current_price: number
+  market_cap: number
+  micro_cap_score: number
+  micro_cap_quality: string
+  piotroski_score?: number
+  piotroski_label?: string
+  fcf_yield_pct?: number
+  rev_growth_yoy?: number
+  financial_health_score?: number
+  buyback_active?: boolean
+  short_squeeze_potential?: string
+  sector?: string
+  industry?: string
+  analyst_upside_pct?: number
+  target_price_analyst?: number
+  analyst_count?: number
+  earnings_warning?: boolean
+  days_to_earnings?: number
 }
 
 export interface InsiderData {
@@ -238,6 +281,9 @@ export const fetchGlobalValueOpportunities = async (): Promise<{
 
 export const fetchMomentumOpportunities = () =>
   api.get<{ data: MomentumOpportunity[]; count: number; source: string }>('/api/momentum-opportunities')
+
+export const fetchMicroCapOpportunities = () =>
+  api.get<{ data: MicroCapOpportunity[]; count: number; source: string }>('/api/micro-cap')
 
 export const fetchSectorRotation = () =>
   api.get<SectorRotationData>('/api/sector-rotation')
@@ -806,6 +852,7 @@ const CSV_FILES: Record<string, string> = {
   'momentum':       'momentum_opportunities.csv',
   'fundamental':    'fundamental_scores.csv',
   'fundamental-eu': 'european_fundamental_scores.csv',
+  'micro-cap':      'micro_cap_opportunities.csv',
 }
 
 export const downloadCsv = (dataset: string) => {

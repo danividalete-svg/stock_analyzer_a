@@ -13,6 +13,34 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
+// ── Recent searches hook (inline) ────────────────────────────────────────────
+const RECENT_KEY = 'sa-recent-searches'
+const RECENT_MAX = 8
+
+function useRecentSearches() {
+  const [recents, setRecents] = useState<string[]>(() => {
+    try { return JSON.parse(sessionStorage.getItem(RECENT_KEY) ?? '[]') } catch { return [] }
+  })
+
+  const add = (ticker: string) => {
+    setRecents(prev => {
+      const next = [ticker, ...prev.filter(t => t !== ticker)].slice(0, RECENT_MAX)
+      sessionStorage.setItem(RECENT_KEY, JSON.stringify(next))
+      return next
+    })
+  }
+
+  const remove = (ticker: string) => {
+    setRecents(prev => {
+      const next = prev.filter(t => t !== ticker)
+      sessionStorage.setItem(RECENT_KEY, JSON.stringify(next))
+      return next
+    })
+  }
+
+  return { recents, add, remove }
+}
+
 type Quality = 'good' | 'warn' | 'bad' | 'neutral'
 const qualBg = (q: Quality) =>
   q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' :
@@ -47,6 +75,7 @@ export default function TickerSearch() {
   const [scoreHistory, setScoreHistory] = useState<ScoreHistoryPoint[]>([])
   const [aiNarrative, setAiNarrative] = useState<string | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const { recents, add: addRecent, remove: removeRecent } = useRecentSearches()
 
   // Auto-search if ?q= param on mount
   useEffect(() => {
@@ -100,6 +129,7 @@ export default function TickerSearch() {
     try {
       const res = await analyzeTicker(t)
       setResult(res.data as Record<string, unknown>)
+      addRecent(t)
       fetchScoreHistory(t).then(r => setScoreHistory(r.data.history)).catch(() => {})
       analyzeTickerAI(t).then(r => setAiNarrative(r.data.narrative)).catch(() => {})
     } catch (e) {
@@ -107,7 +137,7 @@ export default function TickerSearch() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [addRecent])
 
   const onSearch = () => {
     // If input looks like a company name (has spaces or >6 chars with lowercase),
@@ -164,13 +194,13 @@ export default function TickerSearch() {
   return (
     <>
       <div className="mb-7 animate-fade-in-up">
-        <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Buscar Ticker</h2>
+        <h1 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Buscar Ticker</h1>
         <p className="text-sm text-muted-foreground">Analisis completo de cualquier ticker — datos del pipeline o yfinance live</p>
       </div>
 
       {/* Search box with autocomplete */}
-      <div className="relative mb-6" ref={wrapRef}>
-        <div className="flex gap-2">
+      <div className="relative mb-6 animate-fade-in-up" style={{ animationDelay: '60ms' }} ref={wrapRef}>
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             className="flex-1"
             placeholder="Ticker o empresa (ej: Apple, MSFT, SAP.DE)"
@@ -180,7 +210,7 @@ export default function TickerSearch() {
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             autoFocus
           />
-          <Button onClick={onSearch} disabled={loading || !ticker.trim()}>
+          <Button onClick={onSearch} disabled={loading || !ticker.trim()} className="active:scale-[0.98] transition-transform sm:w-auto w-full">
             {loading ? 'Analizando...' : <><Search size={14} className="mr-1.5" />Analizar</>}
           </Button>
         </div>
@@ -196,7 +226,7 @@ export default function TickerSearch() {
           }).slice(0, 6)
           const KNOWN_SECTORS = new Set(['Technology','Financial Services','Healthcare','Energy','Consumer Cyclical','Consumer Defensive','Industrials','Real Estate','Basic Materials','Communication Services','Utilities'])
           return (
-            <ul className="absolute top-full left-0 right-0 mt-1 z-50 bg-background border border-border rounded-lg shadow-xl overflow-hidden">
+            <ul className="absolute top-full left-0 right-0 mt-1 z-50 bg-background border border-border rounded-lg shadow-xl" style={{ overflow: 'clip' }}>
               {deduped.map((s, i) => (
                 <li
                   key={s.ticker}
@@ -218,10 +248,42 @@ export default function TickerSearch() {
       </div>
 
       {!r && !loading && !error && (
-        <div className="text-center mt-10">
-          <div className="text-5xl mb-4 opacity-20">🔍</div>
-          <p className="font-medium text-muted-foreground mb-1">Escribe un ticker o el nombre de la empresa</p>
-          <span className="text-xs text-muted-foreground/60">Soporta US (AAPL), EU (SAP.DE, BBVA.MC) y UK (.L)</span>
+        <div className="mt-6">
+          {recents.length > 0 && !ticker.trim() && (
+            <div className="mb-6 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold mb-2">Búsquedas recientes</p>
+              <div className="flex flex-wrap gap-2">
+                {recents.map((t, idx) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1 pl-3 pr-1 py-1 rounded-full border border-border/40 bg-muted/20 text-sm font-mono font-semibold text-primary hover:bg-muted/40 hover:border-border/60 transition-colors animate-fade-in-up active:scale-[0.98]"
+                    style={{ animationDelay: `${(idx + 2) * 40}ms` }}
+                  >
+                    <button
+                      type="button"
+                      className="hover:text-foreground transition-colors"
+                      onClick={() => { setTicker(t); doSearch(t) }}
+                    >
+                      {t}
+                    </button>
+                    <button
+                      type="button"
+                      className="ml-0.5 w-4 h-4 flex items-center justify-center rounded-full text-muted-foreground/50 hover:bg-red-500/20 hover:text-red-400 transition-colors text-[0.6rem] leading-none"
+                      title="Eliminar de recientes"
+                      onClick={() => removeRecent(t)}
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="text-center mt-4">
+            <div className="text-5xl mb-4 opacity-20">🔍</div>
+            <p className="font-medium text-muted-foreground mb-1">Escribe un ticker o el nombre de la empresa</p>
+            <span className="text-xs text-muted-foreground/60">Soporta US (AAPL), EU (SAP.DE, BBVA.MC) y UK (.L)</span>
+          </div>
         </div>
       )}
 
@@ -229,7 +291,7 @@ export default function TickerSearch() {
       {error && <ErrorState message={error} />}
 
       {notFound && (
-        <Card className="glass mt-6">
+        <Card className="glass mt-6 animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip' }}>
           <CardContent className="py-10 text-center">
             <AlertCircle size={36} strokeWidth={1.5} className="text-muted-foreground mx-auto mb-3" />
             <h4 className="font-semibold mb-1">Ticker no encontrado</h4>
@@ -238,7 +300,7 @@ export default function TickerSearch() {
             </p>
             <div className="flex gap-2 flex-wrap justify-center">
               {['AAPL', 'MSFT', 'SAP.DE', 'BBVA.MC', 'BP.L'].map(ex => (
-                <Button key={ex} variant="outline" size="sm" onClick={() => { setTicker(ex); doSearch(ex) }}>
+                <Button key={ex} variant="outline" size="sm" className="active:scale-[0.98] transition-transform" onClick={() => { setTicker(ex); doSearch(ex) }}>
                   {ex}
                 </Button>
               ))}
@@ -248,7 +310,7 @@ export default function TickerSearch() {
       )}
 
       {r && !notFound && (
-        <Card className="glass animate-fade-in-up">
+        <Card className="glass animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip' }}>
           <CardContent className="p-6">
             {/* Header */}
             <div className="flex items-start justify-between mb-6 gap-4">
@@ -274,7 +336,7 @@ export default function TickerSearch() {
 
             {/* Price chart */}
             {ss('ticker') && (
-              <div className="mb-6 rounded-xl overflow-hidden border border-border/20 bg-muted/5">
+              <div className="mb-6 rounded-xl border border-border/20 bg-muted/5" style={{ overflow: 'clip' }}>
                 <PriceChart ticker={ss('ticker')!} height={180} />
               </div>
             )}
@@ -286,8 +348,12 @@ export default function TickerSearch() {
                 { label: 'VCP', key: 'vcp_score' },
                 { label: 'ML', key: 'ml_score' },
                 { label: 'Fundamental', key: 'fund_score' },
-              ].map(({ label, key }) => (
-                <div key={key} className="glass rounded-lg p-3">
+              ].map(({ label, key }, index) => (
+                <div
+                  key={key}
+                  className="glass rounded-lg p-3 animate-fade-in-up hover:border-border/60 transition-colors active:scale-[0.98]"
+                  style={{ animationDelay: `${index * 60}ms` }}
+                >
                   <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">{label}</div>
                   <div>{sf(key) != null ? <ScoreBar score={sf(key)!} /> : <span className="text-muted-foreground text-xs">—</span>}</div>
                 </div>
@@ -301,9 +367,9 @@ export default function TickerSearch() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Entry / Exit — price ladder */}
                 {(sf('entry_price') != null || sf('stop_loss') != null || sf('target_price') != null) && (
-                  <div className="rounded-xl border border-border/30 border-l-2 border-l-primary/50 overflow-hidden">
+                  <div className="rounded-xl border border-border/30 border-l-2 border-l-primary/50 animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip', animationDelay: '0ms' }}>
                     <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
-                      <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Entry / Exit</span>
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold">Entry / Exit</span>
                     </div>
                     <div className="grid grid-cols-4 gap-1.5 p-3">
                       <Metric label="Entrada" value={fmtDollar(sf('entry_price'))} quality="neutral" />
@@ -317,9 +383,9 @@ export default function TickerSearch() {
 
                 {/* Analistas — consensus card */}
                 {(sf('target_price_analyst') != null || sf('analyst_upside_pct') != null) && (
-                  <div className="rounded-xl border border-border/30 border-l-2 border-l-emerald-500/50 overflow-hidden">
+                  <div className="rounded-xl border border-border/30 border-l-2 border-l-emerald-500/50 animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip', animationDelay: '60ms' }}>
                     <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
-                      <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Analistas</span>
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold">Analistas</span>
                     </div>
                     <div className="p-3 space-y-2">
                       {/* Main consensus */}
@@ -363,9 +429,9 @@ export default function TickerSearch() {
 
               {/* Fundamentales + Tecnicos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-xl border border-border/30 border-l-2 border-l-blue-500/50 overflow-hidden">
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-blue-500/50 animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip', animationDelay: '0ms' }}>
                   <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
-                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Fundamentales</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold">Fundamentales</span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 p-3">
                     <Metric label="ROE" value={sf('roe') != null ? `${(sf('roe')! * 100).toFixed(1)}%` : null}
@@ -389,9 +455,9 @@ export default function TickerSearch() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border/30 border-l-2 border-l-cyan-500/50 overflow-hidden">
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-cyan-500/50 animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip', animationDelay: '60ms' }}>
                   <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
-                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Técnicos</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold">Técnicos</span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 p-3">
                     <Metric label="MA Filter" value={r?.ma_passes === true ? 'PASS' : r?.ma_passes === false ? 'FAIL' : null}
@@ -409,9 +475,9 @@ export default function TickerSearch() {
 
               {/* Earnings + Salud Financiera */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-xl border border-border/30 border-l-2 border-l-amber-500/50 overflow-hidden">
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-amber-500/50 animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip', animationDelay: '0ms' }}>
                   <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
-                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Earnings</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold">Earnings</span>
                   </div>
                   <div className="p-3 space-y-2">
                     <div className="grid grid-cols-3 gap-1.5">
@@ -441,9 +507,9 @@ export default function TickerSearch() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border/30 border-l-2 border-l-violet-500/50 overflow-hidden">
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-violet-500/50 animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip', animationDelay: '60ms' }}>
                   <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
-                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Salud Financiera</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold">Salud Financiera</span>
                   </div>
                   <div className="p-3 space-y-2">
                     {/* Piotroski F-Score — visual bar */}
@@ -491,9 +557,9 @@ export default function TickerSearch() {
 
               {/* Señales */}
               {(sf('insiders_score') != null || !!r?.insider_recurring || !!r?.options_flow || !!r?.mean_reversion) && (
-                <div className="rounded-xl border border-border/30 border-l-2 border-l-purple-500/50 overflow-hidden">
+                <div className="rounded-xl border border-border/30 border-l-2 border-l-purple-500/50 animate-fade-in-up hover:border-border/60 transition-colors" style={{ overflow: 'clip' }}>
                   <div className="px-3 py-1.5 bg-muted/30 border-b border-border/15">
-                    <span className="text-[0.6rem] font-bold tracking-widest uppercase text-foreground/50">Señales</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold">Señales</span>
                   </div>
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 p-3">
                     <Metric label="Insiders Score" value={sf('insiders_score')?.toFixed(0) ?? null}
@@ -531,7 +597,7 @@ export default function TickerSearch() {
 
             {ss('thesis') && (
               <div className="mt-6 pt-5 border-t border-border/50">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Tesis de Inversion</h4>
+                <h4 className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold mb-3">Tesis de Inversion</h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">{ss('thesis')}</p>
               </div>
             )}
@@ -551,7 +617,7 @@ export default function TickerSearch() {
               return (
                 <div className="mt-6 pt-5 border-t border-border/50">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Historial VALUE Score</h4>
+                    <h4 className="text-xs uppercase tracking-wider text-muted-foreground/60 font-semibold">Historial VALUE Score</h4>
                     <span className={`text-xs font-semibold tabular-nums ${trend >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {trend >= 0 ? '+' : ''}{trend.toFixed(1)} pts · {scoreHistory.length} sesiones
                     </span>

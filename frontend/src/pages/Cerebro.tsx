@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   fetchCerebroInsights, fetchCerebroConvergence, fetchCerebroAlerts, fetchCerebroCalibration,
@@ -207,6 +207,7 @@ export default function Cerebro() {
 
   const [activeTab, setActiveTab] = useState<'briefing' | 'entry' | 'convergence' | 'agents' | 'alerts' | 'insights' | 'calibration'>('briefing')
   const [entryFilter, setEntryFilter] = useState<'ACTIONABLE' | 'STRONG_BUY' | 'BUY' | 'MONITOR'>('ACTIONABLE')
+  const [focusedIdx, setFocusedIdx] = useState(-1)
 
   const loading = loadingI && loadingC && loadingA && loadingCal && loadingE
   if (loading) return <Loading />
@@ -220,6 +221,19 @@ export default function Cerebro() {
   const filteredEntry = entryFilter === 'ACTIONABLE'
     ? entrySignals.filter(s => s.signal === 'STRONG_BUY' || s.signal === 'BUY')
     : entrySignals.filter(s => s.signal === entryFilter)
+
+  const pagedRef = useRef(filteredEntry)
+  pagedRef.current = filteredEntry
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'j' || e.key === 'ArrowDown') { e.preventDefault(); setFocusedIdx(i => Math.min(i + 1, pagedRef.current.length - 1)) }
+      if (e.key === 'k' || e.key === 'ArrowUp')   { e.preventDefault(); setFocusedIdx(i => Math.max(i - 1, 0)) }
+      if (e.key === 'Escape') setFocusedIdx(-1)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   const tabs = [
     { id: 'briefing' as const,    label: 'Briefing',        icon: Newspaper,        count: undefined, highlight: !!briefingData?.narrative },
@@ -252,8 +266,8 @@ export default function Cerebro() {
           { label: 'Win rate base',     value: insights ? `${insights.baseline_win_rate_7d.toFixed(1)}%` : '—', color: insights?.baseline_win_rate_7d != null ? (insights.baseline_win_rate_7d >= 55 ? 'text-emerald-400' : insights.baseline_win_rate_7d >= 45 ? 'text-amber-400' : 'text-red-400') : '', sub: '7d sistema' },
           { label: 'Convergencias hoy', value: convergence?.total_convergences ?? '—', color: 'text-cyan-400', sub: `${convergence?.triple_or_more ?? 0} triples` },
           { label: 'Alertas HIGH',      value: alertsData?.high_count ?? '—', color: (alertsData?.high_count ?? 0) > 0 ? 'text-red-400' : 'text-muted-foreground', sub: `${alertsData?.total ?? 0} total` },
-        ].map(s => (
-          <Card key={s.label} className="glass p-5">
+        ].map((s, i) => (
+          <Card key={s.label} className="glass p-5 border border-border/40 hover:border-border/60 transition-colors animate-fade-in-up" style={{ animationDelay: `${i * 60}ms` }}>
             <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">{s.label}</div>
             <div className={`text-3xl font-extrabold tabular-nums leading-none mb-1 ${s.color}`}>{s.value}</div>
             <div className="text-[0.66rem] text-muted-foreground">{s.sub}</div>
@@ -267,7 +281,7 @@ export default function Cerebro() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors -mb-px ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors active:scale-[0.98] -mb-px ${
               activeTab === tab.id
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -297,7 +311,7 @@ export default function Cerebro() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Top entries */}
               {briefingData.sections.top_entries.length > 0 && (
-                <Card className="glass border-emerald-500/20">
+                <Card className="glass border-emerald-500/20 hover:border-border/60 animate-fade-in-up" style={{ animationDelay: '60ms' }}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Zap size={13} className="text-emerald-400" />
@@ -323,7 +337,7 @@ export default function Cerebro() {
 
               {/* Smart money */}
               {briefingData.sections.smart_money.length > 0 && (
-                <Card className="glass border-purple-500/20">
+                <Card className="glass border-purple-500/20 hover:border-border/60 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Building2 size={13} className="text-purple-400" />
@@ -343,7 +357,7 @@ export default function Cerebro() {
 
               {/* Exits + traps */}
               {(briefingData.sections.exit_warnings.length > 0 || briefingData.sections.traps_warning.length > 0) && (
-                <Card className="glass border-red-500/20">
+                <Card className="glass border-red-500/20 hover:border-border/60 animate-fade-in-up" style={{ animationDelay: '180ms' }}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <ShieldAlert size={13} className="text-red-400" />
@@ -369,7 +383,7 @@ export default function Cerebro() {
 
               {/* Convergences */}
               {briefingData.sections.top_convergences.length > 0 && (
-                <Card className="glass border-cyan-500/20">
+                <Card className="glass border-cyan-500/20 hover:border-border/60 animate-fade-in-up" style={{ animationDelay: '240ms' }}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Crosshair size={13} className="text-cyan-400" />
@@ -389,7 +403,7 @@ export default function Cerebro() {
 
               {/* Alerts */}
               {briefingData.sections.high_alerts.length > 0 && (
-                <Card className="glass border-amber-500/20">
+                <Card className="glass border-amber-500/20 hover:border-border/60 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Bell size={13} className="text-amber-400" />
@@ -432,7 +446,7 @@ export default function Cerebro() {
                 <button
                   key={f}
                   onClick={() => setEntryFilter(f)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors active:scale-[0.98] ${
                     entryFilter === f
                       ? 'bg-primary/15 text-primary border-primary/30'
                       : 'bg-muted/10 text-muted-foreground border-border/30 hover:text-foreground'
@@ -456,7 +470,17 @@ export default function Cerebro() {
               </CardContent>
             </Card>
           ) : (
-            filteredEntry.map(sig => <EntrySignalCard key={sig.ticker} sig={sig} />)
+            filteredEntry.map((sig, i) => (
+              <div
+                key={sig.ticker}
+                data-row-idx={i}
+                className={`animate-fade-in-up rounded-xl transition-shadow ${focusedIdx === i ? 'ring-2 ring-primary/50' : ''}`}
+                style={{ animationDelay: `${i * 60}ms` }}
+                onClick={() => setFocusedIdx(i)}
+              >
+                <EntrySignalCard sig={sig} />
+              </div>
+            ))
           )}
         </div>
       )}
@@ -467,8 +491,8 @@ export default function Cerebro() {
           {signals.length === 0 ? (
             <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin convergencias detectadas hoy</CardContent></Card>
           ) : (
-            signals.map(sig => (
-              <Card key={sig.ticker} className={`glass border ${sig.strategy_count >= 3 ? 'border-amber-500/30' : 'border-border/40'}`}>
+            signals.map((sig, i) => (
+              <Card key={sig.ticker} className={`glass border hover:border-border/60 animate-fade-in-up ${sig.strategy_count >= 3 ? 'border-amber-500/30' : 'border-border/40'}`} style={{ animationDelay: `${i * 60}ms` }}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <TickerLogo ticker={sig.ticker} size="sm" className="mt-0.5 shrink-0" />
@@ -576,28 +600,48 @@ export default function Cerebro() {
           {alerts.length === 0 ? (
             <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin alertas activas hoy</CardContent></Card>
           ) : (
-            alerts.map((alert, i) => (
-              <div key={`${alert.ticker}-${alert.type}-${i}`} className={`flex items-start gap-3 p-4 rounded-xl border ${alertColor(alert.severity)}`}>
-                <div className="mt-0.5 shrink-0">{alertIcon(alert.type)}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <Link to={`/search?q=${alert.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">
-                      {alert.ticker}
-                    </Link>
-                    <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded border ${
-                      alert.severity === 'HIGH'
-                        ? 'bg-red-500/15 text-red-400 border-red-500/30'
-                        : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                    }`}>{alert.severity}</span>
-                    <span className="text-[0.65rem] font-semibold text-foreground/80">{alert.title}</span>
+            <>
+              {/* Mobile cards */}
+              <div className="sm:hidden space-y-2">
+                {alerts.map((alert, i) => (
+                  <div key={`mob-${alert.ticker}-${alert.type}-${i}`} className={`p-3 rounded-xl border animate-fade-in-up ${alertColor(alert.severity)}`} style={{ animationDelay: `${i * 60}ms` }}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="shrink-0">{alertIcon(alert.type)}</div>
+                      <Link to={`/search?q=${alert.ticker}`} className="font-mono font-bold text-primary text-sm hover:underline">{alert.ticker}</Link>
+                      <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded border ${alert.severity === 'HIGH' ? 'bg-red-500/15 text-red-400 border-red-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'}`}>{alert.severity}</span>
+                    </div>
+                    <div className="text-[0.72rem] font-semibold text-foreground/80 mb-0.5">{alert.title}</div>
+                    <p className="text-[0.72rem] text-muted-foreground leading-relaxed">{alert.message}</p>
                   </div>
-                  <p className="text-[0.72rem] text-muted-foreground leading-relaxed">{alert.message}</p>
-                </div>
-                <Link to={`/search?q=${alert.ticker}`} className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground mt-0.5">
-                  <ChevronRight size={14} />
-                </Link>
+                ))}
               </div>
-            ))
+
+              {/* Desktop list */}
+              <div className="hidden sm:block space-y-2">
+                {alerts.map((alert, i) => (
+                  <div key={`${alert.ticker}-${alert.type}-${i}`} className={`flex items-start gap-3 p-4 rounded-xl border animate-fade-in-up ${alertColor(alert.severity)}`} style={{ animationDelay: `${i * 60}ms` }}>
+                    <div className="mt-0.5 shrink-0">{alertIcon(alert.type)}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <Link to={`/search?q=${alert.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">
+                          {alert.ticker}
+                        </Link>
+                        <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded border ${
+                          alert.severity === 'HIGH'
+                            ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                            : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                        }`}>{alert.severity}</span>
+                        <span className="text-[0.65rem] font-semibold text-foreground/80">{alert.title}</span>
+                      </div>
+                      <p className="text-[0.72rem] text-muted-foreground leading-relaxed">{alert.message}</p>
+                    </div>
+                    <Link to={`/search?q=${alert.ticker}`} className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground mt-0.5">
+                      <ChevronRight size={14} />
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}

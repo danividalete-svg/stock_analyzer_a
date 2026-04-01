@@ -11,6 +11,12 @@ import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 
 type FilterMode = 'all' | 'warning' | 'catalyst'
 
+function filterLabel(f: FilterMode, total: number): string {
+  if (f === 'warning') return '⚠ Riesgo earnings'
+  if (f === 'catalyst') return '⚡ Catalizador'
+  return `Todos (${total})`
+}
+
 function daysLabel(days: number | null): string {
   if (days === null) return '—'
   if (days === 0) return 'Hoy'
@@ -93,7 +99,7 @@ export default function EarningsCalendar() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Earnings Calendar</h1>
+          <h1 className="text-2xl font-bold mb-1 gradient-title">Earnings Calendar</h1>
           <p className="text-sm text-muted-foreground">
             Próximos reportes de resultados — evita entrar antes de earnings sin catalizador
           </p>
@@ -136,12 +142,12 @@ export default function EarningsCalendar() {
 
       {/* My Portfolio Earnings */}
       {myEarnings.length > 0 && (
-        <Card className="glass border border-primary/20">
+        <Card className="glass border border-primary/30 bg-primary/5">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <Wallet size={14} className="text-primary" />
-              <span className="text-[0.62rem] font-bold uppercase tracking-widest text-primary/70">Earnings de Mi Cartera</span>
-              <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-bold">{myEarnings.length}</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">Earnings de Mi Cartera</span>
+              <span className="text-[0.65rem] px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-bold">{myEarnings.length}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {myEarnings.map(entry => (
@@ -186,24 +192,17 @@ export default function EarningsCalendar() {
           placeholder="Buscar ticker, empresa, sector..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 px-3 py-2 text-sm rounded-lg bg-card/60 border border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+          className="flex-1 text-sm rounded-lg border border-border/40 bg-background/60 px-3 py-1.5 focus:outline-none focus:border-primary/50 text-foreground placeholder:text-muted-foreground/50"
         />
-        <div className="flex gap-1">
-          {([
-            { key: 'all',      label: 'Todos' },
-            { key: 'warning',  label: 'Alerta' },
-            { key: 'catalyst', label: 'Catalizador' },
-          ] as { key: FilterMode; label: string }[]).map(f => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
-                filter === f.key
-                  ? 'bg-primary/15 border-primary/30 text-primary'
-                  : 'bg-card/40 border-border/40 text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {f.label}
+        <div className="flex gap-1.5 flex-wrap">
+          {(['all', 'warning', 'catalyst'] as FilterMode[]).map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`text-[0.68rem] font-semibold px-3 py-1 rounded-full border transition-colors ${
+                filter === f
+                  ? 'border-primary/60 bg-primary/15 text-primary'
+                  : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
+              }`}>
+              {filterLabel(f, data?.earnings?.length ?? 0)}
             </button>
           ))}
         </div>
@@ -220,7 +219,7 @@ export default function EarningsCalendar() {
         sortedDates.map(date => (
           <div key={date}>
             {/* Date header */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 animate-fade-in-up">
               <Calendar size={13} className="text-muted-foreground" />
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 {formatDate(date)}
@@ -234,7 +233,7 @@ export default function EarningsCalendar() {
               {grouped[date].map(entry => (
                 <Card
                   key={entry.ticker}
-                  className={`glass border ${urgencyBg(entry.days_to_earnings, entry.earnings_warning)}`}
+                  className={`glass border active:scale-[0.98] transition-transform ${urgencyBg(entry.days_to_earnings, entry.earnings_warning)}`}
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center gap-3 flex-wrap">

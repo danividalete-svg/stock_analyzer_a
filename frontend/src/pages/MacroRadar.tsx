@@ -116,7 +116,7 @@ function ScoreGauge({ score, max }: { score: number; max: number }) {
         <span>Neutro</span>
         <span>Calma</span>
       </div>
-      <div className="h-2 w-full rounded-full bg-muted/30 overflow-hidden">
+      <div className="h-2 w-full rounded-full bg-muted/30" style={{ overflow: 'clip' }}>
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{ width: `${pct}%`, backgroundColor: color }}
@@ -131,12 +131,13 @@ function ScoreGauge({ score, max }: { score: number; max: number }) {
   )
 }
 
-function SignalCard({ id, signal }: { id: string; signal: SignalData }) {
+function SignalCard({ id, signal, stagger }: { id: string; signal: SignalData; stagger?: number }) {
   const icon = SIGNAL_ICONS[id] ?? '📌'
   const score = signal.score ?? 0
+  const staggerClass = stagger != null && stagger <= 8 ? `stagger-${stagger}` : 'animate-fade-in-up'
 
   return (
-    <Card className={`glass border ${scoreToBg(score)} transition-all`}>
+    <Card className={`glass border ${scoreToBg(score)} hover:border-border/60 transition-colors ${staggerClass}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
@@ -150,7 +151,7 @@ function SignalCard({ id, signal }: { id: string; signal: SignalData }) {
 
         {/* Score bar */}
         <div className="mb-2">
-          <div className="h-1.5 w-full rounded-full bg-muted/30 overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-muted/30" style={{ overflow: 'clip' }}>
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
@@ -271,17 +272,17 @@ function HistoryChart({ points, maxScore }: { points: HistoryPoint[]; maxScore: 
   )
 }
 
-const SEVERITY_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  CRITICAL: { bg: 'bg-red-500/15 border-red-500/30',    text: 'text-red-400',    label: 'CRÍTICO' },
-  HIGH:     { bg: 'bg-orange-500/15 border-orange-500/30', text: 'text-orange-400', label: 'ALTO' },
-  MEDIUM:   { bg: 'bg-yellow-500/15 border-yellow-500/30', text: 'text-yellow-400', label: 'MEDIO' },
-  LOW:      { bg: 'bg-emerald-500/15 border-emerald-500/30', text: 'text-emerald-400', label: 'BAJO' },
+const SEVERITY_CONFIG: Record<string, { bg: string; text: string; label: string; icon: string }> = {
+  CRITICAL: { bg: 'border-red-500/40 bg-red-500/10',      text: 'text-red-400',    label: 'CRÍTICO', icon: '🔴' },
+  HIGH:     { bg: 'border-orange-500/30 bg-orange-500/8', text: 'text-orange-400', label: 'ALTO',    icon: '🟠' },
+  MEDIUM:   { bg: 'border-amber-500/25 bg-amber-500/6',   text: 'text-yellow-400', label: 'MEDIO',   icon: '🟡' },
+  LOW:      { bg: 'border-emerald-500/20 bg-emerald-500/5', text: 'text-emerald-400', label: 'BAJO', icon: '🔵' },
 }
 
 function SystemicRisksPanel({ risks }: { risks: SystemicRisk[] }) {
   const hasRealRisks = risks.some(r => r.id !== 'none')
   return (
-    <Card className="glass border border-border/50">
+    <Card className="glass border border-border/50 animate-fade-in-up">
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-base">⚠️</span>
@@ -300,7 +301,10 @@ function SystemicRisksPanel({ risks }: { risks: SystemicRisk[] }) {
             return (
               <div key={risk.id} className={`rounded-lg border p-3 ${cfg.bg}`}>
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <span className={`text-sm font-bold ${cfg.text}`}>{risk.name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">{cfg.icon}</span>
+                    <span className={`text-sm font-bold ${cfg.text}`}>{risk.name}</span>
+                  </div>
                   <span className={`text-[0.58rem] font-bold px-1.5 py-0.5 rounded border ${cfg.bg} ${cfg.text} shrink-0`}>
                     {cfg.label}
                   </span>
@@ -320,7 +324,7 @@ function SystemicRisksPanel({ risks }: { risks: SystemicRisk[] }) {
 }
 
 function ReturnBadge({ value }: { value: number }) {
-  const color = value > 0 ? 'text-emerald-400' : value < -15 ? 'text-red-400' : 'text-orange-400'
+  const color = value > 0 ? 'text-emerald-400' : value < 0 ? 'text-red-400' : 'text-muted-foreground'
   return (
     <span className={`text-xs font-bold ${color}`}>
       {value > 0 ? '+' : ''}{value}%
@@ -330,7 +334,7 @@ function ReturnBadge({ value }: { value: number }) {
 
 function HistoricalAnalogsPanel({ analogs }: { analogs: HistoricalAnalog[] }) {
   return (
-    <Card className="glass border border-border/50">
+    <Card className="glass border border-border/50 animate-fade-in-up">
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-base">🕰️</span>
@@ -341,67 +345,73 @@ function HistoricalAnalogsPanel({ analogs }: { analogs: HistoricalAnalog[] }) {
         <p className="text-[0.65rem] text-muted-foreground/60 mb-4">
           Episodios cuyo patrón de señales macro más se parece al entorno actual
         </p>
-        <div className="space-y-4">
-          {analogs.map((analog, idx) => (
-            <div key={analog.id} className="border border-border/30 rounded-lg p-3 bg-muted/5">
-              {/* Header */}
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[0.6rem] text-muted-foreground/50 font-bold">#{idx + 1}</span>
-                    <span className="text-sm font-bold text-foreground">{analog.name}</span>
-                    <span className="text-[0.65rem] text-muted-foreground/60">{analog.date}</span>
+        {/* Horizontal scroll on mobile */}
+        <div className="overflow-x-auto -mx-1 px-1">
+          <div className="space-y-4 min-w-0">
+            {analogs.map((analog, idx) => (
+              <div
+                key={analog.id}
+                className="border border-border/30 rounded-lg p-3 bg-muted/5 active:scale-[0.98] transition-transform cursor-default"
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[0.6rem] text-muted-foreground/50 font-bold">#{idx + 1}</span>
+                      <span className="text-sm font-bold text-foreground">{analog.name}</span>
+                      <span className="text-[0.65rem] text-muted-foreground/60">{analog.date}</span>
+                    </div>
+                  </div>
+                  {/* Similarity meter */}
+                  <div className="text-right shrink-0">
+                    <div
+                      className="text-xs font-bold"
+                      style={{ color: analog.similarity > 75 ? '#f97316' : analog.similarity > 60 ? '#f59e0b' : '#94a3b8' }}
+                    >
+                      {analog.similarity.toFixed(0)}%
+                    </div>
+                    <div className="text-[0.55rem] text-muted-foreground/50">similitud</div>
                   </div>
                 </div>
-                {/* Similarity meter */}
-                <div className="text-right shrink-0">
+
+                {/* Similarity bar */}
+                <div className="h-1 w-full rounded-full bg-muted/30 mb-3" style={{ overflow: 'clip' }}>
                   <div
-                    className="text-xs font-bold"
-                    style={{ color: analog.similarity > 75 ? '#f97316' : analog.similarity > 60 ? '#f59e0b' : '#94a3b8' }}
-                  >
-                    {analog.similarity.toFixed(0)}%
-                  </div>
-                  <div className="text-[0.55rem] text-muted-foreground/50">similitud</div>
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${analog.similarity}%`,
+                      backgroundColor: analog.similarity > 75 ? '#f97316' : analog.similarity > 60 ? '#f59e0b' : '#94a3b8',
+                    }}
+                  />
+                </div>
+
+                {/* Outcome returns — color-coded */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {[
+                    { label: 'SPY 30d', value: analog.outcome.spy_30d },
+                    { label: 'SPY 90d', value: analog.outcome.spy_90d },
+                    { label: 'SPY 180d', value: analog.outcome.spy_180d },
+                  ].map(o => (
+                    <div key={o.label} className="text-center p-1.5 rounded bg-muted/10 border border-border/20">
+                      <ReturnBadge value={o.value} />
+                      <div className="text-[0.55rem] text-muted-foreground/50 mt-0.5">{o.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Description */}
+                <p className="text-[0.68rem] text-muted-foreground/80 leading-snug mb-1.5">
+                  {analog.outcome.description}
+                </p>
+
+                {/* Key difference */}
+                <div className="flex items-start gap-1.5">
+                  <span className="text-[0.65rem] text-blue-400/60 shrink-0 mt-px font-bold">≠</span>
+                  <p className="text-[0.65rem] text-muted-foreground/60 leading-snug italic">{analog.key_difference}</p>
                 </div>
               </div>
-
-              {/* Similarity bar */}
-              <div className="h-1 w-full rounded-full bg-muted/30 mb-3 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{
-                    width: `${analog.similarity}%`,
-                    backgroundColor: analog.similarity > 75 ? '#f97316' : analog.similarity > 60 ? '#f59e0b' : '#94a3b8',
-                  }}
-                />
-              </div>
-
-              {/* Outcome returns */}
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                {[
-                  { label: 'SPY 30d', value: analog.outcome.spy_30d },
-                  { label: 'SPY 90d', value: analog.outcome.spy_90d },
-                  { label: 'SPY 180d', value: analog.outcome.spy_180d },
-                ].map(o => (
-                  <div key={o.label} className="text-center p-1.5 rounded bg-muted/10 border border-border/20">
-                    <ReturnBadge value={o.value} />
-                    <div className="text-[0.55rem] text-muted-foreground/50 mt-0.5">{o.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Description */}
-              <p className="text-[0.68rem] text-muted-foreground/80 leading-snug mb-1.5">
-                {analog.outcome.description}
-              </p>
-
-              {/* Key difference */}
-              <div className="flex items-start gap-1.5">
-                <span className="text-[0.65rem] text-blue-400/60 shrink-0 mt-px font-bold">≠</span>
-                <p className="text-[0.65rem] text-muted-foreground/60 leading-snug italic">{analog.key_difference}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
         <p className="text-[0.6rem] text-muted-foreground/40 mt-3">
           * Similitud calculada sobre 9 señales clave. Los retornos son históricos, no predicciones.
@@ -424,12 +434,15 @@ export default function MacroRadar() {
 
   const orderedSignals = (signal_order || Object.keys(signals)).filter(k => signals[k])
 
+  const classicSignals = orderedSignals.filter(k => !['skew','vvix','regional_banks','small_cap','real_yields'].includes(k))
+  const smartSignals   = orderedSignals.filter(k =>  ['skew','vvix','regional_banks','small_cap','real_yields'].includes(k))
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Macro Radar</h1>
+          <h1 className="text-2xl font-bold gradient-title mb-1">Macro Radar</h1>
           <p className="text-sm text-muted-foreground">
             Sistema de alerta temprana — detecta cambios de régimen antes de que ocurran
           </p>
@@ -445,13 +458,20 @@ export default function MacroRadar() {
         </div>
       </div>
 
-      {/* Regime card + gauge */}
-      <Card className="glass border border-border/50">
+      {/* Hero regime card */}
+      <Card className="glass border border-border/50 animate-fade-in-up">
         <CardContent className="p-5 flex flex-col md:flex-row gap-6">
+          {/* Left: regime info + narrative */}
           <div className="flex-1 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: regime.color }} />
-              <span className="text-base font-bold text-foreground">{regime.name}</span>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: regime.color }} />
+              <span className="text-3xl font-black text-foreground">{regime.name}</span>
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-bold ${regimeBadgeVariant(regime.name)}`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: regime.color }} />
+                {regime.name}
+              </span>
             </div>
             <p className="text-sm text-muted-foreground">{regime.description}</p>
             {ai_narrative && (
@@ -461,6 +481,7 @@ export default function MacroRadar() {
               </div>
             )}
           </div>
+          {/* Right: score gauge + counts */}
           <div className="md:w-64 flex flex-col justify-center gap-2">
             <p className="text-xs text-muted-foreground font-medium">Puntuación compuesta</p>
             <ScoreGauge score={composite_score} max={max_score} />
@@ -503,38 +524,40 @@ export default function MacroRadar() {
         <HistoricalAnalogsPanel analogs={historical_analogs} />
       )}
 
-      {/* Upcoming macro events */}
+      {/* Upcoming macro events — horizontal scrollable pill strip */}
       {econData && econData.events.length > 0 && (
         <Card className="glass border border-border/40">
           <CardContent className="p-4">
             <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
               Próximos eventos macroeconómicos
             </p>
-            <div className="space-y-2">
-              {econData.events.slice(0, 6).map((ev: EconEvent) => {
-                const daysUntil = Math.ceil((new Date(ev.date).getTime() - Date.now()) / 86400000)
-                const typeConfig: Record<string, { color: string; bg: string; label: string }> = {
-                  FED:      { color: 'text-red-400',     bg: 'bg-red-500/10 border-red-500/20',     label: 'FED' },
-                  CPI:      { color: 'text-orange-400',  bg: 'bg-orange-500/10 border-orange-500/20', label: 'CPI' },
-                  PCE:      { color: 'text-yellow-400',  bg: 'bg-yellow-500/10 border-yellow-500/20', label: 'PCE' },
-                  JOBS:     { color: 'text-blue-400',    bg: 'bg-blue-500/10 border-blue-500/20',   label: 'NFP' },
-                  EARNINGS: { color: 'text-purple-400',  bg: 'bg-purple-500/10 border-purple-500/20', label: 'EARN' },
-                }
-                const cfg = typeConfig[ev.type] ?? { color: 'text-muted-foreground', bg: 'bg-muted/10 border-border/20', label: ev.type }
-                const urgency = daysUntil <= 3 ? 'text-red-400 font-bold' : daysUntil <= 7 ? 'text-orange-400 font-semibold' : 'text-muted-foreground'
-                return (
-                  <div key={ev.date + ev.event} className="flex items-center gap-3">
-                    <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded border ${cfg.bg} ${cfg.color} min-w-[36px] text-center`}>
-                      {cfg.label}
-                    </span>
-                    <span className="text-xs text-foreground/80 flex-1">{ev.event}</span>
-                    <span className="text-[0.65rem] text-muted-foreground/60">{ev.date.slice(5)}</span>
-                    <span className={`text-[0.65rem] min-w-[32px] text-right ${urgency}`}>
-                      {daysUntil <= 0 ? 'Hoy' : `${daysUntil}d`}
-                    </span>
-                  </div>
-                )
-              })}
+            <div className="overflow-x-auto -mx-1 pb-1">
+              <div className="flex gap-2 min-w-0 flex-nowrap px-1">
+                {econData.events.slice(0, 10).map((ev: EconEvent) => {
+                  const daysUntil = Math.ceil((new Date(ev.date).getTime() - Date.now()) / 86400000)
+                  const typeConfig: Record<string, { color: string; bg: string; label: string }> = {
+                    FED:      { color: 'text-red-400',     bg: 'bg-red-500/10 border-red-500/20',       label: 'FED' },
+                    CPI:      { color: 'text-orange-400',  bg: 'bg-orange-500/10 border-orange-500/20', label: 'CPI' },
+                    PCE:      { color: 'text-yellow-400',  bg: 'bg-yellow-500/10 border-yellow-500/20', label: 'PCE' },
+                    JOBS:     { color: 'text-blue-400',    bg: 'bg-blue-500/10 border-blue-500/20',     label: 'NFP' },
+                    EARNINGS: { color: 'text-purple-400',  bg: 'bg-purple-500/10 border-purple-500/20', label: 'EARN' },
+                  }
+                  const cfg = typeConfig[ev.type] ?? { color: 'text-muted-foreground', bg: 'bg-muted/10 border-border/20', label: ev.type }
+                  const urgencyColor = daysUntil <= 3 ? 'text-red-400' : daysUntil <= 7 ? 'text-orange-400' : 'text-muted-foreground/60'
+                  return (
+                    <div
+                      key={ev.date + ev.event}
+                      className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs whitespace-nowrap ${cfg.bg} ${cfg.color}`}
+                    >
+                      <span className="font-bold">{cfg.label}</span>
+                      <span className="text-foreground/70">{ev.event}</span>
+                      <span className={`font-semibold ${urgencyColor}`}>
+                        {daysUntil <= 0 ? 'Hoy' : `${daysUntil}d`}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -546,9 +569,9 @@ export default function MacroRadar() {
           <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
             Señales clásicas
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {orderedSignals.filter(k => !['skew','vvix','regional_banks','small_cap','real_yields'].includes(k)).map(key => (
-              <SignalCard key={key} id={key} signal={signals[key]} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {classicSignals.map((key, idx) => (
+              <SignalCard key={key} id={key} signal={signals[key]} stagger={idx + 1} />
             ))}
           </div>
         </div>
@@ -559,9 +582,9 @@ export default function MacroRadar() {
           <p className="text-xs text-muted-foreground/60 mb-3">
             SKEW, VVIX, bancos regionales, small caps y yields reales — indicadores de posicionamiento institucional
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {orderedSignals.filter(k => ['skew','vvix','regional_banks','small_cap','real_yields'].includes(k)).map(key => (
-              <SignalCard key={key} id={key} signal={signals[key]} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {smartSignals.map((key, idx) => (
+              <SignalCard key={key} id={key} signal={signals[key]} stagger={idx + 1} />
             ))}
           </div>
         </div>

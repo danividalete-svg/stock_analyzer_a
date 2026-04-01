@@ -94,6 +94,13 @@ const ACTION_STYLES: Record<string, string> = {
   VENDER:   'bg-red-500/15 text-red-400 border-red-500/25',
 }
 
+const ACTION_BAR: Record<string, string> = {
+  AÑADIR:   'bg-emerald-500/60',
+  MANTENER: 'bg-blue-500/60',
+  REDUCIR:  'bg-amber-500/60',
+  VENDER:   'bg-red-500/60',
+}
+
 const CONVICTION_DOT: Record<string, string> = {
   ALTA:  'bg-emerald-400',
   MEDIA: 'bg-amber-400',
@@ -201,10 +208,10 @@ function JournalSection({ ticker, userId }: { ticker: string; userId: string }) 
             <p className="text-[0.72rem] text-muted-foreground/50 text-center py-1">Sin notas todavía</p>
           )}
           {notes.map(n => (
-            <div key={n.id} className="group flex gap-2 items-start p-3 rounded-lg bg-muted/15 border border-border/20">
+            <div key={n.id} className="group flex gap-2 items-start px-4 py-3 rounded-xl bg-muted/20 border border-border/20">
               <div className="flex-1 min-w-0">
                 <p className="text-[0.78rem] text-foreground/80 leading-relaxed whitespace-pre-wrap">{n.note}</p>
-                <p className="text-[0.62rem] text-muted-foreground/50 mt-1">
+                <p className="text-[0.6rem] text-muted-foreground/50 mt-1">
                   {new Date(n.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
@@ -249,7 +256,7 @@ function AddForm({ onAdd, saving }: { onAdd: (p: Omit<Position, 'id'>) => Promis
         <Plus size={14} className="text-primary" />
         Añadir posición
       </h2>
-      <div className="flex flex-wrap gap-2 items-end">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-2 items-end">
         <div className="flex flex-col gap-1">
           <label className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground">Ticker</label>
           <input
@@ -299,7 +306,7 @@ function AddForm({ onAdd, saving }: { onAdd: (p: Omit<Position, 'id'>) => Promis
         <button
           onClick={submit}
           disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50"
         >
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} strokeWidth={2.5} />}
           Añadir
@@ -618,9 +625,12 @@ function PositionCard({ result, pos, userId, onRemove, cerebro }: {
   const action = result?.action ?? 'MANTENER'
 
   return (
-    <div className="glass rounded-2xl">
+    <div className="glass rounded-2xl hover:border-border/50 transition-colors overflow-clip">
+      {/* Action color bar */}
+      <div className={`h-0.5 w-full ${ACTION_BAR[action]}`} />
+
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-border/30">
+      <div className="flex items-start gap-3 px-5 py-4 border-b border-border/30">
         <TickerLogo ticker={ticker} size="sm" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -638,34 +648,42 @@ function PositionCard({ result, pos, userId, onRemove, cerebro }: {
             <span className="text-xs text-muted-foreground">
               {pos.shares} acc · coste {sym}{pos.avg_price.toFixed(2)}
             </span>
-            <span className={`text-xs font-bold flex items-center gap-0.5 ${pl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              {pl >= 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-              {pl >= 0 ? '+' : ''}{pl.toFixed(2)}%
-              {result && ` (${result.pl_abs >= 0 ? '+' : ''}${sym}${result.pl_abs.toFixed(0)})`}
-            </span>
+          </div>
+          {/* P&L — prominent */}
+          <div className={`text-2xl font-black tabular-nums flex items-center gap-1 mt-1 ${pl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {pl >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+            {pl >= 0 ? '+' : ''}{pl.toFixed(2)}%
+            {result && (
+              <span className="text-sm font-semibold ml-1 opacity-70">
+                ({result.pl_abs >= 0 ? '+' : ''}{sym}{result.pl_abs.toFixed(0)})
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="flex items-start gap-3 shrink-0">
-          <div className="text-right">
-            <div className="font-extrabold text-lg tabular-nums text-foreground">{sym}{cur.toFixed(2)}</div>
-            {result && (
-              <div className="text-[0.62rem] text-muted-foreground tabular-nums">
-                {sym}{result.market_value.toFixed(0)} · {result.portfolio_pct.toFixed(1)}%
-              </div>
-            )}
-          </div>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          {/* Action badge — top-right, prominent */}
           {result && (
             <span className={`text-[0.65rem] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wide ${ACTION_STYLES[action]}`}>
               {action}
             </span>
           )}
-          <button
-            onClick={onRemove}
-            className="p-1.5 rounded-lg text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-colors"
-          >
-            <X size={13} />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <div className="font-extrabold text-lg tabular-nums text-foreground">{sym}{cur.toFixed(2)}</div>
+              {result && (
+                <div className="text-[0.62rem] text-muted-foreground tabular-nums">
+                  {sym}{result.market_value.toFixed(0)} · {result.portfolio_pct.toFixed(1)}%
+                </div>
+              )}
+            </div>
+            <button
+              onClick={onRemove}
+              className="p-1.5 rounded-lg text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-colors"
+            >
+              <X size={13} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -803,11 +821,13 @@ function PositionCard({ result, pos, userId, onRemove, cerebro }: {
       {/* AI analysis */}
       {result?.analysis && (
         <div className="px-5 py-3.5 space-y-2">
-          <p className="text-sm text-foreground/80 leading-relaxed">{result.analysis}</p>
+          <div className="bg-muted/10 rounded-lg px-4 py-3">
+            <p className="text-sm text-foreground/80 leading-relaxed">{result.analysis}</p>
+          </div>
           {result.key_risk && (
-            <div className="flex items-start gap-2 mt-2 p-2.5 rounded-lg bg-red-500/6 border border-red-500/15">
-              <AlertTriangle size={12} className="text-red-400 mt-0.5 shrink-0" />
-              <p className="text-[0.75rem] text-red-300/80 leading-relaxed">{result.key_risk}</p>
+            <div className="flex items-start gap-2 mt-2 px-3 py-2 rounded-lg border border-amber-500/20 bg-amber-500/5">
+              <AlertTriangle size={12} className="text-amber-400 mt-0.5 shrink-0" />
+              <p className="text-[0.75rem] text-amber-300/80 leading-relaxed">{result.key_risk}</p>
             </div>
           )}
         </div>
@@ -943,8 +963,8 @@ export default function PersonalPortfolio() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
+      <div className="animate-fade-in-up">
+        <h1 className="gradient-title text-2xl font-extrabold flex items-center gap-2">
           <Wallet size={22} className="text-primary" />
           Mi Cartera Personal
         </h1>
@@ -958,28 +978,28 @@ export default function PersonalPortfolio() {
         <div className="glass rounded-2xl p-5 space-y-4">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div className="flex gap-6 flex-wrap">
-              <div>
+              <div className="animate-fade-in-up text-center sm:text-left" style={{ animationDelay: '0ms' }}>
                 <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Valor total</div>
-                <div className="text-2xl font-extrabold tabular-nums text-foreground">
+                <div className="text-4xl font-black tabular-nums text-foreground">
                   ${result.total_value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
               </div>
-              <div>
+              <div className="animate-fade-in-up text-center sm:text-left" style={{ animationDelay: '60ms' }}>
                 <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">P&L total</div>
-                <div className={`text-2xl font-extrabold tabular-nums flex items-center gap-1 ${totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <div className={`text-2xl font-bold tabular-nums flex items-center gap-1 ${totalPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {totalPL >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                   {totalPL >= 0 ? '+' : ''}${totalPL.toFixed(0)}
                   <span className="text-sm font-semibold ml-1">({totalPLPct >= 0 ? '+' : ''}{totalPLPct.toFixed(2)}%)</span>
                 </div>
               </div>
-              <div>
+              <div className="animate-fade-in-up text-center sm:text-left" style={{ animationDelay: '120ms' }}>
                 <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Posiciones</div>
-                <div className="text-2xl font-extrabold text-foreground">{positions.length}</div>
+                <div className="text-2xl font-bold text-foreground">{positions.length}</div>
               </div>
               {annualDividends > 0 && (
-                <div>
+                <div className="animate-fade-in-up text-center sm:text-left" style={{ animationDelay: '180ms' }}>
                   <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Dividendos / año</div>
-                  <div className="text-2xl font-extrabold tabular-nums text-emerald-400">
+                  <div className="text-2xl font-bold tabular-nums text-emerald-400">
                     ~${annualDividends.toFixed(0)}
                   </div>
                 </div>
@@ -1107,7 +1127,7 @@ export default function PersonalPortfolio() {
 
       {/* Empty state */}
       {positions.length === 0 && (
-        <div className="glass rounded-2xl p-12 text-center">
+        <div className="glass rounded-2xl p-12 text-center animate-fade-in-up">
           <Wallet size={40} className="mx-auto text-muted-foreground/30 mb-4" />
           <p className="text-foreground font-semibold mb-1">Sin posiciones todavía</p>
           <p className="text-sm text-muted-foreground">Añade tus posiciones arriba y el análisis IA se generará automáticamente.</p>
@@ -1162,16 +1182,19 @@ export default function PersonalPortfolio() {
                     </div>
                   </div>
                 )}
-                {positions.map(pos => (
-                  <PositionCard
-                    key={pos.id}
-                    pos={pos}
-                    userId={user!.id}
-                    result={result?.positions.find(r => r.ticker === pos.ticker)}
-                    onRemove={() => removePosition(pos.id)}
-                    cerebro={cerebro}
-                  />
-                ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {positions.map((pos, index) => (
+                    <div key={pos.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 80}ms` }}>
+                      <PositionCard
+                        pos={pos}
+                        userId={user!.id}
+                        result={result?.positions.find(r => r.ticker === pos.ticker)}
+                        onRemove={() => removePosition(pos.id)}
+                        cerebro={cerebro}
+                      />
+                    </div>
+                  ))}
+                </div>
               </>
             )
           })()}

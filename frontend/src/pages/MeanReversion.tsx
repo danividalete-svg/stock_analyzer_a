@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { fetchMeanReversion } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import TickerLogo from '../components/TickerLogo'
@@ -12,7 +12,7 @@ import CsvDownload from '../components/CsvDownload'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { Wallet } from 'lucide-react'
-import PaginationBar from '../components/PaginationBar'
+import EmptyState from '../components/EmptyState'
 
 interface MRItem {
   ticker: string
@@ -35,16 +35,25 @@ interface MRItem {
   [key: string]: unknown
 }
 
+const QUALITY_LEVELS = [
+  { label: 'EXCELENTE', match: 'EXCELENTE' },
+  { label: 'MUY BUENA', match: 'MUY BUENA' },
+  { label: 'BUENA',     match: 'BUENA' },
+]
+
+function qualMatch(q: string, match: string) {
+  return (q || '').toUpperCase().includes(match)
+}
+
 export default function MeanReversion() {
   const { data, loading, error } = useApi(() => fetchMeanReversion(), [])
   const { positions: myPositions } = usePersonalPortfolio()
   const [sortKey, setSortKey] = useState<string>('reversion_score')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
-  const PAGE_SIZE = 25
-
-  useEffect(() => { setPage(1) }, [sortKey])
+  const [filterQuality, setFilterQuality] = useState<string>('EXCELENTE')
+  const [compact, setCompact] = useState(false)
+  const [focusedIdx, setFocusedIdx] = useState(-1)
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -54,11 +63,51 @@ export default function MeanReversion() {
   if (Array.isArray(raw?.opportunities)) items = raw.opportunities as MRItem[]
   else if (Array.isArray(raw?.data)) items = raw.data as MRItem[]
 
-  const sorted = [...items].sort((a, b) => {
+  const filtered = filterQuality === ''
+    ? items
+    : items.filter(i => qualMatch(i.quality, filterQuality))
+
+  const sorted = [...filtered].sort((a, b) => {
     const av = (a[sortKey] as number) ?? 0
     const bv = (b[sortKey] as number) ?? 0
     return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
   })
+
+  const pagedRef = useRef(sorted)
+  pagedRef.current = sorted
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); setExpanded(null); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const next = Math.min(i + 1, pagedRef.current.length - 1)
+          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return next
+        })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const prev = Math.max(i - 1, 0)
+          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return prev
+        })
+      } else if (e.key === 'Enter') {
+        setFocusedIdx(i => {
+          if (i >= 0 && pagedRef.current[i]) {
+            const d = pagedRef.current[i]
+            setExpanded(prev => prev === d.ticker ? null : d.ticker)
+          }
+          return i
+        })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const onSort = (key: string) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -70,59 +119,77 @@ export default function MeanReversion() {
 
   const qualVariant = (q: string): 'green' | 'blue' | 'yellow' => {
     const upper = (q || '').toUpperCase()
-    if (upper.includes('EXCELENTE') || upper.includes('EXCELLENT')) return 'green'
-    if (upper.includes('BUENO') || upper.includes('GOOD')) return 'blue'
+    if (upper.includes('EXCELENTE')) return 'green'
+    if (upper.includes('MUY BUENA') || upper.includes('BUENA')) return 'blue'
     return 'yellow'
   }
 
   const fmtDate = (d?: string) => {
     if (!d) return '—'
-    // Try to show a shorter format: YYYY-MM-DD → MM/DD
     const m = d.match(/(\d{4})-(\d{2})-(\d{2})/)
     return m ? `${m[2]}/${m[3]}` : d
   }
 
-  const excellent = items.filter(i => (i.quality || '').toUpperCase().includes('EXCELENTE') || (i.quality || '').toUpperCase().includes('EXCELLENT')).length
-  const good = items.filter(i => (i.quality || '').toUpperCase().includes('BUENO') || (i.quality || '').toUpperCase().includes('GOOD')).length
-  const avgScore = items.length ? items.reduce((s, r) => s + (r.reversion_score || 0), 0) / items.length : 0
-  const oversold = items.filter(i => i.rsi != null && i.rsi < 30).length
-  const strategies = new Set(items.map(i => i.strategy))
-  const bestScore = items.length ? Math.max(...items.map(i => i.reversion_score || 0)) : 0
-  const bestTicker = items.find(i => i.reversion_score === bestScore)?.ticker
+  const qualCounts = QUALITY_LEVELS.map(ql => ({
+    ...ql,
+    count: items.filter(i => qualMatch(i.quality, ql.match)).length,
+  }))
+  const bestScore = filtered.length ? Math.max(...filtered.map(i => i.reversion_score || 0)) : 0
+  const bestTicker = filtered.find(i => i.reversion_score === bestScore)?.ticker
 
   return (
     <>
       <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
         <div className="flex-1">
           <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Mean Reversion</h2>
-          <p className="text-sm text-muted-foreground">Oversold bounces y pullbacks — oportunidades de reversion a la media</p>
+          <p className="text-sm text-muted-foreground">Oversold bounces y pullbacks — oportunidades de reversión a la media</p>
         </div>
-        <CsvDownload dataset="mean-reversion" label="CSV" className="mt-1 shrink-0" />
+        <div className="flex items-center gap-2 mt-1 shrink-0">
+          <button
+            onClick={() => setCompact(c => !c)}
+            className={`text-[0.65rem] font-bold px-2.5 py-1 rounded border transition-colors hidden sm:block ${
+              compact
+                ? 'bg-primary/20 border-primary/50 text-primary'
+                : 'bg-muted/20 border-border/30 text-muted-foreground hover:text-foreground hover:border-border/60'
+            }`}
+          >
+            Compacto
+          </button>
+          <CsvDownload dataset="mean-reversion" label="CSV" />
+        </div>
       </div>
 
       {(raw?.ai_narrative as string | null | undefined) && (
         <AiNarrativeCard narrative={raw.ai_narrative as string} label="Análisis del Batch Actual" className="mb-5" />
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: 'Oportunidades', value: items.length, sub: `${strategies.size} estrategias`, idx: 1 },
-          { label: 'Calidad Excelente', value: excellent, sub: `${good} buenas`, color: 'text-emerald-400', idx: 2 },
-          { label: 'Score Medio', value: avgScore.toFixed(0), sub: 'reversion score', color: avgScore >= 60 ? 'text-emerald-400' : 'text-amber-400', idx: 3 },
-          { label: 'RSI Oversold', value: oversold, sub: 'RSI < 30', color: 'text-blue-400', idx: 4 },
-        ].map(({ label, value, sub, color, idx }) => (
-          <Card key={label} className={`glass p-5 stagger-${idx}`}>
-            <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">{label}</div>
-            <div className={`text-3xl font-extrabold tracking-tight tabular-nums leading-none mb-2 ${color ?? ''}`}>{value}</div>
-            <div className="text-[0.66rem] text-muted-foreground">{sub}</div>
-          </Card>
-        ))}
+      {/* Quality filter */}
+      <div className="flex items-center gap-2 mb-5 flex-wrap">
+        <span className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground mr-1">Calidad</span>
+        {[{ label: 'TODAS', value: '' }, ...QUALITY_LEVELS.map(q => ({ label: q.label, value: q.match }))].map(opt => {
+          const count = opt.value === '' ? items.length : (qualCounts.find(q => q.match === opt.value)?.count ?? 0)
+          const active = filterQuality === opt.value
+          return (
+            <button
+              key={opt.value}
+              onClick={() => setFilterQuality(opt.value)}
+              className={`text-[0.7rem] font-bold px-3 py-1 rounded border transition-colors ${
+                active
+                  ? 'bg-primary/20 border-primary/50 text-primary'
+                  : 'bg-muted/20 border-border/30 text-muted-foreground hover:text-foreground hover:border-border/60'
+              }`}
+            >
+              {opt.label} <span className="opacity-60 font-normal ml-0.5">{count}</span>
+            </button>
+          )
+        })}
+        <span className="ml-auto text-[0.65rem] text-muted-foreground">{sorted.length} señales</span>
       </div>
 
       {/* My positions in oversold zone */}
       {(() => {
         const ownedTickers = new Set(myPositions.map(p => p.ticker))
-        const myMR = items.filter(r => ownedTickers.has(r.ticker))
+        const myMR = filtered.filter(r => ownedTickers.has(r.ticker))
         if (myMR.length === 0) return null
         return (
           <Card className="glass border border-primary/20 mb-5 animate-fade-in-up">
@@ -139,9 +206,9 @@ export default function MeanReversion() {
                     <TableHead>Calidad</TableHead>
                     <TableHead>Score</TableHead>
                     <TableHead>Soporte</TableHead>
-                    <TableHead>Resistencia</TableHead>
-                    <TableHead>Vol x</TableHead>
-                    <TableHead>RSI</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead>Stop</TableHead>
+                    <TableHead>R:R</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -156,165 +223,218 @@ export default function MeanReversion() {
                       <TableCell><Badge variant={qualVariant(d.quality)}>{d.quality}</Badge></TableCell>
                       <TableCell><ScoreBar score={d.reversion_score} /></TableCell>
                       <TableCell className="tabular-nums text-amber-400">{d.support_level != null ? `$${d.support_level.toFixed(2)}` : '—'}</TableCell>
-                      <TableCell className="tabular-nums">{d.resistance_level != null ? `$${d.resistance_level.toFixed(2)}` : '—'}</TableCell>
+                      <TableCell className="tabular-nums">{d.target ? `$${d.target.toFixed(2)}` : '—'}</TableCell>
+                      <TableCell className="tabular-nums">{d.stop_loss ? `$${d.stop_loss.toFixed(2)}` : '—'}</TableCell>
                       <TableCell className="tabular-nums">
-                        {d.volume_ratio != null
-                          ? <span className={(d.volume_ratio as number) >= 1.5 ? 'text-emerald-400' : ''}>{Number(d.volume_ratio).toFixed(2)}x</span>
-                          : '—'}
-                      </TableCell>
-                      <TableCell className="tabular-nums">
-                        {d.rsi != null
-                          ? <span className={d.rsi < 30 ? 'text-emerald-400' : ''}>{d.rsi.toFixed(0)}</span>
+                        {d.risk_reward != null
+                          ? <span className={(d.risk_reward as number) >= 2 ? 'text-emerald-400' : (d.risk_reward as number) >= 1 ? 'text-amber-400' : 'text-red-400'}>{Number(d.risk_reward).toFixed(1)}</span>
                           : '—'}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              <p className="text-[0.65rem] text-muted-foreground mt-2">Tus posiciones en zona de rebote — considera ampliar si los fundamentales lo respaldan</p>
             </CardContent>
           </Card>
         )
       })()}
 
-      <Card className="glass animate-fade-in-up">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-border/50 hover:bg-transparent">
-              <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker</TableHead>
-              <TableHead>Estrategia</TableHead>
-              <TableHead>Calidad</TableHead>
-              <TableHead className={thCls('reversion_score')} onClick={() => onSort('reversion_score')}>Score</TableHead>
-              <TableHead>Entry / Soporte</TableHead>
-              <TableHead className={thCls('target')} onClick={() => onSort('target')}>Target</TableHead>
-              <TableHead>Stop</TableHead>
-              <TableHead className={thCls('rsi')} onClick={() => onSort('rsi')}>RSI</TableHead>
-              <TableHead className={thCls('drawdown_pct')} onClick={() => onSort('drawdown_pct')}>Drawdown</TableHead>
-              <TableHead className={thCls('volume_ratio')} onClick={() => onSort('volume_ratio')}>Vol×</TableHead>
-              <TableHead>R:R</TableHead>
-              <TableHead className={thCls('detected_date')} onClick={() => onSort('detected_date')}>Fecha</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((d, i) => (
-              <>
-                <TableRow
-                  key={d.ticker + i}
-                  className="cursor-pointer"
-                  onClick={() => setExpanded(expanded === d.ticker ? null : d.ticker)}
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      <TickerLogo ticker={d.ticker} size="xs" />
-                      <div>
-                        <div className="font-mono font-bold text-primary text-[0.8rem] tracking-wide flex items-center gap-1.5">{d.ticker}<OwnedBadge ticker={d.ticker} />{d.ticker === bestTicker && <Badge variant="green" className="text-[0.5rem] px-1 py-0 leading-4">BEST</Badge>}</div>
-                        {d.company_name && d.company_name !== d.ticker && (
-                          <div className="text-[0.65rem] text-muted-foreground truncate max-w-[100px]">{d.company_name}</div>
-                        )}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell><Badge variant="blue">{d.strategy}</Badge></TableCell>
-                  <TableCell><Badge variant={qualVariant(d.quality)}>{d.quality}</Badge></TableCell>
-                  <TableCell><ScoreBar score={d.reversion_score} /></TableCell>
-                  <TableCell>
-                    <div className="text-muted-foreground text-[0.76rem]">{d.entry_zone || '—'}</div>
-                    {d.support_level != null && (
-                      <div className="text-[0.65rem] text-amber-400">
-                        S: ${d.support_level.toFixed(2)}
-                        {d.distance_to_support_pct != null && (
-                          <span className="ml-1 text-muted-foreground">({d.distance_to_support_pct.toFixed(1)}%)</span>
-                        )}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="tabular-nums">{d.target ? `$${d.target.toFixed(2)}` : '—'}</TableCell>
-                  <TableCell className="tabular-nums">{d.stop_loss ? `$${d.stop_loss.toFixed(2)}` : '—'}</TableCell>
-                  <TableCell className="tabular-nums">
-                    {d.rsi != null
-                      ? <span className={d.rsi < 30 ? 'text-emerald-400' : d.rsi > 70 ? 'text-red-400' : ''}>{d.rsi.toFixed(0)}</span>
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="tabular-nums">
-                    {d.drawdown_pct != null
-                      ? <span className="text-red-400">{d.drawdown_pct.toFixed(1)}%</span>
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="tabular-nums">
-                    {d.volume_ratio != null
-                      ? <span className={(d.volume_ratio as number) >= 1.5 ? 'text-emerald-400' : (d.volume_ratio as number) >= 1 ? '' : 'text-muted-foreground'}>
-                          {Number(d.volume_ratio).toFixed(2)}x
-                        </span>
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="tabular-nums">
-                    {d.risk_reward != null
-                      ? <span className={(d.risk_reward as number) >= 2 ? 'text-emerald-400' : (d.risk_reward as number) >= 1 ? 'text-amber-400' : 'text-red-400'}>{Number(d.risk_reward).toFixed(1)}</span>
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="tabular-nums text-muted-foreground text-[0.75rem]">{fmtDate(d.detected_date)}</TableCell>
-                </TableRow>
-                {expanded === d.ticker && (
-                  <tr className="thesis-row">
-                    <td colSpan={12}>
-                      <div className="px-5 py-4 space-y-3">
-                        {/* Price ladder */}
-                        <div className="flex items-center gap-2">
-                          {[
-                            { label: 'Soporte', value: d.support_level, color: 'emerald' as const },
-                            { label: 'Precio', value: d.current_price != null ? Number(d.current_price) : null, color: 'primary' as const },
-                            { label: 'Resistencia', value: d.resistance_level, color: 'red' as const },
-                          ].map(({ label, value, color }) => value != null && (
-                            <div key={label} className={`flex-1 rounded-lg border px-3 py-2 ${
-                              color === 'emerald' ? 'bg-emerald-500/8 border-emerald-500/20' :
-                              color === 'red' ? 'bg-red-500/8 border-red-500/15' :
-                              'bg-primary/6 border-primary/15'
-                            }`}>
-                              <div className={`text-sm font-bold tabular-nums ${
-                                color === 'emerald' ? 'text-emerald-400' :
-                                color === 'red' ? 'text-red-400' : 'text-primary'
-                              }`}>${value.toFixed(2)}</div>
-                              <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5">{label}</div>
-                            </div>
-                          ))}
-                        </div>
-                        {/* Metrics grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-1.5 text-[0.75rem]">
-                          {[
-                            { label: 'Dist. Soporte', value: d.distance_to_support_pct != null ? `${d.distance_to_support_pct.toFixed(1)}%` : null,
-                              q: d.distance_to_support_pct != null ? (d.distance_to_support_pct <= 5 ? 'good' : '') : '' },
-                            { label: 'Vol. Ratio', value: d.volume_ratio != null ? `${Number(d.volume_ratio).toFixed(2)}x` : null,
-                              q: d.volume_ratio != null ? (Number(d.volume_ratio) >= 1.5 ? 'good' : '') : '' },
-                            { label: 'SMA 50', value: (d as Record<string,unknown>).sma_50 != null ? `$${Number((d as Record<string,unknown>).sma_50).toFixed(2)}` : null, q: '' },
-                            { label: 'SMA 200', value: (d as Record<string,unknown>).sma_200 != null ? `$${Number((d as Record<string,unknown>).sma_200).toFixed(2)}` : null, q: '' },
-                            { label: 'Detectado', value: d.detected_date || null, q: '' },
-                          ].filter(x => x.value != null).map(({ label, value, q }) => (
-                            <div key={label} className={`rounded-lg border px-2.5 py-2 ${
-                              q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' : 'bg-muted/12 border-border/20'
-                            }`}>
-                              <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${
-                                q === 'good' ? 'text-emerald-400' : 'text-foreground/70'
-                              }`}>{value}</div>
-                              <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-2 mb-2">
+        {sorted.map((d, i) => (
+          <div
+            key={d.ticker}
+            data-row-idx={i}
+            onClick={() => { setFocusedIdx(i); setExpanded(expanded === d.ticker ? null : d.ticker) }}
+            className={`glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform ${expanded === d.ticker ? 'border-primary/30' : ''}`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-sm">{d.ticker}</span>
+                  <Badge variant={qualVariant(d.quality)}>{d.quality}</Badge>
+                </div>
+                <span className="text-[0.65rem] text-muted-foreground">{d.company_name}</span>
+              </div>
+              <div className="text-right">
+                <ScoreBar score={d.reversion_score} />
+                {d.risk_reward != null && (
+                  <div className={`text-xs font-semibold mt-0.5 ${Number(d.risk_reward) >= 2 ? 'text-emerald-400' : Number(d.risk_reward) >= 1 ? 'text-amber-400' : 'text-red-400'}`}>
+                    R:R {Number(d.risk_reward).toFixed(1)}
+                  </div>
                 )}
-              </>
-            ))}
-          </TableBody>
-        </Table>
-        {items.length === 0 && (
-          <CardContent className="py-16 text-center">
-            <div className="text-4xl mb-4 opacity-20">🔄</div>
-            <p className="font-medium text-muted-foreground">Sin oportunidades de mean reversion</p>
-          </CardContent>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-2 text-[0.62rem] text-muted-foreground/60">
+              {d.support_level != null && <span>Soporte ${d.support_level.toFixed(2)}</span>}
+              {d.target != null && <span>Target ${d.target.toFixed(2)}</span>}
+              {d.rsi != null && <span>RSI {d.rsi.toFixed(0)}</span>}
+            </div>
+            {expanded === d.ticker && d.entry_zone && (
+              <div className="mt-3 pt-3 border-t border-border/20 grid grid-cols-2 gap-2 text-[0.7rem]">
+                <div className="bg-muted/10 rounded-lg p-2">
+                  <div className="text-muted-foreground">Entrada</div>
+                  <div className="font-semibold">{d.entry_zone}</div>
+                </div>
+                {d.stop_loss != null && (
+                  <div className="bg-red-500/8 rounded-lg p-2">
+                    <div className="text-muted-foreground">Stop</div>
+                    <div className="font-semibold text-red-400">${d.stop_loss.toFixed(2)}</div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+        {sorted.length === 0 && (
+          <EmptyState
+            icon="🔄"
+            title="Sin señales de mean reversion"
+            subtitle="Aparecen cuando acciones de calidad caen >8% desde máximos con RSI<32"
+          />
         )}
-      </Card>
-      <PaginationBar page={page} totalPages={Math.ceil(sorted.length / PAGE_SIZE)} onPage={setPage} />
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block">
+        <Card className="glass animate-fade-in-up">
+          <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker</TableHead>
+                <TableHead>Calidad</TableHead>
+                <TableHead className={thCls('reversion_score')} onClick={() => onSort('reversion_score')}>Score</TableHead>
+                {!compact && <TableHead>Entry / Soporte</TableHead>}
+                {compact && <TableHead className={thCls('support_level')} onClick={() => onSort('support_level')}>Soporte</TableHead>}
+                <TableHead className={thCls('target')} onClick={() => onSort('target')}>Target</TableHead>
+                {!compact && <TableHead>Stop</TableHead>}
+                <TableHead className={thCls('risk_reward')} onClick={() => onSort('risk_reward')}>R:R</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sorted.map((d, i) => (
+                <>
+                  <TableRow
+                    key={d.ticker + i}
+                    data-row-idx={i}
+                    className={`cursor-pointer transition-colors ${i === focusedIdx ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+                    onClick={() => { setFocusedIdx(i); setExpanded(expanded === d.ticker ? null : d.ticker) }}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <TickerLogo ticker={d.ticker} size="xs" />
+                        <div>
+                          <div className="font-mono font-bold text-primary text-[0.8rem] tracking-wide flex items-center gap-1.5">
+                            {d.ticker}
+                            <OwnedBadge ticker={d.ticker} />
+                            {d.ticker === bestTicker && <Badge variant="green" className="text-[0.5rem] px-1 py-0 leading-4">BEST</Badge>}
+                          </div>
+                          {d.company_name && d.company_name !== d.ticker && (
+                            <div className="text-[0.65rem] text-muted-foreground truncate max-w-[110px]">{d.company_name}</div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell><Badge variant={qualVariant(d.quality)}>{d.quality}</Badge></TableCell>
+                    <TableCell><ScoreBar score={d.reversion_score} /></TableCell>
+                    {!compact ? (
+                      <TableCell>
+                        <div className="text-muted-foreground text-[0.76rem]">{d.entry_zone || '—'}</div>
+                        {d.support_level != null && (
+                          <div className="text-[0.65rem] text-amber-400">
+                            S: ${d.support_level.toFixed(2)}
+                            {d.distance_to_support_pct != null && (
+                              <span className="ml-1 text-muted-foreground">({d.distance_to_support_pct.toFixed(1)}%)</span>
+                            )}
+                          </div>
+                        )}
+                      </TableCell>
+                    ) : (
+                      <TableCell className="tabular-nums text-amber-400">
+                        {d.support_level != null ? `$${d.support_level.toFixed(2)}` : '—'}
+                      </TableCell>
+                    )}
+                    <TableCell className="tabular-nums">{d.target ? `$${d.target.toFixed(2)}` : '—'}</TableCell>
+                    {!compact && (
+                      <TableCell className="tabular-nums">{d.stop_loss ? `$${d.stop_loss.toFixed(2)}` : '—'}</TableCell>
+                    )}
+                    <TableCell className="tabular-nums">
+                      {d.risk_reward != null
+                        ? <span className={(d.risk_reward as number) >= 2 ? 'text-emerald-400' : (d.risk_reward as number) >= 1 ? 'text-amber-400' : 'text-red-400'}>{Number(d.risk_reward).toFixed(1)}</span>
+                        : '—'}
+                    </TableCell>
+                  </TableRow>
+                  {expanded === d.ticker && (
+                    <tr className="thesis-row">
+                      <td colSpan={compact ? 5 : 7}>
+                        <div className="px-5 py-4 space-y-3">
+                          {/* Price ladder */}
+                          <div className="flex items-center gap-2">
+                            {[
+                              { label: 'Soporte', value: d.support_level, color: 'emerald' as const },
+                              { label: 'Precio', value: d.current_price != null ? Number(d.current_price) : null, color: 'primary' as const },
+                              { label: 'Resistencia', value: d.resistance_level, color: 'red' as const },
+                            ].map(({ label, value, color }) => value != null && (
+                              <div key={label} className={`flex-1 rounded-lg border px-3 py-2 ${
+                                color === 'emerald' ? 'bg-emerald-500/8 border-emerald-500/20' :
+                                color === 'red' ? 'bg-red-500/8 border-red-500/15' :
+                                'bg-primary/6 border-primary/15'
+                              }`}>
+                                <div className={`text-sm font-bold tabular-nums ${
+                                  color === 'emerald' ? 'text-emerald-400' :
+                                  color === 'red' ? 'text-red-400' : 'text-primary'
+                                }`}>${value.toFixed(2)}</div>
+                                <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5">{label}</div>
+                              </div>
+                            ))}
+                          </div>
+                          {/* Detail metrics */}
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-1.5 text-[0.75rem]">
+                            {[
+                              { label: 'Estrategia', value: d.strategy || null, q: '' },
+                              { label: 'RSI', value: d.rsi != null ? d.rsi.toFixed(0) : null,
+                                q: d.rsi != null ? (d.rsi < 30 ? 'good' : '') : '' },
+                              { label: 'Drawdown', value: d.drawdown_pct != null ? `${d.drawdown_pct.toFixed(1)}%` : null, q: '' },
+                              { label: 'Vol. Ratio', value: d.volume_ratio != null ? `${Number(d.volume_ratio).toFixed(2)}x` : null,
+                                q: d.volume_ratio != null ? (Number(d.volume_ratio) >= 1.5 ? 'good' : '') : '' },
+                              { label: 'Detectado', value: d.detected_date ? fmtDate(d.detected_date) : null, q: '' },
+                            ].filter(x => x.value != null).map(({ label, value, q }) => (
+                              <div key={label} className={`rounded-lg border px-2.5 py-2 ${
+                                q === 'good' ? 'bg-emerald-500/8 border-emerald-500/20' : 'bg-muted/12 border-border/20'
+                              }`}>
+                                <div className={`text-[0.82rem] font-bold tabular-nums leading-tight ${
+                                  q === 'good' ? 'text-emerald-400' : 'text-foreground/70'
+                                }`}>{value}</div>
+                                <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/45 mt-0.5 leading-tight">{label}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              ))}
+            </TableBody>
+          </Table>
+          </div>
+          {sorted.length === 0 && (
+            <EmptyState
+              icon="🔄"
+              title="Sin señales de mean reversion"
+              subtitle="Aparecen cuando acciones de calidad caen >8% desde máximos con RSI<32"
+            />
+          )}
+          {sorted.length > 0 && (
+            <div className="px-4 py-2 border-t border-border/20 flex items-center gap-3 text-[0.6rem] text-muted-foreground/50">
+              <span>j/k or ↑↓ navegar</span>
+              <span>Enter expandir</span>
+              <span>Esc cerrar</span>
+            </div>
+          )}
+        </Card>
+      </div>
     </>
   )
 }

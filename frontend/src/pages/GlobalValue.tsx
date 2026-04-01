@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetchGlobalValueOpportunities, fetchThesis, type ValueOpportunity } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import { useTechnicalSummaryMap } from '../hooks/useTechnicalSummaryMap'
@@ -21,6 +22,7 @@ function TechBiasCell({ t }: { t?: TechnicalSummary }) {
 }
 import Loading, { ErrorState } from '../components/Loading'
 import ScoreBar from '../components/ScoreBar'
+import ScoreRing from '../components/ScoreRing'
 import GradeBadge from '../components/GradeBadge'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -87,19 +89,40 @@ function ConvictionPanel({ row }: { row: GlobalOpportunity }) {
   )
 }
 
+function isListo(row: GlobalOpportunity): boolean {
+  const grade = (row.conviction_grade ?? '').toUpperCase()
+  return (
+    (row.value_score ?? 0) >= 65 &&
+    ['A', 'B', 'EXCELLENT', 'STRONG'].includes(grade) &&
+    !row.earnings_warning
+  )
+}
+
 export default function GlobalValue() {
   const { data, loading, error } = useApi(() => fetchGlobalValueOpportunities(), [])
   const techMap = useTechnicalSummaryMap()
+  const [searchParams, setSearchParams] = useSearchParams()
+
   const [sortKey, setSortKey] = useState<SortKey>('value_score')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null)
   const [expandedRow, setExpandedRow] = useState<GlobalOpportunity | null>(null)
   const [thesisText, setThesisText] = useState<string>('')
-  const [filterMarket, setFilterMarket] = useState<string>('ALL')
-  const [filterGrade, setFilterGrade] = useState<string>('ALL')
+  const [filterMarket, setFilterMarket] = useState<string>(searchParams.get('market') ?? 'ALL')
+  const [filterGrade, setFilterGrade] = useState<string>(searchParams.get('grade') ?? 'ALL')
   const [minFcf, setMinFcf] = useState<string>('')
   const [minRr, setMinRr] = useState<string>('')
   const [hideRisky, setHideRisky] = useState<boolean>(true)
+  const [focusedIdx, setFocusedIdx] = useState(-1)
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
+
+  // Sync filterMarket + filterGrade to URL params
+  useEffect(() => {
+    const params: Record<string, string> = {}
+    if (filterMarket !== 'ALL') params.market = filterMarket
+    if (filterGrade !== 'ALL') params.grade = filterGrade
+    setSearchParams(params, { replace: true })
+  }, [filterMarket, filterGrade, setSearchParams])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -122,7 +145,10 @@ export default function GlobalValue() {
     if (av > bv) return sortDir === 'asc' ? 1 : -1
     return 0
   })
-  const top = sorted.slice(0, 25)
+  const paged = sorted.slice(0, 50)
+
+  const pagedRef = useRef(paged)
+  pagedRef.current = paged
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -143,6 +169,40 @@ export default function GlobalValue() {
       setThesisText(text)
     } catch { setThesisText('Error cargando tesis') }
   }
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); setExpandedTicker(null); setExpandedRow(null); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const next = Math.min(i + 1, pagedRef.current.length - 1)
+          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return next
+        })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const prev = Math.max(i - 1, 0)
+          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return prev
+        })
+      } else if (e.key === 'Enter') {
+        setFocusedIdx(i => {
+          if (i >= 0 && pagedRef.current[i]) {
+            const row = pagedRef.current[i]
+            toggleThesis(row.ticker, row)
+          }
+          return i
+        })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const Th = ({ k, label, tooltip }: { k: SortKey; label: string; tooltip?: string }) => (
     <TableHead
@@ -180,7 +240,9 @@ export default function GlobalValue() {
             Acciones VALUE en mercados globales undervalued — Brasil, Corea, Japón, Hong Kong
           </p>
         </div>
-        <CsvDownload dataset="value-global" />
+        <div className="flex items-center gap-2">
+          <CsvDownload dataset="value-global" />
+        </div>
       </div>
 
       {/* Market CAPE context cards */}
@@ -231,6 +293,12 @@ export default function GlobalValue() {
         >
           {hideRisky ? '🚫 Ocultar RISKY' : 'Mostrar todos'}
         </button>
+        <button
+          onClick={() => setCompact(v => !v)}
+          className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${compact ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'}`}
+        >
+          {compact ? '⊟ Compacta' : '⊞ Completa'}
+        </button>
         <span className="text-xs text-muted-foreground ml-auto">{filtered.length} resultados</span>
       </div>
 
@@ -247,172 +315,246 @@ export default function GlobalValue() {
           </div>
         </Card>
       ) : (
-        <Card className="glass animate-fade-in-up">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <Th k="ticker" label="Ticker" />
-                <Th k="company_name" label="Empresa" />
-                <Th k="current_price" label="Precio" />
-                <Th k="value_score" label="Score" tooltip="VALUE score (0-100). Incluye bonus por mercado undervalued." />
-                <TableHead className="text-[0.68rem] font-semibold uppercase tracking-wider">Grade</TableHead>
-                <Th k="sector" label="Sector" />
-                <Th k="analyst_upside_pct" label="Potencial" tooltip="Upside implícito según precio objetivo consenso analistas" />
-                <Th k="fcf_yield_pct" label="FCF%" tooltip="Free Cash Flow Yield = FCF / Market Cap" />
-                <Th k="risk_reward_ratio" label="R:R" tooltip="Risk/Reward = upside / 8% stop loss" />
-                <Th k="pe_forward" label="P/E fwd" />
-                <Th k="roe_pct" label="ROE%" />
-                <Th k="pct_from_52w_high" label="vs Max" tooltip="Distancia al máximo de 52 semanas. Negativo = caído del máximo → posible oportunidad de entrada." />
-                <TableHead className="text-[0.68rem] font-semibold uppercase tracking-wider">Téc</TableHead>
-                <TableHead className="w-8" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {top.map((row, idx) => {
-                const isExpanded = expandedTicker === row.ticker
-                const meta = MARKET_META[row.market ?? '']
-                return (
-                  <React.Fragment key={row.ticker}>
-                    <TableRow
-                      className={`border-border/30 cursor-pointer transition-colors hover:bg-white/3 stagger-${Math.min(idx + 1, 10)} ${isExpanded ? 'bg-white/5' : ''}`}
-                      onClick={() => toggleThesis(row.ticker, row)}
-                    >
-                      <TableCell>
+        <>
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-2 mb-2">
+            {paged.map((row, i) => {
+              const meta = MARKET_META[row.market ?? '']
+              const listo = isListo(row)
+              return (
+                <div
+                  key={row.ticker}
+                  data-row-idx={i}
+                  onClick={() => { setFocusedIdx(i); toggleThesis(row.ticker, row) }}
+                  className={`glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform ${focusedIdx === i ? 'ring-1 ring-primary/50' : ''}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <ScoreRing score={row.value_score ?? 0} size="sm" />
+                      <div>
                         <div className="flex items-center gap-1.5">
-                          {meta && <span title={meta.label}>{meta.flag}</span>}
-                          <span className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">{row.ticker.replace(/\.(SA|KS|T|HK)$/, '')}</span>
+                          {meta && <span>{meta.flag}</span>}
+                          <span className="font-mono font-bold text-sm text-primary">{row.ticker.replace(/\.(SA|KS|T|HK)$/, '')}</span>
                           <OwnedBadge ticker={row.ticker} />
-                          {row.ai_verdict === 'RISKY' && <span title={row.ai_notes} className="text-red-400 text-xs">🚫</span>}
+                          {row.ai_verdict === 'RISKY' && <span className="text-red-400 text-xs">🚫</span>}
+                          {listo && <span className="text-[0.6rem] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">✦ LISTO</span>}
                         </div>
-                      </TableCell>
-                      <TableCell className="max-w-[160px]">
-                        <div className="truncate text-sm font-medium">{row.company_name}</div>
-                        {row.market && <div className="text-[0.6rem] text-muted-foreground">{meta?.label} · {row.currency}</div>}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm tabular-nums">
-                        {formatPrice(row)}
-                      </TableCell>
-                      <TableCell>
-                        <ScoreBar score={row.value_score} max={100} />
-                      </TableCell>
-                      <TableCell>
-                        <GradeBadge grade={row.conviction_grade ?? ''} />
-                      </TableCell>
-                      <TableCell className="text-[0.75rem] text-muted-foreground max-w-[110px]">
-                        <span className="truncate block">{row.sector ?? '—'}</span>
-                      </TableCell>
-                      <TableCell>
-                        {row.analyst_upside_pct != null ? (
-                          <span className={`font-semibold text-sm tabular-nums ${row.analyst_upside_pct >= 20 ? 'text-emerald-400' : row.analyst_upside_pct >= 0 ? 'text-foreground' : 'text-red-400'}`}>
-                            {row.analyst_upside_pct >= 0 ? '+' : ''}{row.analyst_upside_pct.toFixed(1)}%
-                          </span>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {row.fcf_yield_pct != null ? (
-                          <span className={`font-semibold text-sm tabular-nums ${row.fcf_yield_pct >= 5 ? 'text-emerald-400' : row.fcf_yield_pct >= 0 ? 'text-muted-foreground' : 'text-red-400'}`}>
-                            {row.fcf_yield_pct.toFixed(1)}%
-                          </span>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {row.risk_reward_ratio != null ? (
-                          <span className={`font-semibold text-sm tabular-nums ${row.risk_reward_ratio >= 3 ? 'text-emerald-400' : row.risk_reward_ratio >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {row.risk_reward_ratio.toFixed(1)}x
-                          </span>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm tabular-nums text-muted-foreground">
-                        {(row as GlobalOpportunity).pe_forward != null ? `${(row as GlobalOpportunity).pe_forward}x` : '—'}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm tabular-nums">
-                        {(row as GlobalOpportunity).roe_pct != null ? (
-                          <span className={`${((row as GlobalOpportunity).roe_pct ?? 0) >= 15 ? 'text-emerald-400' : 'text-muted-foreground'}`}>
-                            {(row as GlobalOpportunity).roe_pct}%
-                          </span>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm tabular-nums">
-                        {row.pct_from_52w_high != null ? (
-                          <span className={`${row.pct_from_52w_high <= -30 ? 'text-emerald-400' : row.pct_from_52w_high <= -15 ? 'text-amber-400' : 'text-muted-foreground'}`}>
-                            {row.pct_from_52w_high.toFixed(1)}%
-                          </span>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell>
-                        <TechBiasCell t={techMap[row.ticker]} />
-                      </TableCell>
-                      <TableCell onClick={e => e.stopPropagation()}>
-                        <WatchlistButton ticker={row.ticker} />
-                      </TableCell>
-                    </TableRow>
-                    {isExpanded && expandedRow && (
-                      <TableRow className="border-border/20 hover:bg-transparent">
-                        <TableCell colSpan={14} className="bg-white/2 px-6 pb-5">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 mb-4">
-                            {[
-                              { label: 'Margen Neto', val: expandedRow.profit_margin_pct != null ? `${(expandedRow as GlobalOpportunity).profit_margin_pct}%` : '—', color: ((expandedRow as GlobalOpportunity).profit_margin_pct ?? 0) >= 10 ? 'text-emerald-400' : '' },
-                              { label: 'Crec. Ingresos', val: expandedRow.revenue_growth_pct != null ? `+${(expandedRow as GlobalOpportunity).revenue_growth_pct}%` : '—', color: ((expandedRow as GlobalOpportunity).revenue_growth_pct ?? 0) >= 5 ? 'text-emerald-400' : '' },
-                              { label: 'Dividendo', val: expandedRow.dividend_yield_pct != null ? `${expandedRow.dividend_yield_pct}%` : '—', color: '' },
-                              { label: 'Analistas', val: expandedRow.analyst_count != null ? String(expandedRow.analyst_count) : '—', color: '' },
-                            ].map(({ label, val, color }) => (
-                              <div key={label} className="glass rounded-lg p-3">
-                                <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
-                                <div className={`text-lg font-extrabold tabular-nums ${color}`}>{val}</div>
-                              </div>
-                            ))}
-                          </div>
-                          {/* US ADR alternative */}
-                          {expandedRow.nasdaq_adr && (
-                            <div className="flex items-center gap-2 mt-3 mb-1">
-                              <span className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground">También en US</span>
-                              <span className="font-mono text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded">
-                                {expandedRow.nasdaq_adr}
-                              </span>
-                              <span className="text-[0.65rem] text-muted-foreground">NYSE/NASDAQ/OTC · cotiza en USD · horario europeo</span>
+                        <span className="text-[0.65rem] text-muted-foreground block">{row.company_name}</span>
+                      </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-1">
+                      <GradeBadge grade={row.conviction_grade ?? ''} />
+                      {row.analyst_upside_pct != null && (
+                        <span className={`text-xs font-semibold tabular-nums ${row.analyst_upside_pct >= 20 ? 'text-emerald-400' : row.analyst_upside_pct >= 0 ? 'text-foreground' : 'text-red-400'}`}>
+                          {row.analyst_upside_pct >= 0 ? '+' : ''}{row.analyst_upside_pct.toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-2.5 text-[0.62rem] text-muted-foreground/60">
+                    {row.fcf_yield_pct != null && <span>FCF: {row.fcf_yield_pct.toFixed(1)}%</span>}
+                    {row.risk_reward_ratio != null && <span>R:R {row.risk_reward_ratio.toFixed(1)}x</span>}
+                    {meta && <span>{meta.label} · {row.currency}</span>}
+                  </div>
+                  {expandedTicker === row.ticker && (
+                    <div className="mt-3 pt-3 border-t border-border/30">
+                      {thesisText === 'Cargando tesis...' ? (
+                        <p className="text-xs text-muted-foreground italic">{thesisText}</p>
+                      ) : thesisText && thesisText !== 'Sin tesis disponible' && thesisText !== 'Error cargando tesis' ? (
+                        <ThesisBody text={thesisText} />
+                      ) : thesisText ? (
+                        <p className="text-xs text-muted-foreground italic">{thesisText}</p>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block">
+            <Card className="glass animate-fade-in-up">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/50 hover:bg-transparent">
+                    <Th k="ticker" label="Ticker" />
+                    <Th k="company_name" label="Empresa" />
+                    <Th k="current_price" label="Precio" />
+                    <Th k="value_score" label="Score" tooltip="VALUE score (0-100). Incluye bonus por mercado undervalued." />
+                    <TableHead className="text-[0.68rem] font-semibold uppercase tracking-wider">Grade</TableHead>
+                    <Th k="sector" label="Sector" />
+                    <Th k="analyst_upside_pct" label="Potencial" tooltip="Upside implícito según precio objetivo consenso analistas" />
+                    <Th k="fcf_yield_pct" label="FCF%" tooltip="Free Cash Flow Yield = FCF / Market Cap" />
+                    <Th k="risk_reward_ratio" label="R:R" tooltip="Risk/Reward = upside / 8% stop loss" />
+                    {!compact && <Th k="pe_forward" label="P/E fwd" />}
+                    {!compact && <Th k="roe_pct" label="ROE%" />}
+                    <Th k="pct_from_52w_high" label="vs Max" tooltip="Distancia al máximo de 52 semanas. Negativo = caído del máximo → posible oportunidad de entrada." />
+                    <TableHead className="text-[0.68rem] font-semibold uppercase tracking-wider">Téc</TableHead>
+                    <TableHead className="w-8" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paged.map((row, idx) => {
+                    const isExpanded = expandedTicker === row.ticker
+                    const meta = MARKET_META[row.market ?? '']
+                    const listo = isListo(row)
+                    const colSpan = compact ? 12 : 14
+                    return (
+                      <React.Fragment key={row.ticker}>
+                        <TableRow
+                          data-row-idx={idx}
+                          className={`border-border/30 cursor-pointer transition-colors hover:bg-white/3 stagger-${Math.min(idx + 1, 10)} ${isExpanded ? 'bg-white/5' : ''} ${focusedIdx === idx ? 'bg-primary/10 ring-1 ring-inset ring-primary/30' : ''}`}
+                          onClick={() => { setFocusedIdx(idx); toggleThesis(row.ticker, row) }}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              {meta && <span title={meta.label}>{meta.flag}</span>}
+                              <span className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">{row.ticker.replace(/\.(SA|KS|T|HK)$/, '')}</span>
+                              <OwnedBadge ticker={row.ticker} />
+                              {row.ai_verdict === 'RISKY' && <span title={row.ai_notes} className="text-red-400 text-xs">🚫</span>}
+                              {listo && <span className="text-[0.6rem] font-bold px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">✦</span>}
                             </div>
+                          </TableCell>
+                          <TableCell className="max-w-[160px]">
+                            <div className="truncate text-sm font-medium">{row.company_name}</div>
+                            {row.market && <div className="text-[0.6rem] text-muted-foreground">{meta?.label} · {row.currency}</div>}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm tabular-nums">
+                            {formatPrice(row)}
+                          </TableCell>
+                          <TableCell>
+                            <ScoreBar score={row.value_score} max={100} />
+                          </TableCell>
+                          <TableCell>
+                            <GradeBadge grade={row.conviction_grade ?? ''} />
+                          </TableCell>
+                          <TableCell className="text-[0.75rem] text-muted-foreground max-w-[110px]">
+                            <span className="truncate block">{row.sector ?? '—'}</span>
+                          </TableCell>
+                          <TableCell>
+                            {row.analyst_upside_pct != null ? (
+                              <span className={`font-semibold text-sm tabular-nums ${row.analyst_upside_pct >= 20 ? 'text-emerald-400' : row.analyst_upside_pct >= 0 ? 'text-foreground' : 'text-red-400'}`}>
+                                {row.analyst_upside_pct >= 0 ? '+' : ''}{row.analyst_upside_pct.toFixed(1)}%
+                              </span>
+                            ) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            {row.fcf_yield_pct != null ? (
+                              <span className={`font-semibold text-sm tabular-nums ${row.fcf_yield_pct >= 5 ? 'text-emerald-400' : row.fcf_yield_pct >= 0 ? 'text-muted-foreground' : 'text-red-400'}`}>
+                                {row.fcf_yield_pct.toFixed(1)}%
+                              </span>
+                            ) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            {row.risk_reward_ratio != null ? (
+                              <span className={`font-semibold text-sm tabular-nums ${row.risk_reward_ratio >= 3 ? 'text-emerald-400' : row.risk_reward_ratio >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                {row.risk_reward_ratio.toFixed(1)}x
+                              </span>
+                            ) : '—'}
+                          </TableCell>
+                          {!compact && (
+                            <TableCell className="font-mono text-sm tabular-nums text-muted-foreground">
+                              {row.pe_forward != null ? `${row.pe_forward}x` : '—'}
+                            </TableCell>
                           )}
-                          {/* Risk flags + AI verdict */}
-                          {(expandedRow.risk_flags || expandedRow.ai_verdict) && (
-                            <div className="border-t border-border/40 pt-4 mt-4">
-                              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                <span className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground">Análisis IA</span>
-                                {expandedRow.ai_verdict && (
-                                  <span className={`text-xs font-bold px-2 py-0.5 rounded ${expandedRow.ai_verdict === 'CLEAN' ? 'bg-emerald-500/20 text-emerald-400' : expandedRow.ai_verdict === 'SUSPECT' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>
-                                    {expandedRow.ai_verdict === 'CLEAN' ? '✅ CLEAN' : expandedRow.ai_verdict === 'SUSPECT' ? '⚠️ SUSPECT' : '🚫 RISKY'}
-                                  </span>
-                                )}
-                                {expandedRow.ai_notes && (
-                                  <span className="text-xs text-muted-foreground italic">{expandedRow.ai_notes}</span>
-                                )}
+                          {!compact && (
+                            <TableCell className="font-mono text-sm tabular-nums">
+                              {row.roe_pct != null ? (
+                                <span className={`${(row.roe_pct ?? 0) >= 15 ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                                  {row.roe_pct}%
+                                </span>
+                              ) : '—'}
+                            </TableCell>
+                          )}
+                          <TableCell className="font-mono text-sm tabular-nums">
+                            {row.pct_from_52w_high != null ? (
+                              <span className={`${row.pct_from_52w_high <= -30 ? 'text-emerald-400' : row.pct_from_52w_high <= -15 ? 'text-amber-400' : 'text-muted-foreground'}`}>
+                                {row.pct_from_52w_high.toFixed(1)}%
+                              </span>
+                            ) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <TechBiasCell t={techMap[row.ticker]} />
+                          </TableCell>
+                          <TableCell onClick={e => e.stopPropagation()}>
+                            <WatchlistButton ticker={row.ticker} />
+                          </TableCell>
+                        </TableRow>
+                        {isExpanded && expandedRow && (
+                          <TableRow className="border-border/20 hover:bg-transparent">
+                            <TableCell colSpan={colSpan} className="bg-white/2 px-6 pb-5">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 mb-4">
+                                {[
+                                  { label: 'Margen Neto', val: expandedRow.profit_margin_pct != null ? `${expandedRow.profit_margin_pct}%` : '—', color: (expandedRow.profit_margin_pct ?? 0) >= 10 ? 'text-emerald-400' : '' },
+                                  { label: 'Crec. Ingresos', val: expandedRow.revenue_growth_pct != null ? `+${expandedRow.revenue_growth_pct}%` : '—', color: (expandedRow.revenue_growth_pct ?? 0) >= 5 ? 'text-emerald-400' : '' },
+                                  { label: 'Dividendo', val: expandedRow.dividend_yield_pct != null ? `${expandedRow.dividend_yield_pct}%` : '—', color: '' },
+                                  { label: 'Analistas', val: expandedRow.analyst_count != null ? String(expandedRow.analyst_count) : '—', color: '' },
+                                ].map(({ label, val, color }) => (
+                                  <div key={label} className="glass rounded-lg p-3">
+                                    <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
+                                    <div className={`text-lg font-extrabold tabular-nums ${color}`}>{val}</div>
+                                  </div>
+                                ))}
                               </div>
-                              {expandedRow.risk_flags && (
-                                <div className="flex flex-wrap gap-1.5">
-                                  {expandedRow.risk_flags.split(' | ').filter(Boolean).map((f, i) => (
-                                    <span key={i} className="text-[0.65rem] px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400">{f}</span>
-                                  ))}
+                              {/* US ADR alternative */}
+                              {expandedRow.nasdaq_adr && (
+                                <div className="flex items-center gap-2 mt-3 mb-1">
+                                  <span className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground">También en US</span>
+                                  <span className="font-mono text-xs font-bold text-blue-400 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded">
+                                    {expandedRow.nasdaq_adr}
+                                  </span>
+                                  <span className="text-[0.65rem] text-muted-foreground">NYSE/NASDAQ/OTC · cotiza en USD · horario europeo</span>
                                 </div>
                               )}
-                            </div>
-                          )}
-                          <ConvictionPanel row={expandedRow} />
-                          {thesisText && thesisText !== 'Sin tesis disponible' && thesisText !== 'Error cargando tesis' && thesisText !== 'Cargando tesis...' ? (
-                            <div className="mt-4">
-                              <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">Tesis de Inversión</div>
-                              <ThesisBody text={thesisText} />
-                            </div>
-                          ) : thesisText ? (
-                            <p className="text-xs text-muted-foreground mt-3 italic">{thesisText}</p>
-                          ) : null}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </Card>
+                              {/* Risk flags + AI verdict */}
+                              {(expandedRow.risk_flags || expandedRow.ai_verdict) && (
+                                <div className="border-t border-border/40 pt-4 mt-4">
+                                  <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                    <span className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground">Análisis IA</span>
+                                    {expandedRow.ai_verdict && (
+                                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${expandedRow.ai_verdict === 'CLEAN' ? 'bg-emerald-500/20 text-emerald-400' : expandedRow.ai_verdict === 'SUSPECT' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        {expandedRow.ai_verdict === 'CLEAN' ? '✅ CLEAN' : expandedRow.ai_verdict === 'SUSPECT' ? '⚠️ SUSPECT' : '🚫 RISKY'}
+                                      </span>
+                                    )}
+                                    {expandedRow.ai_notes && (
+                                      <span className="text-xs text-muted-foreground italic">{expandedRow.ai_notes}</span>
+                                    )}
+                                  </div>
+                                  {expandedRow.risk_flags && (
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {expandedRow.risk_flags.split(' | ').filter(Boolean).map((f, i) => (
+                                        <span key={i} className="text-[0.65rem] px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400">{f}</span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              <ConvictionPanel row={expandedRow} />
+                              {thesisText && thesisText !== 'Sin tesis disponible' && thesisText !== 'Error cargando tesis' && thesisText !== 'Cargando tesis...' ? (
+                                <div className="mt-4">
+                                  <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">Tesis de Inversión</div>
+                                  <ThesisBody text={thesisText} />
+                                </div>
+                              ) : thesisText ? (
+                                <p className="text-xs text-muted-foreground mt-3 italic">{thesisText}</p>
+                              ) : null}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+              {sorted.length > 0 && (
+                <div className="text-[0.6rem] text-muted-foreground/25 text-right px-3 py-1.5 border-t border-border/10">
+                  j / k navegar · Enter abrir · Esc cerrar
+                </div>
+              )}
+            </Card>
+          </div>
+        </>
       )}
     </>
   )

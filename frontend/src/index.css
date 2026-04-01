@@ -101,11 +101,11 @@
   color: hsl(var(--foreground));
 }
 
-/* Focus ring — consistent, accessible */
+/* Focus ring — consistent, accessible, Apple-style */
 :focus-visible {
-  outline: 2px solid hsl(239 84% 67% / 0.7);
+  outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 /* Sticky table headers — stick beneath the 50px TopBar */
@@ -1455,6 +1455,41 @@ tr[class*="cursor-pointer"]:hover td:first-child {
 /* Prevent tap highlight on interactive table rows */
 tr[class*="cursor-pointer"] {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Staggered table rows ─────────────────────────────────────────────────── */
+@keyframes rowEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+tbody tr {
+  animation: rowEnter 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+tbody tr:nth-child(1)  { animation-delay: 0ms }
+tbody tr:nth-child(2)  { animation-delay: 30ms }
+tbody tr:nth-child(3)  { animation-delay: 60ms }
+tbody tr:nth-child(4)  { animation-delay: 90ms }
+tbody tr:nth-child(5)  { animation-delay: 120ms }
+tbody tr:nth-child(6)  { animation-delay: 150ms }
+tbody tr:nth-child(7)  { animation-delay: 180ms }
+tbody tr:nth-child(8)  { animation-delay: 210ms }
+tbody tr:nth-child(9)  { animation-delay: 240ms }
+tbody tr:nth-child(10) { animation-delay: 270ms }
+
+/* ── Active/press feedback para cards clicables ──────────────────────────── */
+.clickable-card {
+  transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.12s ease;
+}
+.clickable-card:active {
+  transform: scale(0.985);
+}
+
+/* ── Smooth scroll nativo ────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
 }
 
 /* Safe area insets for iPhone notch/home bar */

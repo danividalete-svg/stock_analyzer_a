@@ -97,15 +97,16 @@ export default function MacroCalendar() {
   if (loading) return <Loading />
   if (error)   return <ErrorState message={error} />
 
-  const events  = data?.events ?? []
-  const grouped = groupByMonth(events)
-  const next7   = events.filter(e => daysUntil(e.date) <= 7 && daysUntil(e.date) >= 0)
+  const events      = data?.events ?? []
+  const grouped     = groupByMonth(events)
+  const next7       = events.filter(e => daysUntil(e.date) <= 7 && daysUntil(e.date) >= 0)
+  const sortedGroups = grouped
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-2">
+      <div className="animate-fade-in-up">
+        <h1 className="text-2xl font-extrabold flex items-center gap-2 gradient-title">
           <CalendarCheck size={22} className="text-primary" />
           Calendario Macro
         </h1>
@@ -114,9 +115,36 @@ export default function MacroCalendar() {
         </p>
       </div>
 
-      {/* Upcoming alert */}
+      {/* Quick-view strip: próximos 14 días */}
+      {sortedGroups.length > 0 && (() => {
+        const upcoming = sortedGroups
+          .flatMap(g => g.events)
+          .filter(e => e.days >= 0 && e.days <= 14)
+          .slice(0, 4)
+        if (upcoming.length === 0) return null
+        return (
+          <div className="flex gap-2 flex-wrap mb-5 animate-fade-in-up" style={{ animationDelay: '60ms' }}>
+            {upcoming.map((e) => {
+              const cfg = TYPE_CONFIG[e.type] ?? DEFAULT_TYPE
+              let daysLabel: string
+              if (e.days === 0) { daysLabel = 'Hoy' }
+              else if (e.days === 1) { daysLabel = 'Mañana' }
+              else { daysLabel = `${e.days}d` }
+              return (
+                <div key={`${e.date}-${e.event}`} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium ${cfg.bg} ${cfg.border} ${cfg.text}`}>
+                  <span>{cfg.emoji}</span>
+                  <span>{daysLabel}</span>
+                  <span className="font-bold">{e.title || e.type}</span>
+                </div>
+              )
+            })}
+          </div>
+        )
+      })()}
+
+      {/* Upcoming alert (≤7 days) */}
       {next7.length > 0 && (
-        <div className="glass rounded-2xl p-4 border border-amber-500/20 bg-amber-500/5">
+        <div className="glass rounded-2xl p-4 border border-amber-500/20 bg-amber-500/5 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
           <p className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">⚡ Próximos 7 días</p>
           <div className="space-y-1">
             {next7.map(e => {
@@ -145,15 +173,15 @@ export default function MacroCalendar() {
       </div>
 
       {/* Timeline */}
-      {grouped.length === 0 ? (
+      {sortedGroups.length === 0 ? (
         <div className="glass rounded-2xl p-12 text-center">
           <CalendarCheck size={40} className="mx-auto text-muted-foreground/30 mb-4" />
           <p className="text-foreground font-semibold">Sin eventos próximos</p>
           <p className="text-sm text-muted-foreground mt-1">El pipeline diario actualiza este calendario cada mañana.</p>
         </div>
       ) : (
-        grouped.map(({ month, events }) => (
-          <div key={month}>
+        sortedGroups.map(({ month, events }, gi) => (
+          <div key={month} className="animate-fade-in-up" style={{ animationDelay: `${(gi + 2) * 80}ms` }}>
             <div className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground/50 px-1 mb-3 capitalize">
               {month}
             </div>

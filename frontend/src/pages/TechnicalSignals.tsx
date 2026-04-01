@@ -19,66 +19,92 @@ const STRENGTH_DOTS = (s: number) =>
     <span key={i} className={`inline-block w-1.5 h-1.5 rounded-full ${i < s ? 'bg-current' : 'bg-current/20'}`} />
   ))
 
-function BiasBadge({ bias }: { bias: string }) {
-  if (bias === 'BULLISH')
-    return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">ALCISTA</span>
-  if (bias === 'BEARISH')
-    return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500/15 text-red-400 border border-red-500/30">BAJISTA</span>
-  return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-muted/40 text-muted-foreground border border-border/40">NEUTRO</span>
+function biasBadgeCls(bias: string): string {
+  if (bias === 'BULLISH') return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+  if (bias === 'BEARISH') return 'bg-red-500/15 text-red-400 border-red-500/30'
+  return 'bg-muted/40 text-muted-foreground border-border/40'
+}
+function biasLabel(bias: string): string {
+  if (bias === 'BULLISH') return 'ALCISTA'
+  if (bias === 'BEARISH') return 'BAJISTA'
+  return 'NEUTRO'
 }
 
-function DirectionPill({ dir, tf }: { dir: string; tf: string }) {
-  const isBull = dir === 'BULLISH'
-  const isBear = dir === 'BEARISH'
+function BiasBadge({ bias }: Readonly<{ bias: string }>) {
+  return <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${biasBadgeCls(bias)}`}>{biasLabel(bias)}</span>
+}
+
+function directionPillCls(dir: string): string {
+  if (dir === 'BULLISH') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+  if (dir === 'BEARISH') return 'bg-red-500/10 text-red-400 border-red-500/25'
+  return 'bg-muted/30 text-muted-foreground border-border/30'
+}
+function directionArrow(dir: string): string {
+  if (dir === 'BULLISH') return '▲'
+  if (dir === 'BEARISH') return '▼'
+  return '—'
+}
+
+function DirectionPill({ dir, tf }: Readonly<{ dir: string; tf: string }>) {
   const tfLabel = tf === 'WEEKLY' ? 'W' : 'D'
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${
-      isBull ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25' :
-      isBear ? 'bg-red-500/10 text-red-400 border-red-500/25' :
-      'bg-muted/30 text-muted-foreground border-border/30'
-    }`}>
-      {isBull ? '▲' : isBear ? '▼' : '—'} {tfLabel}
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${directionPillCls(dir)}`}>
+      {directionArrow(dir)} {tfLabel}
     </span>
   )
 }
 
-function SignalRow({ sig }: { sig: TechnicalSignal }) {
+function signalStrengthCls(direction: string): string {
+  if (direction === 'BULLISH') return 'text-emerald-400'
+  if (direction === 'BEARISH') return 'text-red-400'
+  return 'text-muted-foreground'
+}
+function daysAgoLabel(days: number): string {
+  if (days === 0) return 'hoy'
+  if (days === 1) return 'ayer'
+  return `${days}d`
+}
+
+function SignalRow({ sig }: Readonly<{ sig: TechnicalSignal }>) {
   return (
     <div className="flex items-start gap-3 py-2 border-b border-border/20 last:border-0">
       <DirectionPill dir={sig.direction} tf={sig.timeframe} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <span className="text-sm font-medium text-foreground">{sig.signal_name}</span>
-          <span className={`flex gap-0.5 ${sig.direction === 'BULLISH' ? 'text-emerald-400' : sig.direction === 'BEARISH' ? 'text-red-400' : 'text-muted-foreground'}`}>
+          <span className={`flex gap-0.5 ${signalStrengthCls(sig.direction)}`}>
             {STRENGTH_DOTS(sig.strength)}
           </span>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed">{sig.description}</p>
       </div>
       <span className="text-xs text-muted-foreground/60 whitespace-nowrap shrink-0">
-        {sig.days_ago === 0 ? 'hoy' : sig.days_ago === 1 ? 'ayer' : `${sig.days_ago}d`}
+        {daysAgoLabel(sig.days_ago)}
       </span>
     </div>
   )
 }
 
-function TickerCard({ row, signals }: { row: TechnicalSummary; signals: TechnicalSignal[] }) {
+const sigSortFn = (a: TechnicalSignal, b: TechnicalSignal) =>
+  a.days_ago !== b.days_ago ? a.days_ago - b.days_ago : b.strength - a.strength
+
+function TickerCard({ row, signals }: Readonly<{ row: TechnicalSummary; signals: TechnicalSignal[] }>) {
   const [open, setOpen] = useState(false)
 
-  const dailySignals = signals.filter(s => s.timeframe === 'DAILY')
-  const weeklySignals = signals.filter(s => s.timeframe === 'WEEKLY')
-  const sortedAll = [...signals].sort((a, b) => {
-    if (a.days_ago !== b.days_ago) return a.days_ago - b.days_ago
-    return b.strength - a.strength
-  })
+  const dailySignals = signals.filter(s => s.timeframe === 'DAILY').toSorted(sigSortFn)
+  const weeklySignals = signals.filter(s => s.timeframe === 'WEEKLY').toSorted(sigSortFn)
+  const sortedAll = signals.toSorted(sigSortFn)
+
+  const toggle = () => setOpen(o => !o)
 
   return (
     <Card className="bg-card/40 border-border/30 hover:border-border/60 transition-colors">
       <CardContent className="p-4">
         {/* Header row */}
-        <div
-          className="flex items-center gap-3 cursor-pointer"
-          onClick={() => setOpen(o => !o)}
+        <button
+          type="button"
+          className="flex items-center gap-3 w-full text-left active:scale-[0.98] transition-transform"
+          onClick={toggle}
         >
           <TickerLogo ticker={row.ticker} size="sm" />
           <div className="flex-1 min-w-0">
@@ -102,7 +128,7 @@ function TickerCard({ row, signals }: { row: TechnicalSummary; signals: Technica
               : <ChevronRight size={16} className="text-muted-foreground" />
             }
           </div>
-        </div>
+        </button>
 
         {/* Top signals preview (collapsed) */}
         {!open && signals.length > 0 && (
@@ -128,9 +154,7 @@ function TickerCard({ row, signals }: { row: TechnicalSummary; signals: Technica
                   Diario ({dailySignals.length})
                 </div>
                 <div className="divide-y divide-border/20">
-                  {dailySignals
-                    .sort((a, b) => a.days_ago - b.days_ago || b.strength - a.strength)
-                    .map((s) => <SignalRow key={`${s.signal_name}-${s.days_ago}`} sig={s} />)}
+                  {dailySignals.map((s) => <SignalRow key={`${s.signal_name}-${s.days_ago}`} sig={s} />)}
                 </div>
               </div>
             )}
@@ -140,9 +164,7 @@ function TickerCard({ row, signals }: { row: TechnicalSummary; signals: Technica
                   Semanal ({weeklySignals.length})
                 </div>
                 <div className="divide-y divide-border/20">
-                  {weeklySignals
-                    .sort((a, b) => a.days_ago - b.days_ago || b.strength - a.strength)
-                    .map((s) => <SignalRow key={`${s.signal_name}-${s.days_ago}`} sig={s} />)}
+                  {weeklySignals.map((s) => <SignalRow key={`${s.signal_name}-${s.days_ago}`} sig={s} />)}
                 </div>
               </div>
             )}
@@ -153,11 +175,50 @@ function TickerCard({ row, signals }: { row: TechnicalSummary; signals: Technica
   )
 }
 
+function SignalStrengthDots({ strength }: Readonly<{ strength: number }>) {
+  return (
+    <span className="flex gap-0.5 text-emerald-400">
+      {Array.from({ length: 3 }, (_, j) => (
+        <span key={j} className={`inline-block w-1 h-1 rounded-full ${j < strength ? 'bg-emerald-400' : 'bg-emerald-400/20'}`} />
+      ))}
+    </span>
+  )
+}
+
+type BiasFilter = 'ALL' | 'BULLISH' | 'BEARISH' | 'NEUTRAL'
+
+function biasBtnCls(b: BiasFilter, active: boolean): string {
+  if (!active) return 'text-muted-foreground hover:text-foreground border-transparent'
+  if (b === 'BULLISH') return 'bg-background text-emerald-400 border-emerald-500/40 shadow-sm'
+  if (b === 'BEARISH') return 'bg-background text-red-400 border-red-500/40 shadow-sm'
+  return 'bg-background text-foreground border-border/40 shadow-sm'
+}
+
+function biasBtnLabel(b: BiasFilter): string {
+  if (b === 'BULLISH') return '▲ Alcistas'
+  if (b === 'BEARISH') return '▼ Bajistas'
+  if (b === 'NEUTRAL') return '— Neutros'
+  return 'Todos'
+}
+
+function biasResultLabel(b: BiasFilter): string {
+  if (b === 'BULLISH') return 'alcistas'
+  if (b === 'BEARISH') return 'bajistas'
+  if (b === 'NEUTRAL') return 'neutros'
+  return ''
+}
+
+function tfLabel(tf: 'ALL' | 'DAILY' | 'WEEKLY'): string {
+  if (tf === 'DAILY') return 'Diario'
+  if (tf === 'WEEKLY') return 'Semanal'
+  return 'D+W'
+}
+
 export default function TechnicalSignals() {
   const { data, loading, error } = useApi(() => fetchTechnicalSignals().then(d => ({ data: d })), [])
   const { isOwned, positions: myPositions } = usePersonalPortfolio()
 
-  const [biasFilter, setBiasFilter] = useState<'ALL' | 'BULLISH' | 'BEARISH' | 'NEUTRAL'>('ALL')
+  const [biasFilter, setBiasFilter] = useState<BiasFilter>('ALL')
   const [sourceFilter, setSourceFilter] = useState<string>('ALL')
   const [tfFilter, setTfFilter] = useState<'ALL' | 'DAILY' | 'WEEKLY'>('ALL')
   const [strengthFilter, setStrengthFilter] = useState<number>(1)
@@ -230,7 +291,7 @@ export default function TechnicalSignals() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Activity size={20} className="text-primary" />
-            <h1 className="text-2xl font-bold">Señales Técnicas</h1>
+            <h1 className="text-2xl font-bold gradient-title">Señales Técnicas</h1>
           </div>
           <p className="text-sm text-muted-foreground">
             Detección automática de patrones técnicos — cartera activa + oportunidades value
@@ -317,11 +378,7 @@ export default function TechnicalSignals() {
                     <div className="space-y-1">
                       {topSig.map((s) => (
                         <div key={`${s.signal_name}-${s.timeframe}`} className="flex items-center gap-1.5">
-                          <span className={`flex gap-0.5 text-emerald-400`}>
-                            {Array.from({ length: 3 }, (_, j) => (
-                              <span key={j} className={`inline-block w-1 h-1 rounded-full ${j < s.strength ? 'bg-emerald-400' : 'bg-emerald-400/20'}`} />
-                            ))}
-                          </span>
+                          <SignalStrengthDots strength={s.strength} />
                           <span className="text-[0.68rem] text-foreground/70 truncate">{s.signal_name}</span>
                         </div>
                       ))}
@@ -342,29 +399,23 @@ export default function TechnicalSignals() {
             <button
               key={b}
               onClick={() => setBiasFilter(b)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ${
-                biasFilter === b
-                  ? b === 'BULLISH' ? 'bg-background text-emerald-400 border-emerald-500/40 shadow-sm'
-                    : b === 'BEARISH' ? 'bg-background text-red-400 border-red-500/40 shadow-sm'
-                    : 'bg-background text-foreground border-border/40 shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground border-transparent'
-              }`}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ${biasBtnCls(b, biasFilter === b)}`}
             >
-              {b === 'ALL' ? 'Todos' : b === 'BULLISH' ? '▲ Alcistas' : b === 'BEARISH' ? '▼ Bajistas' : '— Neutros'}
+              {biasBtnLabel(b)}
             </button>
           ))}
         </div>
 
         {/* Source filter */}
-        <div className="flex rounded-lg bg-muted/20 border border-border/30 p-1 gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {sources.map(s => (
             <button
               key={s}
               onClick={() => setSourceFilter(s)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ${
+              className={`text-[0.68rem] px-2.5 py-0.5 rounded-full border transition-colors ${
                 sourceFilter === s
-                  ? 'bg-background text-foreground border-border/40 shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground border-transparent'
+                  ? 'border-primary/60 bg-primary/15 text-primary'
+                  : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
               }`}
             >
               {s === 'ALL' ? 'Todas las fuentes' : SOURCE_LABELS[s] ?? s}
@@ -384,7 +435,7 @@ export default function TechnicalSignals() {
                   : 'text-muted-foreground hover:text-foreground border-transparent'
               }`}
             >
-              {tf === 'ALL' ? 'D+W' : tf === 'DAILY' ? 'Diario' : 'Semanal'}
+              {tfLabel(tf)}
             </button>
           ))}
         </div>
@@ -424,7 +475,7 @@ export default function TechnicalSignals() {
       {/* Results count */}
       <div className="text-sm text-muted-foreground">
         Mostrando <strong className="text-foreground">{filteredSummary.length}</strong> tickers
-        {biasFilter !== 'ALL' && ` · ${biasFilter === 'BULLISH' ? 'alcistas' : biasFilter === 'BEARISH' ? 'bajistas' : 'neutros'}`}
+        {biasFilter !== 'ALL' && ` · ${biasResultLabel(biasFilter)}`}
         {sourceFilter !== 'ALL' && ` · ${SOURCE_LABELS[sourceFilter] ?? sourceFilter}`}
         {totalPages > 1 && ` · pág. ${page}/${totalPages}`}
       </div>
@@ -435,7 +486,7 @@ export default function TechnicalSignals() {
           No hay tickers con los filtros seleccionados.
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-fade-in-up">
           {pagedSummary.map(row => {
             const rowSignals = signalsMap.get(row.ticker) ?? []
             if (rowSignals.length === 0 && strengthFilter > 1) return null

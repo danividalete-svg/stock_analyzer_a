@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { fetchMomentumOpportunities, type MomentumOpportunity, downloadCsv } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
 import ScoreBar from '../components/ScoreBar'
+import ScoreRing from '../components/ScoreRing'
 import { Badge } from '@/components/ui/badge'
 import InfoTooltip from '../components/InfoTooltip'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import TickerLogo from '../components/TickerLogo'
+import EmptyState from '../components/EmptyState'
 
 type SortKey = keyof MomentumOpportunity
 type SortDir = 'asc' | 'desc'
@@ -16,6 +18,8 @@ export default function Momentum() {
   const { data, loading, error } = useApi(() => fetchMomentumOpportunities(), [])
   const [sortKey, setSortKey] = useState<SortKey>('momentum_score')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [focusedIdx, setFocusedIdx] = useState(-1)
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -27,6 +31,36 @@ export default function Momentum() {
     const av = a[sortKey] ?? 0; const bv = b[sortKey] ?? 0
     return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
   })
+
+  const paged = sorted.slice(0, 20)
+
+  const pagedRef = useRef(paged)
+  pagedRef.current = paged
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const next = Math.min(i + 1, pagedRef.current.length - 1)
+          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return next
+        })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const prev = Math.max(i - 1, 0)
+          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return prev
+        })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -51,10 +85,19 @@ export default function Momentum() {
           </h2>
           <p className="text-sm text-muted-foreground">Setups VCP y momentum Minervini — filtrados por tendencia y volumen</p>
         </div>
-        <button
-          onClick={() => downloadCsv('momentum')}
-          className="text-xs px-3 py-1 rounded border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary transition-colors mt-1 shrink-0"
-        >↓ CSV</button>
+        <div className="flex items-center gap-2 mt-1 shrink-0">
+          <button
+            onClick={() => setCompact(v => !v)}
+            className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${compact ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'}`}
+            title="Alternar entre vista compacta y completa"
+          >
+            {compact ? '⊟ Compacta' : '⊞ Completa'}
+          </button>
+          <button
+            onClick={() => downloadCsv('momentum')}
+            className="text-xs px-3 py-1 rounded border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary transition-colors"
+          >↓ CSV</button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
@@ -72,90 +115,165 @@ export default function Momentum() {
         ))}
       </div>
 
-      <Card className="glass animate-fade-in-up">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-border/50 hover:bg-transparent">
-              <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker</TableHead>
-              <TableHead className={thCls('company_name')} onClick={() => onSort('company_name')}>Empresa</TableHead>
-              <TableHead className={thCls('current_price')} onClick={() => onSort('current_price')}>Precio</TableHead>
-              <TableHead className={thCls('momentum_score')} onClick={() => onSort('momentum_score')}>Score</TableHead>
-              <TableHead className={thCls('vcp_score')} onClick={() => onSort('vcp_score')}>
-                VCP
-                <InfoTooltip
-                  text="Volatility Contraction Pattern (Minervini): patrón de consolidación con contracciones de rango y volumen decreciente. Score 0-100. ≥70 = patrón de alta calidad."
-                  align="left"
-                />
-              </TableHead>
-              <TableHead className={thCls('proximity_to_52w_high')} onClick={() => onSort('proximity_to_52w_high')}>
-                Dist.Max
-                <InfoTooltip text="Distancia en % respecto al máximo de 52 semanas. Negativo = está por debajo del máximo. >-5% = muy cerca del máximo (zona de ruptura potencial)." />
-              </TableHead>
-              <TableHead className={thCls('trend_template_score')} onClick={() => onSort('trend_template_score')}>
-                Tendencia
-                <InfoTooltip
-                  text={
-                    <span>
-                      Score Minervini Trend Template (0-8 criterios):<br />
-                      precio &gt; MA50 · precio &gt; MA150 · precio &gt; MA200<br />
-                      MA50 &gt; MA150 · MA150 &gt; MA200 · MA200 subiendo<br />
-                      RS vs. mercado · precio cerca de máximos<br />
-                      <span className="text-emerald-400">≥7/8</span> fuerte · <span className="text-amber-400">5-6/8</span> moderado
-                    </span>
-                  }
-                  align="right"
-                />
-              </TableHead>
-              <TableHead className={thCls('analyst_upside_pct')} onClick={() => onSort('analyst_upside_pct')}>Objetivo</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sorted.slice(0, 20).map(d => (
-              <TableRow key={d.ticker}>
-                <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-2 mb-2">
+        {paged.map((d, i) => (
+          <div
+            key={d.ticker}
+            onClick={() => setFocusedIdx(i)}
+            className={`glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform ${focusedIdx === i ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <ScoreRing score={d.momentum_score ?? 0} size="sm" />
+                <div>
                   <div className="flex items-center gap-2">
                     <TickerLogo ticker={d.ticker} size="sm" />
-                    {d.ticker}
+                    <span className="font-mono font-bold text-sm">{d.ticker}</span>
                   </div>
-                </TableCell>
-                <TableCell className="hidden sm:table-cell max-w-[150px] truncate text-muted-foreground text-[0.76rem]">{d.company_name}</TableCell>
-                <TableCell className="tabular-nums">${d.current_price?.toFixed(2)}</TableCell>
-                <TableCell><ScoreBar score={d.momentum_score} /></TableCell>
-                <TableCell><ScoreBar score={d.vcp_score} /></TableCell>
-                <TableCell>
-                  {d.proximity_to_52w_high != null
-                    ? <span className={d.proximity_to_52w_high > -5 ? 'text-emerald-400' : d.proximity_to_52w_high > -15 ? 'text-amber-400' : 'text-red-400'}>
-                        {d.proximity_to_52w_high.toFixed(1)}%
-                      </span>
-                    : <span className="text-muted-foreground">—</span>}
-                </TableCell>
-                <TableCell>
-                  {d.trend_template_score != null
-                    ? <Badge variant={d.trend_template_score >= 7 ? 'green' : d.trend_template_score >= 5 ? 'yellow' : 'red'}>
-                        {d.trend_template_score}/8
-                      </Badge>
-                    : <span className="text-muted-foreground">—</span>}
-                </TableCell>
-                <TableCell className="tabular-nums">
-                  {d.target_price_analyst ? `$${d.target_price_analyst.toFixed(0)}` : '—'}
-                  {d.analyst_upside_pct != null && (
-                    <span className={`ml-1 text-xs font-semibold ${d.analyst_upside_pct > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {d.analyst_upside_pct > 0 ? '+' : ''}{d.analyst_upside_pct.toFixed(0)}%
-                    </span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  <span className="text-[0.65rem] text-muted-foreground block truncate max-w-[140px]">{d.company_name}</span>
+                </div>
+              </div>
+              <div className="text-right flex flex-col items-end gap-1">
+                {d.vcp_score != null && (
+                  <Badge variant={d.vcp_score >= 70 ? 'green' : d.vcp_score >= 50 ? 'yellow' : 'red'} >
+                    VCP {d.vcp_score.toFixed(0)}
+                  </Badge>
+                )}
+                {d.trend_template_score != null && (
+                  <Badge variant={d.trend_template_score >= 7 ? 'green' : d.trend_template_score >= 5 ? 'yellow' : 'red'}>
+                    {d.trend_template_score}/8
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-3 mt-2.5 text-[0.62rem] text-muted-foreground/60">
+              {d.current_price != null && (
+                <span>${d.current_price.toFixed(2)}</span>
+              )}
+              {d.proximity_to_52w_high != null && (
+                <span className={d.proximity_to_52w_high > -5 ? 'text-emerald-400' : d.proximity_to_52w_high > -15 ? 'text-amber-400' : 'text-red-400'}>
+                  Dist.Max {d.proximity_to_52w_high.toFixed(1)}%
+                </span>
+              )}
+              {d.analyst_upside_pct != null && (
+                <span className={d.analyst_upside_pct > 0 ? 'text-emerald-400' : 'text-red-400'}>
+                  Obj {d.analyst_upside_pct > 0 ? '+' : ''}{d.analyst_upside_pct.toFixed(0)}%
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
         {rows.length === 0 && (
-          <CardContent className="py-16 text-center">
-            <div className="text-4xl mb-4 opacity-20">📉</div>
-            <p className="font-medium text-muted-foreground mb-1">Sin setups momentum en este momento</p>
-            <span className="text-xs text-muted-foreground">Normal durante correcciones de mercado</span>
-          </CardContent>
+          <EmptyState
+            icon="📉"
+            title="Sin setups momentum"
+            subtitle="Normal durante correcciones — el sistema espera tendencias Stage 2 confirmadas"
+          />
         )}
-      </Card>
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block">
+        <Card className="glass animate-fade-in-up">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker</TableHead>
+                {!compact && <TableHead className={thCls('company_name')} onClick={() => onSort('company_name')}>Empresa</TableHead>}
+                <TableHead className={thCls('current_price')} onClick={() => onSort('current_price')}>Precio</TableHead>
+                <TableHead className={thCls('momentum_score')} onClick={() => onSort('momentum_score')}>Score</TableHead>
+                <TableHead className={thCls('vcp_score')} onClick={() => onSort('vcp_score')}>
+                  VCP
+                  <InfoTooltip
+                    text="Volatility Contraction Pattern (Minervini): patrón de consolidación con contracciones de rango y volumen decreciente. Score 0-100. ≥70 = patrón de alta calidad."
+                    align="left"
+                  />
+                </TableHead>
+                <TableHead className={thCls('proximity_to_52w_high')} onClick={() => onSort('proximity_to_52w_high')}>
+                  Dist.Max
+                  <InfoTooltip text="Distancia en % respecto al máximo de 52 semanas. Negativo = está por debajo del máximo. >-5% = muy cerca del máximo (zona de ruptura potencial)." />
+                </TableHead>
+                <TableHead className={thCls('trend_template_score')} onClick={() => onSort('trend_template_score')}>
+                  Tendencia
+                  <InfoTooltip
+                    text={
+                      <span>
+                        Score Minervini Trend Template (0-8 criterios):<br />
+                        precio &gt; MA50 · precio &gt; MA150 · precio &gt; MA200<br />
+                        MA50 &gt; MA150 · MA150 &gt; MA200 · MA200 subiendo<br />
+                        RS vs. mercado · precio cerca de máximos<br />
+                        <span className="text-emerald-400">≥7/8</span> fuerte · <span className="text-amber-400">5-6/8</span> moderado
+                      </span>
+                    }
+                    align="right"
+                  />
+                </TableHead>
+                {!compact && <TableHead className={thCls('analyst_upside_pct')} onClick={() => onSort('analyst_upside_pct')}>Objetivo</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paged.map((d, i) => (
+                <TableRow
+                  key={d.ticker}
+                  data-row-idx={i}
+                  onClick={() => setFocusedIdx(i)}
+                  className={`cursor-pointer transition-colors ${focusedIdx === i ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+                >
+                  <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">
+                    <div className="flex items-center gap-2">
+                      <TickerLogo ticker={d.ticker} size="sm" />
+                      {d.ticker}
+                    </div>
+                  </TableCell>
+                  {!compact && (
+                    <TableCell className="max-w-[150px] truncate text-muted-foreground text-[0.76rem]">{d.company_name}</TableCell>
+                  )}
+                  <TableCell className="tabular-nums">${d.current_price?.toFixed(2)}</TableCell>
+                  <TableCell><ScoreBar score={d.momentum_score} /></TableCell>
+                  <TableCell><ScoreBar score={d.vcp_score} /></TableCell>
+                  <TableCell>
+                    {d.proximity_to_52w_high != null
+                      ? <span className={d.proximity_to_52w_high > -5 ? 'text-emerald-400' : d.proximity_to_52w_high > -15 ? 'text-amber-400' : 'text-red-400'}>
+                          {d.proximity_to_52w_high.toFixed(1)}%
+                        </span>
+                      : <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell>
+                    {d.trend_template_score != null
+                      ? <Badge variant={d.trend_template_score >= 7 ? 'green' : d.trend_template_score >= 5 ? 'yellow' : 'red'}>
+                          {d.trend_template_score}/8
+                        </Badge>
+                      : <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  {!compact && (
+                    <TableCell className="tabular-nums">
+                      {d.target_price_analyst ? `$${d.target_price_analyst.toFixed(0)}` : '—'}
+                      {d.analyst_upside_pct != null && (
+                        <span className={`ml-1 text-xs font-semibold ${d.analyst_upside_pct > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {d.analyst_upside_pct > 0 ? '+' : ''}{d.analyst_upside_pct.toFixed(0)}%
+                        </span>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {rows.length === 0 && (
+            <EmptyState
+              icon="📉"
+              title="Sin setups momentum"
+              subtitle="Normal durante correcciones — el sistema espera tendencias Stage 2 confirmadas"
+            />
+          )}
+          {sorted.length > 0 && (
+            <div className="text-[0.6rem] text-muted-foreground/25 text-right px-3 py-1.5 border-t border-border/10">
+              j / k navegar · Esc cerrar
+            </div>
+          )}
+        </Card>
+      </div>
     </>
   )
 }

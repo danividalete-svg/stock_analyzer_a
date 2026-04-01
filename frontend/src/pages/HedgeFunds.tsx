@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { fetchHedgeFunds, type HedgeFundConsensusItem } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
@@ -51,7 +51,6 @@ function generateInsight(rows: HedgeFundConsensusItem[], _funds: string[]): stri
 
   const parts: string[] = []
 
-  // Consensus picks
   if (multi.length > 0) {
     const tickers = multi.map(r => `**${r.ticker}** (${r.funds_count} fondos)`).join(', ')
     parts.push(`Convergencia de due diligence: ${tickers} — múltiples gestores value llegaron a la misma conclusión independientemente.`)
@@ -59,18 +58,15 @@ function generateInsight(rows: HedgeFundConsensusItem[], _funds: string[]): stri
     parts.push('No hay convergencia 2+ fondos actualmente — cada gestor tiene posiciones únicas, lo cual sugiere oportunidades diferenciadas.')
   }
 
-  // Top positions by value
   const topTickers = topByValue.map(r => `${r.ticker} ($${(r.total_value_m / 1000).toFixed(1)}B)`).join(', ')
   parts.push(`Mayores posiciones por valor: ${topTickers}. AUM total rastreado: $${(totalAum / 1000).toFixed(0)}B.`)
 
-  // High conviction (concentration)
   const highConv = topByConcentration.filter(r => r.avg_portfolio_pct >= 3)
   if (highConv.length > 0) {
     const convTickers = highConv.map(r => `${r.ticker} (${r.avg_portfolio_pct.toFixed(1)}% del portfolio)`).join(', ')
     parts.push(`Alta convicción: ${convTickers} — posiciones concentradas indican fuerte tesis de inversión.`)
   }
 
-  // Fund diversity
   const buffettCount = rows.filter(r => r.funds_list.includes('Berkshire')).length
   if (buffettCount > rows.length * 0.5) {
     parts.push(`Berkshire Hathaway domina con ${buffettCount} de ${rows.length} posiciones mostradas — el oráculo de Omaha sigue concentrado en financieras y consumo.`)
@@ -83,20 +79,50 @@ export default function HedgeFunds() {
   const { data, loading, error } = useApi(() => fetchHedgeFunds(), [])
   const { isOwned, positions: myPositions } = usePersonalPortfolio()
   const [minFunds, setMinFunds] = useState(1)
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
+  const [focusedIdx, setFocusedIdx] = useState(-1)
+  const pagedRef = useRef<HedgeFundConsensusItem[]>([])
 
   const allRows  = data?.top_consensus ?? []
   const funds    = data?.funds_scraped ?? []
   const insight  = useMemo(() => generateInsight(allRows, funds), [allRows, funds])
+  const filtered = useMemo(() => allRows.filter(r => r.funds_count >= minFunds), [allRows, minFunds])
+
+  pagedRef.current = filtered
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const next = Math.min(i + 1, pagedRef.current.length - 1)
+          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return next
+        })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const prev = Math.max(i - 1, 0)
+          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return prev
+        })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
 
-  const genAt    = data?.generated_at ? new Date(data.generated_at).toLocaleDateString('es-ES') : '—'
-  const filtered = allRows.filter(r => r.funds_count >= minFunds)
-  const multi    = allRows.filter(r => r.funds_count >= 2).length
-  const top3     = allRows.filter(r => r.funds_count >= 3).length
+  const genAt        = data?.generated_at ? new Date(data.generated_at).toLocaleDateString('es-ES') : '—'
+  const multi        = allRows.filter(r => r.funds_count >= 2).length
+  const top3         = allRows.filter(r => r.funds_count >= 3).length
   const overlapCount = myPositions.length > 0 ? allRows.filter(r => isOwned(r.ticker || '')).length : 0
-  const maxPct   = Math.max(...allRows.map(r => r.avg_portfolio_pct), 1)
+  const maxPct       = Math.max(...allRows.map(r => r.avg_portfolio_pct), 1)
 
   return (
     <div className="space-y-6">
@@ -113,7 +139,7 @@ export default function HedgeFunds() {
 
       {/* AI Insight */}
       {insight && (
-        <div className="rounded-xl border border-amber-500/25 bg-gradient-to-r from-amber-500/8 to-transparent overflow-hidden">
+        <div className="rounded-xl border border-amber-500/25 bg-gradient-to-r from-amber-500/8 to-transparent overflow-clip">
           <div className="flex items-center gap-2 px-4 py-2 border-b border-amber-500/15 bg-amber-500/8">
             <Brain size={13} className="text-amber-400" />
             <span className="text-[0.62rem] font-bold text-amber-400 uppercase tracking-widest">Lectura de los 13F</span>
@@ -151,10 +177,10 @@ export default function HedgeFunds() {
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { icon: Building2,   label: 'Fondos rastreados', value: funds.length.toString(),            color: 'text-amber-400' },
+          { icon: Building2,   label: 'Fondos rastreados', value: funds.length.toString(),                 color: 'text-amber-400' },
           { icon: TrendingUp,  label: 'Total holdings',     value: (data?.holdings_count ?? 0).toString(), color: 'text-blue-400' },
-          { icon: Users2,      label: 'Consenso 2+ fondos', value: multi.toString(),                   color: 'text-emerald-400' },
-          { icon: DollarSign,  label: 'Consenso 3+ fondos', value: top3.toString(),                    color: 'text-purple-400' },
+          { icon: Users2,      label: 'Consenso 2+ fondos', value: multi.toString(),                        color: 'text-emerald-400' },
+          { icon: DollarSign,  label: 'Consenso 3+ fondos', value: top3.toString(),                         color: 'text-purple-400' },
         ].map(s => (
           <Card key={s.label} className="glass">
             <CardContent className="p-4">
@@ -179,7 +205,7 @@ export default function HedgeFunds() {
       </Card>
 
       {/* Filter */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs text-muted-foreground">Mínimo fondos holding:</span>
         {[1, 2, 3].map(n => (
           <button
@@ -195,91 +221,175 @@ export default function HedgeFunds() {
           </button>
         ))}
         <span className="text-xs text-muted-foreground ml-2">{filtered.length} posiciones</span>
+        <button
+          onClick={() => setCompact(v => !v)}
+          className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ml-auto ${
+            compact
+              ? 'border-primary/60 bg-primary/15 text-primary'
+              : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
+          }`}
+        >
+          {compact ? '⊟ Compacta' : '⊞ Completa'}
+        </button>
       </div>
 
-      {/* Table */}
-      <Card className="glass">
-        {filtered.length === 0 ? (
+      {filtered.length === 0 ? (
+        <Card className="glass">
           <CardContent className="py-12 text-center">
             <div className="text-4xl mb-4 opacity-20">🏛️</div>
             <p className="font-medium text-muted-foreground">No hay datos disponibles. Los 13F se actualizan trimestralmente.</p>
           </CardContent>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className="w-8">#</TableHead>
-                <TableHead>Ticker</TableHead>
-                <TableHead>Consenso</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead>Concentración</TableHead>
-                <TableHead>Fondos</TableHead>
-                <TableHead className="text-right hidden md:table-cell">Filing</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((row, i) => {
-                const fundsList = row.funds_list.split(' | ')
-                const barWidth = Math.min(100, (row.avg_portfolio_pct / maxPct) * 100)
-                const owned = isOwned(row.ticker || '')
-                const isMulti = row.funds_count >= 2
+        </Card>
+      ) : (
+        <>
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-2 mb-2">
+            {filtered.map((row, i) => {
+              const fundsList = row.funds_list.split(' | ')
+              const owned = isOwned(row.ticker || '')
+              const isMulti = row.funds_count >= 2
+              return (
+                <div
+                  key={`${row.ticker}-${i}`}
+                  data-row-idx={i}
+                  onClick={() => setFocusedIdx(i)}
+                  className={`glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform ${
+                    isMulti ? 'border border-amber-500/20' : ''
+                  } ${i === focusedIdx ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <TickerLogo ticker={row.ticker || ''} size="xs" />
+                      <div>
+                        <div className="font-mono font-bold text-[0.85rem] text-primary leading-tight flex items-center gap-1.5">
+                          {row.ticker || '—'}
+                          <OwnedBadge ticker={row.ticker || ''} />
+                          {owned && <span className="text-[0.5rem] font-bold px-1 py-0 rounded bg-primary/15 text-primary border border-primary/25">CARTERA</span>}
+                        </div>
+                        <div className="text-[0.62rem] text-muted-foreground truncate max-w-[160px]">{row.company_name}</div>
+                      </div>
+                    </div>
+                    <ConsensusBadge count={row.funds_count} />
+                  </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-[0.8rem] tabular-nums">
+                      ${row.total_value_m >= 1000
+                        ? `${(row.total_value_m / 1000).toFixed(1)}B`
+                        : `${row.total_value_m.toLocaleString('en-US', { maximumFractionDigits: 0 })}M`}
+                    </span>
+                    <span className="text-[0.65rem] text-muted-foreground tabular-nums">
+                      {row.avg_portfolio_pct.toFixed(1)}% cartera
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {fundsList.slice(0, 3).map(f => fundBadge(f))}
+                    {fundsList.length > 3 && (
+                      <span className="text-[0.6rem] text-muted-foreground/50">+{fundsList.length - 3}</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
 
-                return (
-                  <TableRow key={`${row.ticker}-${i}`} className={isMulti ? 'bg-amber-500/[0.03]' : ''}>
-                    <TableCell className="text-[0.65rem] text-muted-foreground/40 font-bold tabular-nums">
-                      {i + 1}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <TickerLogo ticker={row.ticker || ''} size="xs" />
-                        <div>
-                          <div className="font-mono font-bold text-[0.8rem] text-primary leading-tight flex items-center gap-1.5">
-                            {row.ticker || '—'}
-                            <OwnedBadge ticker={row.ticker || ''} />
-                            {owned && <span className="text-[0.5rem] font-bold px-1 py-0 rounded bg-primary/15 text-primary border border-primary/25">CARTERA</span>}
-                          </div>
-                          <div className="text-[0.62rem] text-muted-foreground truncate max-w-[140px]">{row.company_name}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <ConsensusBadge count={row.funds_count} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="font-bold text-[0.8rem] tabular-nums">
-                        ${row.total_value_m >= 1000
-                          ? `${(row.total_value_m / 1000).toFixed(1)}B`
-                          : `${row.total_value_m.toLocaleString('en-US', { maximumFractionDigits: 0 })}M`}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 min-w-[100px]">
-                        <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${row.avg_portfolio_pct >= 5 ? 'bg-emerald-500' : row.avg_portfolio_pct >= 2 ? 'bg-emerald-500/70' : 'bg-emerald-500/40'}`}
-                            style={{ width: `${barWidth}%` }}
-                          />
-                        </div>
-                        <span className="text-[0.65rem] text-muted-foreground tabular-nums w-12 text-right">
-                          {row.avg_portfolio_pct.toFixed(1)}%
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {fundsList.map(f => fundBadge(f))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right hidden md:table-cell">
-                      <span className="text-[0.6rem] text-muted-foreground/40 tabular-nums">{row.latest_date}</span>
-                    </TableCell>
+          {/* Desktop table */}
+          <div className="hidden sm:block">
+            <Card className="glass animate-fade-in-up">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/50 hover:bg-transparent">
+                    <TableHead className="w-8">#</TableHead>
+                    <TableHead>Ticker</TableHead>
+                    <TableHead>Consenso</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    {!compact && <TableHead>Concentración</TableHead>}
+                    <TableHead>Fondos</TableHead>
+                    {!compact && <TableHead className="text-right hidden md:table-cell">Filing</TableHead>}
                   </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((row, i) => {
+                    const fundsList = row.funds_list.split(' | ')
+                    const barWidth = Math.min(100, (row.avg_portfolio_pct / maxPct) * 100)
+                    const owned = isOwned(row.ticker || '')
+                    const isMulti = row.funds_count >= 2
+
+                    return (
+                      <TableRow
+                        key={`${row.ticker}-${i}`}
+                        data-row-idx={i}
+                        onClick={() => setFocusedIdx(i)}
+                        className={`cursor-pointer transition-colors ${isMulti ? 'bg-amber-500/[0.03]' : ''} ${i === focusedIdx ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+                      >
+                        <TableCell className="text-[0.65rem] text-muted-foreground/40 font-bold tabular-nums">
+                          {i + 1}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <TickerLogo ticker={row.ticker || ''} size="xs" />
+                            <div>
+                              <div className="font-mono font-bold text-[0.8rem] text-primary leading-tight flex items-center gap-1.5">
+                                {row.ticker || '—'}
+                                <OwnedBadge ticker={row.ticker || ''} />
+                                {owned && <span className="text-[0.5rem] font-bold px-1 py-0 rounded bg-primary/15 text-primary border border-primary/25">CARTERA</span>}
+                              </div>
+                              <div className="text-[0.62rem] text-muted-foreground truncate max-w-[140px]">{row.company_name}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <ConsensusBadge count={row.funds_count} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className="font-bold text-[0.8rem] tabular-nums">
+                            ${row.total_value_m >= 1000
+                              ? `${(row.total_value_m / 1000).toFixed(1)}B`
+                              : `${row.total_value_m.toLocaleString('en-US', { maximumFractionDigits: 0 })}M`}
+                          </span>
+                        </TableCell>
+                        {!compact && (
+                          <TableCell>
+                            <div className="flex items-center gap-2 min-w-[100px]">
+                              <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-clip">
+                                <div
+                                  className={`h-full rounded-full ${row.avg_portfolio_pct >= 5 ? 'bg-emerald-500' : row.avg_portfolio_pct >= 2 ? 'bg-emerald-500/70' : 'bg-emerald-500/40'}`}
+                                  style={{ width: `${barWidth}%` }}
+                                />
+                              </div>
+                              <span className="text-[0.65rem] text-muted-foreground tabular-nums w-12 text-right">
+                                {row.avg_portfolio_pct.toFixed(1)}%
+                              </span>
+                            </div>
+                          </TableCell>
+                        )}
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {compact
+                              ? fundsList.slice(0, 2).map(f => fundBadge(f))
+                              : fundsList.map(f => fundBadge(f))
+                            }
+                            {compact && fundsList.length > 2 && (
+                              <span className="text-[0.6rem] text-muted-foreground/50">+{fundsList.length - 2}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        {!compact && (
+                          <TableCell className="text-right hidden md:table-cell">
+                            <span className="text-[0.6rem] text-muted-foreground/40 tabular-nums">{row.latest_date}</span>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+              <div className="text-[0.6rem] text-muted-foreground/25 text-right px-3 py-1.5 border-t border-border/10">
+                j / k navegar · Esc cerrar
+              </div>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   )
 }

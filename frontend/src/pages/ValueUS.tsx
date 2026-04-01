@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { fetchValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, type ValueOpportunity } from '../api/client'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
 import ScoreBar from '../components/ScoreBar'
+import ScoreRing from '../components/ScoreRing'
 import GradeBadge from '../components/GradeBadge'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -51,23 +52,51 @@ export default function ValueUS() {
   const [expandedRow, setExpandedRow] = useState<ValueOpportunity | null>(null)
   const [thesisText, setThesisText] = useState<string>('')
 
-  // Filters
-  const [filterGrade, setFilterGrade] = useState<string>('ALL')
-  const [filterSector, setFilterSector] = useState<string>('ALL')
-  const [minScore, setMinScore] = useState<string>('55')
+  // URL-synced filters
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const filterGrade = searchParams.get('grade') ?? 'ALL'
+  const filterSector = searchParams.get('sector') ?? 'ALL'
+  const minScore = searchParams.get('score') ?? '55'
+
+  function setFilterGrade(v: string) {
+    setSearchParams(p => {
+      const next = new URLSearchParams(p)
+      v === 'ALL' ? next.delete('grade') : next.set('grade', v)
+      return next
+    }, { replace: true })
+  }
+  function setFilterSector(v: string) {
+    setSearchParams(p => {
+      const next = new URLSearchParams(p)
+      v === 'ALL' ? next.delete('sector') : next.set('sector', v)
+      return next
+    }, { replace: true })
+  }
+  function setMinScore(v: string) {
+    setSearchParams(p => {
+      const next = new URLSearchParams(p)
+      v === '' || v === '55' ? next.delete('score') : next.set('score', v)
+      return next
+    }, { replace: true })
+  }
+
+  // Local-only filters (not URL-synced)
   const [minFcf, setMinFcf] = useState<string>('')
   const [minRr, setMinRr] = useState<string>('')
   const [hideEarnings, setHideEarnings] = useState(false)
   const [hideTraps, setHideTraps] = useState(true)
   const [hideExits, setHideExits] = useState(true)
   const [onlyOwned, setOnlyOwned] = useState(false)
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
   const { isOwned, positions: myPos } = usePersonalPortfolio()
   const [page, setPage] = useState(1)
+  const [focusedIdx, setFocusedIdx] = useState(-1)
   const PAGE_SIZE = 50
 
   const currentThesisTicker = useRef<string | null>(null)
 
-  useEffect(() => { setPage(1) }, [filterGrade, filterSector, minScore, minFcf, minRr, hideEarnings, hideTraps, hideExits, onlyOwned])
+  useEffect(() => { setPage(1); setFocusedIdx(-1) }, [filterGrade, filterSector, minScore, minFcf, minRr, hideEarnings, hideTraps, hideExits, onlyOwned])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -141,7 +170,44 @@ export default function ValueUS() {
   const hiddenByTraps = hideTraps ? Object.values(cerebro.trapMap).filter(t => t.severity === 'HIGH').length : 0
   const hiddenByExits = hideExits ? rows.filter(r => cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT').length : 0
   const hasActiveFilters = filterGrade !== 'ALL' || filterSector !== 'ALL' || minScore !== '55' || minFcf !== '' || minRr !== '' || hideEarnings || hideTraps || hideExits || onlyOwned
-  const resetFilters = () => { setFilterGrade('ALL'); setFilterSector('ALL'); setMinScore('55'); setMinFcf(''); setMinRr(''); setHideEarnings(false); setHideTraps(false); setHideExits(false); setOnlyOwned(false) }
+  const resetFilters = () => {
+    setSearchParams({}, { replace: true })
+    setMinFcf(''); setMinRr(''); setHideEarnings(false); setHideTraps(false); setHideExits(false); setOnlyOwned(false)
+  }
+
+  // Keyboard navigation — j/k/Enter/Escape
+  // useRef para evitar stale closures (paged se recalcula cada render)
+  const pagedRef = useRef(paged)
+  pagedRef.current = paged
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const next = Math.min(i + 1, pagedRef.current.length - 1)
+          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return next
+        })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const prev = Math.max(i - 1, 0)
+          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return prev
+        })
+      } else if (e.key === 'Enter') {
+        setFocusedIdx(i => {
+          if (i >= 0 && pagedRef.current[i]) toggleThesis(pagedRef.current[i].ticker, pagedRef.current[i])
+          return i
+        })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   const fmtFcf = (v?: number) => {
     if (v == null) return <span className="text-muted-foreground">—</span>
@@ -384,6 +450,19 @@ export default function ValueUS() {
             </button>
           )}
 
+          {/* Compact toggle */}
+          <button
+            onClick={() => setCompact(v => !v)}
+            className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${
+              compact
+                ? 'border-primary/60 bg-primary/15 text-primary'
+                : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
+            }`}
+            title="Alternar entre vista compacta y completa"
+          >
+            {compact ? '⊟ Compacta' : '⊞ Completa'}
+          </button>
+
           {/* Result count */}
           <span className="text-[0.65rem] text-muted-foreground/50 ml-auto">
             {filtered.length !== rows.length ? `${filtered.length} / ${rows.length}` : `${rows.length} picks`}
@@ -391,13 +470,62 @@ export default function ValueUS() {
         </div>
       </Card>
 
+      {/* Mobile card view */}
+      <div className="sm:hidden space-y-2 mb-2">
+        {paged.map((d, i) => {
+          const isReady =
+            (d.value_score ?? 0) >= 65 &&
+            ['A', 'B', 'EXCELLENT', 'STRONG'].includes((d.conviction_grade ?? '').toUpperCase()) &&
+            !d.earnings_warning &&
+            (d.days_to_earnings == null || d.days_to_earnings > 7) &&
+            d.cerebro_signal !== 'EXIT' &&
+            d.cerebro_signal !== 'TRAP'
+          return (
+            <div
+              key={d.ticker}
+              onClick={() => { setFocusedIdx(i); toggleThesis(d.ticker, d) }}
+              className="glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform"
+              style={{ animationDelay: `${i * 40}ms` }}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ScoreRing score={d.value_score ?? 0} size="sm" />
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-sm">{d.ticker}</span>
+                      {isReady && <span className="text-[0.55rem] font-bold text-emerald-400">✦</span>}
+                    </div>
+                    <span className="text-[0.65rem] text-muted-foreground truncate max-w-[140px] block">{d.company_name}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <GradeBadge grade={d.conviction_grade} score={d.conviction_score} />
+                  {d.analyst_upside_pct != null && (
+                    <div className={`text-xs font-semibold mt-0.5 ${d.analyst_upside_pct > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {d.analyst_upside_pct > 0 ? '+' : ''}{d.analyst_upside_pct.toFixed(0)}%
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-3 mt-2.5 text-[0.62rem] text-muted-foreground/60">
+                {d.fcf_yield_pct != null && <span>FCF {d.fcf_yield_pct.toFixed(1)}%</span>}
+                {d.risk_reward_ratio != null && <span>R:R {d.risk_reward_ratio.toFixed(1)}x</span>}
+                {d.sector && <span className="truncate">{d.sector}</span>}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block">
       <Card className="glass animate-fade-in-up">
         <Table>
           <TableHeader>
             <TableRow className="border-border/50 hover:bg-transparent">
               <TableHead className={thCls('ticker')} onClick={() => onSort('ticker')}>Ticker</TableHead>
-              <TableHead className={`hidden sm:table-cell ${thCls('company_name')}`} onClick={() => onSort('company_name')}>Empresa</TableHead>
-              <TableHead className={`hidden sm:table-cell ${thCls('current_price')}`} onClick={() => onSort('current_price')}>Precio</TableHead>
+              <TableHead className={compact ? 'hidden' : `hidden sm:table-cell ${thCls('company_name')}`} onClick={() => onSort('company_name')}>Empresa</TableHead>
+              <TableHead className={compact ? 'hidden' : `hidden sm:table-cell ${thCls('current_price')}`} onClick={() => onSort('current_price')}>Precio</TableHead>
               <TableHead className={thCls('value_score')} onClick={() => onSort('value_score')}>
                 Score
                 <InfoTooltip
@@ -418,7 +546,7 @@ export default function ValueUS() {
                   }
                 />
               </TableHead>
-              <TableHead className={`hidden md:table-cell ${thCls('sector')}`} onClick={() => onSort('sector')}>Sector</TableHead>
+              <TableHead className={compact ? 'hidden' : `hidden md:table-cell ${thCls('sector')}`} onClick={() => onSort('sector')}>Sector</TableHead>
               <TableHead className={thCls('analyst_upside_pct')} onClick={() => onSort('analyst_upside_pct')}>
                 Objetivo
                 <InfoTooltip text="Upside según precio objetivo de analistas = (precio objetivo − precio actual) / precio actual. Negativo = analistas ven el valor sobrevalorado." />
@@ -427,11 +555,11 @@ export default function ValueUS() {
                 FCF%
                 <InfoTooltip text="FCF Yield = Free Cash Flow / Market Cap. ≥5% excelente (verde), 3-5% bueno (ámbar), <0% negativo (rojo). Indica cuánto cash genera la empresa respecto a su valor de mercado." />
               </TableHead>
-              <TableHead className={thCls('risk_reward_ratio')} onClick={() => onSort('risk_reward_ratio')}>
+              <TableHead className={compact ? 'hidden' : thCls('risk_reward_ratio')} onClick={() => onSort('risk_reward_ratio')}>
                 R:R
                 <InfoTooltip text="Risk:Reward = upside analista / 8% stop loss estándar. ≥3 excelente (verde), ≥2 bueno, <1 desfavorable (rojo). Mide si el potencial de ganancia justifica el riesgo." />
               </TableHead>
-              <TableHead className="hidden sm:table-cell">
+              <TableHead className={compact ? 'hidden' : 'hidden sm:table-cell'}>
                 Div/BB
                 <InfoTooltip text="Dividend yield del ticker. 'BB' indica que la empresa está recomprando acciones propias activamente (buyback), lo que también retorna capital al accionista." />
               </TableHead>
@@ -442,7 +570,7 @@ export default function ValueUS() {
                   align="right"
                 />
               </TableHead>
-              <TableHead className="hidden sm:table-cell">
+              <TableHead className={compact ? 'hidden' : 'hidden sm:table-cell'}>
                 Téc
                 <InfoTooltip text="Sesgo técnico detectado automáticamente: indicadores de tendencia, RSI, MACD, Bollinger y velas. ▲ Alcista · ▼ Bajista · — Neutro." align="right" />
               </TableHead>
@@ -450,13 +578,34 @@ export default function ValueUS() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paged.map(d => (
-              <TableRow key={d.ticker} className="cursor-pointer" onClick={() => toggleThesis(d.ticker, d)}>
+            {paged.map((d, i) => {
+            const isReady =
+              (d.value_score ?? 0) >= 65 &&
+              ['A', 'B', 'EXCELLENT', 'STRONG'].includes((d.conviction_grade ?? '').toUpperCase()) &&
+              !d.earnings_warning &&
+              (d.days_to_earnings == null || d.days_to_earnings > 7) &&
+              d.cerebro_signal !== 'EXIT' &&
+              d.cerebro_signal !== 'TRAP'
+            return (
+              <TableRow
+                key={d.ticker}
+                data-row-idx={i}
+                className={`cursor-pointer transition-colors ${i === focusedIdx ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+                onClick={() => { setFocusedIdx(i); toggleThesis(d.ticker, d) }}
+              >
                   <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">
                     <div className="flex items-center gap-2">
                       <TickerLogo ticker={d.ticker} size="sm" />
                       <div className="flex items-center gap-1.5">
                         {d.ticker}
+                        {isReady && (
+                          <span
+                            title="Todos los filtros pasan — setup listo para operar"
+                            className="inline-flex items-center gap-0.5 text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 tracking-wide"
+                          >
+                            ✦ LISTO
+                          </span>
+                        )}
                         <OwnedBadge ticker={d.ticker} />
                         {d.proximity_to_52w_high != null && d.proximity_to_52w_high > -5 && (
                           <span className="text-[0.55rem] font-bold px-1 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/25" title={`A ${Math.abs(d.proximity_to_52w_high).toFixed(1)}% del máximo 52 semanas — posible entrada en techo`}>
@@ -484,11 +633,11 @@ export default function ValueUS() {
                       />
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell max-w-[160px] truncate text-muted-foreground text-[0.76rem]">{d.company_name}</TableCell>
-                  <TableCell className="hidden sm:table-cell tabular-nums">${d.current_price?.toFixed(2)}</TableCell>
+                  <TableCell className={compact ? 'hidden' : 'hidden sm:table-cell max-w-[160px] truncate text-muted-foreground text-[0.76rem]'}>{d.company_name}</TableCell>
+                  <TableCell className={compact ? 'hidden' : 'hidden sm:table-cell tabular-nums'}>${d.current_price?.toFixed(2)}</TableCell>
                   <TableCell><ScoreBar score={d.value_score} /></TableCell>
                   <TableCell><GradeBadge grade={d.conviction_grade} score={d.conviction_score} /></TableCell>
-                  <TableCell className="hidden md:table-cell max-w-[120px] truncate text-muted-foreground text-[0.76rem]">{d.sector}</TableCell>
+                  <TableCell className={compact ? 'hidden' : 'hidden md:table-cell max-w-[120px] truncate text-muted-foreground text-[0.76rem]'}>{d.sector}</TableCell>
                   <TableCell className="tabular-nums">
                     {d.target_price_analyst ? `$${d.target_price_analyst.toFixed(0)}` : '—'}
                     {d.analyst_upside_pct != null && (
@@ -498,17 +647,18 @@ export default function ValueUS() {
                     )}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{fmtFcf(d.fcf_yield_pct)}</TableCell>
-                  <TableCell>{fmtRR(d.risk_reward_ratio)}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{fmtDivBB(d)}</TableCell>
+                  <TableCell className={compact ? 'hidden' : ''}>{fmtRR(d.risk_reward_ratio)}</TableCell>
+                  <TableCell className={compact ? 'hidden' : 'hidden sm:table-cell'}>{fmtDivBB(d)}</TableCell>
                   <TableCell>{fmtEarn(d)}</TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell className={compact ? 'hidden' : 'hidden sm:table-cell'}>
                     <TechBiasCell t={techMap[d.ticker]} />
                   </TableCell>
                   <TableCell>
                     <WatchlistButton ticker={d.ticker} company_name={d.company_name} sector={d.sector} current_price={d.current_price} value_score={d.value_score} conviction_grade={d.conviction_grade} analyst_upside_pct={d.analyst_upside_pct} fcf_yield_pct={d.fcf_yield_pct} />
                   </TableCell>
               </TableRow>
-            ))}
+            )
+          })}
           </TableBody>
         </Table>
         {sorted.length === 0 && (
@@ -519,7 +669,13 @@ export default function ValueUS() {
             </p>
           </CardContent>
         )}
+        {sorted.length > 0 && (
+          <div className="hidden sm:block text-[0.6rem] text-muted-foreground/25 text-right px-3 py-1.5 border-t border-border/10">
+            j / k navegar · Enter ver tesis · Esc cerrar
+          </div>
+        )}
       </Card>
+      </div>
 
       <PaginationBar page={page} totalPages={totalPages} onPage={setPage} />
 

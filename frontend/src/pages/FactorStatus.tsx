@@ -73,10 +73,11 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
   )
 }
 
-function FactorCard({ factorKey, factor }: { factorKey: string; factor: FactorDetail }) {
+function FactorCard({ factorKey, factor, staggerIdx }: { factorKey: string; factor: FactorDetail; staggerIdx?: number }) {
   const cfg = FACTOR_CONFIG[factorKey]
   if (!cfg) return null
   const st = STATUS_STYLE[factor.status] ?? STATUS_STYLE['QUIET']
+  const staggerCls = staggerIdx ? `stagger-${staggerIdx} animate-fade-in-up` : ''
 
   const extraStats: Array<{ label: string; value: string | null }> = []
   if (factorKey === 'value') {
@@ -109,7 +110,7 @@ function FactorCard({ factorKey, factor }: { factorKey: string; factor: FactorDe
   }
 
   return (
-    <Card className="glass flex flex-col">
+    <Card className={`glass flex flex-col hover:border-border/60 transition-colors ${staggerCls}`}>
       <CardContent className="p-4 flex flex-col gap-3 h-full">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
@@ -183,8 +184,8 @@ export default function FactorStatus() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+      <div className="animate-fade-in-up">
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 gradient-title">
           <Zap size={22} className="text-primary" />
           Factor Status
         </h1>
@@ -193,17 +194,20 @@ export default function FactorStatus() {
         </p>
       </div>
 
-      {/* Combined score + alignment banner */}
-      <div className={`flex flex-wrap items-center gap-4 px-5 py-4 rounded-xl border ${align.cls}`}>
-        {/* Big score */}
-        <div className="text-center">
-          <div className="text-4xl font-black tabular-nums">{data.combined_score}</div>
-          <div className="text-[0.6rem] uppercase tracking-widest opacity-70 mt-0.5">Score global</div>
-        </div>
-        <div className="w-px h-10 bg-current opacity-20 hidden sm:block" />
-        <div className="flex-1 min-w-[180px]">
-          <div className="text-xs font-bold uppercase tracking-wider mb-1">{align.label}</div>
-          <p className="text-xs opacity-80 leading-relaxed">{data.recommendation}</p>
+      {/* Combined score + alignment hero card */}
+      <div className={`rounded-xl border p-5 animate-fade-in-up ${align.cls}`}>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div className="text-[0.6rem] font-bold uppercase tracking-widest opacity-60 mb-1">Alineación de Factores</div>
+            <div className="text-2xl font-bold">{align.label}</div>
+            <p className="text-sm opacity-70 mt-1 leading-relaxed max-w-md">{data.recommendation}</p>
+          </div>
+          <div className="flex items-end gap-4">
+            <div className="text-center">
+              <div className="text-4xl font-black tabular-nums">{data.combined_score}</div>
+              <div className="text-[0.6rem] uppercase tracking-widest opacity-60 mt-0.5">Score global</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -216,11 +220,11 @@ export default function FactorStatus() {
       )}
 
       {/* Factor grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {factorOrder.map(key => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 animate-fade-in-up">
+        {factorOrder.map((key, idx) => {
           const factor = data.factors[key as keyof typeof data.factors]
           if (!factor) return null
-          return <FactorCard key={key} factorKey={key} factor={factor} />
+          return <FactorCard key={key} factorKey={key} factor={factor} staggerIdx={idx + 1} />
         })}
       </div>
 

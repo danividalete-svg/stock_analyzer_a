@@ -3,6 +3,7 @@ import {
   ArrowLeftRight, PieChart, BarChart2, FlaskConical, Search, LayoutDashboard, Database,
   Ruler, Layers, Star, Radar, CalendarDays, AlertTriangle, Sparkles, Building2, Zap,
   DollarSign, Euro, Wallet, GitCompare, Bell, SlidersHorizontal, CalendarCheck, CandlestickChart, Brain,
+  Gem,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -18,6 +19,7 @@ export const NAV: NavItem[] = [
   { path: '/value-eu',       icon: Euro,            label: 'Value',               color: '#3b82f6', tag: '🇪🇺', keywords: ['value', 'europa', 'europeo'] },
   { path: '/value-global',   icon: Globe,           label: 'Value',               color: '#a855f7', tag: '🌍', keywords: ['value', 'global', 'mundial'] },
   { path: '/screener',       icon: SlidersHorizontal, label: 'Screener',          color: '#8b5cf6', keywords: ['screener', 'filtro', 'filtrar', 'buscar acciones', 'fcf', 'pe', 'roe'] },
+  { path: '/micro-cap',      icon: Gem,               label: 'Micro-Cap',         color: '#f59e0b', keywords: ['micro cap', 'penny', 'small cap', 'micro', 'gemas', 'hidden gems', 'revalorizacion'] },
   { path: '/momentum',       icon: TrendingUp,      label: 'Momentum',            color: '#f97316', keywords: ['momentum', 'tendencia', 'minervini', 'vcp'] },
   { path: '/macro-radar',    icon: Radar,           label: 'Macro Radar',         color: '#e11d48', keywords: ['macro', 'radar', 'economía'] },
   { path: '/macro-calendar', icon: CalendarCheck,   label: 'Calendario Macro',    color: '#f59e0b', keywords: ['calendario', 'macro', 'fed', 'cpi', 'nfp', 'tipos'] },
@@ -33,8 +35,8 @@ export const NAV: NavItem[] = [
   { path: '/mean-reversion', icon: ArrowLeftRight,  label: 'Mean Reversion',      color: '#14b8a6', keywords: ['mean reversion', 'rebote', 'soporte', 'oversold'] },
   { path: '/sectors',        icon: PieChart,        label: 'Rotación Sectorial',  color: '#6366f1', keywords: ['sector', 'rotacion', 'sectorial'] },
   { section: 'Rendimiento' },
-  { path: '/my-portfolio',   icon: Wallet,          label: 'Mi Cartera',          color: '#10b981', keywords: ['mi cartera', 'personal', 'posiciones', 'mis acciones'] },
-  { path: '/portfolio',      icon: BarChart2,       label: 'Portfolio Tracker',   color: '#22c55e', keywords: ['portfolio', 'cartera', 'rendimiento', 'tracker'] },
+  { path: '/my-portfolio',   icon: Wallet,          label: 'Mis Posiciones',      color: '#10b981', keywords: ['mis posiciones', 'personal', 'posiciones', 'mis acciones', 'mi cartera'] },
+  { path: '/portfolio',      icon: BarChart2,       label: 'Signal Tracker',      color: '#22c55e', keywords: ['signal tracker', 'señales', 'rendimiento', 'tracker', 'portfolio'] },
   { path: '/backtest',       icon: FlaskConical,    label: 'Backtest',            color: '#a78bfa', keywords: ['backtest', 'historico', 'simulacion'] },
   { section: 'Análisis' },
   { path: '/industry-groups', icon: Layers,         label: 'Industry Groups',     color: '#0ea5e9', keywords: ['industry', 'grupos', 'industria', 'rs'] },

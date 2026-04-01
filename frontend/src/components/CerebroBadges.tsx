@@ -20,7 +20,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
       {/* EXIT — highest priority, most alarming */}
       {exitInfo && (
         <span
-          title={`Señal de salida ${exitInfo.severity}: ${exitInfo.reasons.slice(0, 2).join(' · ')}`}
+          title={`Cerebro recomienda SALIDA de posición (${exitInfo.severity}): ${exitInfo.reasons.slice(0, 2).join(' · ')}`}
           className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide animate-pulse ${
             exitInfo.severity === 'HIGH'
               ? 'bg-red-500/25 text-red-300 border-red-500/50'
@@ -34,7 +34,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
       {/* QUALITY DECAY — early warning before trap */}
       {decayInfo && (
         <span
-          title={`Deterioro de calidad ${decayInfo.severity}: ${decayInfo.flags.slice(0, 2).join(' · ')}`}
+          title={`Deterioro de calidad fundamental (${decayInfo.severity}): ${decayInfo.flags.slice(0, 2).join(' · ')}`}
           className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide ${
             decayInfo.severity === 'HIGH'
               ? 'bg-orange-500/20 text-orange-400 border-orange-500/35'
@@ -48,7 +48,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
       {/* TRAP — value trap warning */}
       {trapInfo && (
         <span
-          title={`Value trap (${trapInfo.trap_score}/10): ${trapInfo.flags.slice(0, 2).join(' · ')}`}
+          title={`Cerebro detecta señal TRAMPA — evitar entrada (score ${trapInfo.trap_score}/10): ${trapInfo.flags.slice(0, 2).join(' · ')}`}
           className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide ${
             trapInfo.severity === 'HIGH'
               ? 'bg-red-500/20 text-red-400 border-red-500/35'
@@ -62,7 +62,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
       {/* SQUEEZE — short squeeze setup */}
       {squeezeInfo && (
         <span
-          title={`Short squeeze ${squeezeInfo.severity}: ${squeezeInfo.short_pct_float.toFixed(1)}% short · ${squeezeInfo.flags.slice(0, 2).join(' · ')}`}
+          title={`Potencial SHORT SQUEEZE detectado (${squeezeInfo.severity}): ${squeezeInfo.short_pct_float.toFixed(1)}% short · ${squeezeInfo.flags.slice(0, 2).join(' · ')}`}
           className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide ${
             squeezeInfo.severity === 'HIGH'
               ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
@@ -76,7 +76,7 @@ export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, pio
       {/* SMART MONEY — hedge funds + insiders buying */}
       {smInfo && (
         <span
-          title={`Smart Money: ${smInfo.n_hedge_funds} HF + ${smInfo.n_insiders} insiders · conv ${smInfo.convergence_score}`}
+          title={`Smart Money convergente: ${smInfo.n_hedge_funds} hedge funds + ${smInfo.n_insiders} insiders comprando · conv ${smInfo.convergence_score}`}
           className="inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide bg-purple-500/20 text-purple-300 border-purple-500/35"
         >
           ◆ SMART MONEY

@@ -62,12 +62,19 @@ export default function TopBar({ onMenuClick, onOpenCmd }: Readonly<Props>) {
         <button
           type="button"
           onClick={onOpenCmd}
-          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 bg-card/60 hover:bg-card/90 hover:border-border transition-all text-muted-foreground/60 hover:text-muted-foreground text-xs"
+          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all text-muted-foreground/70 hover:text-foreground text-xs shadow-sm"
           aria-label="Abrir paleta de comandos"
         >
-          <Search size={11} strokeWidth={1.75} />
-          <span className="text-[0.65rem]">Buscar…</span>
-          <kbd className="ml-1 text-[0.55rem] font-mono opacity-60">⌘K</kbd>
+          <Search size={12} strokeWidth={1.75} className="text-primary/70" />
+          <span className="text-[0.7rem] font-medium">Buscar... ⌘K</span>
+        </button>
+        <button
+          type="button"
+          onClick={onOpenCmd}
+          className="sm:hidden flex items-center justify-center w-8 h-8 rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-all"
+          aria-label="Abrir paleta de comandos"
+        >
+          <Search size={14} strokeWidth={1.75} className="text-primary/70" />
         </button>
         <span className="hidden sm:flex items-center gap-1.5 text-[0.67rem] text-muted-foreground">
           <span className="api-dot" />{' '}Pipeline activo

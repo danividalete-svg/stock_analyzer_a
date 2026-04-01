@@ -376,6 +376,8 @@ export default function Portfolio() {
           return 0
         })
 
+        const sigPaged = sigSorted.slice(0, sigVisible)
+
         return (
           <div className="mt-6">
             <div className="flex items-center gap-3 mb-3">
@@ -394,67 +396,106 @@ export default function Portfolio() {
               </div>
               <span className="text-xs text-muted-foreground ml-auto">{sigFiltered.length} señales</span>
             </div>
-            <Card className="glass animate-fade-in-up">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-border/50 hover:bg-transparent">
-                    <TableHead className={thS('ticker')} onClick={() => onSigSort('ticker')}>Ticker</TableHead>
-                    <TableHead className={thS('strategy')} onClick={() => onSigSort('strategy')}>Estrategia</TableHead>
-                    <TableHead className={thS('signal_date')} onClick={() => onSigSort('signal_date')}>Fecha</TableHead>
-                    <TableHead className={thS('signal_price')} onClick={() => onSigSort('signal_price')}>Precio Entrada</TableHead>
-                    <TableHead className={thS('value_score')} onClick={() => onSigSort('value_score')}>Score</TableHead>
-                    <TableHead className={thS('return_7d')} onClick={() => onSigSort('return_7d')}>Ret. 7d</TableHead>
-                    <TableHead className={thS('return_14d')} onClick={() => onSigSort('return_14d')}>Ret. 14d</TableHead>
-                    <TableHead className={thS('return_30d')} onClick={() => onSigSort('return_30d')}>Ret. 30d</TableHead>
-                    <TableHead className={thS('max_drawdown_30d')} onClick={() => onSigSort('max_drawdown_30d')}>Max DD</TableHead>
-                    <TableHead className={thS('sector')} onClick={() => onSigSort('sector')}>Sector</TableHead>
-                    <TableHead>Estado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sigSorted.slice(0, sigVisible).map((s, i) => (
-                    <TableRow key={`${s.ticker}_${i}`}>
-                      <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">
+
+            {/* Mobile cards */}
+            <div className="sm:hidden space-y-2 mb-2">
+              {sigPaged.map((r) => (
+                <div key={`${r.ticker}-${r.signal_date}`} className="glass rounded-2xl p-3.5 cursor-default">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TickerLogo ticker={r.ticker} size="xs" />
+                      <div>
                         <div className="flex items-center gap-1.5">
-                          <TickerLogo ticker={s.ticker} size="xs" />
-                          <span>{s.ticker}</span>
+                          <span className="font-mono font-bold text-sm">{r.ticker}</span>
+                          <Badge variant={stratVariant(r.strategy)}>{stratLabel(r.strategy)}</Badge>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={stratVariant(s.strategy)} className="text-[0.6rem]">
-                          {stratLabel(s.strategy)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-[0.75rem] text-muted-foreground tabular-nums">{s.signal_date ?? '—'}</TableCell>
-                      <TableCell className="text-[0.8rem] tabular-nums">
-                        {s.signal_price != null ? `$${s.signal_price.toFixed(2)}` : '—'}
-                      </TableCell>
-                      <TableCell className="tabular-nums text-[0.8rem] text-primary">
-                        {s.value_score != null ? s.value_score.toFixed(0) : '—'}
-                      </TableCell>
-                      <TableCell className={`tabular-nums text-[0.8rem] font-semibold ${retColor(s.return_7d)}`}>
-                        {s.return_7d != null ? `${s.return_7d >= 0 ? '+' : ''}${s.return_7d.toFixed(2)}%` : '—'}
-                      </TableCell>
-                      <TableCell className={`tabular-nums text-[0.8rem] font-semibold ${retColor(s.return_14d)}`}>
-                        {s.return_14d != null ? `${s.return_14d >= 0 ? '+' : ''}${s.return_14d.toFixed(2)}%` : '—'}
-                      </TableCell>
-                      <TableCell className={`tabular-nums text-[0.8rem] font-semibold ${retColor(s.return_30d)}`}>
-                        {s.return_30d != null ? `${s.return_30d >= 0 ? '+' : ''}${s.return_30d.toFixed(2)}%` : '—'}
-                      </TableCell>
-                      <TableCell className="tabular-nums text-[0.8rem] text-red-400">
-                        {s.max_drawdown_30d != null ? `${s.max_drawdown_30d.toFixed(2)}%` : '—'}
-                      </TableCell>
-                      <TableCell className="text-[0.75rem] text-muted-foreground max-w-[110px] truncate">{s.sector ?? '—'}</TableCell>
-                      <TableCell>
-                        <Badge variant={s.status === 'ACTIVE' ? 'green' : 'gray'} className="text-[0.6rem]">
-                          {s.status ?? 'ACTIVE'}
-                        </Badge>
-                      </TableCell>
+                        <span className="text-[0.6rem] text-muted-foreground">{r.signal_date?.slice(0, 10)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {r.return_14d != null && (
+                        <div className={`text-sm font-bold ${r.return_14d > 0 ? 'text-emerald-400' : r.return_14d < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                          {r.return_14d > 0 ? '+' : ''}{r.return_14d.toFixed(1)}%
+                        </div>
+                      )}
+                      {r.status && <div className="text-[0.6rem] text-muted-foreground">{r.status}</div>}
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-2 text-[0.62rem] text-muted-foreground/60">
+                    {r.value_score != null && <span>Score {r.value_score.toFixed(0)}</span>}
+                    {r.return_7d != null && <span>7d: {r.return_7d > 0 ? '+' : ''}{r.return_7d.toFixed(1)}%</span>}
+                    {r.return_30d != null && <span>30d: {r.return_30d > 0 ? '+' : ''}{r.return_30d.toFixed(1)}%</span>}
+                    {r.sector && <span className="truncate">{r.sector}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <Card className="glass animate-fade-in-up">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border/50 hover:bg-transparent">
+                      <TableHead className={thS('ticker')} onClick={() => onSigSort('ticker')}>Ticker</TableHead>
+                      <TableHead className={thS('strategy')} onClick={() => onSigSort('strategy')}>Estrategia</TableHead>
+                      <TableHead className={thS('signal_date')} onClick={() => onSigSort('signal_date')}>Fecha</TableHead>
+                      <TableHead className={thS('signal_price')} onClick={() => onSigSort('signal_price')}>Precio Entrada</TableHead>
+                      <TableHead className={thS('value_score')} onClick={() => onSigSort('value_score')}>Score</TableHead>
+                      <TableHead className={thS('return_7d')} onClick={() => onSigSort('return_7d')}>Ret. 7d</TableHead>
+                      <TableHead className={thS('return_14d')} onClick={() => onSigSort('return_14d')}>Ret. 14d</TableHead>
+                      <TableHead className={thS('return_30d')} onClick={() => onSigSort('return_30d')}>Ret. 30d</TableHead>
+                      <TableHead className={thS('max_drawdown_30d')} onClick={() => onSigSort('max_drawdown_30d')}>Max DD</TableHead>
+                      <TableHead className={thS('sector')} onClick={() => onSigSort('sector')}>Sector</TableHead>
+                      <TableHead>Estado</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {sigPaged.map((s, i) => (
+                      <TableRow key={`${s.ticker}_${i}`}>
+                        <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">
+                          <div className="flex items-center gap-1.5">
+                            <TickerLogo ticker={s.ticker} size="xs" />
+                            <span>{s.ticker}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={stratVariant(s.strategy)} className="text-[0.6rem]">
+                            {stratLabel(s.strategy)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-[0.75rem] text-muted-foreground tabular-nums">{s.signal_date ?? '—'}</TableCell>
+                        <TableCell className="text-[0.8rem] tabular-nums">
+                          {s.signal_price != null ? `$${s.signal_price.toFixed(2)}` : '—'}
+                        </TableCell>
+                        <TableCell className="tabular-nums text-[0.8rem] text-primary">
+                          {s.value_score != null ? s.value_score.toFixed(0) : '—'}
+                        </TableCell>
+                        <TableCell className={`tabular-nums text-[0.8rem] font-semibold ${retColor(s.return_7d)}`}>
+                          {s.return_7d != null ? `${s.return_7d >= 0 ? '+' : ''}${s.return_7d.toFixed(2)}%` : '—'}
+                        </TableCell>
+                        <TableCell className={`tabular-nums text-[0.8rem] font-semibold ${retColor(s.return_14d)}`}>
+                          {s.return_14d != null ? `${s.return_14d >= 0 ? '+' : ''}${s.return_14d.toFixed(2)}%` : '—'}
+                        </TableCell>
+                        <TableCell className={`tabular-nums text-[0.8rem] font-semibold ${retColor(s.return_30d)}`}>
+                          {s.return_30d != null ? `${s.return_30d >= 0 ? '+' : ''}${s.return_30d.toFixed(2)}%` : '—'}
+                        </TableCell>
+                        <TableCell className="tabular-nums text-[0.8rem] text-red-400">
+                          {s.max_drawdown_30d != null ? `${s.max_drawdown_30d.toFixed(2)}%` : '—'}
+                        </TableCell>
+                        <TableCell className="text-[0.75rem] text-muted-foreground max-w-[110px] truncate">{s.sector ?? '—'}</TableCell>
+                        <TableCell>
+                          <Badge variant={s.status === 'ACTIVE' ? 'green' : 'gray'} className="text-[0.6rem]">
+                            {s.status ?? 'ACTIVE'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </div>
+
             {sigVisible < sigFiltered.length && (
               <div className="mt-3 flex justify-center">
                 <button

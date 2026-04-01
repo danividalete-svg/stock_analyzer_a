@@ -35,9 +35,12 @@ function TrapCard({ entry }: { entry: DividendTrapEntry }) {
   const cfg = RISK_CONFIG[entry.risk_level]
 
   return (
-    <Card className={`glass border ${cfg.bg} transition-all`}>
+    <Card className={`glass border ${cfg.bg} hover:shadow-lg transition-all`}>
       <CardContent className="p-4">
-        <div className="flex items-start gap-3 flex-wrap">
+        <div
+          className="flex items-start gap-3 flex-wrap cursor-pointer active:scale-[0.98] transition-transform"
+          onClick={() => setExpanded(!expanded)}
+        >
           {/* Ticker */}
           <div className="flex items-center gap-1.5 min-w-[72px]">
             <TickerLogo ticker={entry.ticker} size="xs" />
@@ -86,12 +89,9 @@ function TrapCard({ entry }: { entry: DividendTrapEntry }) {
           </div>
 
           {/* Expand button */}
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-muted-foreground/50 hover:text-foreground transition-colors"
-          >
+          <div className="w-8 h-8 rounded-full bg-muted/20 flex items-center justify-center hover:bg-muted/40 transition-colors flex-shrink-0">
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
+          </div>
         </div>
 
         {/* Reasons */}
@@ -112,7 +112,7 @@ function TrapCard({ entry }: { entry: DividendTrapEntry }) {
 
 function SafeCard({ entry }: { entry: DividendTrapEntry }) {
   return (
-    <Card className="glass border border-emerald-500/15 bg-emerald-500/5">
+    <Card className="glass border border-emerald-500/15 bg-emerald-500/5 hover:border-emerald-500/30 hover:shadow-lg transition-all">
       <CardContent className="p-3">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="min-w-[64px]">
@@ -198,11 +198,11 @@ export default function DividendTraps() {
   return (
     <div className="max-w-5xl mx-auto space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 animate-fade-in-up">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Dividend Trap Radar</h1>
+          <h1 className="text-2xl font-bold gradient-title mb-1">Dividend Trap Radar</h1>
           <p className="text-sm text-muted-foreground">
-            Detecta dividendos en riesgo de recorte antes de que el mercado los descuente
+            Análisis de sostenibilidad de dividendos · detecta trampas antes de que recorten
           </p>
         </div>
         <span className="text-xs text-muted-foreground self-start">{data.date} · {data.total_scanned} tickers analizados</span>
@@ -210,7 +210,7 @@ export default function DividendTraps() {
 
       {/* Portfolio alert */}
       {myPositions.length > 0 && (myTraps.length > 0 || mySafe.length > 0) && (
-        <Card className={`glass border ${myTraps.length > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-emerald-500/30 bg-emerald-500/5'}`}>
+        <Card className={`glass border ${myTraps.length > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-primary/20 bg-primary/3'}`}>
           <CardContent className="p-4">
             <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-3 flex items-center gap-2">
               <Briefcase size={14} />
@@ -316,34 +316,34 @@ export default function DividendTraps() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setTab('traps')}
-          className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all ${tab === 'traps' ? 'bg-red-500/15 border-red-500/30 text-red-400' : 'bg-card/40 border-border/40 text-muted-foreground hover:text-foreground'}`}
-        >
-          Trampas ({data.traps.length})
-        </button>
-        <button
-          onClick={() => setTab('safe')}
-          className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all ${tab === 'safe' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : 'bg-card/40 border-border/40 text-muted-foreground hover:text-foreground'}`}
-        >
-          Seguros ({data.safe_count})
-        </button>
-        <button
-          onClick={() => { setTab('timing'); loadDivCalendar() }}
-          className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all flex items-center gap-1.5 ${tab === 'timing' ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'bg-card/40 border-border/40 text-muted-foreground hover:text-foreground'}`}
-        >
-          <CalendarClock size={13} />
-          Timing {divCalLoaded ? `(${divCalendar.length})` : ''}
-        </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 p-1 bg-muted/20 rounded-xl border border-border/30 w-fit">
+          {([
+            { key: 'traps', label: `⚠ Trampas (${data.traps.length})` },
+            { key: 'safe',  label: `✓ Seguros (${data.safe_count})` },
+            { key: 'timing', label: `📅 Timing${divCalLoaded ? ` (${divCalendar.length})` : ''}` },
+          ] as { key: Tab; label: string }[]).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => { setTab(key); if (key === 'timing') loadDivCalendar() }}
+              className={`text-xs font-semibold px-4 py-1.5 rounded-lg transition-all ${
+                tab === key
+                  ? 'bg-background shadow-sm text-foreground border border-border/40'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         {tab === 'traps' && (
-          <div className="flex gap-1 ml-2">
+          <div className="flex gap-1">
             {(['ALL', 'HIGH', 'MEDIUM'] as const).map(r => (
               <button
                 key={r}
                 onClick={() => setRiskFilter(r)}
-                className={`px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all ${riskFilter === r ? 'bg-primary/15 border-primary/30 text-primary' : 'bg-card/40 border-border/40 text-muted-foreground hover:text-foreground'}`}
+                className={`text-[0.68rem] px-2.5 py-0.5 rounded-full border transition-colors ${riskFilter === r ? 'border-primary/60 bg-primary/15 text-primary' : 'border-border/40 text-muted-foreground hover:text-foreground'}`}
               >
                 {r === 'ALL' ? 'Todos' : r}
               </button>
@@ -352,12 +352,38 @@ export default function DividendTraps() {
         )}
       </div>
 
+      {/* Tab summary row */}
+      {tab === 'traps' && (
+        <p className="text-xs text-muted-foreground">
+          {data.traps.length} trampas detectadas · <span className="text-red-400 font-semibold">{data.traps_high} ALTO riesgo</span> · <span className="text-orange-400 font-semibold">{data.traps_medium} MEDIO</span>
+        </p>
+      )}
+      {tab === 'safe' && (
+        <p className="text-xs text-muted-foreground">
+          {data.safe_count} dividendos sostenibles
+          {data.safe_dividends.length > 0 && data.safe_dividends.some(s => s.dividend_yield != null) && (
+            <> · dividendo medio <span className="text-emerald-400 font-semibold">
+              {(data.safe_dividends.reduce((acc, s) => acc + (s.dividend_yield ?? 0), 0) / data.safe_dividends.filter(s => s.dividend_yield != null).length).toFixed(1)}%
+            </span></>
+          )}
+        </p>
+      )}
+      {tab === 'timing' && divCalLoaded && (
+        <p className="text-xs text-muted-foreground">
+          Próximos <span className="text-blue-400 font-semibold">{divCalendar.filter(e => e.days_to_exdiv <= 30).length}</span> dividendos en 30 días
+        </p>
+      )}
+
       {/* List */}
       {tab === 'traps' ? (
         <>
           {filteredTraps.length === 0 ? (
             <Card className="glass border border-border/40">
-              <CardContent className="p-8 text-center text-sm text-muted-foreground">Sin trampas con los filtros actuales</CardContent>
+              <CardContent className="p-10 text-center">
+                <ShieldCheck size={32} className="text-emerald-400/40 mx-auto mb-3" />
+                <p className="text-sm font-medium text-foreground/70">Sin trampas con los filtros actuales</p>
+                <p className="text-xs text-muted-foreground mt-1">Prueba cambiando el filtro de riesgo</p>
+              </CardContent>
             </Card>
           ) : (
             <div className="space-y-2">
@@ -368,11 +394,23 @@ export default function DividendTraps() {
           )}
         </>
       ) : tab === 'safe' ? (
-        <div className="space-y-2">
-          {(filteredTraps as DividendTrapEntry[]).map(entry => (
-            <SafeCard key={entry.ticker} entry={entry} />
-          ))}
-        </div>
+        <>
+          {data.safe_dividends.length === 0 ? (
+            <Card className="glass border border-border/40">
+              <CardContent className="p-10 text-center">
+                <AlertTriangle size={32} className="text-orange-400/40 mx-auto mb-3" />
+                <p className="text-sm font-medium text-foreground/70">No hay dividendos calificados como seguros</p>
+                <p className="text-xs text-muted-foreground mt-1">El escáner no encontró dividendos con suficiente cobertura de FCF</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {(filteredTraps as DividendTrapEntry[]).map(entry => (
+                <SafeCard key={entry.ticker} entry={entry} />
+              ))}
+            </div>
+          )}
+        </>
       ) : (
         /* Dividend Timing tab */
         <div className="space-y-4">
@@ -388,8 +426,10 @@ export default function DividendTraps() {
 
           {divCalLoaded && divCalendar.length === 0 && (
             <Card className="glass border border-border/40">
-              <CardContent className="p-8 text-center text-sm text-muted-foreground">
-                No hay ex-dividend dates en los proximos 45 dias para acciones de calidad
+              <CardContent className="p-10 text-center">
+                <CalendarClock size={32} className="text-blue-400/40 mx-auto mb-3" />
+                <p className="text-sm font-medium text-foreground/70">Sin ex-dividend dates próximos</p>
+                <p className="text-xs text-muted-foreground mt-1">No hay acciones de calidad con ex-div en los próximos 45 días</p>
               </CardContent>
             </Card>
           )}
@@ -401,7 +441,7 @@ export default function DividendTraps() {
             const later = divCalendar.filter(e => e.days_to_exdiv > 21)
 
             const EventCard = ({ event }: { event: DividendCalendarEvent }) => (
-              <Card className={`glass border transition-all ${isOwned(event.ticker) ? 'border-primary/30 bg-primary/5' : 'border-border/30'}`}>
+              <Card className={`glass border transition-all hover:shadow-lg active:scale-[0.98] cursor-pointer ${isOwned(event.ticker) ? 'border-primary/30 bg-primary/5' : 'border-border/30'}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-1.5 min-w-[72px]">

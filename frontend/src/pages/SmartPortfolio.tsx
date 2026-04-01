@@ -47,7 +47,7 @@ function PickCard({ pick, rank }: { pick: SmartPortfolioPick; rank: number }) {
   const scoreBg = score >= 75 ? 'bg-emerald-500/10 border-emerald-500/30' : score >= 60 ? 'bg-blue-500/10 border-blue-500/30' : 'bg-yellow-500/10 border-yellow-500/30'
 
   return (
-    <div className="group relative border border-border/20 rounded-lg p-4 hover:border-primary/30 hover:bg-primary/3 transition-all">
+    <div className="group relative border border-border/20 rounded-lg p-4 hover:border-primary/30 hover:bg-primary/3 active:scale-[0.98] transition-all cursor-pointer" style={{ animationDelay: `${rank * 60}ms` }}>
       {/* Rank badge */}
       <div className="absolute -top-2.5 -left-2 w-6 h-6 rounded-md bg-muted border border-border/40 flex items-center justify-center">
         <span className="text-[0.6rem] font-bold text-muted-foreground">#{rank}</span>
@@ -145,7 +145,7 @@ export default function SmartPortfolio() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Sparkles size={18} className="text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Smart Portfolio</h1>
+            <h1 className="text-2xl font-bold gradient-title">Smart Portfolio</h1>
             <span className={`text-xs font-bold px-2 py-0.5 rounded border ${regimeCls}`}>
               {data.regime_name}
             </span>

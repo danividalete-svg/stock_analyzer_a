@@ -33,6 +33,8 @@ PRINCIPIO: null si no hay dato, nunca 50 inventado.
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import pandas as pd
 import json
 import jwt as pyjwt
@@ -40,16 +42,30 @@ from jwt import PyJWKClient
 import time
 import re
 import os
+import logging
 from pathlib import Path
 from datetime import datetime
 
+_logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
-CORS(app, origins=[
-    "https://tantancansado.github.io",
-    "http://localhost:5173",
-    "http://localhost:4173",
-    "http://127.0.0.1:5173",
-])
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["500 per day", "100 per hour"],
+    storage_uri="memory://"
+)
+
+import os as _os
+_CORS_ORIGINS = ["https://tantancansado.github.io"]
+if _os.environ.get('FLASK_ENV') != 'production' or _os.environ.get('RAILWAY_ENVIRONMENT') is None:
+    _CORS_ORIGINS += [
+        "http://localhost:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:5173",
+    ]
+CORS(app, origins=_CORS_ORIGINS)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # JWT AUTH (Supabase — JWKS, works with ECC P-256 and legacy HS256)
@@ -202,11 +218,22 @@ def _parse_health_earnings(rfund):
     }
     if rfund is None:
         return result
+    import ast as _ast
     try:
         hd = rfund.get('health_details')
         if hd is not None and not (isinstance(hd, float) and pd.isna(hd)):
-            hd_str = str(hd).replace("'", '"')
-            hd_dict = json.loads(hd_str)
+            if isinstance(hd, str):
+                try:
+                    hd_dict = _ast.literal_eval(hd)
+                except (ValueError, SyntaxError):
+                    try:
+                        hd_dict = json.loads(hd)
+                    except Exception:
+                        hd_dict = {}
+            elif isinstance(hd, dict):
+                hd_dict = hd
+            else:
+                hd_dict = {}
             result["current_ratio"]        = _sf(hd_dict.get('current_ratio'))
             result["operating_margin_pct"] = _sf(hd_dict.get('operating_margin_pct'))
             result["debt_to_equity_fund"]  = _sf(hd_dict.get('debt_to_equity'))
@@ -215,8 +242,18 @@ def _parse_health_earnings(rfund):
     try:
         ed = rfund.get('earnings_details')
         if ed is not None and not (isinstance(ed, float) and pd.isna(ed)):
-            ed_str = str(ed).replace("'", '"')
-            ed_dict = json.loads(ed_str)
+            if isinstance(ed, str):
+                try:
+                    ed_dict = _ast.literal_eval(ed)
+                except (ValueError, SyntaxError):
+                    try:
+                        ed_dict = json.loads(ed)
+                    except Exception:
+                        ed_dict = {}
+            elif isinstance(ed, dict):
+                ed_dict = ed
+            else:
+                ed_dict = {}
             result["profit_margin_pct"] = _sf(ed_dict.get('profit_margin_pct'))
     except Exception:
         pass
@@ -1003,6 +1040,7 @@ def tickers():
 
 
 @app.route('/api/analyze/<ticker>')
+@limiter.limit("20 per minute")
 def analyze(ticker):
     ticker = ticker.upper().strip()
     if not _validate_ticker(ticker):
@@ -1029,8 +1067,7 @@ def analyze(ticker):
         return jsonify(result)
 
     except Exception as e:
-        import traceback
-        print(f"ERROR en /api/analyze/{ticker}: {e}\n{traceback.format_exc()}")
+        _logger.exception("Error procesando %s: %s", ticker, e)
         return jsonify({
             "error": "Internal server error",
             "ticker": ticker,
@@ -1109,6 +1146,13 @@ def options_flow():
     # Fallback to CSV
     return _csv_to_json_response([
         (DOCS / 'options_flow.csv', 'csv'),
+    ])
+
+
+@app.route('/api/micro-cap')
+def micro_cap():
+    return _csv_to_json_response([
+        (DOCS / 'micro_cap_opportunities.csv', 'csv'),
     ])
 
 
@@ -2311,11 +2355,14 @@ def search_tickers():
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.route('/api/analyze-personal-portfolio', methods=['POST'])
+@limiter.limit("10 per minute")
 def analyze_personal_portfolio():
     """Analyze user's personal portfolio positions with yfinance + AI."""
     import os as _os, json as _json, re as _re
 
-    data = request.get_json(force=True) or {}
+    if request.content_length and request.content_length > 512_000:  # 512KB max
+        return jsonify({'error': 'Request too large'}), 413
+    data = request.get_json(force=True, silent=True) or {}
     positions = data.get('positions', [])
     if not positions:
         return jsonify({'error': 'No positions provided'}), 400

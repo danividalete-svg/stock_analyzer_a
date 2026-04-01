@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { SlidersHorizontal, TrendingUp, TrendingDown, ExternalLink } from 'lucide-react'
 import {
@@ -10,6 +10,7 @@ import {
 import Loading from '../components/Loading'
 import GradeBadge from '../components/GradeBadge'
 import ScoreBar from '../components/ScoreBar'
+import ScoreRing from '../components/ScoreRing'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
 
@@ -29,17 +30,17 @@ const n1   = (v: number | null | undefined) => v != null ? v.toFixed(1)        :
 
 // ── Column config ─────────────────────────────────────────────────────────────
 
-interface Col { key: SortKey; label: string; fmt: (r: Row) => string; cls?: (r: Row) => string }
+interface Col { key: SortKey; label: string; fmt: (r: Row) => string; cls?: (r: Row) => string; compact?: boolean }
 
 const COLS: Col[] = [
-  { key: 'value_score',        label: 'Score',   fmt: r => n1(r.value_score),              cls: () => '' },
-  { key: 'current_price',      label: 'Precio',  fmt: r => r.current_price != null ? `$${r.current_price.toFixed(2)}` : '—' },
-  { key: 'analyst_upside_pct', label: 'Upside',  fmt: r => pct(r.analyst_upside_pct),      cls: r => (r.analyst_upside_pct ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400' },
-  { key: 'fcf_yield_pct',      label: 'FCF%',    fmt: r => pct(r.fcf_yield_pct),           cls: r => (r.fcf_yield_pct ?? 0) >= 5 ? 'text-emerald-400' : '' },
-  { key: 'risk_reward_ratio',  label: 'R:R',     fmt: r => x(r.risk_reward_ratio),         cls: r => (r.risk_reward_ratio ?? 0) >= 2 ? 'text-emerald-400' : '' },
-  { key: 'piotroski_score',    label: 'Piotroski',fmt: r => r.piotroski_score != null ? `${r.piotroski_score}/9` : '—', cls: r => (r.piotroski_score ?? 0) >= 6 ? 'text-emerald-400' : (r.piotroski_score ?? 9) <= 3 ? 'text-red-400' : '' },
-  { key: 'ebit_ev_yield',      label: 'EBIT/EV', fmt: r => pct(r.ebit_ev_yield) },
-  { key: 'dividend_yield_pct', label: 'Div%',    fmt: r => r.dividend_yield_pct ? pct(r.dividend_yield_pct) : '—' },
+  { key: 'value_score',        label: 'Score',    fmt: r => n1(r.value_score),              cls: () => '' },
+  { key: 'current_price',      label: 'Precio',   fmt: r => r.current_price != null ? `$${r.current_price.toFixed(2)}` : '—' },
+  { key: 'analyst_upside_pct', label: 'Upside',   fmt: r => pct(r.analyst_upside_pct),      cls: r => (r.analyst_upside_pct ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400' },
+  { key: 'fcf_yield_pct',      label: 'FCF%',     fmt: r => pct(r.fcf_yield_pct),           cls: r => (r.fcf_yield_pct ?? 0) >= 5 ? 'text-emerald-400' : '' },
+  { key: 'risk_reward_ratio',  label: 'R:R',      fmt: r => x(r.risk_reward_ratio),         cls: r => (r.risk_reward_ratio ?? 0) >= 2 ? 'text-emerald-400' : '' },
+  { key: 'piotroski_score',    label: 'Piotroski', fmt: r => r.piotroski_score != null ? `${r.piotroski_score}/9` : '—', cls: r => (r.piotroski_score ?? 0) >= 6 ? 'text-emerald-400' : (r.piotroski_score ?? 9) <= 3 ? 'text-red-400' : '', compact: true },
+  { key: 'ebit_ev_yield',      label: 'EBIT/EV',  fmt: r => pct(r.ebit_ev_yield), compact: true },
+  { key: 'dividend_yield_pct', label: 'Div%',     fmt: r => r.dividend_yield_pct ? pct(r.dividend_yield_pct) : '—', compact: true },
 ]
 
 // ── Sorter header ─────────────────────────────────────────────────────────────
@@ -80,6 +81,10 @@ export default function Screener() {
   // Sort
   const [sortKey, setSortKey] = useState<SortKey>('value_score')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  // Keyboard nav + compact
+  const [focusedIdx, setFocusedIdx] = useState(-1)
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
 
   // Load all markets
   useEffect(() => {
@@ -129,6 +134,43 @@ export default function Screener() {
     })
   }, [filtered, sortKey, sortDir])
 
+  const paged = sorted.slice(0, 100)
+  const pagedRef = useRef(paged)
+  pagedRef.current = paged
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const next = Math.min(i + 1, pagedRef.current.length - 1)
+          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return next
+        })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const prev = Math.max(i - 1, 0)
+          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return prev
+        })
+      } else if (e.key === 'Enter') {
+        setFocusedIdx(i => {
+          if (i >= 0 && pagedRef.current[i]) {
+            const r = pagedRef.current[i]
+            navigate(`/search?q=${r.ticker}`)
+          }
+          return i
+        })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [navigate])
+
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortKey(key); setSortDir('desc') }
@@ -143,6 +185,8 @@ export default function Screener() {
   if (error)   return <div className="text-red-400 text-sm p-4">{error}</div>
 
   const hasFilters = market !== 'ALL' || grade !== 'ALL' || sector !== 'ALL' || minFcf || minUpside || minScore || hideEarn
+
+  const visibleCols = compact ? COLS.filter(c => !c.compact) : COLS
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto">
@@ -245,6 +289,21 @@ export default function Screener() {
             </button>
           </div>
 
+          {/* Compact toggle */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[0.58rem] font-bold uppercase tracking-widest text-muted-foreground">Vista</label>
+            <button
+              onClick={() => setCompact(c => !c)}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+                compact
+                  ? 'bg-primary/15 border-primary/30 text-primary'
+                  : 'bg-muted/20 border-border/30 text-muted-foreground hover:bg-muted/40'
+              }`}
+            >
+              Compact
+            </button>
+          </div>
+
           {/* Reset */}
           {hasFilters && (
             <button
@@ -271,72 +330,120 @@ export default function Screener() {
           <p className="text-sm text-muted-foreground">Ajusta los filtros.</p>
         </div>
       ) : (
-        <div className="glass rounded-2xl">
-          <div style={{ overflowX: 'clip', overflowY: 'visible' }}>
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border/30 bg-muted/20">
-                  <th className="px-3 py-2.5 text-left text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap w-8">#</th>
-                  <TH label="Ticker"    col="ticker"           sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
-                  <TH label="Empresa"   col="company_name"     sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
-                  <th className="px-3 py-2.5 text-left text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground">Grade</th>
-                  {COLS.map(c => <TH key={c.key as string} label={c.label} col={c.key} sortKey={sortKey} sortDir={sortDir} onSort={onSort} />)}
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((row, i) => (
-                  <tr
-                    key={`${row.ticker}-${row._market}`}
-                    className="border-b border-border/10 hover:bg-muted/10 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/search?q=${row.ticker}`)}
-                  >
-                    <td className="px-3 py-2.5 text-[0.65rem] text-muted-foreground/50 tabular-nums">{i + 1}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <TickerLogo ticker={row.ticker} size="xs" />
-                        <span className="font-mono font-extrabold text-sm text-primary">{row.ticker}</span>
-                        <span className="text-[0.6rem]">{MARKET_FLAG[row._market]}</span>
-                        <OwnedBadge ticker={row.ticker} />
-                        {row.earnings_warning && (
-                          <span className="text-[0.58rem] px-1 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">⚡ earn</span>
-                        )}
-                        {row.buyback_active && (
-                          <span className="text-[0.58rem] px-1 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">BB</span>
-                        )}
+        <>
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-2 mb-2">
+            {paged.map((r, i) => {
+              const isReady = (r.value_score ?? 0) >= 65 && ['A', 'B', 'EXCELLENT', 'STRONG'].includes((r.conviction_grade ?? '').toUpperCase())
+              return (
+                <div
+                  key={r.ticker}
+                  onClick={() => { setFocusedIdx(i); navigate(`/search?q=${r.ticker}`) }}
+                  className="glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <ScoreRing score={r.value_score ?? 0} size="sm" />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-sm">{r.ticker}</span>
+                          <span className="text-[0.6rem]">{MARKET_FLAG[r._market]}</span>
+                          {isReady && <span className="text-[0.55rem] font-bold text-emerald-400">✦</span>}
+                        </div>
+                        <span className="text-[0.65rem] text-muted-foreground">{r.company_name}</span>
                       </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-xs text-muted-foreground max-w-[160px] truncate">
-                      {row.company_name}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <GradeBadge grade={row.conviction_grade} />
-                    </td>
-                    {COLS.map(c => {
-                      const val  = row[c.key] as number | null
-                      const isUp = c.key === 'analyst_upside_pct' && val != null && val > 0
-                      const isDn = c.key === 'analyst_upside_pct' && val != null && val < 0
-                      return (
-                        <td key={c.key as string} className="px-3 py-2.5">
-                          <span className={`text-sm tabular-nums font-medium flex items-center gap-0.5 ${c.cls ? c.cls(row) : 'text-foreground/80'}`}>
-                            {isUp && <TrendingUp size={10} />}
-                            {isDn && <TrendingDown size={10} />}
-                            {c.key === 'value_score'
-                              ? <span className="flex items-center gap-2"><ScoreBar score={val ?? 0} /><span className="text-xs">{c.fmt(row)}</span></span>
-                              : c.fmt(row)
-                            }
-                          </span>
-                        </td>
-                      )
-                    })}
-                    <td className="px-3 py-2.5">
-                      <ExternalLink size={11} className="text-muted-foreground/30" />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    <div className="text-right">
+                      <GradeBadge grade={r.conviction_grade} score={r.conviction_score} />
+                      {r.analyst_upside_pct != null && (
+                        <div className={`text-xs font-semibold mt-0.5 ${r.analyst_upside_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {r.analyst_upside_pct >= 0 ? '+' : ''}{r.analyst_upside_pct.toFixed(0)}%
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-2 text-[0.62rem] text-muted-foreground/60 flex-wrap">
+                    {r.fcf_yield_pct != null && <span>FCF {r.fcf_yield_pct.toFixed(1)}%</span>}
+                    {r.risk_reward_ratio != null && <span>R:R {r.risk_reward_ratio.toFixed(1)}x</span>}
+                    {r.sector && <span className="truncate">{r.sector}</span>}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block glass rounded-2xl">
+            <div style={{ overflowX: 'clip', overflowY: 'visible' }}>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border/30 bg-muted/20">
+                    <th className="px-3 py-2.5 text-left text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap w-8">#</th>
+                    <TH label="Ticker"    col="ticker"           sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                    <TH label="Empresa"   col="company_name"     sortKey={sortKey} sortDir={sortDir} onSort={onSort} />
+                    <th className="px-3 py-2.5 text-left text-[0.62rem] font-bold uppercase tracking-widest text-muted-foreground">Grade</th>
+                    {visibleCols.map(c => <TH key={c.key as string} label={c.label} col={c.key} sortKey={sortKey} sortDir={sortDir} onSort={onSort} />)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {paged.map((row, i) => (
+                    <tr
+                      key={`${row.ticker}-${row._market}`}
+                      data-row-idx={i}
+                      className={`border-b border-border/10 hover:bg-muted/10 cursor-pointer transition-colors ${i === focusedIdx ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
+                      onClick={() => { setFocusedIdx(i); navigate(`/search?q=${row.ticker}`) }}
+                    >
+                      <td className="px-3 py-2.5 text-[0.65rem] text-muted-foreground/50 tabular-nums">{i + 1}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <TickerLogo ticker={row.ticker} size="xs" />
+                          <span className="font-mono font-extrabold text-sm text-primary">{row.ticker}</span>
+                          <span className="text-[0.6rem]">{MARKET_FLAG[row._market]}</span>
+                          <OwnedBadge ticker={row.ticker} />
+                          {row.earnings_warning && (
+                            <span className="text-[0.58rem] px-1 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">⚡ earn</span>
+                          )}
+                          {row.buyback_active && (
+                            <span className="text-[0.58rem] px-1 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">BB</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5 text-xs text-muted-foreground max-w-[160px] truncate">
+                        {row.company_name}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <GradeBadge grade={row.conviction_grade} />
+                      </td>
+                      {visibleCols.map(c => {
+                        const val  = row[c.key] as number | null
+                        const isUp = c.key === 'analyst_upside_pct' && val != null && val > 0
+                        const isDn = c.key === 'analyst_upside_pct' && val != null && val < 0
+                        return (
+                          <td key={c.key as string} className="px-3 py-2.5">
+                            <span className={`text-sm tabular-nums font-medium flex items-center gap-0.5 ${c.cls ? c.cls(row) : 'text-foreground/80'}`}>
+                              {isUp && <TrendingUp size={10} />}
+                              {isDn && <TrendingDown size={10} />}
+                              {c.key === 'value_score'
+                                ? <span className="flex items-center gap-2"><ScoreBar score={val ?? 0} /><span className="text-xs">{c.fmt(row)}</span></span>
+                                : c.fmt(row)
+                              }
+                            </span>
+                          </td>
+                        )
+                      })}
+                      <td className="px-3 py-2.5">
+                        <ExternalLink size={11} className="text-muted-foreground/30" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="text-[0.6rem] text-muted-foreground/25 text-right px-3 py-1.5 border-t border-border/10">
+              j / k navegar · Enter ver ticker · Esc cerrar
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
