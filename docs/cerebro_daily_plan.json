@@ -75,7 +75,7 @@
     {
       "instrument": "XLE",
       "direction": "LONG",
-      "thesis": "Petr\u00f3leo en p98 con +32% en 20d \u2014 componente geopol\u00edtico real",
+      "thesis": "Petr\u00f3leo en p99 con +34% en 20d \u2014 componente geopol\u00edtico real",
       "historical": "XLE +8% adicional en picos geopol\u00edticos de 3+ semanas",
       "risk": "Resoluci\u00f3n diplom\u00e1tica o recesi\u00f3n colapsar\u00eda demanda",
       "timeframe": "2-8 semanas",
@@ -121,5 +121,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-03-24 | STRESS (-2.5) | NEUTRO | VALUE: PRU.L AON | Evitar: ATEX NEWT",
   "ai_powered": false,
-  "intraday_refresh": "2026-04-01T14:43:06.056845"
+  "intraday_refresh": "2026-04-01T15:58:25.182355"
 }
