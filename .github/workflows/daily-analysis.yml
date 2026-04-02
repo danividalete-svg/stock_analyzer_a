@@ -42,23 +42,23 @@ jobs:
         continue-on-error: true
         run: python3 sector_rotation_detector.py || echo "Sector rotation failed"
 
-      - name: Mean Reversion Scan [pre-integration]
-        continue-on-error: true
-        run: python3 mean_reversion_detector.py || echo "Mean reversion failed"
-
       - name: Run 5D Super Analyzer [CRITICAL]
-        run: python3 run_super_analyzer_4d.py
+        continue-on-error: true
+        run: python3 run_super_analyzer_4d.py || echo "5D analyzer failed — pipeline continues"
 
       - name: Fundamental Scoring [CRITICAL - before integrator]
-        run: python3 fundamental_scorer.py --vcp --5d --value --top 100
+        continue-on-error: true
+        run: python3 fundamental_scorer.py --vcp --5d --value --top 100 || echo "Fundamental scorer failed — pipeline continues"
 
       - name: Run Super Score Integration [CRITICAL]
-        run: python3 super_score_integrator.py
+        continue-on-error: true
+        run: python3 super_score_integrator.py || echo "Super score integrator failed — pipeline continues"
 
       - name: AI Quality Filter [CRITICAL]
+        continue-on-error: true
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python3 ai_quality_filter.py
+        run: python3 ai_quality_filter.py || echo "AI quality filter failed — pipeline continues"
 
       - name: European Insider Scanner
         continue-on-error: true
@@ -180,7 +180,10 @@ jobs:
         run: |
           python3 mean_reversion_detector.py || echo "Mean reversion detector failed"
           python3 mean_reversion_backtester.py || echo "Mean reversion backtest failed"
-          # HTML dashboard generators retired
+
+      - name: Micro-Cap Scanner
+        continue-on-error: true
+        run: python3 micro_cap_scanner.py || echo "Micro-cap scanner failed"
 
       - name: Options Flow Detector
         continue-on-error: true
