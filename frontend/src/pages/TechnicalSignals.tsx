@@ -91,9 +91,9 @@ const sigSortFn = (a: TechnicalSignal, b: TechnicalSignal) =>
 function TickerCard({ row, signals }: Readonly<{ row: TechnicalSummary; signals: TechnicalSignal[] }>) {
   const [open, setOpen] = useState(false)
 
-  const dailySignals = signals.filter(s => s.timeframe === 'DAILY').toSorted(sigSortFn)
-  const weeklySignals = signals.filter(s => s.timeframe === 'WEEKLY').toSorted(sigSortFn)
-  const sortedAll = signals.toSorted(sigSortFn)
+  const dailySignals = [...signals.filter((s: TechnicalSignal) => s.timeframe === 'DAILY')].sort(sigSortFn)
+  const weeklySignals = [...signals.filter((s: TechnicalSignal) => s.timeframe === 'WEEKLY')].sort(sigSortFn)
+  const sortedAll = [...signals].sort(sigSortFn)
 
   const toggle = () => setOpen(o => !o)
 

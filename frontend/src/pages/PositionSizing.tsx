@@ -89,8 +89,6 @@ export default function PositionSizing() {
       scale={scale}
       portfolioSize={portfolioSize}
       setPortfolioSize={setPortfolioSize}
-      sortKey={sortKey}
-      sortDir={sortDir}
       onSort={onSort}
       thCls={thCls}
       totalRisk={totalRisk}
@@ -107,7 +105,7 @@ export default function PositionSizing() {
 
 function PositionSizingInner({
   rows, sorted, scale, portfolioSize, setPortfolioSize,
-  sortKey, sortDir, onSort, thCls, totalRisk, totalValue, avgSize,
+  onSort, thCls, totalRisk, totalValue, avgSize,
   riskColor, focusedIdx, setFocusedIdx, compact, setCompact,
 }: {
   rows: PositionRow[]
@@ -115,8 +113,6 @@ function PositionSizingInner({
   scale: number
   portfolioSize: number
   setPortfolioSize: (v: number) => void
-  sortKey: keyof PositionRow
-  sortDir: 'asc' | 'desc'
   onSort: (k: keyof PositionRow) => void
   thCls: (k: keyof PositionRow) => string
   totalRisk: number

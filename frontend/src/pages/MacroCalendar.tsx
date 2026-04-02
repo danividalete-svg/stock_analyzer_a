@@ -134,7 +134,7 @@ export default function MacroCalendar() {
                 <div key={`${e.date}-${e.event}`} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium ${cfg.bg} ${cfg.border} ${cfg.text}`}>
                   <span>{cfg.emoji}</span>
                   <span>{daysLabel}</span>
-                  <span className="font-bold">{e.title || e.type}</span>
+                  <span className="font-bold">{e.event || e.type}</span>
                 </div>
               )
             })}
