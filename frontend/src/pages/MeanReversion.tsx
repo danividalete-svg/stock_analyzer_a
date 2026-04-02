@@ -54,27 +54,7 @@ export default function MeanReversion() {
   const [filterQuality, setFilterQuality] = useState<string>('EXCELENTE')
   const [compact, setCompact] = useState(false)
   const [focusedIdx, setFocusedIdx] = useState(-1)
-
-  if (loading) return <Loading />
-  if (error) return <ErrorState message={error} />
-
-  const raw = data as Record<string, unknown>
-  let items: MRItem[] = []
-  if (Array.isArray(raw?.opportunities)) items = raw.opportunities as MRItem[]
-  else if (Array.isArray(raw?.data)) items = raw.data as MRItem[]
-
-  const filtered = filterQuality === ''
-    ? items
-    : items.filter(i => qualMatch(i.quality, filterQuality))
-
-  const sorted = [...filtered].sort((a, b) => {
-    const av = (a[sortKey] as number) ?? 0
-    const bv = (b[sortKey] as number) ?? 0
-    return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
-  })
-
-  const pagedRef = useRef(sorted)
-  pagedRef.current = sorted
+  const pagedRef = useRef<MRItem[]>([])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -108,6 +88,25 @@ export default function MeanReversion() {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [])
+
+  if (loading) return <Loading />
+  if (error) return <ErrorState message={error} />
+
+  const raw = data as Record<string, unknown>
+  let items: MRItem[] = []
+  if (Array.isArray(raw?.opportunities)) items = raw.opportunities as MRItem[]
+  else if (Array.isArray(raw?.data)) items = raw.data as MRItem[]
+
+  const filtered = filterQuality === ''
+    ? items
+    : items.filter(i => qualMatch(i.quality, filterQuality))
+
+  const sorted = [...filtered].sort((a, b) => {
+    const av = (a[sortKey] as number) ?? 0
+    const bv = (b[sortKey] as number) ?? 0
+    return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
+  })
+  pagedRef.current = sorted
 
   const onSort = (key: string) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')

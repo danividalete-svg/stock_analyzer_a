@@ -90,8 +90,41 @@ export default function ValueEU() {
   const PAGE_SIZE = 50
 
   const currentThesisTicker = useRef<string | null>(null)
+  // pagedRef must be declared before early returns (React Rules of Hooks)
+  const pagedRef = useRef<ValueOpportunity[]>([])
 
   useEffect(() => { setPage(1); setFocusedIdx(-1) }, [filterGrade, filterSector, filterMarket, minScore, minFcf, minRr, hideTraps, hideExits, onlyOwned])
+
+  // Keyboard navigation — j/k/Enter/Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (document.activeElement as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (e.key === 'Escape') { setFocusedIdx(-1); return }
+      if (e.key === 'j' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const next = Math.min(i + 1, pagedRef.current.length - 1)
+          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return next
+        })
+      } else if (e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setFocusedIdx(i => {
+          const prev = Math.max(i - 1, 0)
+          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
+          return prev
+        })
+      } else if (e.key === 'Enter') {
+        setFocusedIdx(i => {
+          if (i >= 0 && pagedRef.current[i]) toggleThesis(pagedRef.current[i].ticker, pagedRef.current[i])
+          return i
+        })
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   if (loading) return <Loading />
   if (error) return <ErrorState message={error} />
@@ -124,6 +157,7 @@ export default function ValueEU() {
   })
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE)
   const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  pagedRef.current = paged
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -144,39 +178,6 @@ export default function ValueEU() {
       setThesisText(text)
     } catch { if (currentThesisTicker.current === ticker) setThesisText('Error cargando tesis') }
   }
-
-  // Keyboard navigation — j/k/Enter/Escape
-  const pagedRef = useRef(paged)
-  pagedRef.current = paged
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const tag = (document.activeElement as HTMLElement)?.tagName
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
-      if (e.key === 'Escape') { setFocusedIdx(-1); return }
-      if (e.key === 'j' || e.key === 'ArrowDown') {
-        e.preventDefault()
-        setFocusedIdx(i => {
-          const next = Math.min(i + 1, pagedRef.current.length - 1)
-          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
-          return next
-        })
-      } else if (e.key === 'k' || e.key === 'ArrowUp') {
-        e.preventDefault()
-        setFocusedIdx(i => {
-          const prev = Math.max(i - 1, 0)
-          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
-          return prev
-        })
-      } else if (e.key === 'Enter') {
-        setFocusedIdx(i => {
-          if (i >= 0 && pagedRef.current[i]) toggleThesis(pagedRef.current[i].ticker, pagedRef.current[i])
-          return i
-        })
-      }
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [])
 
   const thCls = (key: SortKey) =>
     `cursor-pointer select-none whitespace-nowrap transition-colors hover:text-foreground ${sortKey === key ? 'text-primary' : ''}`

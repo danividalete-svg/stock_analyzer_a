@@ -209,6 +209,20 @@ export default function Cerebro() {
   const [entryFilter, setEntryFilter] = useState<'ACTIONABLE' | 'STRONG_BUY' | 'BUY' | 'MONITOR'>('ACTIONABLE')
   const [focusedIdx, setFocusedIdx] = useState(-1)
 
+  // pagedRef must be declared before early returns (React Rules of Hooks)
+  const pagedRef = useRef<EntrySignal[]>([])
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'j' || e.key === 'ArrowDown') { e.preventDefault(); setFocusedIdx(i => Math.min(i + 1, pagedRef.current.length - 1)) }
+      if (e.key === 'k' || e.key === 'ArrowUp')   { e.preventDefault(); setFocusedIdx(i => Math.max(i - 1, 0)) }
+      if (e.key === 'Escape') setFocusedIdx(-1)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
   const loading = loadingI && loadingC && loadingA && loadingCal && loadingE
   if (loading) return <Loading />
   const anyError = !insights && !convergence && !alertsData && !entryData
@@ -221,19 +235,7 @@ export default function Cerebro() {
   const filteredEntry = entryFilter === 'ACTIONABLE'
     ? entrySignals.filter(s => s.signal === 'STRONG_BUY' || s.signal === 'BUY')
     : entrySignals.filter(s => s.signal === entryFilter)
-
-  const pagedRef = useRef(filteredEntry)
   pagedRef.current = filteredEntry
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'j' || e.key === 'ArrowDown') { e.preventDefault(); setFocusedIdx(i => Math.min(i + 1, pagedRef.current.length - 1)) }
-      if (e.key === 'k' || e.key === 'ArrowUp')   { e.preventDefault(); setFocusedIdx(i => Math.max(i - 1, 0)) }
-      if (e.key === 'Escape') setFocusedIdx(-1)
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [])
 
   const tabs = [
     { id: 'briefing' as const,    label: 'Briefing',        icon: Newspaper,        count: undefined, highlight: !!briefingData?.narrative },

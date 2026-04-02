@@ -20,22 +20,7 @@ export default function Momentum() {
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [focusedIdx, setFocusedIdx] = useState(-1)
   const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
-
-  if (loading) return <Loading />
-  if (error) return <ErrorState message={error} />
-
-  const rows = data?.data ?? []
-  const source = data?.source ?? ''
-
-  const sorted = [...rows].sort((a, b) => {
-    const av = a[sortKey] ?? 0; const bv = b[sortKey] ?? 0
-    return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
-  })
-
-  const paged = sorted.slice(0, 20)
-
-  const pagedRef = useRef(paged)
-  pagedRef.current = paged
+  const pagedRef = useRef<MomentumOpportunity[]>([])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -61,6 +46,20 @@ export default function Momentum() {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [])
+
+  if (loading) return <Loading />
+  if (error) return <ErrorState message={error} />
+
+  const rows = data?.data ?? []
+  const source = data?.source ?? ''
+
+  const sorted = [...rows].sort((a, b) => {
+    const av = a[sortKey] ?? 0; const bv = b[sortKey] ?? 0
+    return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
+  })
+
+  const paged = sorted.slice(0, 20)
+  pagedRef.current = paged
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')

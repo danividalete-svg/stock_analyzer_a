@@ -124,51 +124,8 @@ export default function GlobalValue() {
     setSearchParams(params, { replace: true })
   }, [filterMarket, filterGrade, setSearchParams])
 
-  if (loading) return <Loading />
-  if (error) return <ErrorState message={error} />
-
-  const rows = (data?.data ?? []) as GlobalOpportunity[]
-  const source = data?.source ?? ''
-
-  const filtered = rows.filter(r => {
-    if (filterMarket !== 'ALL' && r.market !== filterMarket) return false
-    if (filterGrade !== 'ALL' && r.conviction_grade !== filterGrade) return false
-    if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
-    if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
-    if (hideRisky && r.ai_verdict === 'RISKY') return false
-    return true
-  })
-
-  const sorted = [...filtered].sort((a, b) => {
-    const av = a[sortKey] ?? 0; const bv = b[sortKey] ?? 0
-    if (av < bv) return sortDir === 'asc' ? -1 : 1
-    if (av > bv) return sortDir === 'asc' ? 1 : -1
-    return 0
-  })
-  const paged = sorted.slice(0, 50)
-
-  const pagedRef = useRef(paged)
-  pagedRef.current = paged
-
-  const onSort = (key: SortKey) => {
-    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    else { setSortKey(key); setSortDir('desc') }
-  }
-
-  const toggleThesis = async (ticker: string, row: GlobalOpportunity) => {
-    if (expandedTicker === ticker) { setExpandedTicker(null); setExpandedRow(null); return }
-    setExpandedTicker(ticker)
-    setExpandedRow(row)
-    setThesisText('Cargando tesis...')
-    try {
-      const res = await fetchThesis(ticker)
-      const t = res.data.thesis
-      const text = !t ? 'Sin tesis disponible'
-        : typeof t === 'string' ? t
-        : (t as Record<string, string>).thesis_narrative || (t as Record<string, string>).overview || JSON.stringify(t)
-      setThesisText(text)
-    } catch { setThesisText('Error cargando tesis') }
-  }
+  // pagedRef must be declared before early returns (React Rules of Hooks)
+  const pagedRef = useRef<GlobalOpportunity[]>([])
 
   // Keyboard navigation
   useEffect(() => {
@@ -203,6 +160,50 @@ export default function GlobalValue() {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [])
+
+  if (loading) return <Loading />
+  if (error) return <ErrorState message={error} />
+
+  const rows = (data?.data ?? []) as GlobalOpportunity[]
+  const source = data?.source ?? ''
+
+  const filtered = rows.filter(r => {
+    if (filterMarket !== 'ALL' && r.market !== filterMarket) return false
+    if (filterGrade !== 'ALL' && r.conviction_grade !== filterGrade) return false
+    if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
+    if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
+    if (hideRisky && r.ai_verdict === 'RISKY') return false
+    return true
+  })
+
+  const sorted = [...filtered].sort((a, b) => {
+    const av = a[sortKey] ?? 0; const bv = b[sortKey] ?? 0
+    if (av < bv) return sortDir === 'asc' ? -1 : 1
+    if (av > bv) return sortDir === 'asc' ? 1 : -1
+    return 0
+  })
+  const paged = sorted.slice(0, 50)
+  pagedRef.current = paged
+
+  const onSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('desc') }
+  }
+
+  const toggleThesis = async (ticker: string, row: GlobalOpportunity) => {
+    if (expandedTicker === ticker) { setExpandedTicker(null); setExpandedRow(null); return }
+    setExpandedTicker(ticker)
+    setExpandedRow(row)
+    setThesisText('Cargando tesis...')
+    try {
+      const res = await fetchThesis(ticker)
+      const t = res.data.thesis
+      const text = !t ? 'Sin tesis disponible'
+        : typeof t === 'string' ? t
+        : (t as Record<string, string>).thesis_narrative || (t as Record<string, string>).overview || JSON.stringify(t)
+      setThesisText(text)
+    } catch { setThesisText('Error cargando tesis') }
+  }
 
   const Th = ({ k, label, tooltip }: { k: SortKey; label: string; tooltip?: string }) => (
     <TableHead

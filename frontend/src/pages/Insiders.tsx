@@ -45,30 +45,9 @@ export default function Insiders() {
   const [focusedIdx, setFocusedIdx] = useState(-1)
   const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
   const PAGE_SIZE = 30
+  const pagedRef = useRef<InsiderRow[]>([])
 
   useEffect(() => { setPage(1) }, [filterMarket, sortKey])
-
-  if (loading) return <Loading />
-  if (error) return <ErrorState message={error} />
-
-  const allRows = (data?.data ?? []) as InsiderRow[]
-  const maxScore = allRows.length ? Math.max(...allRows.map(r => r.confidence_score || 0)) : 100
-
-  const filtered = filterMarket === 'ALL' ? allRows
-    : filterMarket === 'US' ? allRows.filter(r => !r.market || r.market === 'US')
-    : allRows.filter(r => r.market && r.market !== 'US')
-
-  const sorted = [...filtered].sort((a, b) => {
-    const av = (a[sortKey] ?? 0) as number
-    const bv = (b[sortKey] ?? 0) as number
-    if (typeof av === 'string' || typeof bv === 'string') return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av))
-    return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
-  })
-
-  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-
-  const pagedRef = useRef(paged)
-  pagedRef.current = paged
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -102,6 +81,26 @@ export default function Insiders() {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [])
+
+  if (loading) return <Loading />
+  if (error) return <ErrorState message={error} />
+
+  const allRows = (data?.data ?? []) as InsiderRow[]
+  const maxScore = allRows.length ? Math.max(...allRows.map(r => r.confidence_score || 0)) : 100
+
+  const filtered = filterMarket === 'ALL' ? allRows
+    : filterMarket === 'US' ? allRows.filter(r => !r.market || r.market === 'US')
+    : allRows.filter(r => r.market && r.market !== 'US')
+
+  const sorted = [...filtered].sort((a, b) => {
+    const av = (a[sortKey] ?? 0) as number
+    const bv = (b[sortKey] ?? 0) as number
+    if (typeof av === 'string' || typeof bv === 'string') return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av))
+    return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
+  })
+
+  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  pagedRef.current = paged
 
   const onSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
