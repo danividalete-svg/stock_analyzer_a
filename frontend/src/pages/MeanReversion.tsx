@@ -162,6 +162,84 @@ export default function MeanReversion() {
         <AiNarrativeCard narrative={raw.ai_narrative as string} label="Análisis del Batch Actual" className="mb-5" />
       )}
 
+      {/* ── Top Rebotes Panel ──────────────────────────────────────────────── */}
+      {(() => {
+        const top = items
+          .filter(i => qualMatch(i.quality, 'EXCELENTE') || qualMatch(i.quality, 'MUY BUENA'))
+          .sort((a, b) => (b.reversion_score ?? 0) - (a.reversion_score ?? 0))
+          .slice(0, 5)
+        if (top.length === 0) return null
+        return (
+          <div className="mb-6 animate-fade-in-up">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[0.6rem] font-black uppercase tracking-[0.15em] text-muted-foreground/50">Top Rebotes Hoy</span>
+              <div className="flex-1 h-px bg-border/20" />
+              <span className="text-[0.6rem] text-muted-foreground/40">{top.length} setups</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+              {top.map((d, idx) => {
+                const strategyShort = (d.strategy || '').includes('Flag') ? 'Flag' : 'Oversold'
+                const rr = d.risk_reward != null ? Number(d.risk_reward) : null
+                const rrColor = rr == null ? '' : rr >= 3 ? 'text-emerald-400' : rr >= 2 ? 'text-cyan-400' : rr >= 1 ? 'text-amber-400' : 'text-red-400'
+                return (
+                  <div
+                    key={d.ticker}
+                    className="glass rounded-xl p-3 border border-border/20 hover:border-primary/30 transition-colors cursor-pointer active:scale-[0.98]"
+                    style={{ animationDelay: `${idx * 50}ms` }}
+                    onClick={() => {
+                      setFilterQuality('')
+                      setTimeout(() => {
+                        const el = document.querySelector(`[data-row-idx]`) as HTMLElement
+                        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                      }, 100)
+                    }}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-sm text-foreground">{d.ticker}</span>
+                        <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded border ${
+                          strategyShort === 'Oversold'
+                            ? 'bg-amber-500/10 border-amber-500/25 text-amber-400'
+                            : 'bg-blue-500/10 border-blue-500/25 text-blue-400'
+                        }`}>{strategyShort}</span>
+                      </div>
+                      {d.rsi != null && (
+                        <span className={`text-[0.65rem] font-bold tabular-nums ${d.rsi < 25 ? 'text-red-400' : d.rsi < 35 ? 'text-amber-400' : 'text-muted-foreground'}`}>
+                          RSI {d.rsi.toFixed(0)}
+                        </span>
+                      )}
+                    </div>
+                    {/* Price ladder */}
+                    <div className="grid grid-cols-3 gap-1 mb-2 text-center">
+                      <div className="rounded bg-muted/15 px-1.5 py-1">
+                        <div className="text-[0.6rem] text-muted-foreground/50 leading-none mb-0.5">Entrada</div>
+                        <div className="text-[0.72rem] font-bold text-muted-foreground leading-none truncate">{d.entry_zone?.split(' ')[0] ?? '—'}</div>
+                      </div>
+                      <div className="rounded bg-emerald-500/8 px-1.5 py-1">
+                        <div className="text-[0.6rem] text-muted-foreground/50 leading-none mb-0.5">Target</div>
+                        <div className="text-[0.72rem] font-bold text-emerald-400 leading-none">{d.target != null ? `$${d.target.toFixed(1)}` : '—'}</div>
+                      </div>
+                      <div className="rounded bg-red-500/6 px-1.5 py-1">
+                        <div className="text-[0.6rem] text-muted-foreground/50 leading-none mb-0.5">Stop</div>
+                        <div className="text-[0.72rem] font-bold text-red-400 leading-none">{d.stop_loss != null ? `$${d.stop_loss.toFixed(1)}` : '—'}</div>
+                      </div>
+                    </div>
+                    {/* R:R */}
+                    {rr != null && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-[0.6rem] text-muted-foreground/40">Risk/Reward</span>
+                        <span className={`text-xs font-black tabular-nums ${rrColor}`}>{rr.toFixed(1)}x</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Quality filter */}
       <div className="flex items-center gap-2 mb-5 flex-wrap">
         <span className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground mr-1">Calidad</span>

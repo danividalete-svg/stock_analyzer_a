@@ -4,8 +4,8 @@ import {
   fetchCerebroInsights, fetchCerebroConvergence, fetchCerebroAlerts, fetchCerebroCalibration,
   fetchCerebroEntrySignals, fetchCerebroExitSignals, fetchCerebroValueTraps, fetchCerebroSmartMoney,
   fetchCerebroInsiderClusters, fetchCerebroDividendSafety, fetchCerebroPiotroski,
-  fetchCerebroStressTest, fetchCerebroBriefing,
-  type CerebroTier, type CerebroAlert, type EntrySignal,
+  fetchCerebroStressTest, fetchCerebroBriefing, fetchMeanReversion,
+  type CerebroTier, type CerebroAlert, type EntrySignal, type MeanReversionItem,
 } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
@@ -16,7 +16,7 @@ import TickerLogo from '../components/TickerLogo'
 import {
   Brain, Crosshair, Bell, SlidersHorizontal, TrendingUp, TrendingDown, Minus, ChevronRight,
   Zap, CheckCircle2, XCircle, Newspaper, Bot, AlertOctagon, ShieldAlert,
-  Building2, Users, Wallet, BarChart2, Activity,
+  Building2, Users, Wallet, BarChart2, Activity, Repeat2,
 } from 'lucide-react'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -204,8 +204,9 @@ export default function Cerebro() {
   const { data: piotrData }   = useApi(() => fetchCerebroPiotroski(), [])
   const { data: stressData }  = useApi(() => fetchCerebroStressTest(), [])
   const { data: briefingData }= useApi(() => fetchCerebroBriefing(), [])
+  const { data: mrRaw }       = useApi(() => fetchMeanReversion(), [])
 
-  const [activeTab, setActiveTab] = useState<'briefing' | 'entry' | 'convergence' | 'agents' | 'alerts' | 'insights' | 'calibration'>('briefing')
+  const [activeTab, setActiveTab] = useState<'briefing' | 'entry' | 'bounces' | 'convergence' | 'agents' | 'alerts' | 'insights' | 'calibration'>('briefing')
   const [entryFilter, setEntryFilter] = useState<'ACTIONABLE' | 'STRONG_BUY' | 'BUY' | 'MONITOR'>('ACTIONABLE')
   const [focusedIdx, setFocusedIdx] = useState(-1)
 
@@ -232,6 +233,15 @@ export default function Cerebro() {
   const signals       = convergence?.convergences ?? []
   const alerts        = alertsData?.alerts ?? []
   const entrySignals  = entryData?.signals ?? []
+
+  // Mean reversion bounces
+  const mrRawObj = mrRaw as Record<string, unknown> | null
+  const mrItems: MeanReversionItem[] = Array.isArray(mrRawObj?.opportunities)
+    ? (mrRawObj!.opportunities as MeanReversionItem[])
+    : Array.isArray(mrRawObj?.data) ? (mrRawObj!.data as MeanReversionItem[]) : []
+  const topBounces = mrItems
+    .filter(i => (i.quality || '').toUpperCase().includes('EXCELENTE') || (i.quality || '').toUpperCase().includes('MUY BUENA'))
+    .sort((a, b) => (b.reversion_score ?? 0) - (a.reversion_score ?? 0))
   const filteredEntry = entryFilter === 'ACTIONABLE'
     ? entrySignals.filter(s => s.signal === 'STRONG_BUY' || s.signal === 'BUY')
     : entrySignals.filter(s => s.signal === entryFilter)
@@ -240,6 +250,7 @@ export default function Cerebro() {
   const tabs = [
     { id: 'briefing' as const,    label: 'Briefing',        icon: Newspaper,        count: undefined, highlight: !!briefingData?.narrative },
     { id: 'entry' as const,       label: 'Señales',         icon: Zap,              count: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0), highlight: (entryData?.strong_buy ?? 0) > 0 },
+    { id: 'bounces' as const,     label: 'Rebotes',         icon: Repeat2,          count: topBounces.length, highlight: topBounces.length > 0 },
     { id: 'convergence' as const, label: 'Convergencias',   icon: Crosshair,        count: convergence?.total_convergences },
     { id: 'agents' as const,      label: 'Agentes IA',      icon: Bot,              count: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0), highlight: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0) > 0 },
     { id: 'alerts' as const,      label: 'Alertas',         icon: Bell,             count: alertsData?.high_count, highlight: (alertsData?.high_count ?? 0) > 0 },
@@ -483,6 +494,100 @@ export default function Cerebro() {
                 <EntrySignalCard sig={sig} />
               </div>
             ))
+          )}
+        </div>
+      )}
+
+      {/* ── TAB: Rebotes ───────────────────────────────────────────────────────── */}
+      {activeTab === 'bounces' && (
+        <div className="space-y-4 animate-fade-in-up">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Setups de rebote — oversold con RSI bajo y soporte claro · <Link to="/mean-reversion" className="text-primary hover:underline">Ver tabla completa →</Link>
+            </p>
+            <span className="text-xs text-muted-foreground/50">{topBounces.length} setups de calidad</span>
+          </div>
+
+          {topBounces.length === 0 ? (
+            <Card className="glass">
+              <CardContent className="py-12 text-center text-muted-foreground">
+                Sin rebotes de calidad detectados hoy
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {topBounces.map((d, i) => {
+                const rr = d.risk_reward != null ? Number(d.risk_reward) : null
+                const rrColor = rr == null ? 'text-muted-foreground' : rr >= 3 ? 'text-emerald-400' : rr >= 2 ? 'text-cyan-400' : rr >= 1 ? 'text-amber-400' : 'text-red-400'
+                const strategyShort = (d.strategy || '').includes('Flag') ? '📈 Bull Flag' : '🔄 Oversold'
+                const isDaily = d.reversion_score >= 80
+                return (
+                  <Card
+                    key={d.ticker}
+                    className="glass border border-border/30 hover:border-primary/30 transition-colors cursor-pointer active:scale-[0.98] animate-fade-in-up"
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    <CardContent className="p-4">
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <TickerLogo ticker={d.ticker} size="sm" />
+                          <div>
+                            <Link to={`/search?q=${d.ticker}`} className="font-mono font-bold text-foreground hover:text-primary transition-colors">
+                              {d.ticker}
+                            </Link>
+                            {d.company_name && (
+                              <div className="text-[0.62rem] text-muted-foreground/60 truncate max-w-[120px]">{d.company_name}</div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded border ${
+                            isDaily
+                              ? 'bg-violet-500/10 border-violet-500/25 text-violet-400'
+                              : 'bg-blue-500/10 border-blue-500/25 text-blue-400'
+                          }`}>{isDaily ? 'DIARIO' : 'SEMANAL'}</div>
+                          <div className="text-[0.6rem] text-muted-foreground/40 mt-0.5">{strategyShort}</div>
+                        </div>
+                      </div>
+
+                      {/* Price grid */}
+                      <div className="grid grid-cols-3 gap-1.5 mb-3">
+                        <div className="rounded-lg bg-muted/15 p-2 text-center">
+                          <div className="text-[0.58rem] text-muted-foreground/50 mb-0.5">Entrada</div>
+                          <div className="text-[0.75rem] font-bold leading-none">{d.entry_zone?.split(' ')[0] ?? '—'}</div>
+                        </div>
+                        <div className="rounded-lg bg-emerald-500/8 border border-emerald-500/15 p-2 text-center">
+                          <div className="text-[0.58rem] text-muted-foreground/50 mb-0.5">Target</div>
+                          <div className="text-[0.75rem] font-bold text-emerald-400 leading-none">{d.target != null ? `$${d.target.toFixed(2)}` : '—'}</div>
+                        </div>
+                        <div className="rounded-lg bg-red-500/6 border border-red-500/10 p-2 text-center">
+                          <div className="text-[0.58rem] text-muted-foreground/50 mb-0.5">Stop</div>
+                          <div className="text-[0.75rem] font-bold text-red-400 leading-none">{d.stop_loss != null ? `$${d.stop_loss.toFixed(2)}` : '—'}</div>
+                        </div>
+                      </div>
+
+                      {/* Metrics row */}
+                      <div className="flex items-center justify-between text-[0.7rem]">
+                        <div className="flex items-center gap-3">
+                          {d.rsi != null && (
+                            <span className={`font-semibold ${d.rsi < 25 ? 'text-red-400' : d.rsi < 35 ? 'text-amber-400' : 'text-muted-foreground'}`}>
+                              RSI {d.rsi.toFixed(0)}
+                            </span>
+                          )}
+                          {d.drawdown_pct != null && (
+                            <span className="text-muted-foreground/50">↓{Math.abs(d.drawdown_pct).toFixed(0)}%</span>
+                          )}
+                        </div>
+                        {rr != null && (
+                          <span className={`font-black ${rrColor}`}>R:R {rr.toFixed(1)}x</span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
           )}
         </div>
       )}
