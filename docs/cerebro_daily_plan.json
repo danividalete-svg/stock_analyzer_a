@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-03-24",
   "macro_regime": "STRESS",
-  "composite_score": -2.0,
+  "composite_score": -3.0,
   "sesgo": "NEUTRO",
   "confianza": 57,
   "situacion": "R\u00e9gimen STRESS, composite -2.5/30. 3 plays macro identificadas.",
@@ -75,11 +75,20 @@
     {
       "instrument": "XLE",
       "direction": "LONG",
-      "thesis": "Petr\u00f3leo en p100 con +36% en 20d \u2014 componente geopol\u00edtico real",
+      "thesis": "Petr\u00f3leo en p100 con +38% en 20d \u2014 componente geopol\u00edtico real",
       "historical": "XLE +8% adicional en picos geopol\u00edticos de 3+ semanas",
       "risk": "Resoluci\u00f3n diplom\u00e1tica o recesi\u00f3n colapsar\u00eda demanda",
       "timeframe": "2-8 semanas",
       "score": 70
+    },
+    {
+      "instrument": "UVXY (small)",
+      "direction": "LONG",
+      "thesis": "VVIX en p88 con VIX moderado \u2014 spike de volatilidad inminente",
+      "historical": "VIX sube >30% en las 2 semanas siguientes al 80% de las veces con VVIX >p85",
+      "risk": "Theta decay si spike no materializa en <2 semanas",
+      "timeframe": "1-2 semanas",
+      "score": 65
     }
   ],
   "macro_plays_commentary": "3 plays macro rule-based generadas sin IA.",
@@ -121,5 +130,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-03-24 | STRESS (-2.5) | NEUTRO | VALUE: PRU.L AON | Evitar: ATEX NEWT",
   "ai_powered": false,
-  "intraday_refresh": "2026-04-02T15:34:45.241003"
+  "intraday_refresh": "2026-04-02T16:34:28.746787"
 }
