@@ -1,0 +1,141 @@
+# MICRO-CAP UNIVERSE — Curado para buscar "la próxima Apple"
+# Criterios de selección: empresa real con revenue, moat defensible, mercado expandible
+# Precio objetivo $1-$10 | MCap $10M-$600M
+# Actualizado: 2026-04
+
+# ── AI / DATA / INFRAESTRUCTURA TECH ─────────────────────────────────────────
+BBAI    # BigBear.ai — IA analítica para defensa e inteligencia
+SOUN    # SoundHound AI — plataforma de voz IA propietaria
+GFAI    # Guardforce AI — robótica de seguridad + IA
+DTST    # Data Storage Corp — cloud/DR para pymes, rentable
+AEYE    # AudioEye — accesibilidad web SaaS, ARR creciente
+NEON    # Neonode — licencias de tecnología táctil (royalties puro)
+HLIT    # Harmonic — video streaming infrastructure
+OPRX    # OptimizeRx — mensajería digital HCP en punto de atención
+SPOK    # Spok Holdings — comunicaciones healthcare, FCF positivo
+EGIO    # Edgio — CDN/streaming edge
+PERI    # Perion Network — adtech, FCF sólido
+RELI    # Reliance Global — insurtech micro
+
+# ── DEFENSA / SEGURIDAD / DUAL-USE ────────────────────────────────────────────
+BYRN    # Byrna Technologies — armas no letales, ventas directas D2C
+CODA    # Coda Octopus — tecnología submarina/sonar para defensa
+WRAP    # Wrap Technologies — BolaWrap, contratos policiales en expansión
+SINT    # Sintx Technologies — cerámica antimicrobiana para armadura/médica
+MFAC    # Mercantile Financial — banca Midwest, muy rentable
+AVAV    # AeroVironment — drones militares (puede estar > $10, check)
+KTOS    # Kratos Defense — drones militares + satélite (check precio)
+SKY     # Skyline Champion — manufactured housing, FCF fuerte
+VSEC    # VSE Corporation — MRO aviación/defensa
+ATRO    # Astronics — sistemas eléctricos para aviación/defensa
+
+# ── SAAS / SOFTWARE NICHO ─────────────────────────────────────────────────────
+THRY    # Thryv — software CRM/pagos para pymes, SaaS en transición
+DOMO    # Domo — BI/analytics plataforma
+APPS    # Digital Turbine — distribución de apps móviles
+RSKD    # Riskified — fraud prevention ecommerce
+LPSN    # LivePerson — conversational AI para enterprises
+NCNO    # nCino — software bancario (puede ser > $10)
+SWAG    # Bag of Chips? — check
+INPX   # Inpixon — indoor intelligence/spaces tech
+DTSS    # Datasea — AI China pequeña cap (alto riesgo)
+GREE    # Greenidge Generation — Bitcoin mining + generación gas
+
+# ── BIOTECH CON REVENUE (no pre-revenue) ──────────────────────────────────────
+SIGA    # SIGA Technologies — TPOXX antiviral aprobado FDA, contratos gov
+AGEN    # Agenus — inmunooncología, royalties + pipeline
+VXRT    # Vaxart — vacunas orales, plataforma única
+GLYC    # GlycoMimetics — oncología
+CLBS    # Caladrius Biosciences — terapia celular cardiovascular
+AVDL    # Avadel Pharmaceuticals — Lumryz aprobado FDA, revenue real
+TBPH    # Theravance Biopharma — pulmonar/GI, royalties GSK
+ARDX    # Ardelyx — tenapanor aprobado FDA, hiperfosfatemia
+PRAX    # Praxis Precision Medicine — neurología
+NERV    # Minerva Neurosciences
+CTIC    # CTI BioPharma — Pixuvri oncología EU
+OCGN    # Ocugen — terapia génica ocular
+OBSV    # ObsEva — salud reproductiva
+
+# ── HEALTHCARE / MED DEVICES ──────────────────────────────────────────────────
+MOTS    # Motus GI Holdings — Pure-Vu system, colonoscopias
+CGEM    # Cullinan Oncology
+STAB    # Statera Biopharma
+CERS    # Cerecor — pediatric rare diseases
+MFON    # Mobvoi — wearables + IA
+ACCD    # Accolade — navegación de salud personalizada
+HIMS    # Hims & Hers — telehealth D2C (puede ser > $10)
+
+# ── ENERGÍA LIMPIA / CLEANTECH CON REVENUE ────────────────────────────────────
+AMTX    # Aemetis — biocombustibles avanzados, contratos California
+TELL    # Tellurian — LNG, activos reales de gas
+PESI    # Perma-Pipe — sistemas aislamiento térmed para energy/water
+AMMO    # AMMO Inc — munición + GunBroker marketplace (FCF positivo)
+POWW    # AMMO Inc (preferred)
+NGAS    # Crimson Resource (check)
+REX     # Rex Energy
+HYMC    # Hycroft Mining — oro+plata, Nevada
+MMLP    # Martin Midstream Partners — midstream energía, dividendo
+
+# ── FINTECH / INSURTECH NICHO ─────────────────────────────────────────────────
+CASS    # Cass Information Systems — procesamiento pagos B2B, muy rentable
+CZWI    # Citizens Community Bancorp — banca regional sólida
+FSEA    # First Seacoast Bancorp
+BUKS    # Magyar Bancorp — banca NJ, bajo precio valor libro
+HONE    # HarborOne Bancorp — banca Nueva Inglaterra
+CBAN    # Colony Bankcorp — banca Georgia, crecimiento orgánico
+NWIN    # Northwest Indiana Bancorp
+
+# ── CONSUMO / RETAIL NICHO ────────────────────────────────────────────────────
+OZON    # Ozon Holdings — ecommerce Rusia (riesgo geopolítico alto)
+SLXN    # Silexion Therapeutics
+GRVY    # Gravity Co — MMORPG Ragnarok, cash neto > market cap
+HPNN    # Hop-on — mobile ecosystem
+CLPR    # Clipper Realty — NYC apartments, descuento NAV
+WHLR    # Wheeler REIT — retail strip centers, turnaround
+
+# ── INDUSTRIAL / MATERIALES ESPECIALES ────────────────────────────────────────
+USAC    # USA Compression Partners — compresores gas natural, dividendo
+MMLP    # Martin Midstream
+NLCP    # NewLake Capital — cannabis REIT
+IIPR    # Innovative Industrial — cannabis REIT (check precio)
+LIFW    # MSP Recovery — litigación healthcare
+RMAX    # RE/MAX Holdings — franquicia inmobiliaria (check precio)
+
+# ── GAMING / ENTRETENIMIENTO MICRO ────────────────────────────────────────────
+MSGM    # Motorsport Games — licencias gaming F1/NASCAR
+GFAI    # (duplicado arriba)
+GAMB    # Gambling.com Group — media afiliado iGaming, crecimiento 40%+
+MIGI    # Marpai — health plans AI
+AGS     # PlayAGS — gaming machines (check precio)
+
+# ── SEMICONDUCTORES / HARDWARE NICHO ─────────────────────────────────────────
+MVIS    # MicroVision — lidar para ADAS, contratos OEM en negociación
+LSEA    # Landsea Homes (no)
+LFMD    # LifeMD — telehealth + pharma (check)
+OPAD    # Offerpad — iBuying (check)
+SMFL    # SmartFinancial Bancshares
+
+# ── CYBER / DATA SECURITY ─────────────────────────────────────────────────────
+RILY    # B. Riley Financial — investment bank + lending, yield alto
+COOK    # Traeger — BBQ/IoT (check precio)
+SMLR    # Semler Scientific — QuantaFlo cardiovascular + Bitcoin treasury
+MSTR    # (demasiado grande probablemente)
+BTBT    # Bit Digital — Bitcoin mining + HPC/AI datacenter pivot
+MARA    # Marathon Digital — Bitcoin mining (check precio)
+
+# ── TURNAROUND / VALOR OCULTO ─────────────────────────────────────────────────
+BKSY    # BlackSky Technology — satélites geospatial analytics + IA
+KINS    # Kingfisher Acquisitions
+BLNK    # Blink Charging — EV charging infrastructure
+EVGO    # EVgo — EV fast charging, revenue real
+NKLA    # Nikola — truck eléctrico/hidrógeno (alto riesgo)
+GOEV    # Canoo — vehículo eléctrico (alto riesgo)
+
+# ── PICKS & SHOVELS TENDENCIAS MACRO ─────────────────────────────────────────
+MFIN    # Medallion Financial — préstamos nicho
+FCUV    # Focus Universal — instrumentación científica
+ANTE    # AirNet Technology
+MGRX    # Mangoceuticals — telehealth men's health
+LVRO    # Lavoro — agri-inputs Brasil (check)
+GRPH    # Graphite Bio
+LFST    # LifeStance Health — salud mental (check precio)

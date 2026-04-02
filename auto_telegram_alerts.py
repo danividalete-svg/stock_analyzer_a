@@ -1,120 +1,196 @@
 #!/usr/bin/env python3
 """
-AUTO TELEGRAM ALERTS
-Script automatizado para enviar alertas diarias de oportunidades 5D
-Se puede ejecutar manualmente o via cron/GitHub Actions
+AUTO TELEGRAM ALERTS — Mensaje diario conciso
+Contenido: Cerebro AI briefing + entradas activas + alertas críticas
 """
 import sys
+import json
+import os
+import requests
 from pathlib import Path
 from datetime import datetime
 
-# Importar el sistema de config existente
-try:
-    import config
-    from telegram_legendary_alerts import TelegramLegendaryAlerts
-except ImportError as e:
-    print(f"❌ Error importing modules: {e}")
-    sys.exit(1)
+
+DOCS = Path('docs')
+APP_URL = 'https://tantancansado.github.io/stock_analyzer_a/app/'
+
+REGIME_EMOJI = {
+    'BULL':       '🟢',
+    'RECOVERY':   '🔵',
+    'NEUTRAL':    '⚪',
+    'CORRECTION': '🟡',
+    'BEAR':       '🔴',
+    'STRESS':     '🔴',
+}
+
+SIGNAL_EMOJI = {
+    'STRONG_BUY': '🚀',
+    'BUY':        '✅',
+    'MONITOR':    '👁',
+    'WAIT':       '⏳',
+    'EXIT':       '🚪',
+    'TRAP':       '⚠️',
+}
+
+
+def _load_json(filename: str):
+    p = DOCS / filename
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text())
+    except Exception:
+        return None
+
+
+def _send(token: str, chat_id: str, text: str) -> bool:
+    try:
+        r = requests.post(
+            f'https://api.telegram.org/bot{token}/sendMessage',
+            json={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML',
+                  'disable_web_page_preview': True},
+            timeout=10
+        )
+        return r.ok
+    except Exception as e:
+        print(f'  ❌ Telegram error: {e}')
+        return False
+
+
+def build_message() -> str:
+    lines = []
+    today = datetime.now().strftime('%d %b %Y')
+
+    # ── HEADER ────────────────────────────────────────────────────────────────
+    plan = _load_json('cerebro_daily_plan.json') or {}
+    regime = (plan.get('macro_regime') or 'NEUTRAL').upper()
+    sesgo  = plan.get('sesgo', '—')
+    conf   = plan.get('confianza', '—')
+    situacion = plan.get('situacion', '')
+    r_emoji = REGIME_EMOJI.get(regime, '⚪')
+
+    lines.append(f'<b>🧠 Cerebro · {today}</b>')
+    lines.append(f'{r_emoji} <b>{regime}</b> · Sesgo: {sesgo} · Confianza: {conf}%')
+    if situacion:
+        lines.append(f'<i>{situacion}</i>')
+
+    # ── ACCIONES INMEDIATAS (top 3, solo COMPRAR/VENDER) ──────────────────────
+    acciones = [a for a in plan.get('acciones_inmediatas', [])
+                if a.get('accion') in ('COMPRAR', 'VENDER')][:3]
+    if acciones:
+        lines.append('')
+        lines.append('📋 <b>Acciones prioritarias:</b>')
+        for a in acciones:
+            verb  = '🟢 Comprar' if a['accion'] == 'COMPRAR' else '🔴 Vender'
+            inst  = a.get('instrumento', '')
+            razon = (a.get('razon') or '')[:70]
+            lines.append(f'  {verb} <b>{inst}</b> — {razon}')
+
+    # ── ENTRADAS ACTIVAS (señales Cerebro BUY/STRONG_BUY, top 5) ─────────────
+    entry_data = _load_json('cerebro_entry_signals.json') or {}
+    signals = entry_data.get('signals', []) if isinstance(entry_data, dict) else []
+    buys = [s for s in signals if s.get('signal') in ('BUY', 'STRONG_BUY')]
+    buys.sort(key=lambda x: x.get('entry_score', 0), reverse=True)
+
+    if buys:
+        lines.append('')
+        lines.append(f'✅ <b>Entradas activas ({len(buys)}):</b>')
+        for s in buys[:5]:
+            t     = s.get('ticker', '')
+            score = s.get('entry_score', 0)
+            up    = s.get('analyst_upside_pct')
+            fcf   = s.get('fcf_yield_pct')
+            earn  = ' ⚠️earn' if s.get('earnings_warning') else ''
+            up_str  = f' 🎯{up:.0f}%' if up else ''
+            fcf_str = f' FCF{fcf:.1f}%' if fcf else ''
+            em = SIGNAL_EMOJI.get(s.get('signal', ''), '')
+            lines.append(f'  {em} <b>{t}</b> ({score}pts){up_str}{fcf_str}{earn}')
+
+    # ── SALIDAS / TRAMPAS (solo HIGH, top 4) ──────────────────────────────────
+    exit_data  = _load_json('cerebro_exit_signals.json') or {}
+    exits = [e for e in (exit_data.get('exits', []) if isinstance(exit_data, dict) else [])
+             if e.get('severity') == 'HIGH'][:4]
+
+    traps_data = _load_json('cerebro_value_traps.json') or {}
+    traps = [t for t in (traps_data.get('traps', []) if isinstance(traps_data, dict) else [])
+             if t.get('trap_score', 0) >= 7][:3]
+
+    if exits or traps:
+        lines.append('')
+        lines.append('🚪 <b>Salidas/Trampas:</b>')
+        for e in exits:
+            t = e.get('ticker', '')
+            reasons = e.get('reasons') or []
+            r = (reasons[0] if reasons else e.get('signal', ''))[:60]
+            lines.append(f'  🔴 <b>{t}</b> — {r}')
+        for trap in traps:
+            t  = trap.get('ticker', '')
+            sc = trap.get('trap_score', 0)
+            lines.append(f'  ⚠️ <b>{t}</b> — Value trap {sc}/10')
+
+    # ── SMART MONEY (insiders con alta convicción, top 3) ─────────────────────
+    alerts_data = _load_json('cerebro_alerts.json') or {}
+    all_alerts  = alerts_data.get('alerts', []) if isinstance(alerts_data, dict) else []
+    insider_hi  = [a for a in all_alerts
+                   if a.get('type') == 'INSIDER_BUYING' and a.get('severity') == 'HIGH'][:3]
+
+    if insider_hi:
+        lines.append('')
+        lines.append('🐳 <b>Insiders comprando:</b>')
+        for a in insider_hi:
+            t   = a.get('ticker', '')
+            msg = (a.get('message') or '')[:55]
+            lines.append(f'  💼 <b>{t}</b> — {msg}')
+
+    # ── MACRO PLAYS (top 2 del plan) ──────────────────────────────────────────
+    macro_plays = plan.get('macro_plays', [])[:2]
+    if macro_plays:
+        lines.append('')
+        lines.append('🌍 <b>Macro plays:</b>')
+        for mp in macro_plays:
+            inst   = mp.get('instrument', '')
+            dir_   = mp.get('direction', '')
+            thesis = (mp.get('thesis') or '')[:65]
+            tf     = mp.get('timeframe', '')
+            d_em   = '🟢' if dir_ == 'LONG' else '🔴'
+            lines.append(f'  {d_em} <b>{inst}</b> ({tf}) — {thesis}')
+
+    # ── FOOTER ────────────────────────────────────────────────────────────────
+    lines.append('')
+    lines.append(f'<a href="{APP_URL}cerebro">→ Cerebro completo</a>')
+
+    return '\n'.join(lines)
 
 
 def main():
-    """Execute automated alerts pipeline"""
-    print("=" * 80)
-    print("🤖 AUTO TELEGRAM ALERTS - SISTEMA 5D")
-    print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 80)
-    print()
+    token   = os.getenv('TELEGRAM_BOT_TOKEN')
+    chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
-    try:
-        # Initialize alerts with config from config.py
-        alerts = TelegramLegendaryAlerts(
-            bot_token=config.TELEGRAM_BOT_TOKEN,
-            chat_id=config.TELEGRAM_CHAT_ID
-        )
-
-        # Send startup message
-        startup_msg = f"""
-🤖 <b>Sistema de Alertas Activado</b>
-
-Ejecutando pipeline automático de alertas 5D...
-📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-"""
-        alerts.send_message(startup_msg, disable_notification=True)
-
-        # 0. VALUE OPPORTUNITIES (principal — sistema híbrido)
-        print("💎 Enviando Value Opportunities...")
-        alerts.send_value_opportunities_alerts()
-        print()
-
-        # 1. Daily Summary (always first)
-        print("📊 Enviando resumen diario...")
-        alerts.send_daily_summary()
-        print()
-
-        # 2. LEGENDARY alerts (high priority)
-        print("🌟 Buscando oportunidades LEGENDARY...")
-        alerts.check_and_alert_legendary()
-        print()
-
-        # 3. Timing Convergence (critical timing signals)
-        print("🔥 Verificando Timing Convergence...")
-        alerts.send_timing_convergence_alerts()
-        print()
-
-        # 4. VCP Repeaters (quality stocks)
-        print("🔁 Analizando VCP Repeaters...")
-        alerts.send_vcp_repeater_alerts()
-        print()
-
-        # 5. Mean Reversion opportunities (dip buying)
-        print("🔄 Analizando Mean Reversion...")
-        alerts.send_mean_reversion_alerts()
-        print()
-
-        # 6. Options Flow (whale activity)
-        print("🐋 Analizando Options Flow...")
-        alerts.send_options_flow_alerts()
-        print()
-
-        # 7. ML Scores (predictive analysis)
-        print("🤖 Analizando ML Scores...")
-        alerts.send_ml_scores_alerts()
-        print()
-
-        # Send completion message
-        completion_msg = """
-✅ <b>Pipeline de Alertas Completado</b>
-
-Todas las alertas han sido procesadas exitosamente.
-"""
-        alerts.send_message(completion_msg, disable_notification=True)
-
-        print("=" * 80)
-        print("✅ AUTO ALERTS COMPLETADO EXITOSAMENTE")
-        print("=" * 80)
-
-        return 0
-
-    except Exception as e:
-        error_msg = f"""
-❌ <b>Error en Pipeline de Alertas</b>
-
-{str(e)}
-
-📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-"""
+    if not token or not chat_id:
         try:
-            alerts = TelegramLegendaryAlerts(
-                bot_token=config.TELEGRAM_BOT_TOKEN,
-                chat_id=config.TELEGRAM_CHAT_ID
-            )
-            alerts.send_message(error_msg)
-        except:
+            import config
+            token   = token   or getattr(config, 'TELEGRAM_BOT_TOKEN', None)
+            chat_id = chat_id or getattr(config, 'TELEGRAM_CHAT_ID', None)
+        except ImportError:
             pass
 
-        print(f"\n❌ ERROR: {e}")
+    if not token or not chat_id:
+        print('❌ TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID no configurados')
+        return 1
+
+    print('🧠 Generando mensaje Cerebro...')
+    msg = build_message()
+    print(msg)
+    print()
+
+    ok = _send(token, chat_id, msg)
+    if ok:
+        print('✅ Mensaje enviado')
+        return 0
+    else:
+        print('❌ Error al enviar')
         return 1
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())
