@@ -323,6 +323,24 @@ jobs:
       # COMMIT & PUSH (Always runs)
       # ============================================================================
 
+      - name: Write Pipeline Status
+        if: always()
+        run: |
+          python3 -c "
+          import json, os
+          from datetime import datetime, timezone
+          steps_env = os.environ.get('GITHUB_RUN_ID', '')
+          status = {
+            'last_run': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'run_date': datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+            'status': 'completed',
+            'run_id': steps_env,
+          }
+          with open('docs/pipeline_status.json', 'w') as f:
+              json.dump(status, f, indent=2)
+          print('Pipeline status written:', status['last_run'])
+          "
+
       - name: Commit and Push All Results
         if: always()
         run: |

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import StaleDataBanner from '../components/StaleDataBanner'
 import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
   fetchPortfolioTracker, fetchRecurringInsiders, fetchOptionsFlow, fetchMeanReversion,
@@ -1166,6 +1167,8 @@ export default function Dashboard() {
 
   const signalsNum = activeSignals > 0 ? activeSignals : totalSignals > 0 ? totalSignals : null
 
+  const macroDate = (macroRaw as { date?: string } | null)?.date ?? null
+
   return (
     <>
       {/* Header */}
@@ -1175,6 +1178,8 @@ export default function Dashboard() {
           Resumen ejecutivo · Actualización diaria automática
         </p>
       </div>
+
+      <StaleDataBanner dataDate={macroDate} />
 
       {/* Live prices bar — real-time, polls every 60s */}
       <LivePricesBar />

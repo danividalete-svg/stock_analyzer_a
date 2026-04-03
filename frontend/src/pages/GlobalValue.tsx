@@ -1,3 +1,4 @@
+import StaleDataBanner from '../components/StaleDataBanner'
 import React, { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { fetchGlobalValueOpportunities, fetchThesis, type ValueOpportunity } from '../api/client'
@@ -231,6 +232,7 @@ export default function GlobalValue() {
 
   return (
     <>
+      <StaleDataBanner />
       <div className="mb-6 animate-fade-in-up flex items-start justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight mb-1 flex items-center gap-2">

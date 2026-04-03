@@ -3,6 +3,7 @@ import type { EconEvent } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card, CardContent } from '@/components/ui/card'
+import StaleDataBanner from '../components/StaleDataBanner'
 
 interface SignalData {
   label: string
@@ -639,6 +640,8 @@ export default function MacroRadar() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <StaleDataBanner dataDate={date} />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>

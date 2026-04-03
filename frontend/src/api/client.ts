@@ -649,6 +649,25 @@ export const fetchMacroRadar = () =>
 export const fetchMacroRadarHistory = () =>
   api.get<{ history: Array<{ date: string; composite_score: number; composite_pct: number; regime: string; regime_color: string }> }>('/api/macro-radar/history')
 
+export interface PipelineStatus {
+  last_run: string    // ISO UTC e.g. "2026-04-03T07:45:00Z"
+  run_date: string    // YYYY-MM-DD
+  status: string
+  run_id?: string
+}
+
+export const fetchPipelineStatus = async (): Promise<PipelineStatus | null> => {
+  try {
+    const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
+    const base = csvBase || ''
+    const res = await fetch(`${base}/docs/pipeline_status.json`, { cache: 'no-store' })
+    if (!res.ok) return null
+    return await res.json() as PipelineStatus
+  } catch {
+    return null
+  }
+}
+
 export const fetchDailyBriefing = () =>
   api.get<{ narrative: string | null; date: string | null; macro_regime?: string; picks_count?: number; top_picks?: unknown[] }>('/api/daily-briefing')
 

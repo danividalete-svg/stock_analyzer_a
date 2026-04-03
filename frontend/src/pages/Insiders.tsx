@@ -1,3 +1,4 @@
+import StaleDataBanner from '../components/StaleDataBanner'
 import { useState, useEffect, useRef } from 'react'
 import { fetchRecurringInsiders, fetchInsidersInsight, downloadCsv, type InsiderData } from '../api/client'
 import { useApi } from '../hooks/useApi'
@@ -129,6 +130,7 @@ export default function Insiders() {
 
   return (
     <>
+      <StaleDataBanner />
       <div className="mb-7 animate-fade-in-up">
         <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Recurring Insiders</h2>
         <p className="text-sm text-muted-foreground">Insiders comprando repetidamente sus propias acciones — señal de convicción directiva</p>

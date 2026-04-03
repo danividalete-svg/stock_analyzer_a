@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { fetchMeanReversion } from '../api/client'
+import StaleDataBanner from '../components/StaleDataBanner'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
@@ -101,6 +102,10 @@ export default function MeanReversion() {
   if (Array.isArray(raw?.opportunities)) items = raw.opportunities as MRItem[]
   else if (Array.isArray(raw?.data)) items = raw.data as MRItem[]
 
+  const scanDate = (raw?.scan_date as string | undefined)?.slice(0, 10)
+    ?? items[0]?.detected_date
+    ?? null
+
   const filtered = filterQuality === ''
     ? items
     : items.filter(i => qualMatch(i.quality, filterQuality))
@@ -142,6 +147,7 @@ export default function MeanReversion() {
 
   return (
     <>
+      <StaleDataBanner dataDate={scanDate} />
       <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
         <div className="flex-1">
           <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Mean Reversion</h2>

@@ -1,3 +1,4 @@
+import StaleDataBanner from '../components/StaleDataBanner'
 import { useState } from 'react'
 import { fetchMicroCapOpportunities, type MicroCapOpportunity } from '../api/client'
 import EmptyState from '../components/EmptyState'
@@ -75,6 +76,7 @@ export default function MicroCap() {
 
   return (
     <div className="space-y-4 p-4">
+      <StaleDataBanner />
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>

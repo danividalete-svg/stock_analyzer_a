@@ -1,3 +1,4 @@
+import StaleDataBanner from '../components/StaleDataBanner'
 import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchEUValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, fetchValueEUInsight, type ValueOpportunity } from '../api/client'
@@ -217,6 +218,7 @@ export default function ValueEU() {
 
   return (
     <>
+      <StaleDataBanner />
       <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
         <div className="flex-1">
         <h2 className="text-2xl font-extrabold tracking-tight mb-2 flex items-center gap-2 flex-wrap">
