@@ -333,8 +333,113 @@ class MeanReversionDetector:
         print()
         print(f"✅ Scan completado: {len(opportunities)} oportunidades detectadas")
 
+        # Enrich with historical win rate + AI validation
+        self._add_win_rates(opportunities)
+        self._ai_filter_batch(opportunities)
+
         self.results = opportunities
         return opportunities
+
+    # ── Win-rate lookup (from backtest history) ──────────────────────────────
+
+    # Pre-computed from docs/backtest/mr_history_backtest_*.json (30-day hold)
+    _WIN_RATE_TIERS = {
+        (90, 100): 100.0,
+        (80, 89):  83.9,
+        (70, 79):  63.2,
+        (60, 69):  71.7,
+        (0,  59):  55.0,   # estimated — below backtest sample range
+    }
+
+    def _score_to_win_rate(self, score: float) -> float:
+        for (lo, hi), wr in self._WIN_RATE_TIERS.items():
+            if lo <= score <= hi:
+                return wr
+        return 55.0
+
+    def _add_win_rates(self, opportunities: list) -> None:
+        """Adds historical_win_rate field to each opportunity based on score tier."""
+        for opp in opportunities:
+            opp['historical_win_rate'] = self._score_to_win_rate(opp.get('reversion_score', 0))
+
+    # ── Batch AI validation via Groq ─────────────────────────────────────────
+
+    def _ai_filter_batch(self, opportunities: list) -> None:
+        """
+        Single Groq call to validate up to 20 setups.
+        Adds ai_confirmation ('YES'|'CAUTION'|'NO'), ai_confidence (0-100),
+        ai_reason (string) to each opportunity. Skips silently if no API key.
+        """
+        import os
+        api_key = os.environ.get('GROQ_API_KEY', '')
+        if not api_key or not opportunities:
+            for opp in opportunities:
+                opp.setdefault('ai_confirmation', None)
+                opp.setdefault('ai_confidence', None)
+                opp.setdefault('ai_reason', None)
+            return
+
+        batch = opportunities[:20]  # cap to avoid token overflow
+        regime = self.get_market_regime()
+        regime_str = regime.get('regime_label', 'DESCONOCIDO')
+
+        lines = []
+        for o in batch:
+            lines.append(
+                f"- {o['ticker']} | {o['strategy']} | score={o.get('reversion_score',0):.0f}"
+                f" | RSI={o.get('rsi','?')} | drawdown={o.get('drawdown_pct',0):.0f}%"
+                f" | R:R={o.get('risk_reward',0):.1f} | win_rate_hist={o.get('historical_win_rate',0):.0f}%"
+            )
+        setups_text = '\n'.join(lines)
+
+        prompt = f"""Eres un analista técnico experto en mean reversion. Valida estos setups de rebote en el contexto actual del mercado.
+
+Régimen de mercado actual: {regime_str}
+Setups a validar:
+{setups_text}
+
+Responde ÚNICAMENTE con un JSON array (sin texto adicional, sin markdown):
+[{{"ticker":"X","confirmation":"YES","confidence":85,"reason":"RSI extremo + soporte claro"}}, ...]
+
+Reglas:
+- confirmation: "YES" si el setup es válido, "CAUTION" si hay dudas, "NO" si hay razones para evitarlo
+- confidence: 0-100 (cuánta convicción tienes)
+- reason: máximo 8 palabras en español, explica el veredicto
+- En mercado BAJISTA o CORRECCIÓN, sé más exigente (solo YES si RSI<25 y R:R>2.5)"""
+
+        try:
+            from groq import Groq
+            client = Groq(api_key=api_key)
+            resp = client.chat.completions.create(
+                model='llama-3.3-70b-versatile',
+                messages=[{'role': 'user', 'content': prompt}],
+                max_tokens=600,
+                temperature=0.15,
+            )
+            raw = resp.choices[0].message.content.strip()
+            # Extract JSON array from response
+            start = raw.find('[')
+            end   = raw.rfind(']') + 1
+            if start >= 0 and end > start:
+                ai_results = json.loads(raw[start:end])
+                ai_map = {r['ticker']: r for r in ai_results if isinstance(r, dict)}
+                for opp in opportunities:
+                    ai = ai_map.get(opp['ticker'], {})
+                    opp['ai_confirmation'] = ai.get('confirmation', None)
+                    opp['ai_confidence']   = ai.get('confidence', None)
+                    opp['ai_reason']       = ai.get('reason', None)
+                print(f"  🤖 AI validó {len(ai_map)} setups ({sum(1 for o in batch if o.get('ai_confirmation')=='YES')} YES / "
+                      f"{sum(1 for o in batch if o.get('ai_confirmation')=='CAUTION')} CAUTION / "
+                      f"{sum(1 for o in batch if o.get('ai_confirmation')=='NO')} NO)")
+                return
+        except Exception as e:
+            print(f"  ⚠️  AI filter skipped: {e}")
+
+        # Fallback: set None
+        for opp in opportunities:
+            opp.setdefault('ai_confirmation', None)
+            opp.setdefault('ai_confidence', None)
+            opp.setdefault('ai_reason', None)
 
     def save_results(self, output_path: str = "docs/mean_reversion_opportunities.csv"):
         """Guarda resultados en CSV"""
@@ -348,6 +453,7 @@ class MeanReversionDetector:
         cols_order = [
             'ticker', 'company_name', 'strategy', 'quality', 'reversion_score',
             'current_price', 'entry_zone', 'target', 'stop_loss', 'risk_reward',
+            'ai_confirmation', 'ai_confidence', 'ai_reason', 'historical_win_rate',
             'detected_date'
         ]
 

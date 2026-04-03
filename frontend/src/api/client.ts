@@ -173,6 +173,10 @@ export interface MeanReversionItem {
   distance_to_support_pct?: number
   volume_ratio?: number
   detected_date?: string
+  ai_confirmation?: 'YES' | 'CAUTION' | 'NO' | null
+  ai_confidence?: number | null
+  ai_reason?: string | null
+  historical_win_rate?: number | null
 }
 
 export interface SectorRotationData {

@@ -583,6 +583,30 @@ export default function Cerebro() {
                           <span className={`font-black ${rrColor}`}>R:R {rr.toFixed(1)}x</span>
                         )}
                       </div>
+
+                      {/* AI + win rate row */}
+                      {(d.ai_confirmation || d.historical_win_rate != null) && (
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/15">
+                          <div className="flex items-center gap-1.5">
+                            {d.ai_confirmation && (
+                              <span className={`text-[0.6rem] font-black px-1.5 py-0.5 rounded border leading-none ${
+                                d.ai_confirmation === 'YES' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
+                                : d.ai_confirmation === 'CAUTION' ? 'bg-amber-500/15 text-amber-400 border-amber-500/20'
+                                : 'bg-red-500/15 text-red-400 border-red-500/20'
+                              }`} title={d.ai_reason ?? ''}>
+                                {d.ai_confirmation === 'YES' ? '✓' : d.ai_confirmation === 'CAUTION' ? '⚠' : '✗'} IA
+                                {d.ai_confidence != null ? ` ${d.ai_confidence}%` : ''}
+                              </span>
+                            )}
+                            {d.ai_reason && (
+                              <span className="text-[0.6rem] text-muted-foreground/50 truncate max-w-[110px]">{d.ai_reason}</span>
+                            )}
+                          </div>
+                          {d.historical_win_rate != null && (
+                            <span className="text-[0.6rem] text-muted-foreground/50 tabular-nums">{d.historical_win_rate.toFixed(0)}% hist</span>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )

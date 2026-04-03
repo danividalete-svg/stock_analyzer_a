@@ -32,6 +32,10 @@ interface MRItem {
   distance_to_support_pct?: number
   volume_ratio?: number
   detected_date?: string
+  ai_confirmation?: 'YES' | 'CAUTION' | 'NO' | null
+  ai_confidence?: number | null
+  ai_reason?: string | null
+  historical_win_rate?: number | null
   [key: string]: unknown
 }
 
@@ -225,13 +229,27 @@ export default function MeanReversion() {
                         <div className="text-[0.72rem] font-bold text-red-400 leading-none">{d.stop_loss != null ? `$${d.stop_loss.toFixed(1)}` : '—'}</div>
                       </div>
                     </div>
-                    {/* R:R */}
-                    {rr != null && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-[0.6rem] text-muted-foreground/40">Risk/Reward</span>
-                        <span className={`text-xs font-black tabular-nums ${rrColor}`}>{rr.toFixed(1)}x</span>
+                    {/* R:R + AI + Win Rate row */}
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center gap-1.5">
+                        {d.ai_confirmation && (
+                          <span className={`text-[0.55rem] font-black px-1 py-0.5 rounded leading-none ${
+                            d.ai_confirmation === 'YES' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                            : d.ai_confirmation === 'CAUTION' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
+                            : 'bg-red-500/15 text-red-400 border border-red-500/20'
+                          }`} title={d.ai_reason ?? ''}>
+                            {d.ai_confirmation === 'YES' ? '✓ IA' : d.ai_confirmation === 'CAUTION' ? '⚠ IA' : '✗ IA'}
+                            {d.ai_confidence != null ? ` ${d.ai_confidence}%` : ''}
+                          </span>
+                        )}
+                        {d.historical_win_rate != null && (
+                          <span className="text-[0.55rem] text-muted-foreground/50 tabular-nums">{d.historical_win_rate.toFixed(0)}% hist</span>
+                        )}
                       </div>
-                    )}
+                      {rr != null && (
+                        <span className={`text-xs font-black tabular-nums ${rrColor}`}>{rr.toFixed(1)}x</span>
+                      )}
+                    </div>
                   </div>
                 )
               })}
