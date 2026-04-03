@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-04-02T21:31:43.404213",
-  "date": "2026-04-02",
+  "timestamp": "2026-04-03T14:03:26.461531",
+  "date": "2026-04-03",
   "intraday_update": true,
   "regime": {
     "name": "STRESS",
     "color": "#f59e0b",
     "description": "Estr\u00e9s moderado. Reducir exposici\u00f3n, gestionar riesgo."
   },
-  "composite_score": -2.0,
-  "composite_pct": 46.7,
+  "composite_score": -3.0,
+  "composite_pct": 45.0,
   "max_score": 30,
   "signals": {
     "vix": {
@@ -30,7 +30,7 @@
     },
     "credit": {
       "current": 0.7291,
-      "percentile": 69.0,
+      "percentile": 68.8,
       "score": 1,
       "change_5d": -0.3,
       "change_20d": 0.7,
@@ -39,18 +39,18 @@
       "description": "HY spread >400bps = systemic stress. Ratio compression = risk-off"
     },
     "copper_gold": {
-      "current": 0.0132,
-      "percentile": 20.2,
-      "score": -1,
-      "change_5d": -2.7,
-      "change_20d": 7.2,
-      "interpretation": "Cobre/Oro en p20, cayendo (-2.7% 5d)",
+      "current": 0.013,
+      "percentile": 15.6,
+      "score": -2,
+      "change_5d": -4.7,
+      "change_20d": 5.0,
+      "interpretation": "Cobre/Oro en p16, cayendo (-4.7% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
     },
     "gold_spy": {
       "current": 0.6548,
-      "percentile": 85.6,
+      "percentile": 85.5,
       "score": -1,
       "change_5d": 5.4,
       "change_20d": -4.6,
@@ -59,18 +59,18 @@
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 112.06,
+      "current": 111.54,
       "percentile": 99.6,
       "score": -2,
-      "change_5d": 18.6,
-      "change_20d": 38.3,
-      "interpretation": "Petroleo $112.1 (spike geopolitico)",
+      "change_5d": 18.1,
+      "change_20d": 37.7,
+      "interpretation": "Petroleo $111.5 (spike geopolitico)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
     "defense": {
       "current": 0.3384,
-      "percentile": 83.4,
+      "percentile": 83.3,
       "score": -1,
       "change_5d": -0.8,
       "change_20d": -4.2,
@@ -79,21 +79,21 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 100.01,
-      "percentile": 80.2,
+      "current": 100.08,
+      "percentile": 80.9,
       "score": 0.5,
-      "change_5d": 0.11,
-      "change_20d": 0.69,
-      "interpretation": "DXY 100.0 (ligeramente fuerte)",
+      "change_5d": -0.07,
+      "change_20d": 1.1,
+      "interpretation": "DXY 100.1 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 159.54,
+      "current": 159.48,
       "percentile": 97.9,
       "score": 1,
-      "change_5d": 0.1,
-      "change_20d": 1.63,
+      "change_5d": -0.14,
+      "change_20d": 1.24,
       "interpretation": "USD/JPY 159.5 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
@@ -112,7 +112,7 @@
     },
     "skew": {
       "current": 146.95,
-      "percentile": 61.4,
+      "percentile": 61.6,
       "score": -2,
       "change_5d": 2.1,
       "interpretation": "SKEW 147 (crash insurance extremo)",
@@ -121,16 +121,16 @@
     },
     "vvix": {
       "current": 115.33,
-      "percentile": 80.5,
+      "percentile": 80.4,
       "score": -1,
       "change_5d": -7.3,
-      "interpretation": "VVIX 115.3 (p81, incertidumbre elevada)",
+      "interpretation": "VVIX 115.3 (p80, incertidumbre elevada)",
       "label": "VVIX (Vol of Vol)",
       "description": "Volatility of VIX. Rising VVIX while VIX is moderate = smart money buying vol insurance. Precedes VIX spikes."
     },
     "regional_banks": {
       "current": 0.1006,
-      "percentile": 89.9,
+      "percentile": 90.2,
       "score": 1,
       "change_5d": 0.7,
       "change_20d": 3.3,
@@ -140,7 +140,7 @@
     },
     "small_cap": {
       "current": 0.3832,
-      "percentile": 92.1,
+      "percentile": 92.0,
       "score": 1.5,
       "change_5d": -0.1,
       "change_20d": 1.6,
@@ -150,7 +150,7 @@
     },
     "real_yields": {
       "current": 1.2768,
-      "percentile": 67.1,
+      "percentile": 67.0,
       "score": 1,
       "change_5d": -0.2,
       "change_20d": 1.5,
