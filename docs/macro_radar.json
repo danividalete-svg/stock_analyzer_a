@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-03T17:51:24.631557",
+  "timestamp": "2026-04-03T18:36:44.213074",
   "date": "2026-04-03",
   "intraday_update": true,
   "regime": {
@@ -79,21 +79,21 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 100.17,
-      "percentile": 82.7,
+      "current": 100.18,
+      "percentile": 83.1,
       "score": 0.5,
-      "change_5d": 0.02,
-      "change_20d": 1.2,
+      "change_5d": 0.03,
+      "change_20d": 1.21,
       "interpretation": "DXY 100.2 (ligeramente fuerte)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 159.64,
+      "current": 159.63,
       "percentile": 98.2,
       "score": 1,
-      "change_5d": -0.04,
-      "change_20d": 1.34,
+      "change_5d": -0.05,
+      "change_20d": 1.33,
       "interpretation": "USD/JPY 159.6 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
