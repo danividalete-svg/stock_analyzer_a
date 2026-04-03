@@ -748,6 +748,190 @@ _HISTORICAL_EPISODES = [
 _MATCH_KEYS = ['vix', 'copper_gold', 'gold_spy', 'oil', 'defense', 'credit', 'regional_banks', 'small_cap', 'real_yields']
 
 
+def _scan_index_breakouts() -> list:
+    """
+    Monitorea los 6 índices principales buscando roturas de medias clave.
+    Detecta: MA50d, MA200d (~10 meses), MA10m (mensual), MA20m (mensual).
+    Retorna lista de eventos ordenada por frescura y magnitud.
+
+    Campos por evento:
+      index, index_name, ma_key, ma_label, current_price, ma_value,
+      pct_from_ma, direction, fresh_cross, days_since_cross, signal
+    """
+    INDICES = [
+        ('QQQ', 'Nasdaq 100 (QQQ)'),
+        ('SPY', 'S&P 500 (SPY)'),
+        ('IWM', 'Russell 2000 (IWM)'),
+        ('DIA', 'Dow Jones (DIA)'),
+        ('EWG', 'DAX / Alemania (EWG)'),
+        ('EEM', 'Mercados Emergentes (EEM)'),
+    ]
+
+    MA_DEFS = [
+        {'key': 'ma50d',  'label': 'MA 50d',   'window': 50,  'freq': 'D', 'fresh_days': 5},
+        {'key': 'ma200d', 'label': 'MA 200d',  'window': 200, 'freq': 'D', 'fresh_days': 5},
+        {'key': 'ma10m',  'label': 'MA 10 mes','window': 10,  'freq': 'M', 'fresh_days': 35},
+        {'key': 'ma20m',  'label': 'MA 20 mes','window': 20,  'freq': 'M', 'fresh_days': 35},
+    ]
+
+    results = []
+
+    for ticker, name in INDICES:
+        print(f"  Breakouts: {ticker}...")
+        df = _fetch(ticker, period_days=1800)
+        if df is None or len(df) < 60:
+            continue
+
+        close = df['Close'].dropna()
+        current_price = float(close.iloc[-1])
+        last_date = close.index[-1]
+
+        for ma_def in MA_DEFS:
+            try:
+                if ma_def['freq'] == 'D':
+                    if len(close) < ma_def['window'] + 10:
+                        continue
+                    ma_series = close.rolling(ma_def['window']).mean().dropna()
+                else:
+                    # Monthly close → rolling MA → ffill to daily
+                    try:
+                        monthly = close.resample('ME').last().dropna()
+                    except Exception:
+                        monthly = close.resample('M').last().dropna()
+                    if len(monthly) < ma_def['window'] + 3:
+                        continue
+                    ma_monthly = monthly.rolling(ma_def['window']).mean().dropna()
+                    ma_series = ma_monthly.reindex(close.index, method='ffill').dropna()
+
+                if len(ma_series) < 15:
+                    continue
+
+                ma_current = float(ma_series.iloc[-1])
+                pct_from_ma = (current_price / ma_current - 1) * 100
+                currently_above = current_price > ma_current
+
+                # Align price and MA on same dates
+                combined = pd.concat(
+                    [close.rename('price'), ma_series.rename('ma')], axis=1
+                ).dropna()
+
+                if len(combined) < ma_def['fresh_days'] + 5:
+                    continue
+
+                # Was price on the other side N days ago?
+                ref_row = combined.iloc[-(ma_def['fresh_days'] + 1)]
+                was_above = bool(ref_row['price'] > ref_row['ma'])
+                fresh_cross = (currently_above != was_above)
+
+                # Find exact days since last cross (look back 60 calendar days)
+                lookback_n = min(60, len(combined) - 1)
+                recent = combined.tail(lookback_n)
+                above_flags = (recent['price'] > recent['ma'])
+                changes = (above_flags != above_flags.shift(1)).fillna(False)
+                cross_dates = above_flags[changes].index
+                if len(cross_dates) > 0:
+                    last_cross = cross_dates[-1]
+                    days_since = int((last_date - last_cross).days)
+                else:
+                    days_since = 999
+
+                # Signal classification
+                if fresh_cross and not currently_above:
+                    signal = 'BEARISH_BREAK'
+                elif fresh_cross and currently_above:
+                    signal = 'BULLISH_BREAK'
+                elif not currently_above:
+                    signal = 'BELOW'
+                else:
+                    signal = 'ABOVE'
+
+                # Only include: fresh crosses OR significant distance (>3% from MA)
+                if not fresh_cross and abs(pct_from_ma) < 3:
+                    continue
+
+                results.append({
+                    'index':          ticker,
+                    'index_name':     name,
+                    'ma_key':         ma_def['key'],
+                    'ma_label':       ma_def['label'],
+                    'current_price':  round(current_price, 2),
+                    'ma_value':       round(ma_current, 2),
+                    'pct_from_ma':    round(pct_from_ma, 2),
+                    'direction':      'ABOVE' if currently_above else 'BELOW',
+                    'fresh_cross':    fresh_cross,
+                    'days_since_cross': days_since,
+                    'signal':         signal,
+                })
+
+            except Exception as e:
+                print(f"    {ticker}/{ma_def['key']} error: {e}")
+                continue
+
+    # Sort: fresh BEARISH first, then fresh BULLISH, then by abs pct from MA
+    def sort_key(r):
+        fresh_order = 0 if r['fresh_cross'] else 1
+        bearish_order = 0 if r['signal'] == 'BEARISH_BREAK' else (1 if r['signal'] == 'BULLISH_BREAK' else 2)
+        return (fresh_order, bearish_order, -abs(r['pct_from_ma']))
+
+    results.sort(key=sort_key)
+    return results
+
+
+def _send_telegram_breakout_alert(breakouts: list) -> None:
+    """Send immediate Telegram alert for fresh index MA breakouts."""
+    bot_token = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+    chat_id   = os.environ.get('TELEGRAM_CHAT_ID', '')
+    if not bot_token or not chat_id:
+        return
+
+    fresh = [b for b in breakouts if b['fresh_cross']]
+    if not fresh:
+        return
+
+    lines = ['📊 <b>Macro Radar — Roturas de Índices</b>', '']
+
+    bearish = [b for b in fresh if b['signal'] == 'BEARISH_BREAK']
+    bullish = [b for b in fresh if b['signal'] == 'BULLISH_BREAK']
+
+    if bearish:
+        lines.append('🔴 <b>Roturas BAJISTAS (ventas / cautela):</b>')
+        for b in bearish:
+            lines.append(
+                f"  ↓ <b>{b['index']}</b> ({b['index_name'].split('(')[0].strip()}) "
+                f"ha roto la <b>{b['ma_label']}</b> a la baja\n"
+                f"    ${b['current_price']:.2f} vs MA ${b['ma_value']:.2f} "
+                f"({b['pct_from_ma']:+.1f}%)"
+            )
+
+    if bullish:
+        if bearish:
+            lines.append('')
+        lines.append('🟢 <b>Roturas ALCISTAS (recuperación):</b>')
+        for b in bullish:
+            lines.append(
+                f"  ↑ <b>{b['index']}</b> ({b['index_name'].split('(')[0].strip()}) "
+                f"ha recuperado la <b>{b['ma_label']}</b>\n"
+                f"    ${b['current_price']:.2f} vs MA ${b['ma_value']:.2f} "
+                f"({b['pct_from_ma']:+.1f}%)"
+            )
+
+    lines.append('')
+    lines.append('<i>Detectado hoy · Macro Radar</i>')
+
+    text = '\n'.join(lines)
+    try:
+        import requests as _req
+        _req.post(
+            f'https://api.telegram.org/bot{bot_token}/sendMessage',
+            json={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML',
+                  'disable_web_page_preview': True},
+            timeout=10,
+        )
+        print(f"  Telegram breakout alert sent ({len(fresh)} fresh crosses)")
+    except Exception as e:
+        print(f"  Telegram breakout alert failed: {e}")
+
+
 def _compute_historical_analogs(signals: dict) -> list:
     """Compare current signal percentiles to historical episodes via mean absolute deviation."""
     # Build current percentile vector
@@ -1122,6 +1306,14 @@ def run_macro_radar() -> dict:
     for r in systemic_risks:
         print(f"  Risk: {r['name']} [{r['severity']}]")
 
+    # ── Index MA breakouts ─────────────────────────────────────────────────
+    print("Scanning index breakouts (Nasdaq, S&P, Russell, DAX...)...")
+    index_breakouts = _scan_index_breakouts()
+    fresh_breaks = [b for b in index_breakouts if b['fresh_cross']]
+    bearish_breaks = [b for b in fresh_breaks if b['signal'] == 'BEARISH_BREAK']
+    bullish_breaks = [b for b in fresh_breaks if b['signal'] == 'BULLISH_BREAK']
+    print(f"  Breakouts: {len(index_breakouts)} total, {len(bearish_breaks)} bearish fresh, {len(bullish_breaks)} bullish fresh")
+
     # ── Build output ──────────────────────────────────────────────────────
     output = {
         'timestamp': datetime.now().isoformat(),
@@ -1135,6 +1327,7 @@ def run_macro_radar() -> dict:
         'ai_narrative': ai_narrative,
         'historical_analogs': historical_analogs,
         'systemic_risks': systemic_risks,
+        'index_breakouts': index_breakouts,
         'signal_order': [
             'vix', 'yield_curve', 'credit', 'copper_gold', 'gold_spy',
             'oil', 'defense', 'dollar', 'yen', 'breadth',
@@ -1160,8 +1353,9 @@ def run_macro_radar() -> dict:
     print(f"\nSaved to {out_path}")
     print(f"Regime: {regime['name']} | Composite: {composite:.1f}/{max_possible} | Errors: {errors or 'none'}")
 
-    # ── Telegram alert on regime change ───────────────────────────────────
+    # ── Telegram alerts ───────────────────────────────────────────────────
     _send_telegram_regime_alert(regime['name'], previous_regime, composite, max_possible, ai_narrative, enriched)
+    _send_telegram_breakout_alert(index_breakouts)
 
     return output
 

@@ -37,6 +37,20 @@ interface SystemicRisk {
   implication: string
 }
 
+interface IndexBreakout {
+  index: string
+  index_name: string
+  ma_key: string
+  ma_label: string
+  current_price: number
+  ma_value: number
+  pct_from_ma: number
+  direction: 'ABOVE' | 'BELOW'
+  fresh_cross: boolean
+  days_since_cross: number
+  signal: 'BEARISH_BREAK' | 'BULLISH_BREAK' | 'ABOVE' | 'BELOW'
+}
+
 interface MacroData {
   timestamp: string
   date: string
@@ -50,6 +64,7 @@ interface MacroData {
   errors?: string[]
   historical_analogs?: HistoricalAnalog[]
   systemic_risks?: SystemicRisk[]
+  index_breakouts?: IndexBreakout[]
 }
 
 const SIGNAL_ICONS: Record<string, string> = {
@@ -272,6 +287,191 @@ function HistoryChart({ points, maxScore }: { points: HistoryPoint[]; maxScore: 
   )
 }
 
+const INDEX_FLAGS: Record<string, string> = {
+  QQQ: '🇺🇸', SPY: '🇺🇸', IWM: '🇺🇸', DIA: '🇺🇸', EWG: '🇩🇪', EEM: '🌍',
+}
+
+const MA_IMPORTANCE: Record<string, number> = {
+  ma10m: 4, ma20m: 3, ma200d: 2, ma50d: 1,
+}
+
+function IndexBreakoutsPanel({ breakouts }: { breakouts: IndexBreakout[] }) {
+  const fresh   = breakouts.filter(b => b.fresh_cross)
+  const bearish = fresh.filter(b => b.signal === 'BEARISH_BREAK')
+  const bullish = fresh.filter(b => b.signal === 'BULLISH_BREAK')
+  const below   = breakouts.filter(b => !b.fresh_cross && b.signal === 'BELOW')
+  const above   = breakouts.filter(b => !b.fresh_cross && b.signal === 'ABOVE')
+
+  const sorted = [
+    ...bearish.sort((a,b) => (MA_IMPORTANCE[b.ma_key]??0) - (MA_IMPORTANCE[a.ma_key]??0)),
+    ...bullish.sort((a,b) => (MA_IMPORTANCE[b.ma_key]??0) - (MA_IMPORTANCE[a.ma_key]??0)),
+    ...below.sort((a,b) => a.pct_from_ma - b.pct_from_ma),
+    ...above.sort((a,b) => b.pct_from_ma - a.pct_from_ma),
+  ]
+
+  if (sorted.length === 0) return null
+
+  return (
+    <Card className="glass border border-border/50 animate-fade-in-up">
+      <CardContent className="p-4">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-base">📡</span>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Roturas de Índices — Medias Clave
+          </p>
+          {fresh.length > 0 && (
+            <span className={`ml-auto text-[0.6rem] font-bold px-2 py-0.5 rounded-full border ${
+              bearish.length > 0
+                ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+            }`}>
+              {bearish.length > 0 ? `${bearish.length} rotura bajista${bearish.length > 1 ? 's' : ''}` : `${bullish.length} rotura alcista${bullish.length > 1 ? 's' : ''}`}
+            </span>
+          )}
+        </div>
+        <p className="text-[0.65rem] text-muted-foreground/60 mb-4">
+          Cruces de MA50d, MA200d, MA10mes y MA20mes en Nasdaq, S&P, Russell, DAX y mercados emergentes
+        </p>
+
+        {/* Fresh crosses — prominently highlighted */}
+        {fresh.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[0.6rem] font-black uppercase tracking-[0.15em] text-muted-foreground/50">Roturas recientes</span>
+              <div className="flex-1 h-px bg-border/20" />
+              <span className="text-[0.6rem] text-muted-foreground/40">últimos 5 días</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[...bearish, ...bullish].map((b, idx) => {
+                const isBearish = b.signal === 'BEARISH_BREAK'
+                return (
+                  <div
+                    key={`${b.index}-${b.ma_key}`}
+                    className={`rounded-xl border p-3 animate-fade-in-up ${
+                      isBearish
+                        ? 'bg-red-500/8 border-red-500/35'
+                        : 'bg-emerald-500/8 border-emerald-500/30'
+                    }`}
+                    style={{ animationDelay: `${idx * 60}ms` }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span>{INDEX_FLAGS[b.index] ?? '📊'}</span>
+                        <span className="font-mono font-black text-sm text-foreground">{b.index}</span>
+                        <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded border ${
+                          isBearish
+                            ? 'bg-red-500/15 text-red-400 border-red-500/20'
+                            : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
+                        }`}>{b.ma_label}</span>
+                      </div>
+                      <span className={`text-lg ${isBearish ? 'text-red-400' : 'text-emerald-400'}`}>
+                        {isBearish ? '↓' : '↑'}
+                      </span>
+                    </div>
+
+                    <div className="text-[0.68rem] text-foreground/80 font-semibold mb-1">
+                      {b.index_name.split('(')[0].trim()}
+                      {isBearish ? ' ha roto a la baja' : ' ha recuperado'} la <span className="font-black">{b.ma_label}</span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5 mt-2">
+                      <div className="text-center rounded bg-muted/15 px-1.5 py-1">
+                        <div className="text-[0.55rem] text-muted-foreground/50 mb-0.5">Precio</div>
+                        <div className="text-[0.7rem] font-bold tabular-nums">${b.current_price.toFixed(2)}</div>
+                      </div>
+                      <div className={`text-center rounded px-1.5 py-1 ${isBearish ? 'bg-red-500/8' : 'bg-emerald-500/8'}`}>
+                        <div className="text-[0.55rem] text-muted-foreground/50 mb-0.5">Media</div>
+                        <div className="text-[0.7rem] font-bold tabular-nums">${b.ma_value.toFixed(2)}</div>
+                      </div>
+                      <div className="text-center rounded bg-muted/15 px-1.5 py-1">
+                        <div className="text-[0.55rem] text-muted-foreground/50 mb-0.5">Distancia</div>
+                        <div className={`text-[0.7rem] font-black tabular-nums ${isBearish ? 'text-red-400' : 'text-emerald-400'}`}>
+                          {b.pct_from_ma >= 0 ? '+' : ''}{b.pct_from_ma.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {b.days_since_cross < 999 && (
+                      <div className="mt-2 text-[0.6rem] text-muted-foreground/50 text-right">
+                        cruce hace {b.days_since_cross}d
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Status table for all monitored MAs */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-[0.6rem] font-black uppercase tracking-[0.15em] text-muted-foreground/50">Estado actual</span>
+            <div className="flex-1 h-px bg-border/20" />
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[460px] text-[0.68rem]">
+              <thead>
+                <tr className="border-b border-border/20">
+                  <th className="text-left font-medium text-muted-foreground/60 pb-1.5 pr-2">Índice</th>
+                  <th className="text-center font-medium text-muted-foreground/60 pb-1.5 px-1">MA50d</th>
+                  <th className="text-center font-medium text-muted-foreground/60 pb-1.5 px-1">MA200d</th>
+                  <th className="text-center font-medium text-muted-foreground/60 pb-1.5 px-1">MA10m</th>
+                  <th className="text-center font-medium text-muted-foreground/60 pb-1.5 pl-1">MA20m</th>
+                </tr>
+              </thead>
+              <tbody>
+                {['QQQ','SPY','IWM','DIA','EWG','EEM'].map(ticker => {
+                  const row: Record<string, IndexBreakout | undefined> = {}
+                  breakouts.filter(b => b.index === ticker).forEach(b => { row[b.ma_key] = b })
+
+                  if (Object.keys(row).length === 0) return null
+                  const any = Object.values(row)[0]!
+
+                  return (
+                    <tr key={ticker} className="border-b border-border/10 last:border-0">
+                      <td className="py-1.5 pr-2 font-mono font-bold text-foreground">
+                        {INDEX_FLAGS[ticker] ?? '📊'} {ticker}
+                        <span className="ml-1 font-normal text-muted-foreground/50 text-[0.6rem]">${any.current_price.toFixed(1)}</span>
+                      </td>
+                      {['ma50d','ma200d','ma10m','ma20m'].map(maKey => {
+                        const b = row[maKey]
+                        if (!b) return <td key={maKey} className="text-center px-1 py-1.5 text-muted-foreground/30">—</td>
+                        const isBearishBreak = b.signal === 'BEARISH_BREAK'
+                        const isBullishBreak = b.signal === 'BULLISH_BREAK'
+                        const isAbove = b.direction === 'ABOVE'
+                        return (
+                          <td key={maKey} className="text-center px-1 py-1.5">
+                            <span className={`inline-flex flex-col items-center gap-0.5`}>
+                              <span className={`text-[0.65rem] font-black ${
+                                isBearishBreak ? 'text-red-400 animate-pulse' :
+                                isBullishBreak ? 'text-emerald-400 animate-pulse' :
+                                isAbove ? 'text-emerald-400/70' : 'text-red-400/70'
+                              }`}>
+                                {isBearishBreak ? '↓BREAK' : isBullishBreak ? '↑BREAK' : isAbove ? '▲' : '▼'}
+                              </span>
+                              <span className={`text-[0.55rem] tabular-nums ${
+                                b.pct_from_ma >= 0 ? 'text-emerald-400/60' : 'text-red-400/60'
+                              }`}>
+                                {b.pct_from_ma >= 0 ? '+' : ''}{b.pct_from_ma.toFixed(1)}%
+                              </span>
+                            </span>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 const SEVERITY_CONFIG: Record<string, { bg: string; text: string; label: string; icon: string }> = {
   CRITICAL: { bg: 'border-red-500/40 bg-red-500/10',      text: 'text-red-400',    label: 'CRÍTICO', icon: '🔴' },
   HIGH:     { bg: 'border-orange-500/30 bg-orange-500/8', text: 'text-orange-400', label: 'ALTO',    icon: '🟠' },
@@ -430,7 +630,7 @@ export default function MacroRadar() {
   if (error) return <ErrorState message={error} />
   if (!data || !data.regime) return <ErrorState message="Sin datos de radar macro" />
 
-  const { regime, composite_score, max_score, signals, signal_order, ai_narrative, date, errors, historical_analogs, systemic_risks } = data
+  const { regime, composite_score, max_score, signals, signal_order, ai_narrative, date, errors, historical_analogs, systemic_risks, index_breakouts } = data
 
   const orderedSignals = (signal_order || Object.keys(signals)).filter(k => signals[k])
 
@@ -513,6 +713,11 @@ export default function MacroRadar() {
           />
         </CardContent>
       </Card>
+
+      {/* Index breakouts */}
+      {index_breakouts && index_breakouts.length > 0 && (
+        <IndexBreakoutsPanel breakouts={index_breakouts} />
+      )}
 
       {/* Systemic risks */}
       {systemic_risks && systemic_risks.length > 0 && (
