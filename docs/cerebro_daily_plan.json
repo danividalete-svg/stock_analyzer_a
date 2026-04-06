@@ -66,7 +66,7 @@
     {
       "instrument": "XLP / XLV / XLU",
       "direction": "LONG",
-      "thesis": "Cobre/Oro en p18 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
+      "thesis": "Cobre/Oro en p16 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
       "historical": "XLP supera S&P +12% en los 6m siguientes a Copper/Gold < p20",
       "risk": "Rebote econ\u00f3mico revertir\u00eda rotaci\u00f3n",
       "timeframe": "2-4 meses",
@@ -112,5 +112,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-03-24 | STRESS (-2.5) | NEUTRO | VALUE: PRU.L AON | Evitar: ATEX NEWT",
   "ai_powered": false,
-  "intraday_refresh": "2026-04-06T14:12:05.180468"
+  "intraday_refresh": "2026-04-06T15:08:13.162210"
 }
