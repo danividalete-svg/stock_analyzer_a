@@ -22,6 +22,7 @@ import { useTechnicalSummaryMap } from '../hooks/useTechnicalSummaryMap'
 import { useCerebroSignals } from '../hooks/useCerebroSignals'
 import CerebroBadges from '../components/CerebroBadges'
 import type { TechnicalSummary } from '../api/client'
+import PageHeader from '../components/PageHeader'
 
 function TechBiasCell({ t }: { t?: TechnicalSummary }) {
   if (!t) return <span className="text-muted-foreground/30 text-xs">—</span>
@@ -238,27 +239,24 @@ export default function ValueUS() {
   return (
     <>
       <StaleDataBanner />
-      <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
-        <div className="flex-1">
-        <h2 className="text-2xl font-extrabold tracking-tight mb-2 flex items-center gap-2 flex-wrap">
-          <span className="gradient-title">VALUE US</span>
+      <PageHeader
+        title={<>
+          VALUE US
           {regimeLabel && (
-            <Badge variant={regimeLabel.includes('UP') ? 'green' : regimeLabel.includes('CORR') ? 'red' : 'yellow'}>
+            <Badge variant={regimeLabel.includes('UP') ? 'green' : regimeLabel.includes('CORR') ? 'red' : 'yellow'} className="ml-2 align-middle text-xs">
               {regimeLabel}
             </Badge>
           )}
-          {source && <span className="text-[0.58rem] font-bold uppercase tracking-widest text-muted-foreground/60 border border-border/50 rounded px-1.5 py-0.5">{source}</span>}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Oportunidades VALUE seleccionadas por fundamentales, FCF, dividendos y conviction filter
-          {regimeRec && <> — Recomendación: <strong className="text-foreground">{regimeRec}</strong></>}
-        </p>
-        </div>
-        <div className="flex gap-2 shrink-0 mt-1">
-          <CsvDownload dataset="value-us" label="CSV" />
-          <CsvDownload dataset="value-us-full" label="CSV Full" />
-        </div>
-      </div>
+          {source && <span className="ml-2 align-middle text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 border border-border/40 rounded px-1.5 py-0.5">{source}</span>}
+        </>}
+        subtitle={<>
+          Oportunidades VALUE — fundamentales, FCF, dividendos, conviction filter
+          {regimeRec && <> · <strong className="text-foreground">{regimeRec}</strong></>}
+        </>}
+      >
+        <CsvDownload dataset="value-us" label="CSV" />
+        <CsvDownload dataset="value-us-full" label="CSV Full" />
+      </PageHeader>
 
       {/* Macro Risk Overlay */}
       {(() => {
@@ -311,165 +309,93 @@ export default function ValueUS() {
 
       {/* Filter Bar */}
       <Card className="glass px-4 py-3 mb-3 animate-fade-in-up">
-        <div className="flex flex-wrap gap-x-5 gap-y-2.5 items-center">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 items-center">
 
           {/* Min Score */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground/60 mr-0.5">Score≥</span>
+          <div className="flex items-center gap-1">
+            <span className="filter-label mr-0.5">Score≥</span>
             {[['ALL', ''], ['50+', '50'], ['55+', '55'], ['60+', '60'], ['65+', '65']].map(([label, val]) => (
-              <button
-                key={val}
-                onClick={() => setMinScore(val)}
-                className={`text-[0.68rem] font-semibold px-2 py-0.5 rounded border transition-colors ${
-                  minScore === val
-                    ? 'border-primary/60 bg-primary/15 text-primary'
-                    : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-                }`}
-              >
-                {label}
-              </button>
+              <button key={val} onClick={() => setMinScore(val)} className={`filter-btn ${minScore === val ? 'active' : ''}`}>{label}</button>
             ))}
           </div>
 
+          <div className="w-px h-4 bg-border/40 self-center" />
+
           {/* Grade */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground/60 mr-0.5">Grado</span>
+          <div className="flex items-center gap-1">
+            <span className="filter-label mr-0.5">Grado</span>
             {['ALL', 'A', 'B', 'C'].map(g => (
-              <button
-                key={g}
-                onClick={() => setFilterGrade(g)}
-                className={`text-[0.68rem] font-semibold px-2 py-0.5 rounded border transition-colors ${
-                  filterGrade === g
-                    ? 'border-primary/60 bg-primary/15 text-primary'
-                    : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-                }`}
-              >
-                {g}
-              </button>
+              <button key={g} onClick={() => setFilterGrade(g)} className={`filter-btn ${filterGrade === g ? 'active' : ''}`}>{g}</button>
             ))}
           </div>
 
           {/* Sector */}
           {sectors.length > 2 && (
-            <div className="flex items-center gap-1.5 flex-wrap max-w-[420px]">
-              <span className="text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground/60 mr-0.5">Sector</span>
-              {sectors.slice(0, 7).map(s => (
-                <button
-                  key={s}
-                  onClick={() => setFilterSector(s)}
-                  className={`text-[0.65rem] px-2 py-0.5 rounded border transition-colors ${
-                    filterSector === s
-                      ? 'border-primary/60 bg-primary/15 text-primary'
-                      : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-                  }`}
-                >
-                  {s === 'ALL' ? 'Todos' : s}
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="w-px h-4 bg-border/40 self-center" />
+              <div className="flex items-center gap-1 flex-wrap max-w-[400px]">
+                <span className="filter-label mr-0.5">Sector</span>
+                {sectors.slice(0, 7).map(s => (
+                  <button key={s} onClick={() => setFilterSector(s)} className={`filter-btn ${filterSector === s ? 'active' : ''}`}>
+                    {s === 'ALL' ? 'Todos' : s}
+                  </button>
+                ))}
+              </div>
+            </>
           )}
+
+          <div className="w-px h-4 bg-border/40 self-center" />
 
           {/* FCF% min */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground/60">FCF%≥</span>
-            <input
-              type="number"
-              value={minFcf}
-              onChange={e => setMinFcf(e.target.value)}
-              placeholder="0"
-              className="w-14 text-[0.72rem] px-2 py-0.5 rounded border border-border/40 bg-transparent text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
-            />
+            <span className="filter-label">FCF%≥</span>
+            <input type="number" value={minFcf} onChange={e => setMinFcf(e.target.value)} placeholder="0" className="filter-input" />
           </div>
 
           {/* R:R min */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[0.58rem] font-bold uppercase tracking-wider text-muted-foreground/60">R:R≥</span>
-            <input
-              type="number"
-              value={minRr}
-              onChange={e => setMinRr(e.target.value)}
-              placeholder="0"
-              className="w-14 text-[0.72rem] px-2 py-0.5 rounded border border-border/40 bg-transparent text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
-            />
+            <span className="filter-label">R:R≥</span>
+            <input type="number" value={minRr} onChange={e => setMinRr(e.target.value)} placeholder="0" className="filter-input" />
           </div>
 
+          <div className="w-px h-4 bg-border/40 self-center" />
+
           {/* Cerebro IA filters */}
-          <button
-            onClick={() => setHideTraps(v => !v)}
-            className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${
-              hideTraps
-                ? 'border-red-500/60 bg-red-500/15 text-red-400'
-                : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-            }`}
-            title="Ocultar tickers marcados como value trap HIGH por Cerebro IA"
-          >
-            {hideTraps && hiddenByTraps > 0 ? `⚠ TRAP ocultos (${hiddenByTraps})` : '⚠ Ocultar TRAP'}
+          <button onClick={() => setHideTraps(v => !v)} className={`filter-btn ${hideTraps ? 'active-red' : ''}`}
+            title="Ocultar tickers marcados como value trap HIGH por Cerebro IA">
+            {hideTraps && hiddenByTraps > 0 ? `⚠ TRAP (${hiddenByTraps})` : '⚠ TRAP'}
           </button>
-          <button
-            onClick={() => setHideExits(v => !v)}
-            className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${
-              hideExits
-                ? 'border-red-500/60 bg-red-500/15 text-red-400'
-                : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-            }`}
-            title="Ocultar tickers con señal de salida HIGH por Cerebro IA"
-          >
-            {hideExits && hiddenByExits > 0 ? `⬆ EXIT ocultos (${hiddenByExits})` : '⬆ Ocultar EXIT'}
+          <button onClick={() => setHideExits(v => !v)} className={`filter-btn ${hideExits ? 'active-red' : ''}`}
+            title="Ocultar tickers con señal de salida HIGH por Cerebro IA">
+            {hideExits && hiddenByExits > 0 ? `⬆ EXIT (${hiddenByExits})` : '⬆ EXIT'}
+          </button>
+          <button onClick={() => setHideEarnings(v => !v)} className={`filter-btn ${hideEarnings ? 'active-amber' : ''}`}>
+            Earn &lt;7d
           </button>
 
-          {/* Earnings toggle */}
-          <button
-            onClick={() => setHideEarnings(v => !v)}
-            className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${
-              hideEarnings
-                ? 'border-amber-500/60 bg-amber-500/15 text-amber-400'
-                : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-            }`}
-          >
-            Ocultar earnings &lt;7d
-          </button>
-
-          {/* Only owned toggle */}
           {myPos.length > 0 && (
-            <button
-              onClick={() => setOnlyOwned(v => !v)}
-              className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${
-                onlyOwned
-                  ? 'border-primary/60 bg-primary/15 text-primary'
-                  : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-              }`}
-            >
+            <button onClick={() => setOnlyOwned(v => !v)} className={`filter-btn ${onlyOwned ? 'active' : ''}`}>
               En cartera
             </button>
           )}
 
-          {/* Reset */}
-          {hasActiveFilters && (
-            <button
-              onClick={resetFilters}
-              className="text-[0.65rem] text-muted-foreground/60 hover:text-foreground underline underline-offset-2 transition-colors ml-auto"
-            >
-              Limpiar filtros
-            </button>
-          )}
-
           {/* Compact toggle */}
-          <button
-            onClick={() => setCompact(v => !v)}
-            className={`text-[0.68rem] px-2.5 py-0.5 rounded border transition-colors ${
-              compact
-                ? 'border-primary/60 bg-primary/15 text-primary'
-                : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-            }`}
-            title="Alternar entre vista compacta y completa"
-          >
+          <button onClick={() => setCompact(v => !v)} className={`filter-btn ${compact ? 'active' : ''}`}
+            title="Alternar entre vista compacta y completa">
             {compact ? '⊟ Compacta' : '⊞ Completa'}
           </button>
 
-          {/* Result count */}
-          <span className="text-[0.65rem] text-muted-foreground/50 ml-auto">
-            {filtered.length !== rows.length ? `${filtered.length} / ${rows.length}` : `${rows.length} picks`}
-          </span>
+          {/* Reset + count — pushed to the right */}
+          <div className="flex items-center gap-3 ml-auto">
+            {hasActiveFilters && (
+              <button onClick={resetFilters} className="text-xs text-muted-foreground/50 hover:text-foreground underline underline-offset-2 transition-colors">
+                Limpiar
+              </button>
+            )}
+            <span className="filter-label !normal-case !tracking-normal">
+              {filtered.length !== rows.length ? `${filtered.length} / ${rows.length}` : `${rows.length} picks`}
+            </span>
+          </div>
         </div>
       </Card>
 

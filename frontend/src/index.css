@@ -418,6 +418,73 @@ button:active:not(:disabled) { transform: scale(0.97); }
 
 
 /* ═══════════════════════════════════════════════════════════════════
+   FILTER BAR — shared label + button tokens
+════════════════════════════════════════════════════════════════════ */
+
+/* Section label: "Score≥", "Grado", "Sector" */
+.filter-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground) / 0.5);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Base pill button */
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 1.625rem;          /* 26px — readable on mobile */
+  padding: 0 0.625rem;       /* px-2.5 */
+  font-size: 0.72rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border) / 0.5);
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+  white-space: nowrap;
+  cursor: pointer;
+  line-height: 1;
+}
+.filter-btn:hover {
+  border-color: hsl(var(--border) / 0.9);
+  color: hsl(var(--foreground));
+}
+.filter-btn.active {
+  border-color: hsl(var(--primary) / 0.6);
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+}
+.filter-btn.active-red {
+  border-color: hsl(0 84% 60% / 0.6);
+  background: hsl(0 84% 60% / 0.12);
+  color: hsl(0 84% 65%);
+}
+.filter-btn.active-amber {
+  border-color: hsl(38 92% 50% / 0.6);
+  background: hsl(38 92% 50% / 0.12);
+  color: hsl(38 92% 55%);
+}
+
+/* Number input inside filter bar */
+.filter-input {
+  width: 3.25rem;
+  height: 1.625rem;
+  padding: 0 0.5rem;
+  font-size: 0.72rem;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border) / 0.5);
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+.filter-input::placeholder { color: hsl(var(--muted-foreground) / 0.4); }
+.filter-input:focus { outline: none; border-color: hsl(var(--primary) / 0.5); }
+
+
+/* ═══════════════════════════════════════════════════════════════════
    SECTOR QUADRANT CELLS
 ════════════════════════════════════════════════════════════════════ */
 
