@@ -1166,6 +1166,45 @@ def shorts():
     ])
 
 
+@app.route('/api/portfolio-news')
+def portfolio_news():
+    return jsonify(_load_json(DOCS / 'portfolio_news.json') or {
+        'items': [], 'count': 0, 'alta_count': 0, 'media_count': 0,
+        'tickers': [], 'scan_date': None, 'scan_time': None,
+    })
+
+
+@app.route('/api/portfolio-watch', methods=['GET'])
+def portfolio_watch_get():
+    cfg = _load_json(DOCS / 'portfolio_watch.json')
+    return jsonify(cfg or {'tickers': []})
+
+
+@app.route('/api/portfolio-watch', methods=['POST'])
+def portfolio_watch_post():
+    """Update the portfolio watch list. Body: {"tickers": [{"ticker":"UNH","notes":"..."}]}"""
+    try:
+        body = request.get_json(force=True)
+        tickers = body.get('tickers', [])
+        # Sanitize
+        clean = []
+        for t in tickers:
+            if isinstance(t, dict) and t.get('ticker'):
+                clean.append({'ticker': t['ticker'].upper()[:10], 'notes': str(t.get('notes',''))[:80]})
+            elif isinstance(t, str):
+                clean.append({'ticker': t.upper()[:10], 'notes': ''})
+        cfg = {
+            'description': 'Tickers de cartera a monitorizar para noticias y alertas Telegram.',
+            'tickers': clean,
+            'updated': datetime.now().strftime('%Y-%m-%d'),
+        }
+        with open(DOCS / 'portfolio_watch.json', 'w') as f:
+            json.dump(cfg, f, indent=2)
+        return jsonify({'ok': True, 'count': len(clean)})
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 400
+
+
 @app.route('/api/mean-reversion')
 def mean_reversion():
     data = _load_json(DOCS / 'mean_reversion_opportunities.json')

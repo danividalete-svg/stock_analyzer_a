@@ -189,6 +189,13 @@ jobs:
         continue-on-error: true
         run: python3 short_scanner.py || echo "Short scanner failed"
 
+      - name: Portfolio News Monitor
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 portfolio_news_monitor.py || echo "Portfolio news monitor failed"
+
       - name: Options Flow Detector
         continue-on-error: true
         run: |

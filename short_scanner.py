@@ -79,6 +79,45 @@ _EXCLUDE = {'TWTR', 'BBBY', 'FFIE', 'MULN', 'GOEV', 'ASTR', 'SPCE', 'BRLT',
             'PRTY', 'BGFV', 'BIG', 'NCR', 'AVAL'}
 SHORT_UNIVERSE = [t for t in SHORT_UNIVERSE if t not in _EXCLUDE]
 
+# ── ETF / Index / Commodity universe (technical scoring only) ─────────────────
+ETF_UNIVERSE = [
+    # ── Major indices (highest priority) ──────────────────────────────────
+    'QQQ',  # Nasdaq 100
+    'SPY',  # S&P 500
+    'IWM',  # Russell 2000
+    'DIA',  # Dow Jones
+    # ── Sector ETFs (short weak sectors) ──────────────────────────────────
+    'XLK',  # Technology
+    'XLY',  # Consumer Discretionary
+    'XLRE', # Real Estate
+    'XLF',  # Financials
+    'XLC',  # Communication Services
+    'XBI',  # Biotech
+    'XHB',  # Homebuilders
+    'XRT',  # Retail
+    # ── International ─────────────────────────────────────────────────────
+    'EWG',  # Germany / DAX
+    'EEM',  # Emerging Markets
+    'FXI',  # China Large Cap
+    'EWJ',  # Japan
+    'EWZ',  # Brazil
+    # ── Oil & Commodities ──────────────────────────────────────────────────
+    'USO',  # WTI Crude Oil
+    'UNG',  # Natural Gas
+    'DBA',  # Agriculture
+    'CORN', # Corn
+    'WEAT', # Wheat
+    # ── Bonds (short = rates rising, credit stress) ────────────────────────
+    'TLT',  # 20+ yr Treasuries (short = rates up)
+    'HYG',  # High Yield (short = credit stress)
+    'LQD',  # Investment Grade (short = rates up)
+    # ── Other ─────────────────────────────────────────────────────────────
+    'GLD',  # Gold (short if overbought + trend reversal)
+    'ARKK', # ARK Innovation (high-beta speculative)
+]
+# ETFs that are contrarian (shorting = bearish on asset, which is the trade)
+ETF_SET = set(ETF_UNIVERSE)
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -182,6 +221,143 @@ def _safe_float(val, default=None) -> Optional[float]:
         return v if not (v != v) else default  # NaN check
     except Exception:
         return default
+
+
+# ── ETF / Index scorer (technical-only) ──────────────────────────────────────
+
+def _score_etf(ticker: str) -> Optional[dict]:
+    """
+    Technical-only short score for ETFs, indices and commodities.
+    Score 0-100 based purely on MA position, momentum and trend.
+    Threshold: >= 40 to qualify as a short candidate.
+    """
+    try:
+        tk = yf.Ticker(ticker)
+        info = tk.info or {}
+
+        price = _safe_float(info.get('currentPrice') or info.get('regularMarketPrice')
+                            or info.get('navPrice'))
+        if not price or price < 1:
+            return None
+
+        hist = tk.history(period='2y')
+        if hist is None or len(hist) < 60:
+            return None
+
+        close = hist['Close'].dropna()
+
+        # MA position
+        ma50  = float(close.rolling(50).mean().dropna().iloc[-1])  if len(close) >= 50  else None
+        ma200 = float(close.rolling(200).mean().dropna().iloc[-1]) if len(close) >= 200 else None
+
+        below_ma50  = (price < ma50)  if ma50  else False
+        below_ma200 = (price < ma200) if ma200 else False
+        death_cross = (ma50 < ma200)  if (ma50 and ma200) else False
+
+        # Technical score (0–55)
+        tech = 0
+        if below_ma50:  tech += 12
+        if below_ma200: tech += 18  # Stronger signal for ETFs
+        if death_cross: tech += 15
+
+        stage = _weinstein_stage(close)
+        if stage == 4:   tech += 10
+        elif stage == 3: tech += 5
+
+        # Momentum reinforcement via RSI
+        rsi_d = _rsi(close)
+        if rsi_d == rsi_d:  # not NaN
+            if rsi_d < 40:   tech += 5   # confirmed downward momentum
+            elif rsi_d > 70: tech += 8   # overbought = potential reversal short
+
+        # Speed (recent acceleration downward)
+        speed_5d  = float((close.iloc[-1] / close.iloc[-6]  - 1) * 100) if len(close) > 5  else 0
+        speed_20d = float((close.iloc[-1] / close.iloc[-21] - 1) * 100) if len(close) > 20 else 0
+        if speed_20d < -10: tech += 5
+        elif speed_5d < -5: tech += 3
+
+        # Distance from 52w high
+        hi52 = float(close.tail(252).max())
+        pct_from_hi52 = (price / hi52 - 1) * 100
+        if pct_from_hi52 < -30: tech += 5
+        elif pct_from_hi52 < -20: tech += 3
+
+        # MACD confirmation (simple: 12ema < 26ema)
+        ema12 = close.ewm(span=12, adjust=False).mean()
+        ema26 = close.ewm(span=26, adjust=False).mean()
+        macd_bearish = float(ema12.iloc[-1]) < float(ema26.iloc[-1])
+        if macd_bearish and below_ma50: tech += 5
+
+        # Scale to 0-100 (raw max is ~88 in extreme cases, so * ~1.14)
+        total = min(int(tech * 1.15), 100)
+
+        if total < 40:
+            return None
+
+        quality = 'ALTA' if total >= 70 else 'MEDIA' if total >= 55 else 'BAJA'
+
+        # ETF label / name
+        etf_labels = {
+            'QQQ': 'Nasdaq 100',  'SPY': 'S&P 500',    'IWM': 'Russell 2000',
+            'DIA': 'Dow Jones',   'XLK': 'Tech Sector', 'XLY': 'Consumer Disc.',
+            'XLRE': 'Real Estate','XLF': 'Financials',  'XLC': 'Comm. Services',
+            'XBI': 'Biotech',     'XHB': 'Homebuilders','XRT': 'Retail',
+            'EWG': 'Germany/DAX', 'EEM': 'Emerg. Mkts', 'FXI': 'China',
+            'EWJ': 'Japan',       'EWZ': 'Brazil',
+            'USO': 'WTI Crude Oil','UNG': 'Nat. Gas',   'GLD': 'Gold',
+            'DBA': 'Agriculture', 'CORN': 'Corn',       'WEAT': 'Wheat',
+            'TLT': 'Bonos LP',    'HYG': 'High Yield',  'LQD': 'Corp. Bonds',
+            'ARKK': 'ARK Innovation',
+        }
+        name = etf_labels.get(ticker, info.get('longName') or ticker)
+
+        # Asset category
+        commodity_etfs = {'USO', 'UNG', 'DBA', 'CORN', 'WEAT', 'GLD', 'SLV'}
+        bond_etfs      = {'TLT', 'HYG', 'LQD'}
+        if ticker in commodity_etfs:   asset = 'commodity'
+        elif ticker in bond_etfs:      asset = 'bond'
+        else:                          asset = 'etf'
+
+        return {
+            'ticker':             ticker,
+            'company_name':       name,
+            'sector':             asset.upper(),
+            'industry':           'ETF/Index/Commodity',
+            'short_score':        float(total),
+            'short_quality':      quality,
+            'tech_score':         min(tech, 40),
+            'fund_score':         0,
+            'down_score':         0,
+            'safety_score':       10,  # ETFs have no squeeze risk
+            'current_price':      round(price, 2),
+            'market_cap':         None,
+            'analyst_target':     None,
+            'analyst_upside_pct': None,
+            'analyst_rec':        '',
+            'short_interest_pct': None,
+            'squeeze_risk':       'LOW',
+            'days_to_earnings':   None,
+            'earnings_warning':   False,
+            'below_ma50':         below_ma50,
+            'below_ma200':        below_ma200,
+            'death_cross':        death_cross,
+            'weinstein_stage':    stage,
+            'pct_from_52w_high':  round(pct_from_hi52, 1),
+            'rsi_daily':          round(rsi_d, 1) if rsi_d == rsi_d else None,
+            'rev_growth_yoy':     None,
+            'fcf_yield_pct':      None,
+            'roe_pct':            None,
+            'debt_to_equity':     None,
+            'operating_margin':   None,
+            'piotroski_score':    None,
+            'key_risks':          json.dumps(['ETF_NO_FUNDAMENTALS']),
+            'short_thesis':       '',
+            'analyzed_at':        datetime.now().strftime('%Y-%m-%d %H:%M'),
+        }
+
+    except Exception as e:
+        print(f"    {ticker} (ETF): error — {e}")
+        return None
 
 
 # ── Main scorer ───────────────────────────────────────────────────────────────
@@ -525,9 +701,11 @@ def run_short_scanner(extra_tickers: Optional[list] = None) -> list:
         except Exception:
             pass
 
-    print(f"Short scanner: {len(universe)} tickers to analyze")
+    print(f"Short scanner: {len(universe)} stocks + {len(ETF_UNIVERSE)} ETFs/indices to analyze")
 
     results = []
+
+    # ── Scan stocks ───────────────────────────────────────────────────────────
     for i, ticker in enumerate(universe):
         print(f"  [{i+1}/{len(universe)}] {ticker}...", end=' ', flush=True)
         row = _score_ticker(ticker, fund_row=fund_by_ticker.get(ticker))
@@ -537,6 +715,18 @@ def run_short_scanner(extra_tickers: Optional[list] = None) -> list:
         else:
             print("skip")
         time.sleep(0.25)
+
+    # ── Scan ETFs/indices/commodities ─────────────────────────────────────────
+    print(f"\nScanning ETFs/indices/commodities...")
+    for i, ticker in enumerate(ETF_UNIVERSE):
+        print(f"  [{i+1}/{len(ETF_UNIVERSE)}] {ticker} (ETF)...", end=' ', flush=True)
+        row = _score_etf(ticker)
+        if row:
+            results.append(row)
+            print(f"score={row['short_score']} ({row['short_quality']})")
+        else:
+            print("skip")
+        time.sleep(0.2)
 
     # Sort by score descending
     results.sort(key=lambda x: x['short_score'], reverse=True)

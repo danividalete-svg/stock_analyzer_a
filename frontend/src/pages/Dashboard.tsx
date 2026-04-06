@@ -5,9 +5,9 @@ import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
   fetchPortfolioTracker, fetchRecurringInsiders, fetchOptionsFlow, fetchMeanReversion,
   fetchMacroRadar, fetchDailyBriefing, fetchMarketBreadth, fetchCerebroConvergence, fetchCerebroAlerts,
-  fetchCerebroEntrySignals, fetchCerebroDailyPlan, fetchLivePrices,
+  fetchCerebroEntrySignals, fetchCerebroDailyPlan, fetchLivePrices, fetchPortfolioNews,
   type ValueOpportunity, type InsiderData, type PortfolioSummary, type BreadthData, type CerebroAlert,
-  type DailyPlan, type DailyPlanAction, type MacroPlay, type LivePricesData,
+  type DailyPlan, type DailyPlanAction, type MacroPlay, type LivePricesData, type PortfolioNewsItem,
 } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import { useApi } from '../hooks/useApi'
@@ -1059,6 +1059,109 @@ function DailyPlanCard({ data, loading }: { data: DailyPlan | null | undefined; 
   )
 }
 
+// ── Portfolio News Widget ─────────────────────────────────────────────────────
+
+function PortfolioNewsWidget({ data, loading }: { data: any; loading: boolean }) {
+  const items: PortfolioNewsItem[] = data?.items ?? []
+  const important = items.filter((i: PortfolioNewsItem) => i.importance === 'ALTA' || i.importance === 'MEDIA').slice(0, 8)
+  const tickers: string[] = data?.tickers ?? []
+  const scanTime: string = data?.scan_time ?? ''
+  const scanDate: string = data?.scan_date ?? ''
+
+  return (
+    <Card className="glass border border-border/50 animate-fade-in-up">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">📰</span>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Noticias de Cartera
+          </span>
+          {tickers.length > 0 && (
+            <span className="text-[0.6rem] text-muted-foreground/40 ml-1">
+              {tickers.join(' · ')}
+            </span>
+          )}
+          {scanDate && (
+            <span className="ml-auto text-[0.58rem] text-muted-foreground/30">
+              {scanDate} {scanTime}
+            </span>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-8 w-full" />)}
+          </div>
+        ) : important.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-xs text-muted-foreground/40">Sin noticias relevantes en las últimas 48h</p>
+            {tickers.length === 0 && (
+              <p className="text-[0.65rem] text-muted-foreground/30 mt-1">
+                Edita <code className="font-mono">docs/portfolio_watch.json</code> con tus tickers
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {important.map((item: PortfolioNewsItem) => {
+              const isHigh = item.importance === 'ALTA'
+              return (
+                <div
+                  key={item.id}
+                  className={`rounded-lg border px-3 py-2 ${
+                    isHigh
+                      ? 'bg-red-500/6 border-red-500/20'
+                      : 'bg-muted/6 border-border/20'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="text-[0.7rem] mt-px shrink-0">
+                      {isHigh ? '🔴' : '📌'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className={`text-[0.6rem] font-black font-mono ${isHigh ? 'text-red-400' : 'text-primary'}`}>
+                          {item.ticker}
+                        </span>
+                        <span className="text-[0.58rem] text-muted-foreground/40">
+                          {item.source}{item.time_ago ? ` · ${item.time_ago}` : ''}
+                        </span>
+                      </div>
+                      {item.url ? (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[0.68rem] text-foreground/85 leading-snug hover:text-primary transition-colors line-clamp-2"
+                        >
+                          {item.title}
+                        </a>
+                      ) : (
+                        <p className="text-[0.68rem] text-foreground/85 leading-snug line-clamp-2">
+                          {item.title}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        <div className="mt-3 pt-2 border-t border-border/10 flex justify-between items-center">
+          <span className="text-[0.58rem] text-muted-foreground/30">
+            {data?.alta_count ?? 0} alta · {data?.media_count ?? 0} media
+          </span>
+          <Link to="/my-portfolio" className="text-[0.65rem] text-primary/60 hover:text-primary transition-colors">
+            Ver cartera →
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -1076,6 +1179,7 @@ export default function Dashboard() {
   const { data: cerebroAlertsRaw, loading: loadingAlerts } = useApi(() => fetchCerebroAlerts(), [])
   const { data: cerebroEntry, loading: loadingEntry } = useApi(() => fetchCerebroEntrySignals(), [])
   const { data: dailyPlanRaw, loading: loadingDailyPlan } = useApi(() => fetchCerebroDailyPlan(), [])
+  const { data: portfolioNewsRaw, loading: loadingPortfolioNews } = useApi(() => fetchPortfolioNews(), [])
 
   const { positions: myPositions } = usePersonalPortfolio()
   const { entries: watchlistEntries } = useWatchlist()
@@ -1400,6 +1504,11 @@ export default function Dashboard() {
           watchlistTickers={watchlistTickers}
           loading={loadingAlerts}
         />
+      </div>
+
+      {/* Portfolio News */}
+      <div className="mb-6">
+        <PortfolioNewsWidget data={portfolioNewsRaw} loading={loadingPortfolioNews} />
       </div>
 
       {/* Quick Nav Cards */}

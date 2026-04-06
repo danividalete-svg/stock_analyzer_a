@@ -340,6 +340,50 @@ export interface ShortScanData {
 export const fetchShortOpportunities = () =>
   api.get<ShortScanData>('/api/shorts')
 
+export interface PortfolioNewsItem {
+  id: string
+  ticker: string
+  title: string
+  source: string
+  pub_date: string
+  time_ago: string
+  url: string
+  importance: 'ALTA' | 'MEDIA' | 'BAJA'
+}
+
+export interface PortfolioNewsData {
+  scan_date: string | null
+  scan_time: string | null
+  tickers: string[]
+  count: number
+  alta_count: number
+  media_count: number
+  new_alerts: number
+  items: PortfolioNewsItem[]
+}
+
+export interface PortfolioWatchEntry {
+  ticker: string
+  notes?: string
+}
+
+// Portfolio news is updated every 6h — read from GitHub Pages directly (always fresh)
+export const fetchPortfolioNews = async (): Promise<{ data: PortfolioNewsData }> => {
+  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
+  const base = csvBase || ''
+  try {
+    const res = await fetch(`${base}/docs/portfolio_news.json`, { cache: 'no-store' })
+    if (res.ok) return { data: await res.json() as PortfolioNewsData }
+  } catch { /* fall through to API */ }
+  return api.get<PortfolioNewsData>('/api/portfolio-news')
+}
+
+export const fetchPortfolioWatch = () =>
+  api.get<{ tickers: PortfolioWatchEntry[] }>('/api/portfolio-watch')
+
+export const savePortfolioWatch = (tickers: PortfolioWatchEntry[]) =>
+  api.post<{ ok: boolean }>('/api/portfolio-watch', { tickers })
+
 export const fetchSectorRotation = () =>
   api.get<SectorRotationData>('/api/sector-rotation')
 

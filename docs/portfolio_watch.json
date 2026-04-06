@@ -1,0 +1,10 @@
+{
+  "description": "Tickers de cartera a monitorizar para noticias y alertas Telegram. Edita esta lista con tus posiciones actuales.",
+  "tickers": [
+    {"ticker": "UNH", "notes": "Healthcare - UnitedHealth"},
+    {"ticker": "PRU", "notes": "Financials - Prudential"},
+    {"ticker": "IP",  "notes": "Packaging - International Paper"},
+    {"ticker": "WYY", "notes": "IT Services - WideOpenWest / WEY"}
+  ],
+  "updated": "2026-04-06"
+}
