@@ -6,7 +6,7 @@ import { useAuth } from './context/AuthContext'
 import { PersonalPortfolioProvider } from './context/PersonalPortfolioContext'
 import { ToastProvider } from './components/Toast'
 import { cn } from '@/lib/utils'
-import { NAV } from '@/lib/nav'
+import { NAV_PRIMARY, NAV_SECONDARY } from '@/lib/nav'
 import TopBar from './components/TopBar'
 import ProtectedRoute from './components/ProtectedRoute'
 import CommandPalette from './components/CommandPalette'
@@ -45,20 +45,43 @@ import Shorts from './pages/Shorts'
 import MacroCalendar from './pages/MacroCalendar'
 import TechnicalSignals from './pages/TechnicalSignals'
 
+function NavItem({ item, onClose }: { item: (typeof NAV_PRIMARY)[0]; onClose: () => void }) {
+  return (
+    <NavLink
+      to={item.path}
+      onClick={onClose}
+      style={{ '--nav-color': item.color } as React.CSSProperties}
+      className={({ isActive }) => cn(
+        'nav-link flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-sm font-medium transition-all mb-0.5 relative',
+        'text-muted-foreground',
+        isActive
+          ? 'nav-link-active bg-[color-mix(in_srgb,var(--nav-color)_12%,transparent)] text-foreground'
+          : 'hover:bg-[color-mix(in_srgb,var(--nav-color)_8%,transparent)] hover:text-foreground'
+      )}
+    >
+      <span className="nav-icon shrink-0"><item.icon size={15} strokeWidth={1.65} /></span>
+      <span className="flex-1 truncate">{item.label}</span>
+      {item.tag && <span className="text-sm leading-none opacity-75 shrink-0">{item.tag}</span>}
+    </NavLink>
+  )
+}
+
 function SidebarContent({ onClose, onSignOut }: Readonly<{ onClose: () => void; onSignOut: () => void }>) {
+  const [moreOpen, setMoreOpen] = useState(false)
+
   return (
     <>
       {/* Header */}
-      <div className="px-4 py-5 border-b border-border/60 relative flex-shrink-0">
-        <div className="flex items-center gap-2.5 mb-1">
+      <div className="px-4 py-4 border-b border-border/40 relative flex-shrink-0">
+        <div className="flex items-center gap-2.5">
           <div className="sidebar-logo-icon w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0">
             <LayoutDashboard size={14} color="white" strokeWidth={2} />
           </div>
-          <h1 className="text-sm font-bold tracking-tight text-foreground">Stock Analyzer</h1>
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold tracking-tight text-foreground leading-tight">Stock Analyzer</h1>
+            <span className="text-[0.55rem] text-muted-foreground/50 uppercase tracking-widest font-semibold">Pipeline diario</span>
+          </div>
         </div>
-        <span className="text-[0.58rem] text-muted-foreground/60 uppercase tracking-widest font-semibold block">
-          Pipeline diario automatizado
-        </span>
         <button
           className="absolute top-3.5 right-3.5 flex md:hidden items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:bg-accent/10 hover:text-foreground transition-colors"
           onClick={onClose}
@@ -68,41 +91,32 @@ function SidebarContent({ onClose, onSignOut }: Readonly<{ onClose: () => void; 
         </button>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-2 py-3 overflow-y-auto">
-        {NAV.map((item) =>
-          'section' in item ? (
-            <div key={`section-${item.section}`} className="px-3 pt-5 pb-1.5 text-[0.55rem] font-bold uppercase tracking-[0.14em] text-muted-foreground/50">
-              {item.section}
+      {/* Primary nav */}
+      <nav className="flex-1 px-2 py-2 overflow-y-auto min-h-0">
+        <div className="space-y-0.5">
+          {NAV_PRIMARY.map(item => <NavItem key={item.path} item={item} onClose={onClose} />)}
+        </div>
+
+        {/* Más — collapsible */}
+        <div className="mt-3">
+          <button
+            onClick={() => setMoreOpen(v => !v)}
+            className="flex w-full items-center gap-2 px-3 py-1.5 rounded-lg text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
+          >
+            <span className="flex-1 text-left">Más herramientas</span>
+            <span className={cn('transition-transform duration-200 text-[10px]', moreOpen ? 'rotate-180' : '')}>▾</span>
+          </button>
+
+          {moreOpen && (
+            <div className="space-y-0.5 mt-0.5">
+              {NAV_SECONDARY.map(item => <NavItem key={item.path} item={item} onClose={onClose} />)}
             </div>
-          ) : (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              style={{ '--nav-color': item.color } as React.CSSProperties}
-              className={({ isActive }) => cn(
-                'nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all mb-0.5 relative',
-                'text-muted-foreground',
-                isActive
-                  ? 'nav-link-active bg-[color-mix(in_srgb,var(--nav-color)_12%,transparent)]'
-                  : 'hover:bg-[color-mix(in_srgb,var(--nav-color)_8%,transparent)] hover:text-foreground'
-              )}
-            >
-              <span className="nav-icon">
-                <item.icon size={15} strokeWidth={1.65} />
-              </span>
-              <span className="flex-1">{item.label}</span>
-              {'tag' in item && item.tag && (
-                <span className="text-sm leading-none opacity-75">{item.tag}</span>
-              )}
-            </NavLink>
-          )
-        )}
+          )}
+        </div>
       </nav>
 
       {/* Logout */}
-      <div className="px-2 py-3 border-t border-border/40 flex-shrink-0">
+      <div className="px-2 py-2 border-t border-border/30 flex-shrink-0">
         <button
           onClick={onSignOut}
           className="flex w-full items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-all"

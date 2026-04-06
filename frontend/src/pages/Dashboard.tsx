@@ -1,4 +1,4 @@
-import React, { useMemo, lazy, Suspense } from 'react'
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import StaleDataBanner from '../components/StaleDataBanner'
 import {
@@ -11,16 +11,6 @@ import {
 } from '../api/client'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 
-// BriefingData shape (mirrors MarketBriefingVideo export — defined inline to keep lazy import clean)
-interface BriefingData {
-  regime: string; regime_color: string
-  composite_score: number; max_score: number; date: string
-  top_picks: Array<{ ticker: string; company_name: string; value_score: number; conviction_grade?: string; sector?: string; analyst_upside_pct?: number }>
-}
-
-const MarketBriefingPlayer = lazy(() =>
-  import('../components/MarketBriefingVideo').then(m => ({ default: m.MarketBriefingPlayer }))
-)
 import { useApi } from '../hooks/useApi'
 import { useCountUp } from '../hooks/useCountUp'
 import { Card, CardContent } from '@/components/ui/card'
@@ -1284,31 +1274,6 @@ export default function Dashboard() {
 
   const macroDate = (macroRaw as { date?: string } | null)?.date ?? null
 
-  const briefingData = useMemo<BriefingData | null>(() => {
-    const macro = macroRaw as { regime?: { name: string; color: string }; composite_score?: number; max_score?: number; date?: string } | null
-    if (!macro?.regime) return null
-    const picks = (valueUS?.data ?? [])
-      .filter(v => v.conviction_grade?.startsWith('A') || v.value_score >= 70)
-      .sort((a, b) => (b.conviction_score ?? b.value_score) - (a.conviction_score ?? a.value_score))
-      .slice(0, 5)
-      .map(v => ({
-        ticker: v.ticker,
-        company_name: v.company_name,
-        value_score: v.value_score,
-        conviction_grade: v.conviction_grade,
-        sector: v.sector,
-        analyst_upside_pct: v.analyst_upside_pct,
-      }))
-    return {
-      regime: macro.regime.name,
-      regime_color: macro.regime.color,
-      composite_score: macro.composite_score ?? 0,
-      max_score: macro.max_score ?? 100,
-      date: macro.date ?? new Date().toISOString().slice(0, 10),
-      top_picks: picks,
-    }
-  }, [macroRaw, valueUS])
-
   return (
     <>
       {/* Header */}
@@ -1547,47 +1512,6 @@ export default function Dashboard() {
         <PortfolioNewsWidget data={portfolioNewsRaw} loading={loadingPortfolioNews} />
       </div>
 
-      {/* Market Briefing Animation */}
-      {briefingData && briefingData.top_picks.length > 0 && (
-        <div className="mb-6">
-          <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">
-            Briefing animado · {briefingData.date}
-          </div>
-          <Suspense fallback={
-            <div className="glass border border-border/40 rounded-lg h-32 flex items-center justify-center text-sm text-muted-foreground">
-              Cargando…
-            </div>
-          }>
-            <MarketBriefingPlayer data={briefingData} />
-          </Suspense>
-        </div>
-      )}
-
-      {/* Quick Nav Cards */}
-      <div>
-        <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">
-          Ir a
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          {[
-            { to: '/value',          label: 'VALUE US',      color: 'text-emerald-400' },
-            { to: '/value-eu',       label: 'VALUE EU',      color: 'text-blue-400' },
-            { to: '/insiders',       label: 'Insiders',      color: 'text-purple-400' },
-            { to: '/options',        label: 'Options',       color: 'text-pink-400' },
-            { to: '/portfolio',      label: 'Portfolio',     color: 'text-green-400' },
-            { to: '/datos',          label: 'Datos & CSV',   color: 'text-slate-400' },
-          ].map(nav => (
-            <Link
-              key={nav.to}
-              to={nav.to}
-              className="flex items-center justify-between px-3.5 py-2.5 rounded-lg border border-border/40 bg-white/3 hover:bg-white/6 hover:border-border/60 transition-colors group"
-            >
-              <span className={`text-xs font-semibold ${nav.color}`}>{nav.label}</span>
-              <ChevronRight size={12} className="text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
-            </Link>
-          ))}
-        </div>
-      </div>
     </>
   )
 }
