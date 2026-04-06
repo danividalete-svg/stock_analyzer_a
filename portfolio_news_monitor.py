@@ -2,7 +2,7 @@
 """
 Portfolio News Monitor — Monitoriza noticias de tus posiciones y envía alertas Telegram.
 
-Lee los tickers de docs/portfolio_watch.json.
+Lee los tickers de Supabase (personal_portfolio_positions) o, como fallback, de docs/portfolio_watch.json.
 Para cada ticker:
   - Obtiene noticias recientes (yfinance, últimas 48h)
   - Detecta earnings próximos / recientes
@@ -13,8 +13,8 @@ Para cada ticker:
 Ejecutar:
   python3 portfolio_news_monitor.py
 
-Configurar tickers:
-  Edita docs/portfolio_watch.json
+Env vars requeridos para Supabase:
+  SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_MONITOR_USER_ID (opcional)
 """
 
 import json
@@ -90,7 +90,44 @@ def _save_seen_ids(seen: dict) -> None:
         pass
 
 
+def _load_portfolio_from_supabase() -> list:
+    """Load tickers from Supabase personal_portfolio_positions via REST API."""
+    supabase_url = os.environ.get('SUPABASE_URL', '').rstrip('/')
+    service_key  = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '')
+    user_id      = os.environ.get('SUPABASE_MONITOR_USER_ID', '')
+
+    if not supabase_url or not service_key:
+        return []
+
+    import urllib.request
+    url = f"{supabase_url}/rest/v1/personal_portfolio_positions?select=ticker,shares,avg_price"
+    if user_id:
+        url += f"&user_id=eq.{user_id}"
+
+    req = urllib.request.Request(url, headers={
+        'apikey': service_key,
+        'Authorization': f'Bearer {service_key}',
+        'Content-Type': 'application/json',
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            rows = json.loads(resp.read().decode())
+            tickers = [{'ticker': r['ticker'], 'notes': f"{r.get('shares', '')}sh @ {r.get('avg_price', '')}"}
+                       for r in rows if r.get('ticker')]
+            print(f"  Supabase: {len(tickers)} positions loaded")
+            return tickers
+    except Exception as e:
+        print(f"  Supabase load failed: {e}")
+        return []
+
+
 def _load_portfolio() -> list:
+    # Try Supabase first (GitHub Actions sets SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
+    positions = _load_portfolio_from_supabase()
+    if positions:
+        return positions
+
+    # Fallback: local portfolio_watch.json
     cfg_path = DOCS / 'portfolio_watch.json'
     if not cfg_path.exists():
         print("  portfolio_watch.json not found — nothing to monitor")
