@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import api, { fetchPortfolioTracker, fetchCorrelationMatrix, fetchPortfolioInsight, type PortfolioSummary, type CorrelationData } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import AiNarrativeCard from '../components/AiNarrativeCard'
@@ -7,6 +7,9 @@ import Loading, { ErrorState } from '../components/Loading'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+const PortfolioStatsPlayer = lazy(() =>
+  import('../components/PortfolioStatsVideo').then(m => ({ default: m.PortfolioStatsPlayer }))
+)
 
 interface SignalRow {
   ticker: string
@@ -139,6 +142,30 @@ export default function Portfolio() {
       {insightRaw?.narrative && (
         <AiNarrativeCard narrative={insightRaw.narrative} label="Análisis de Rendimiento" className="mb-5" />
       )}
+
+      {/* Win Rate Animation */}
+      {hasReturns && (() => {
+        const statsData = {
+          periods: (['7d', '14d', '30d'] as const)
+            .map(p => {
+              const d = (overall as Record<string, { count: number; win_rate: number; avg_return: number }>)[p]
+              if (!d || d.count === 0) return null
+              return { label: p, win_rate: d.win_rate, avg_return: d.avg_return, count: d.count }
+            })
+            .filter(Boolean) as Array<{ label: string; win_rate: number; avg_return: number; count: number }>,
+          score_correlation: pf.score_correlation ?? undefined,
+          best_period: bestPeriod,
+        }
+        if (statsData.periods.length === 0) return null
+        return (
+          <div className="mb-5">
+            <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Resumen animado</div>
+            <Suspense fallback={<div className="glass border border-border/40 rounded-xl h-20 flex items-center justify-center text-sm text-muted-foreground">Cargando…</div>}>
+              <PortfolioStatsPlayer data={statsData} />
+            </Suspense>
+          </div>
+        )
+      })()}
 
       {/* Win Rate Cards — shown once returns exist */}
       {hasReturns && (

@@ -474,7 +474,7 @@ export default function ValueUS() {
       </Card>
 
       {/* Mobile card view */}
-      <div className="sm:hidden space-y-2 mb-2">
+      <div className="sm:hidden space-y-2.5 mb-2">
         {paged.map((d, i) => {
           const isReady =
             (d.value_score ?? 0) >= 65 &&
@@ -483,34 +483,85 @@ export default function ValueUS() {
             (d.days_to_earnings == null || d.days_to_earnings > 7) &&
             d.cerebro_signal !== 'EXIT' &&
             d.cerebro_signal !== 'TRAP'
+          const hasTrap   = !!cerebro.trapMap[d.ticker]
+          const hasExit   = !!(cerebro.exitMap[d.ticker] || d.cerebro_signal === 'EXIT')
+          const hasSM     = !!cerebro.smMap[d.ticker]
+          const hasSqueeze = !!cerebro.squeezeMap[d.ticker]
           return (
             <div
               key={d.ticker}
               onClick={() => { setFocusedIdx(i); toggleThesis(d.ticker, d) }}
-              className="glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform"
+              className={`glass rounded-2xl p-4 cursor-pointer active:scale-[0.98] transition-transform border ${hasTrap ? 'border-red-500/30' : hasExit ? 'border-amber-500/30' : 'border-white/5'}`}
               style={{ animationDelay: `${i * 40}ms` }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              {/* Row 1: logo + ticker + grade + upside */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
                   <ScoreRing score={d.value_score ?? 0} size="sm" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-sm">{d.ticker}</span>
-                      {isReady && <span className="text-[0.55rem] font-bold text-emerald-400">✦</span>}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-extrabold text-base leading-tight">{d.ticker}</span>
+                      {isReady && (
+                        <span className="text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">✦ LISTO</span>
+                      )}
+                      <OwnedBadge ticker={d.ticker} />
                     </div>
-                    <span className="text-[0.65rem] text-muted-foreground truncate max-w-[140px] block">{d.company_name}</span>
+                    <span className="text-xs text-muted-foreground truncate max-w-[160px] block mt-0.5">{d.company_name}</span>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <GradeBadge grade={d.conviction_grade} score={d.conviction_score} />
                   {d.analyst_upside_pct != null && (
-                    <div className={`text-xs font-semibold mt-0.5 ${d.analyst_upside_pct > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <div className={`text-sm font-bold mt-1 ${d.analyst_upside_pct > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {d.analyst_upside_pct > 0 ? '+' : ''}{d.analyst_upside_pct.toFixed(0)}%
                     </div>
                   )}
+                  <div className="text-[0.65rem] text-muted-foreground/50 mt-0.5">${d.current_price?.toFixed(2)}</div>
                 </div>
               </div>
-              <div className="flex gap-3 mt-2.5 text-[0.62rem] text-muted-foreground/60">
+
+              {/* Row 2: Cerebro signals */}
+              {(hasTrap || hasExit || hasSM || hasSqueeze || d.earnings_warning) && (
+                <div className="flex flex-wrap gap-1.5 mt-2.5">
+                  {hasTrap && (
+                    <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/25">
+                      ⚠ TRAP
+                    </span>
+                  )}
+                  {hasExit && (
+                    <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25">
+                      ↑ EXIT
+                    </span>
+                  )}
+                  {hasSM && (
+                    <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/25">
+                      🐋 SMART $
+                    </span>
+                  )}
+                  {hasSqueeze && (
+                    <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/25">
+                      💥 SQUEEZE
+                    </span>
+                  )}
+                  {d.earnings_warning && (
+                    <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-400 border border-yellow-500/25">
+                      📅 EARNINGS
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Row 3: Entry / Stop / Target */}
+              {(d.entry_price || d.stop_loss || d.target_price) && (
+                <div className="flex gap-3 mt-2.5 text-xs font-mono">
+                  {d.entry_price && <span className="text-cyan-400">E ${d.entry_price.toFixed(2)}</span>}
+                  {d.stop_loss && <span className="text-red-400/80">SL ${d.stop_loss.toFixed(2)}</span>}
+                  {d.target_price && <span className="text-emerald-400/80">TP ${d.target_price.toFixed(2)}</span>}
+                </div>
+              )}
+
+              {/* Row 4: FCF / R:R / Sector */}
+              <div className="flex gap-3 mt-2 text-xs text-muted-foreground/70">
                 {d.fcf_yield_pct != null && <span>FCF {d.fcf_yield_pct.toFixed(1)}%</span>}
                 {d.risk_reward_ratio != null && <span>R:R {d.risk_reward_ratio.toFixed(1)}x</span>}
                 {d.sector && <span className="truncate">{d.sector}</span>}

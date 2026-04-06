@@ -1,10 +1,14 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { fetchMacroRadar, fetchMacroRadarHistory, fetchEconomicCalendar } from '../api/client'
 import type { EconEvent } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card, CardContent } from '@/components/ui/card'
 import StaleDataBanner from '../components/StaleDataBanner'
+
+const RegimeSweepPlayer = lazy(() =>
+  import('../components/RegimeSweepVideo').then(m => ({ default: m.RegimeSweepPlayer }))
+)
 
 interface SignalData {
   label: string
@@ -978,6 +982,30 @@ export default function MacroRadar() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Regime sweep animation */}
+      {(() => {
+        const topSignals = orderedSignals
+          .map(k => ({ name: signals[k]?.label ?? k, value: Math.min(100, Math.max(0, (signals[k]?.score ?? 0) + 50)), label: k }))
+          .sort((a, b) => Math.abs(b.value - 50) - Math.abs(a.value - 50))
+          .slice(0, 8)
+        const sweepData = {
+          regime: regime.name,
+          regime_color: regime.color,
+          composite_score,
+          max_score,
+          date,
+          top_signals: topSignals,
+        }
+        return (
+          <div>
+            <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 mb-3 px-1">Visión animada</div>
+            <Suspense fallback={<div className="glass border border-border/40 rounded-xl h-20 flex items-center justify-center text-sm text-muted-foreground">Cargando…</div>}>
+              <RegimeSweepPlayer data={sweepData} />
+            </Suspense>
+          </div>
+        )
+      })()}
 
       {/* History chart */}
       <Card className="glass border border-border/40">
