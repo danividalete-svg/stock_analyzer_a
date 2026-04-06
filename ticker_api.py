@@ -1156,6 +1156,16 @@ def micro_cap():
     ])
 
 
+@app.route('/api/shorts')
+def shorts():
+    data = _load_json(DOCS / 'short_opportunities.json')
+    if data:
+        return jsonify(data)
+    return _csv_to_json_response([
+        (DOCS / 'short_opportunities.csv', 'csv'),
+    ])
+
+
 @app.route('/api/mean-reversion')
 def mean_reversion():
     data = _load_json(DOCS / 'mean_reversion_opportunities.json')

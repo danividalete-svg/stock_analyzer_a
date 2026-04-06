@@ -41,6 +41,7 @@ import Cerebro from './pages/Cerebro'
 import Alerts from './pages/Alerts'
 import Screener from './pages/Screener'
 import MicroCap from './pages/MicroCap'
+import Shorts from './pages/Shorts'
 import MacroCalendar from './pages/MacroCalendar'
 import TechnicalSignals from './pages/TechnicalSignals'
 
@@ -233,6 +234,7 @@ export default function App() {
               <Route path="/alerts"         element={<Alerts />} />
               <Route path="/screener"       element={<Screener />} />
               <Route path="/micro-cap"      element={<MicroCap />} />
+              <Route path="/shorts"         element={<Shorts />} />
               <Route path="/macro-calendar" element={<MacroCalendar />} />
               <Route path="/technical"      element={<TechnicalSignals />} />
               <Route path="/datos"           element={<Datos />} />

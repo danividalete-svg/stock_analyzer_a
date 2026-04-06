@@ -289,6 +289,57 @@ export const fetchMomentumOpportunities = () =>
 export const fetchMicroCapOpportunities = () =>
   api.get<{ data: MicroCapOpportunity[]; count: number; source: string }>('/api/micro-cap')
 
+export type ShortQuality = 'ALTA' | 'MEDIA' | 'BAJA'
+export type ShortSqueezeRisk = 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN'
+
+export interface ShortOpportunity {
+  ticker: string
+  company_name?: string
+  sector?: string
+  industry?: string
+  short_score: number
+  short_quality: ShortQuality
+  tech_score: number
+  fund_score: number
+  down_score: number
+  safety_score: number
+  current_price: number
+  market_cap?: number
+  analyst_target?: number
+  analyst_upside_pct?: number
+  analyst_rec?: string
+  short_interest_pct?: number
+  squeeze_risk?: ShortSqueezeRisk
+  days_to_earnings?: number
+  earnings_warning?: boolean
+  below_ma50?: boolean
+  below_ma200?: boolean
+  death_cross?: boolean
+  weinstein_stage?: number
+  pct_from_52w_high?: number
+  rsi_daily?: number
+  rev_growth_yoy?: number
+  fcf_yield_pct?: number
+  roe_pct?: number
+  debt_to_equity?: number
+  operating_margin?: number
+  piotroski_score?: number
+  key_risks?: string
+  short_thesis?: string
+}
+
+export interface ShortScanData {
+  scan_date: string
+  count: number
+  alta: number
+  media: number
+  baja: number
+  data: ShortOpportunity[]
+}
+
+export const fetchShortOpportunities = () =>
+  api.get<ShortScanData>('/api/shorts')
+
 export const fetchSectorRotation = () =>
   api.get<SectorRotationData>('/api/sector-rotation')
 

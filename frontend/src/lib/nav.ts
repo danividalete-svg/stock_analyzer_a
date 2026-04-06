@@ -1,5 +1,5 @@
 import {
-  Globe, TrendingUp, Users, Activity,
+  Globe, TrendingUp, TrendingDown, Users, Activity,
   ArrowLeftRight, PieChart, BarChart2, FlaskConical, Search, LayoutDashboard, Database,
   Ruler, Layers, Star, Radar, CalendarDays, AlertTriangle, Sparkles, Building2, Zap,
   DollarSign, Euro, Wallet, GitCompare, Bell, SlidersHorizontal, CalendarCheck, CandlestickChart, Brain,
@@ -20,6 +20,7 @@ export const NAV: NavItem[] = [
   { path: '/value-global',   icon: Globe,           label: 'Value',               color: '#a855f7', tag: '🌍', keywords: ['value', 'global', 'mundial'] },
   { path: '/screener',       icon: SlidersHorizontal, label: 'Screener',          color: '#8b5cf6', keywords: ['screener', 'filtro', 'filtrar', 'buscar acciones', 'fcf', 'pe', 'roe'] },
   { path: '/micro-cap',      icon: Gem,               label: 'Micro-Cap',         color: '#f59e0b', keywords: ['micro cap', 'penny', 'small cap', 'micro', 'gemas', 'hidden gems', 'revalorizacion'] },
+  { path: '/shorts',         icon: TrendingDown,      label: 'Cortos',            color: '#ef4444', keywords: ['cortos', 'short', 'bajista', 'ventas en corto', 'squeeze', 'death cross', 'weinstein'] },
   { path: '/momentum',       icon: TrendingUp,      label: 'Momentum',            color: '#f97316', keywords: ['momentum', 'tendencia', 'minervini', 'vcp'] },
   { path: '/macro-radar',    icon: Radar,           label: 'Macro Radar',         color: '#e11d48', keywords: ['macro', 'radar', 'economía'] },
   { path: '/macro-calendar', icon: CalendarCheck,   label: 'Calendario Macro',    color: '#f59e0b', keywords: ['calendario', 'macro', 'fed', 'cpi', 'nfp', 'tipos'] },
