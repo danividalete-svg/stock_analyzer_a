@@ -748,175 +748,551 @@ _HISTORICAL_EPISODES = [
 _MATCH_KEYS = ['vix', 'copper_gold', 'gold_spy', 'oil', 'defense', 'credit', 'regional_banks', 'small_cap', 'real_yields']
 
 
-def _scan_index_breakouts() -> list:
-    """
-    Monitorea los 6 índices principales buscando roturas de medias clave.
-    Detecta: MA50d, MA200d (~10 meses), MA10m (mensual), MA20m (mensual).
-    Retorna lista de eventos ordenada por frescura y magnitud.
+# ── Helpers for index analysis ────────────────────────────────────────────────
 
-    Campos por evento:
-      index, index_name, ma_key, ma_label, current_price, ma_value,
-      pct_from_ma, direction, fresh_cross, days_since_cross, signal
+def _rsi(series: pd.Series, period: int = 14) -> float:
+    """Wilder RSI. Returns NaN-safe float."""
+    delta = series.diff().dropna()
+    if len(delta) < period:
+        return float('nan')
+    gain = delta.clip(lower=0)
+    loss = (-delta).clip(lower=0)
+    avg_gain = gain.ewm(com=period - 1, min_periods=period).mean()
+    avg_loss = loss.ewm(com=period - 1, min_periods=period).mean()
+    rs = avg_gain / avg_loss.replace(0, float('nan'))
+    rsi = 100 - (100 / (1 + rs))
+    val = rsi.iloc[-1]
+    return round(float(val), 1) if not pd.isna(val) else float('nan')
+
+
+def _macd_signal(series: pd.Series) -> str:
+    """Returns BULLISH_CROSS / BEARISH_CROSS / BULLISH / BEARISH / NEUTRAL."""
+    if len(series) < 35:
+        return 'NEUTRAL'
+    ema12 = series.ewm(span=12, adjust=False).mean()
+    ema26 = series.ewm(span=26, adjust=False).mean()
+    macd  = ema12 - ema26
+    sig   = macd.ewm(span=9, adjust=False).mean()
+    above = macd > sig
+    if above.iloc[-1] and not above.iloc[-2]:
+        return 'BULLISH_CROSS'
+    if not above.iloc[-1] and above.iloc[-2]:
+        return 'BEARISH_CROSS'
+    if macd.iloc[-1] > 0 and sig.iloc[-1] > 0:
+        return 'BULLISH'
+    if macd.iloc[-1] < 0 and sig.iloc[-1] < 0:
+        return 'BEARISH'
+    return 'NEUTRAL'
+
+
+def _ma_series(close: pd.Series, window: int, freq: str) -> pd.Series:
+    """Compute rolling MA on daily/weekly/monthly close, ffilled back to daily."""
+    if freq == 'D':
+        return close.rolling(window).mean()
+    if freq == 'W':
+        try:
+            resampled = close.resample('W-FRI').last().dropna()
+        except Exception:
+            resampled = close.resample('W').last().dropna()
+    else:  # M
+        try:
+            resampled = close.resample('ME').last().dropna()
+        except Exception:
+            resampled = close.resample('M').last().dropna()
+    if len(resampled) < window + 2:
+        return pd.Series(dtype=float)
+    ma = resampled.rolling(window).mean().dropna()
+    return ma.reindex(close.index, method='ffill')
+
+
+def _fresh_cross(close: pd.Series, ma: pd.Series, fresh_days: int):
+    """Returns (currently_above, fresh_cross, days_since_cross)."""
+    combined = pd.concat([close.rename('p'), ma.rename('m')], axis=1).dropna()
+    if len(combined) < fresh_days + 5:
+        return None, False, 999
+    cur_above  = bool(combined['p'].iloc[-1] > combined['m'].iloc[-1])
+    ref_above  = bool(combined['p'].iloc[-(fresh_days + 1)] > combined['m'].iloc[-(fresh_days + 1)])
+    is_fresh   = cur_above != ref_above
+    # exact cross date
+    lookback = combined.tail(min(90, len(combined)))
+    flags   = lookback['p'] > lookback['m']
+    changes = (flags != flags.shift(1)).fillna(False)
+    cross_idx = flags[changes].index
+    if len(cross_idx):
+        days_since = int((combined.index[-1] - cross_idx[-1]).days)
+    else:
+        days_since = 999
+    return cur_above, is_fresh, days_since
+
+
+def _distribution_days(df: pd.DataFrame, ma50: pd.Series, lookback: int = 25) -> int:
+    """Count distribution days in last `lookback` sessions.
+    A distribution day = index closes DOWN >0.2% on volume above its 50-day avg vol.
+    """
+    try:
+        vol_ma50 = df['Volume'].rolling(50).mean()
+        recent   = df.tail(lookback).copy()
+        vol_ma   = vol_ma50.reindex(recent.index)
+        daily_chg = recent['Close'].pct_change()
+        dist = (daily_chg < -0.002) & (recent['Volume'] > vol_ma)
+        return int(dist.sum())
+    except Exception:
+        return 0
+
+
+def _weinstein_stage(close: pd.Series, ma40w: pd.Series) -> int:
+    """
+    Approximation of Weinstein stage:
+    2 = Stage 2 markup (price > MA40w, MA40w trending up)
+    4 = Stage 4 markdown (price < MA40w, MA40w trending down)
+    1 = Stage 1 (price < MA40w but MA40w flat/rising slightly)
+    3 = Stage 3 (price > MA40w but MA40w rolling over)
+    """
+    try:
+        combined = pd.concat([close.rename('p'), ma40w.rename('m')], axis=1).dropna()
+        if len(combined) < 10:
+            return 0
+        above = combined['p'].iloc[-1] > combined['m'].iloc[-1]
+        # MA40w slope over last 4 weeks (20 trading days)
+        slope = (combined['m'].iloc[-1] - combined['m'].iloc[-20]) / combined['m'].iloc[-20] * 100 if len(combined) >= 20 else 0
+        if above and slope > 0.5:
+            return 2  # Markup
+        if above and slope <= 0.5:
+            return 3  # Distribution / topping
+        if not above and slope < -0.5:
+            return 4  # Markdown
+        return 1      # Accumulation / base
+    except Exception:
+        return 0
+
+
+def _minervini_score(close: pd.Series, ma_vals: dict) -> dict:
+    """
+    Minervini 8-criteria trend template adapted for indices.
+    Returns {'score': 0-8, 'criteria': [bool x8], 'labels': [str x8]}
+    """
+    price = float(close.iloc[-1])
+    ma50d  = ma_vals.get('ma50d')
+    ma150d = ma_vals.get('ma150d')
+    ma200d = ma_vals.get('ma200d')
+
+    hi52  = float(close.tail(252).max()) if len(close) >= 252 else float(close.max())
+    lo52  = float(close.tail(252).min()) if len(close) >= 252 else float(close.min())
+
+    # MA200d slope (last 20 days)
+    try:
+        ma200_series = close.rolling(200).mean().dropna()
+        ma200_slope = (ma200_series.iloc[-1] - ma200_series.iloc[-20]) > 0 if len(ma200_series) >= 20 else None
+    except Exception:
+        ma200_slope = None
+
+    criteria = [
+        price > ma150d if ma150d else None,             # 1. Price > MA150d
+        price > ma200d if ma200d else None,             # 2. Price > MA200d
+        (ma150d > ma200d) if (ma150d and ma200d) else None,  # 3. MA150 > MA200
+        bool(ma200_slope) if ma200_slope is not None else None,  # 4. MA200 trending up
+        (ma50d > ma150d) if (ma50d and ma150d) else None,  # 5. MA50 > MA150
+        (ma50d > ma200d) if (ma50d and ma200d) else None,  # 6. MA50 > MA200
+        price > ma50d if ma50d else None,               # 7. Price > MA50
+        (price >= lo52 * 1.25) and (price >= hi52 * 0.75),  # 8. Price in proper range
+    ]
+    labels = [
+        'Precio > MA150d', 'Precio > MA200d', 'MA150 > MA200',
+        'MA200 en tendencia', 'MA50 > MA150', 'MA50 > MA200',
+        'Precio > MA50', 'Precio en rango válido (25% de máx)',
+    ]
+    valid  = [c for c in criteria if c is not None]
+    score  = sum(1 for c in valid if c)
+    return {'score': score, 'max': len(valid), 'criteria': criteria, 'labels': labels}
+
+
+# ── Main scanner ──────────────────────────────────────────────────────────────
+
+def _scan_index_breakouts() -> dict:
+    """
+    Comprehensive index analysis: MA breaks + RSI + MACD + Golden/Death Cross +
+    Weinstein Stage + Minervini score + 52w/ATH + YTD + volume + distribution days.
+
+    Returns:
+      {
+        'breakouts': list,     # MA cross events (all timeframes)
+        'summary':   dict,     # per-ticker health metrics
+        'special_events': list # Golden/Death cross, 52w breaks, stage changes
+      }
     """
     INDICES = [
-        ('QQQ', 'Nasdaq 100 (QQQ)'),
-        ('SPY', 'S&P 500 (SPY)'),
-        ('IWM', 'Russell 2000 (IWM)'),
-        ('DIA', 'Dow Jones (DIA)'),
-        ('EWG', 'DAX / Alemania (EWG)'),
-        ('EEM', 'Mercados Emergentes (EEM)'),
+        ('QQQ', 'Nasdaq 100',        'equity'),
+        ('SPY', 'S&P 500',           'equity'),
+        ('IWM', 'Russell 2000',      'equity'),
+        ('DIA', 'Dow Jones',         'equity'),
+        ('EWG', 'DAX / Alemania',    'equity'),
+        ('EEM', 'Merc. Emergentes',  'equity'),
+        ('GLD', 'Oro (GLD)',         'commodity'),
+        ('TLT', 'Bonos LP (TLT)',    'bond'),
     ]
 
     MA_DEFS = [
-        {'key': 'ma50d',  'label': 'MA 50d',   'window': 50,  'freq': 'D', 'fresh_days': 5},
-        {'key': 'ma200d', 'label': 'MA 200d',  'window': 200, 'freq': 'D', 'fresh_days': 5},
-        {'key': 'ma10m',  'label': 'MA 10 mes','window': 10,  'freq': 'M', 'fresh_days': 35},
-        {'key': 'ma20m',  'label': 'MA 20 mes','window': 20,  'freq': 'M', 'fresh_days': 35},
+        # Daily
+        {'key': 'ma20d',  'label': 'MA 20d',    'window': 20,  'freq': 'D', 'fresh_days': 3,  'importance': 1},
+        {'key': 'ma50d',  'label': 'MA 50d',    'window': 50,  'freq': 'D', 'fresh_days': 5,  'importance': 2},
+        {'key': 'ma100d', 'label': 'MA 100d',   'window': 100, 'freq': 'D', 'fresh_days': 5,  'importance': 2},
+        {'key': 'ma150d', 'label': 'MA 150d',   'window': 150, 'freq': 'D', 'fresh_days': 7,  'importance': 2},
+        {'key': 'ma200d', 'label': 'MA 200d',   'window': 200, 'freq': 'D', 'fresh_days': 7,  'importance': 3},
+        # Weekly
+        {'key': 'ma10w',  'label': 'MA 10s',    'window': 10,  'freq': 'W', 'fresh_days': 10, 'importance': 2},
+        {'key': 'ma30w',  'label': 'MA 30s',    'window': 30,  'freq': 'W', 'fresh_days': 14, 'importance': 3},
+        {'key': 'ma40w',  'label': 'MA 40s',    'window': 40,  'freq': 'W', 'fresh_days': 14, 'importance': 4},
+        {'key': 'ma50w',  'label': 'MA 50s',    'window': 50,  'freq': 'W', 'fresh_days': 14, 'importance': 3},
+        # Monthly
+        {'key': 'ma10m',  'label': 'MA 10m',    'window': 10,  'freq': 'M', 'fresh_days': 35, 'importance': 4},
+        {'key': 'ma20m',  'label': 'MA 20m',    'window': 20,  'freq': 'M', 'fresh_days': 35, 'importance': 4},
     ]
 
-    results = []
+    breakouts      = []
+    summary        = {}
+    special_events = []
 
-    for ticker, name in INDICES:
+    for ticker, name, asset_type in INDICES:
         print(f"  Breakouts: {ticker}...")
-        df = _fetch(ticker, period_days=1800)
+        df = _fetch(ticker, period_days=2200)  # ~8.5 years for MA20m
         if df is None or len(df) < 60:
             continue
 
         close = df['Close'].dropna()
-        current_price = float(close.iloc[-1])
+        price = float(close.iloc[-1])
         last_date = close.index[-1]
 
-        for ma_def in MA_DEFS:
+        # ── Compute all MA series up front ────────────────────────────────────
+        ma_vals = {}
+        for mdef in MA_DEFS:
             try:
-                if ma_def['freq'] == 'D':
-                    if len(close) < ma_def['window'] + 10:
-                        continue
-                    ma_series = close.rolling(ma_def['window']).mean().dropna()
+                s = _ma_series(close, mdef['window'], mdef['freq'])
+                if s is not None and len(s.dropna()) > 5:
+                    ma_vals[mdef['key']] = float(s.dropna().iloc[-1])
                 else:
-                    # Monthly close → rolling MA → ffill to daily
-                    try:
-                        monthly = close.resample('ME').last().dropna()
-                    except Exception:
-                        monthly = close.resample('M').last().dropna()
-                    if len(monthly) < ma_def['window'] + 3:
-                        continue
-                    ma_monthly = monthly.rolling(ma_def['window']).mean().dropna()
-                    ma_series = ma_monthly.reindex(close.index, method='ffill').dropna()
+                    ma_vals[mdef['key']] = None
+            except Exception:
+                ma_vals[mdef['key']] = None
 
-                if len(ma_series) < 15:
+        # ── MA cross events ───────────────────────────────────────────────────
+        for mdef in MA_DEFS:
+            try:
+                s = _ma_series(close, mdef['window'], mdef['freq'])
+                if s is None or len(s.dropna()) < 10:
                     continue
 
-                ma_current = float(ma_series.iloc[-1])
-                pct_from_ma = (current_price / ma_current - 1) * 100
-                currently_above = current_price > ma_current
-
-                # Align price and MA on same dates
-                combined = pd.concat(
-                    [close.rename('price'), ma_series.rename('ma')], axis=1
-                ).dropna()
-
-                if len(combined) < ma_def['fresh_days'] + 5:
+                cur_above, is_fresh, days_since = _fresh_cross(close, s, mdef['fresh_days'])
+                if cur_above is None:
                     continue
 
-                # Was price on the other side N days ago?
-                ref_row = combined.iloc[-(ma_def['fresh_days'] + 1)]
-                was_above = bool(ref_row['price'] > ref_row['ma'])
-                fresh_cross = (currently_above != was_above)
+                ma_current = float(s.dropna().iloc[-1])
+                pct = (price / ma_current - 1) * 100
 
-                # Find exact days since last cross (look back 60 calendar days)
-                lookback_n = min(60, len(combined) - 1)
-                recent = combined.tail(lookback_n)
-                above_flags = (recent['price'] > recent['ma'])
-                changes = (above_flags != above_flags.shift(1)).fillna(False)
-                cross_dates = above_flags[changes].index
-                if len(cross_dates) > 0:
-                    last_cross = cross_dates[-1]
-                    days_since = int((last_date - last_cross).days)
-                else:
-                    days_since = 999
-
-                # Signal classification
-                if fresh_cross and not currently_above:
+                if is_fresh and not cur_above:
                     signal = 'BEARISH_BREAK'
-                elif fresh_cross and currently_above:
+                elif is_fresh and cur_above:
                     signal = 'BULLISH_BREAK'
-                elif not currently_above:
+                elif not cur_above:
                     signal = 'BELOW'
                 else:
                     signal = 'ABOVE'
 
-                # Only include: fresh crosses OR significant distance (>3% from MA)
-                if not fresh_cross and abs(pct_from_ma) < 3:
+                # Include if: fresh cross OR price significantly far from MA
+                if not is_fresh and abs(pct) < 3:
                     continue
 
-                results.append({
+                breakouts.append({
                     'index':          ticker,
                     'index_name':     name,
-                    'ma_key':         ma_def['key'],
-                    'ma_label':       ma_def['label'],
-                    'current_price':  round(current_price, 2),
+                    'asset_type':     asset_type,
+                    'ma_key':         mdef['key'],
+                    'ma_label':       mdef['label'],
+                    'importance':     mdef['importance'],
+                    'current_price':  round(price, 2),
                     'ma_value':       round(ma_current, 2),
-                    'pct_from_ma':    round(pct_from_ma, 2),
-                    'direction':      'ABOVE' if currently_above else 'BELOW',
-                    'fresh_cross':    fresh_cross,
+                    'pct_from_ma':    round(pct, 2),
+                    'direction':      'ABOVE' if cur_above else 'BELOW',
+                    'fresh_cross':    is_fresh,
                     'days_since_cross': days_since,
                     'signal':         signal,
                 })
-
             except Exception as e:
-                print(f"    {ticker}/{ma_def['key']} error: {e}")
-                continue
+                print(f"    {ticker}/{mdef['key']}: {e}")
 
-    # Sort: fresh BEARISH first, then fresh BULLISH, then by abs pct from MA
+        # ── Momentum: RSI (daily, weekly, monthly) ────────────────────────────
+        rsi_daily = _rsi(close)
+        try:
+            weekly_close = close.resample('W-FRI').last().dropna()
+            rsi_weekly = _rsi(weekly_close) if len(weekly_close) >= 16 else float('nan')
+        except Exception:
+            rsi_weekly = float('nan')
+        try:
+            try:
+                monthly_close = close.resample('ME').last().dropna()
+            except Exception:
+                monthly_close = close.resample('M').last().dropna()
+            rsi_monthly = _rsi(monthly_close, period=10) if len(monthly_close) >= 12 else float('nan')
+        except Exception:
+            rsi_monthly = float('nan')
+
+        # ── MACD (daily + weekly) ─────────────────────────────────────────────
+        macd_daily = _macd_signal(close)
+        try:
+            macd_weekly = _macd_signal(weekly_close) if len(weekly_close) >= 40 else 'NEUTRAL'
+        except Exception:
+            macd_weekly = 'NEUTRAL'
+
+        # ── Golden / Death Cross (MA50d vs MA200d) ────────────────────────────
+        gc_active = gc_fresh = False
+        dc_active = dc_fresh = False
+        gc_days   = 999
+        if ma_vals.get('ma50d') and ma_vals.get('ma200d'):
+            try:
+                ma50s  = close.rolling(50).mean().dropna()
+                ma200s = close.rolling(200).mean().dropna()
+                _, gc_active_bool, gc_days_val = _fresh_cross(ma50s, ma200s, 10)
+                gc_active = bool(ma_vals['ma50d'] > ma_vals['ma200d'])
+                dc_active = not gc_active
+                gc_fresh  = gc_active_bool and gc_active
+                dc_fresh  = gc_active_bool and dc_active
+                gc_days   = gc_days_val
+
+                # Emit special event
+                if gc_fresh:
+                    special_events.append({
+                        'index': ticker, 'index_name': name, 'type': 'GOLDEN_CROSS',
+                        'label': 'Golden Cross', 'direction': 'BULLISH',
+                        'detail': f"MA50d ({ma_vals['ma50d']:.1f}) supera MA200d ({ma_vals['ma200d']:.1f})",
+                        'days_since': gc_days,
+                    })
+                elif dc_fresh:
+                    special_events.append({
+                        'index': ticker, 'index_name': name, 'type': 'DEATH_CROSS',
+                        'label': 'Death Cross', 'direction': 'BEARISH',
+                        'detail': f"MA50d ({ma_vals['ma50d']:.1f}) cae por debajo MA200d ({ma_vals['ma200d']:.1f})",
+                        'days_since': gc_days,
+                    })
+            except Exception:
+                pass
+
+        # ── 52-week high/low ──────────────────────────────────────────────────
+        lookback252 = close.tail(252)
+        hi52  = float(lookback252.max())
+        lo52  = float(lookback252.min())
+        pct_from_hi52 = (price / hi52 - 1) * 100
+        pct_from_lo52 = (price / lo52 - 1) * 100
+
+        # New 52w low (last 3 days)
+        recent3 = close.tail(3)
+        if float(recent3.min()) <= lo52 * 1.001:
+            special_events.append({
+                'index': ticker, 'index_name': name, 'type': '52W_LOW',
+                'label': 'Mínimo 52 semanas', 'direction': 'BEARISH',
+                'detail': f"${price:.2f} — nuevo mínimo anual. Capitulación o trampa bajista.",
+                'days_since': 0,
+            })
+        elif float(recent3.max()) >= hi52 * 0.999:
+            special_events.append({
+                'index': ticker, 'index_name': name, 'type': '52W_HIGH',
+                'label': 'Máximo 52 semanas', 'direction': 'BULLISH',
+                'detail': f"${price:.2f} — nuevo máximo anual. Breakout de rango.",
+                'days_since': 0,
+            })
+
+        # ── ATH ───────────────────────────────────────────────────────────────
+        ath = float(close.max())
+        pct_from_ath = (price / ath - 1) * 100
+
+        # ── YTD ───────────────────────────────────────────────────────────────
+        try:
+            year_start = close[close.index.year == last_date.year]
+            ytd_pct = (price / float(year_start.iloc[0]) - 1) * 100 if len(year_start) > 0 else float('nan')
+        except Exception:
+            ytd_pct = float('nan')
+
+        # ── Volume ───────────────────────────────────────────────────────────
+        try:
+            vol_ma20 = float(df['Volume'].rolling(20).mean().iloc[-1])
+            vol_5d   = float(df['Volume'].tail(5).mean())
+            vol_ratio_5d = round(vol_5d / vol_ma20, 2) if vol_ma20 > 0 else 1.0
+        except Exception:
+            vol_ratio_5d = 1.0
+
+        # ── Price speed ───────────────────────────────────────────────────────
+        speed_5d  = float((close.iloc[-1] / close.iloc[-6]  - 1) * 100) if len(close) > 5  else float('nan')
+        speed_20d = float((close.iloc[-1] / close.iloc[-21] - 1) * 100) if len(close) > 20 else float('nan')
+        speed_63d = float((close.iloc[-1] / close.iloc[-64] - 1) * 100) if len(close) > 63 else float('nan')
+
+        # ── Distribution days (last 25 sessions) ─────────────────────────────
+        dist_days = _distribution_days(df, None)
+
+        # ── Weinstein stage (using MA40w) ─────────────────────────────────────
+        ma40w_series = _ma_series(close, 40, 'W')
+        weinstein = _weinstein_stage(close, ma40w_series) if ma40w_series is not None and len(ma40w_series.dropna()) > 10 else 0
+
+        # ── Minervini template score ──────────────────────────────────────────
+        miner = _minervini_score(close, ma_vals)
+
+        # ── Trend alignment: how many MAs is price above ──────────────────────
+        mas_above = [k for k, v in ma_vals.items() if v and price > v]
+        mas_below = [k for k, v in ma_vals.items() if v and price <= v]
+        trend_score = len(mas_above)
+        trend_total = len([v for v in ma_vals.values() if v])
+
+        summary[ticker] = {
+            'price':          round(price, 2),
+            'name':           name,
+            'asset_type':     asset_type,
+            # RSI
+            'rsi_daily':      rsi_daily if not (isinstance(rsi_daily, float) and pd.isna(rsi_daily)) else None,
+            'rsi_weekly':     rsi_weekly if not (isinstance(rsi_weekly, float) and pd.isna(rsi_weekly)) else None,
+            'rsi_monthly':    rsi_monthly if not (isinstance(rsi_monthly, float) and pd.isna(rsi_monthly)) else None,
+            # MACD
+            'macd_daily':     macd_daily,
+            'macd_weekly':    macd_weekly,
+            # Golden/Death Cross
+            'golden_cross':   gc_active,
+            'death_cross':    dc_active,
+            'gc_dc_fresh':    gc_fresh or dc_fresh,
+            'gc_dc_days':     gc_days,
+            # Price structure
+            'pct_from_52w_high': round(pct_from_hi52, 1),
+            'pct_from_52w_low':  round(pct_from_lo52, 1),
+            'pct_from_ath':      round(pct_from_ath, 1),
+            'ytd_pct':           round(ytd_pct, 1) if not (isinstance(ytd_pct, float) and pd.isna(ytd_pct)) else None,
+            # Volume + speed
+            'volume_ratio_5d':  vol_ratio_5d,
+            'speed_5d':         round(speed_5d, 1) if not (isinstance(speed_5d, float) and pd.isna(speed_5d)) else None,
+            'speed_20d':        round(speed_20d, 1) if not (isinstance(speed_20d, float) and pd.isna(speed_20d)) else None,
+            'speed_63d':        round(speed_63d, 1) if not (isinstance(speed_63d, float) and pd.isna(speed_63d)) else None,
+            # Distribution + stage
+            'distribution_days_25s': dist_days,
+            'weinstein_stage':  weinstein,
+            # Minervini
+            'minervini_score':  miner['score'],
+            'minervini_max':    miner['max'],
+            'minervini_labels': [l for l, c in zip(miner['labels'], miner['criteria']) if c is True],
+            'minervini_failed': [l for l, c in zip(miner['labels'], miner['criteria']) if c is False],
+            # Trend alignment
+            'trend_score':      trend_score,
+            'trend_total':      trend_total,
+            'mas_above':        mas_above,
+            'mas_below':        mas_below,
+            # MA values (raw)
+            'ma_values':        {k: round(v, 2) for k, v in ma_vals.items() if v is not None},
+        }
+
+        print(f"    {ticker}: RSI {rsi_daily:.0f}d/{rsi_weekly:.0f}w | "
+              f"Weinstein S{weinstein} | Miner {miner['score']}/{miner['max']} | "
+              f"Trend {trend_score}/{trend_total} | YTD {ytd_pct:+.1f}%" if not (isinstance(ytd_pct, float) and pd.isna(ytd_pct)) else
+              f"    {ticker}: RSI {rsi_daily:.0f}d | Weinstein S{weinstein} | "
+              f"Trend {trend_score}/{trend_total}")
+
+    # ── Sort breakouts ────────────────────────────────────────────────────────
     def sort_key(r):
-        fresh_order = 0 if r['fresh_cross'] else 1
-        bearish_order = 0 if r['signal'] == 'BEARISH_BREAK' else (1 if r['signal'] == 'BULLISH_BREAK' else 2)
-        return (fresh_order, bearish_order, -abs(r['pct_from_ma']))
+        return (
+            0 if r['fresh_cross'] else 1,
+            0 if r['signal'] == 'BEARISH_BREAK' else (1 if r['signal'] == 'BULLISH_BREAK' else 2),
+            -r['importance'],
+            -abs(r['pct_from_ma']),
+        )
+    breakouts.sort(key=sort_key)
 
-    results.sort(key=sort_key)
-    return results
+    return {'breakouts': breakouts, 'summary': summary, 'special_events': special_events}
 
 
-def _send_telegram_breakout_alert(breakouts: list) -> None:
-    """Send immediate Telegram alert for fresh index MA breakouts."""
+def _send_telegram_breakout_alert(scan_result: dict) -> None:
+    """Send Telegram alert for fresh MA breaks + special events, enriched with context."""
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN', '')
     chat_id   = os.environ.get('TELEGRAM_CHAT_ID', '')
     if not bot_token or not chat_id:
         return
 
-    fresh = [b for b in breakouts if b['fresh_cross']]
-    if not fresh:
+    breakouts  = scan_result.get('breakouts', [])
+    summary    = scan_result.get('summary', {})
+    specials   = scan_result.get('special_events', [])
+
+    fresh    = [b for b in breakouts if b['fresh_cross']]
+    bearish  = [b for b in fresh if b['signal'] == 'BEARISH_BREAK']
+    bullish  = [b for b in fresh if b['signal'] == 'BULLISH_BREAK']
+
+    if not fresh and not specials:
         return
 
-    lines = ['📊 <b>Macro Radar — Roturas de Índices</b>', '']
+    lines = ['📡 <b>Macro Radar — Señales de Índices</b>', '']
 
-    bearish = [b for b in fresh if b['signal'] == 'BEARISH_BREAK']
-    bullish = [b for b in fresh if b['signal'] == 'BULLISH_BREAK']
+    # Special events first (Golden/Death Cross, 52w extremes)
+    bear_specials = [s for s in specials if s['direction'] == 'BEARISH']
+    bull_specials = [s for s in specials if s['direction'] == 'BULLISH']
 
+    if bear_specials:
+        lines.append('🚨 <b>Eventos especiales bajistas:</b>')
+        for s in bear_specials:
+            lines.append(f"  ⚡ <b>{s['index']}</b> — {s['label']}: {s['detail']}")
+        lines.append('')
+
+    if bull_specials:
+        lines.append('✨ <b>Eventos especiales alcistas:</b>')
+        for s in bull_specials:
+            lines.append(f"  ✅ <b>{s['index']}</b> — {s['label']}: {s['detail']}")
+        lines.append('')
+
+    # MA breakouts
     if bearish:
-        lines.append('🔴 <b>Roturas BAJISTAS (ventas / cautela):</b>')
-        for b in bearish:
+        lines.append('🔴 <b>Roturas BAJISTAS:</b>')
+        for b in bearish[:6]:
+            s = summary.get(b['index'], {})
+            rsi = s.get('rsi_daily')
+            vol = s.get('volume_ratio_5d', 1.0)
+            vol_str = f' 📊vol {vol:.1f}x' if vol and vol > 1.3 else ''
+            rsi_str = f' RSI {rsi:.0f}' if rsi else ''
             lines.append(
-                f"  ↓ <b>{b['index']}</b> ({b['index_name'].split('(')[0].strip()}) "
-                f"ha roto la <b>{b['ma_label']}</b> a la baja\n"
-                f"    ${b['current_price']:.2f} vs MA ${b['ma_value']:.2f} "
-                f"({b['pct_from_ma']:+.1f}%)"
+                f"  ↓ <b>{b['index']}</b> rompe {b['ma_label']} "
+                f"(imp. {'★'*b['importance']})\n"
+                f"    ${b['current_price']:.2f} vs ${b['ma_value']:.2f} "
+                f"({b['pct_from_ma']:+.1f}%){rsi_str}{vol_str}"
             )
 
     if bullish:
         if bearish:
             lines.append('')
-        lines.append('🟢 <b>Roturas ALCISTAS (recuperación):</b>')
-        for b in bullish:
+        lines.append('🟢 <b>Roturas ALCISTAS:</b>')
+        for b in bullish[:4]:
+            s = summary.get(b['index'], {})
+            rsi = s.get('rsi_daily')
+            rsi_str = f' RSI {rsi:.0f}' if rsi else ''
             lines.append(
-                f"  ↑ <b>{b['index']}</b> ({b['index_name'].split('(')[0].strip()}) "
-                f"ha recuperado la <b>{b['ma_label']}</b>\n"
-                f"    ${b['current_price']:.2f} vs MA ${b['ma_value']:.2f} "
-                f"({b['pct_from_ma']:+.1f}%)"
+                f"  ↑ <b>{b['index']}</b> recupera {b['ma_label']}\n"
+                f"    ${b['current_price']:.2f} vs ${b['ma_value']:.2f} "
+                f"({b['pct_from_ma']:+.1f}%){rsi_str}"
+            )
+
+    # Index health snapshot (equity indices only)
+    eq_summary = {k: v for k, v in summary.items() if v.get('asset_type') == 'equity'}
+    if eq_summary:
+        lines.append('')
+        lines.append('📊 <b>Estado índices:</b>')
+        for ticker, s in eq_summary.items():
+            stage = s.get('weinstein_stage', 0)
+            miner = s.get('minervini_score', 0)
+            miner_max = s.get('minervini_max', 8)
+            ytd   = s.get('ytd_pct')
+            rsi   = s.get('rsi_daily')
+            trend = s.get('trend_score', 0)
+            total = s.get('trend_total', 11)
+            stage_emoji = '🟢' if stage == 2 else '🟡' if stage in (1, 3) else '🔴' if stage == 4 else '⚪'
+            ytd_str = f' YTD {ytd:+.1f}%' if ytd is not None else ''
+            lines.append(
+                f"  {stage_emoji} <b>{ticker}</b> S{stage} | "
+                f"Miner {miner}/{miner_max} | Trend {trend}/{total}"
+                f" | RSI {rsi:.0f}{'d' if rsi else ''}{ytd_str}"
+                if rsi else
+                f"  {stage_emoji} <b>{ticker}</b> S{stage} | "
+                f"Miner {miner}/{miner_max} | Trend {trend}/{total}{ytd_str}"
             )
 
     lines.append('')
-    lines.append('<i>Detectado hoy · Macro Radar</i>')
+    lines.append('<i>Macro Radar · Análisis completo de índices</i>')
 
     text = '\n'.join(lines)
     try:
@@ -927,7 +1303,9 @@ def _send_telegram_breakout_alert(breakouts: list) -> None:
                   'disable_web_page_preview': True},
             timeout=10,
         )
-        print(f"  Telegram breakout alert sent ({len(fresh)} fresh crosses)")
+        n_fresh = len(fresh)
+        n_spec  = len(specials)
+        print(f"  Telegram breakout alert: {n_fresh} fresh crosses + {n_spec} special events")
     except Exception as e:
         print(f"  Telegram breakout alert failed: {e}")
 
@@ -1308,11 +1686,14 @@ def run_macro_radar() -> dict:
 
     # ── Index MA breakouts ─────────────────────────────────────────────────
     print("Scanning index breakouts (Nasdaq, S&P, Russell, DAX...)...")
-    index_breakouts = _scan_index_breakouts()
-    fresh_breaks = [b for b in index_breakouts if b['fresh_cross']]
-    bearish_breaks = [b for b in fresh_breaks if b['signal'] == 'BEARISH_BREAK']
-    bullish_breaks = [b for b in fresh_breaks if b['signal'] == 'BULLISH_BREAK']
-    print(f"  Breakouts: {len(index_breakouts)} total, {len(bearish_breaks)} bearish fresh, {len(bullish_breaks)} bullish fresh")
+    scan_result = _scan_index_breakouts()
+    index_breakouts = scan_result.get('breakouts', [])
+    index_summary  = scan_result.get('summary', {})
+    special_events = scan_result.get('special_events', [])
+    fresh_breaks   = [b for b in index_breakouts if b.get('fresh_cross')]
+    bearish_breaks = [b for b in fresh_breaks if b.get('signal') == 'BEARISH_BREAK']
+    bullish_breaks = [b for b in fresh_breaks if b.get('signal') == 'BULLISH_BREAK']
+    print(f"  Breakouts: {len(index_breakouts)} total, {len(bearish_breaks)} bearish fresh, {len(bullish_breaks)} bullish fresh, {len(special_events)} special events")
 
     # ── Build output ──────────────────────────────────────────────────────
     output = {
@@ -1328,6 +1709,8 @@ def run_macro_radar() -> dict:
         'historical_analogs': historical_analogs,
         'systemic_risks': systemic_risks,
         'index_breakouts': index_breakouts,
+        'index_summary': index_summary,
+        'special_events': special_events,
         'signal_order': [
             'vix', 'yield_curve', 'credit', 'copper_gold', 'gold_spy',
             'oil', 'defense', 'dollar', 'yen', 'breadth',
@@ -1355,7 +1738,7 @@ def run_macro_radar() -> dict:
 
     # ── Telegram alerts ───────────────────────────────────────────────────
     _send_telegram_regime_alert(regime['name'], previous_regime, composite, max_possible, ai_narrative, enriched)
-    _send_telegram_breakout_alert(index_breakouts)
+    _send_telegram_breakout_alert(scan_result)
 
     return output
 
