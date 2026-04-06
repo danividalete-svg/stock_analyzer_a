@@ -611,6 +611,15 @@ function OptionsPanel({ result, sym }: { result: PositionResult; sym: string }) 
 
 // ── Position Card ─────────────────────────────────────────────────────────────
 
+function MetricChip({ label, value, valueClass = 'text-foreground' }: { label: string; value: string; valueClass?: string }) {
+  return (
+    <div className="flex flex-col gap-0.5 min-w-0">
+      <span className="text-[0.58rem] font-semibold uppercase tracking-wider text-muted-foreground/50 leading-none">{label}</span>
+      <span className={`text-sm font-bold tabular-nums leading-tight ${valueClass}`}>{value}</span>
+    </div>
+  )
+}
+
 function PositionCard({ result, pos, userId, onRemove, cerebro }: {
   result?: PositionResult
   pos: Position
@@ -618,225 +627,206 @@ function PositionCard({ result, pos, userId, onRemove, cerebro }: {
   onRemove: () => void
   cerebro: CerebroMaps
 }) {
+  const [expanded, setExpanded] = useState(false)
   const ticker = pos.ticker
   const cur    = result?.current_price ?? pos.avg_price
   const pl     = result?.pl_pct ?? 0
   const sym    = pos.currency === 'EUR' ? '€' : '$'
   const action = result?.action ?? 'MANTENER'
 
+  const exit   = cerebro.exitMap[ticker]
+  const trap   = cerebro.trapMap[ticker]
+  const sm     = cerebro.smMap[ticker]
+  const div    = cerebro.divMap[ticker]
+  const hasCerebro = !!(exit || trap || sm || div)
+
+  const overweight  = result && result.portfolio_pct > (result.optimal_size_pct ?? 100) * 1.5
+  const underweight = result && result.portfolio_pct < (result.optimal_size_pct ?? 0) * 0.5 && (result.optimal_size_pct ?? 0) > 0
+
   return (
-    <div className="glass rounded-2xl hover:border-border/50 transition-colors overflow-clip">
-      {/* Action color bar */}
+    <div className={`glass rounded-2xl overflow-clip transition-all border ${
+      exit?.severity === 'HIGH' ? 'border-red-500/40' :
+      trap ? 'border-amber-500/30' :
+      action === 'AÑADIR' ? 'border-emerald-500/25' :
+      action === 'VENDER' ? 'border-red-500/20' :
+      'border-white/6'
+    }`}>
+      {/* Top accent line */}
       <div className={`h-0.5 w-full ${ACTION_BAR[action]}`} />
 
-      {/* Header */}
-      <div className="flex items-start gap-3 px-5 py-4 border-b border-border/30">
-        <TickerLogo ticker={ticker} size="sm" />
+      {/* ── HEADER ── */}
+      <div className="flex items-start gap-3 px-4 pt-4 pb-3">
+        <TickerLogo ticker={ticker} size="sm" className="mt-0.5 shrink-0" />
+
         <div className="flex-1 min-w-0">
+          {/* Row 1: ticker + company + sector */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono font-extrabold text-foreground text-base">{ticker}</span>
-            {result?.company_name && result.company_name !== ticker && (
-              <span className="text-xs text-muted-foreground truncate">{result.company_name}</span>
-            )}
+            <span className="font-mono font-extrabold text-lg text-foreground leading-none">{ticker}</span>
             {result?.sector && (
-              <span className="text-[0.6rem] px-1.5 py-0.5 rounded bg-muted/40 border border-border/30 text-muted-foreground/60 uppercase tracking-wide">
+              <span className="text-[0.58rem] px-1.5 py-0.5 rounded bg-muted/40 border border-border/20 text-muted-foreground/50 uppercase tracking-wide">
                 {result.sector}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-            <span className="text-xs text-muted-foreground">
-              {pos.shares} acc · coste {sym}{pos.avg_price.toFixed(2)}
-            </span>
-          </div>
-          {/* P&L — prominent */}
-          <div className={`text-2xl font-black tabular-nums flex items-center gap-1 mt-1 ${pl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {pl >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-            {pl >= 0 ? '+' : ''}{pl.toFixed(2)}%
+          {result?.company_name && result.company_name !== ticker && (
+            <p className="text-xs text-muted-foreground/60 truncate mt-0.5 leading-tight">{result.company_name}</p>
+          )}
+          {/* Row 2: cost basis */}
+          <p className="text-[0.65rem] text-muted-foreground/40 mt-1">
+            {pos.shares} acc · base {sym}{pos.avg_price.toFixed(2)}
+          </p>
+        </div>
+
+        {/* Right: price + action + remove */}
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5">
             {result && (
-              <span className="text-sm font-semibold ml-1 opacity-70">
-                ({result.pl_abs >= 0 ? '+' : ''}{sym}{result.pl_abs.toFixed(0)})
+              <span className={`text-[0.62rem] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide ${ACTION_STYLES[action]}`}>
+                {action}
               </span>
             )}
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end gap-2 shrink-0">
-          {/* Action badge — top-right, prominent */}
-          {result && (
-            <span className={`text-[0.65rem] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wide ${ACTION_STYLES[action]}`}>
-              {action}
-            </span>
-          )}
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <div className="font-extrabold text-lg tabular-nums text-foreground">{sym}{cur.toFixed(2)}</div>
-              {result && (
-                <div className="text-[0.62rem] text-muted-foreground tabular-nums">
-                  {sym}{result.market_value.toFixed(0)} · {result.portfolio_pct.toFixed(1)}%
-                </div>
-              )}
-            </div>
-            <button
-              onClick={onRemove}
-              className="p-1.5 rounded-lg text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-colors"
-            >
-              <X size={13} />
+            <button onClick={onRemove} className="p-1 rounded-md text-muted-foreground/40 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+              <X size={12} />
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Cerebro IA signals — shown prominently when owning the position */}
-      {(() => {
-        const exit  = cerebro.exitMap[ticker]
-        const trap  = cerebro.trapMap[ticker]
-        const sm    = cerebro.smMap[ticker]
-        const div   = cerebro.divMap[ticker]
-        if (!exit && !trap && !sm && !div) return null
-        return (
-          <div className="border-b border-border/30 divide-y divide-border/20">
-            {exit && (
-              <div className={`flex items-start gap-3 px-5 py-2.5 ${exit.severity === 'HIGH' ? 'bg-red-500/10' : 'bg-amber-500/8'}`}>
-                <Brain size={13} className={exit.severity === 'HIGH' ? 'text-red-400 mt-0.5 shrink-0' : 'text-amber-400 mt-0.5 shrink-0'} />
-                <div className="flex-1 min-w-0">
-                  <span className={`text-[0.6rem] font-black uppercase tracking-widest mr-2 ${exit.severity === 'HIGH' ? 'text-red-400' : 'text-amber-400'}`}>
-                    Cerebro · Señal de salida {exit.severity}
-                  </span>
-                  <p className="text-[0.7rem] text-foreground/70 leading-relaxed mt-0.5">{exit.reasons.slice(0, 2).join(' · ')}</p>
-                </div>
-              </div>
-            )}
-            {trap && !exit && (
-              <div className="flex items-start gap-3 px-5 py-2.5 bg-amber-500/8">
-                <Brain size={13} className="text-amber-400 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <span className="text-[0.6rem] font-black uppercase tracking-widest text-amber-400 mr-2">Cerebro · Value trap {trap.severity}</span>
-                  <p className="text-[0.7rem] text-foreground/70 leading-relaxed mt-0.5">{trap.flags.slice(0, 2).join(' · ')}</p>
-                </div>
-              </div>
-            )}
-            {div && (
-              <div className="flex items-start gap-3 px-5 py-2.5 bg-amber-500/5">
-                <Brain size={13} className="text-amber-400 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <span className="text-[0.6rem] font-black uppercase tracking-widest text-amber-400 mr-2">Cerebro · Dividendo {div.rating}</span>
-                  <p className="text-[0.7rem] text-foreground/70 mt-0.5">Yield {div.div_yield.toFixed(1)}% — safety score {div.safety_score}/100</p>
-                </div>
-              </div>
-            )}
-            {sm && (
-              <div className="flex items-start gap-3 px-5 py-2.5 bg-purple-500/8">
-                <Brain size={13} className="text-purple-400 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <span className="text-[0.6rem] font-black uppercase tracking-widest text-purple-400 mr-2">Cerebro · Smart Money</span>
-                  <p className="text-[0.7rem] text-foreground/70 mt-0.5">{sm.n_hedge_funds} hedge funds + {sm.n_insiders} insiders comprando · conv {sm.convergence_score}</p>
-                </div>
+          <div className="text-right">
+            <div className="font-extrabold text-base tabular-nums text-foreground">{sym}{cur.toFixed(2)}</div>
+            {result && (
+              <div className="text-[0.6rem] text-muted-foreground/40 tabular-nums">
+                {sym}{result.market_value.toFixed(0)} · {result.portfolio_pct.toFixed(1)}%
               </div>
             )}
           </div>
-        )
-      })()}
-
-      {/* Mini sparkline */}
-      <div className="border-b border-border/20">
-        <PriceChart ticker={ticker} height={52} mini />
+        </div>
       </div>
 
-      {/* Metrics strip */}
-      {result && (
-        <div className="flex gap-4 px-5 py-2.5 bg-muted/10 border-b border-border/20 overflow-x-auto scrollbar-hide text-[0.72rem] text-muted-foreground">
-          {result.forward_pe != null && (
-            <span>PE fwd <strong className="text-foreground">{result.forward_pe.toFixed(1)}x</strong></span>
-          )}
-          {result.fcf_yield != null && (
-            <span>FCF yield <strong className={result.fcf_yield >= 5 ? 'text-emerald-400' : result.fcf_yield < 0 ? 'text-red-400' : 'text-foreground'}>
-              {result.fcf_yield.toFixed(1)}%
-            </strong></span>
-          )}
-          {result.dividend_yield != null && result.dividend_yield > 0 && (
-            <span>Div yield <strong className="text-emerald-400">{result.dividend_yield.toFixed(2)}%</strong></span>
-          )}
-          {result.analyst_target != null && (
-            <span>Target analistas <strong className="text-foreground">{sym}{result.analyst_target.toFixed(2)}</strong>
-              {result.analyst_upside != null && (
-                <span className={result.analyst_upside >= 0 ? ' text-emerald-400' : ' text-red-400'}>
-                  {' '}({result.analyst_upside >= 0 ? '+' : ''}{result.analyst_upside.toFixed(1)}%)
-                </span>
-              )}
+      {/* ── P&L BAND ── */}
+      <div className={`flex items-center gap-2 px-4 py-2.5 mx-3 mb-3 rounded-xl ${pl >= 0 ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+        {pl >= 0 ? <TrendingUp size={15} className="text-emerald-400 shrink-0" /> : <TrendingDown size={15} className="text-red-400 shrink-0" />}
+        <span className={`text-2xl font-black tabular-nums leading-none ${pl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          {pl >= 0 ? '+' : ''}{pl.toFixed(2)}%
+        </span>
+        {result && (
+          <span className={`text-sm font-semibold tabular-nums opacity-60 ${pl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            {result.pl_abs >= 0 ? '+' : ''}{sym}{Math.abs(result.pl_abs).toFixed(0)}
+          </span>
+        )}
+        {result && (
+          <span className="ml-auto flex items-center gap-1.5 text-[0.6rem]">
+            <span className={`w-1.5 h-1.5 rounded-full ${CONVICTION_DOT[result.conviction]}`} />
+            <span className="text-muted-foreground/50 uppercase tracking-wide">{result.conviction}</span>
+          </span>
+        )}
+      </div>
+
+      {/* ── CEREBRO SIGNALS (compact pills) ── */}
+      {hasCerebro && (
+        <div className="flex flex-wrap gap-1.5 px-4 mb-3">
+          {exit && (
+            <span className={`inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full border ${exit.severity === 'HIGH' ? 'bg-red-500/15 text-red-400 border-red-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'}`}>
+              <Brain size={9} />EXIT {exit.severity} · {exit.reasons[0]}
             </span>
           )}
-          {result.target_price != null && result.target_price !== result.analyst_target && (
-            <span>IA objetivo <strong className="text-primary">{sym}{result.target_price.toFixed(2)}</strong></span>
+          {trap && !exit && (
+            <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              <Brain size={9} />TRAP · {trap.flags[0]}
+            </span>
           )}
-          {result.stop_loss != null && (
-            <span>Stop <strong className="text-red-400">{sym}{result.stop_loss.toFixed(2)}</strong></span>
+          {sm && (
+            <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/30">
+              <Brain size={9} />SMART $ · {sm.n_hedge_funds}HF {sm.n_insiders}INS
+            </span>
           )}
-          {result.fifty_two_week_high != null && (
-            <span>52w <strong className="text-foreground">{sym}{result.fifty_two_week_low?.toFixed(0)}–{result.fifty_two_week_high.toFixed(0)}</strong></span>
+          {div && (
+            <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+              <Brain size={9} />DIV {div.rating} · {div.div_yield.toFixed(1)}%
+            </span>
           )}
-          <span className="ml-auto shrink-0">
-            Peso actual <strong className="text-foreground">{result.portfolio_pct.toFixed(1)}%</strong>
-            {' '}→ recomendado{' '}
-            <strong className={
-              result.recommended_weight_pct > result.portfolio_pct + 3 ? 'text-emerald-400' :
-              result.recommended_weight_pct < result.portfolio_pct - 3 ? 'text-amber-400' :
-              'text-foreground'
-            }>
-              {result.recommended_weight_pct.toFixed(1)}%
-            </strong>
-          </span>
-          <span className="shrink-0 flex items-center gap-1">
-            <span className={`w-1.5 h-1.5 rounded-full ${CONVICTION_DOT[result.conviction]}`} />
-            conv. {result.conviction.toLowerCase()}
-          </span>
         </div>
       )}
 
-      {/* Position Sizing strip */}
-      {result && result.volatility_pct != null && (
-        <div className="flex gap-4 px-5 py-2 bg-primary/3 border-b border-border/20 overflow-x-auto scrollbar-hide text-[0.72rem] text-muted-foreground items-center">
-          <span className="text-[0.58rem] font-bold uppercase tracking-widest text-primary/50 shrink-0">Sizing</span>
-          <span>Volatilidad <strong className={`${(result.volatility_pct ?? 0) > 15 ? 'text-red-400' : (result.volatility_pct ?? 0) < 5 ? 'text-emerald-400' : 'text-amber-400'}`}>
-            {result.volatility_pct?.toFixed(1)}%
-          </strong></span>
-          <span>Kelly <strong className="text-foreground">{result.kelly_pct?.toFixed(1)}%</strong></span>
-          <span>Tamaño óptimo <strong className="text-primary">{result.optimal_size_pct?.toFixed(1)}%</strong>
-            {result.portfolio_pct > (result.optimal_size_pct ?? 100) * 1.5 && (
-              <strong className="text-red-400 ml-1">SOBREEXPUESTO</strong>
-            )}
-            {result.portfolio_pct < (result.optimal_size_pct ?? 0) * 0.5 && result.optimal_size_pct! > 0 && (
-              <strong className="text-blue-400 ml-1">INFRAEXPUESTO</strong>
-            )}
-          </span>
-          <span>Stop ATR <strong className="text-red-400">{sym}{result.stop_loss_atr?.toFixed(2)}</strong>
-            <span className="text-muted-foreground/50 ml-0.5">(-{result.stop_loss_pct_atr?.toFixed(0)}%)</span>
-          </span>
-          <span>Riesgo <strong className={`${(result.risk_amount ?? 0) > 500 ? 'text-red-400' : 'text-amber-400'}`}>
-            {sym}{result.risk_amount?.toFixed(0)}
-          </strong></span>
+      {/* ── CHART ── */}
+      <div className="mx-3 rounded-xl overflow-hidden border border-border/20 mb-3">
+        <PriceChart ticker={ticker} height={58} mini />
+      </div>
+
+      {/* ── KEY METRICS GRID (2×3, no scroll) ── */}
+      {result && (
+        <div className="grid grid-cols-3 gap-px bg-border/20 border border-border/20 rounded-xl overflow-hidden mx-3 mb-3">
+          {[
+            result.forward_pe != null && { label: 'PE fwd', value: `${result.forward_pe.toFixed(1)}x` },
+            result.fcf_yield != null && { label: 'FCF yield', value: `${result.fcf_yield.toFixed(1)}%`, valueClass: result.fcf_yield >= 5 ? 'text-emerald-400' : result.fcf_yield < 0 ? 'text-red-400' : 'text-foreground' },
+            result.dividend_yield != null && result.dividend_yield > 0 && { label: 'Div yield', value: `${result.dividend_yield.toFixed(2)}%`, valueClass: 'text-emerald-400' },
+            result.analyst_target != null && { label: 'Target', value: `${sym}${result.analyst_target.toFixed(0)}`, valueClass: 'text-foreground', suffix: result.analyst_upside != null ? ` ${result.analyst_upside >= 0 ? '+' : ''}${result.analyst_upside.toFixed(0)}%` : undefined, suffixClass: result.analyst_upside != null && result.analyst_upside >= 0 ? 'text-emerald-400' : 'text-red-400' },
+            result.stop_loss != null && { label: 'Stop loss', value: `${sym}${result.stop_loss.toFixed(2)}`, valueClass: 'text-red-400' },
+            { label: 'Peso', value: `${result.portfolio_pct.toFixed(1)}%`, valueClass: overweight ? 'text-red-400' : underweight ? 'text-blue-400' : 'text-foreground' },
+          ].filter(Boolean).slice(0, 6).map((m, i) => {
+            if (!m) return null
+            const metric = m as { label: string; value: string; valueClass?: string; suffix?: string; suffixClass?: string }
+            return (
+              <div key={i} className="bg-muted/8 px-3 py-2.5">
+                <div className="text-[0.55rem] font-semibold uppercase tracking-wider text-muted-foreground/40 mb-0.5">{metric.label}</div>
+                <div className={`text-sm font-bold tabular-nums ${metric.valueClass ?? 'text-foreground'}`}>
+                  {metric.value}
+                  {metric.suffix && <span className={`text-xs ml-1 ${metric.suffixClass}`}>{metric.suffix}</span>}
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
-      {/* AI analysis */}
-      {result?.analysis && (
-        <div className="px-5 py-3.5 space-y-2">
-          <div className="bg-muted/10 rounded-lg px-4 py-3">
-            <p className="text-sm text-foreground/80 leading-relaxed">{result.analysis}</p>
+      {/* ── SIZING ROW (compact, no scroll) ── */}
+      {result?.volatility_pct != null && (
+        <div className="flex items-center gap-3 px-4 py-2.5 mx-3 mb-3 rounded-xl bg-primary/4 border border-primary/10">
+          <span className="text-[0.55rem] font-bold uppercase tracking-widest text-primary/50 shrink-0">Sizing</span>
+          <div className="flex gap-4 flex-wrap">
+            <MetricChip label="Vol" value={`${result.volatility_pct.toFixed(1)}%`} valueClass={(result.volatility_pct) > 15 ? 'text-red-400' : 'text-amber-400'} />
+            <MetricChip label="Kelly" value={`${result.kelly_pct?.toFixed(1)}%`} />
+            <MetricChip label="Óptimo" value={`${result.optimal_size_pct?.toFixed(1)}%`} valueClass={overweight ? 'text-red-400' : underweight ? 'text-blue-400' : 'text-primary'} />
+            {result.stop_loss_atr != null && (
+              <MetricChip label="Stop ATR" value={`${sym}${result.stop_loss_atr.toFixed(2)}`} valueClass="text-red-400" />
+            )}
           </div>
-          {result.key_risk && (
-            <div className="flex items-start gap-2 mt-2 px-3 py-2 rounded-lg border border-amber-500/20 bg-amber-500/5">
-              <AlertTriangle size={12} className="text-amber-400 mt-0.5 shrink-0" />
-              <p className="text-[0.75rem] text-amber-300/80 leading-relaxed">{result.key_risk}</p>
+          {(overweight || underweight) && (
+            <span className={`ml-auto text-[0.6rem] font-bold uppercase tracking-wide ${overweight ? 'text-red-400' : 'text-blue-400'}`}>
+              {overweight ? '↑ SOBRE' : '↓ INFRA'}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ── AI ANALYSIS (expand toggle) ── */}
+      {result?.analysis && (
+        <div className="mx-3 mb-3">
+          <button
+            onClick={() => setExpanded(v => !v)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-muted/10 border border-border/20 text-xs text-muted-foreground hover:border-border/40 transition-colors"
+          >
+            <span className="flex items-center gap-1.5 font-medium">
+              <Brain size={11} className="text-primary/60" />
+              Análisis IA
+            </span>
+            {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+          {expanded && (
+            <div className="mt-1.5 px-3 py-3 rounded-xl bg-muted/8 border border-border/15 space-y-2">
+              <p className="text-xs text-foreground/75 leading-relaxed">{result.analysis}</p>
+              {result.key_risk && (
+                <div className="flex items-start gap-2 px-2.5 py-2 rounded-lg border border-amber-500/20 bg-amber-500/5">
+                  <AlertTriangle size={11} className="text-amber-400 mt-0.5 shrink-0" />
+                  <p className="text-[0.7rem] text-amber-300/75 leading-relaxed">{result.key_risk}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* Estrategias de opciones para maximizar rentabilidad */}
-      {result && <OptionsPanel result={result} sym={sym} />}
+      {/* ── OPTIONS PANEL ── */}
+      {result && <div className="mx-3 mb-3"><OptionsPanel result={result} sym={sym} /></div>}
 
-      {/* Journal */}
+      {/* ── JOURNAL ── */}
       <JournalSection ticker={ticker} userId={userId} />
     </div>
   )
