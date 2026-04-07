@@ -1166,6 +1166,26 @@ def shorts():
     ])
 
 
+@app.route('/api/catalysts')
+def catalysts():
+    """Unified catalyst calendar: earnings, macro, FDA, opex, dividends."""
+    from datetime import datetime as dt2
+    data = _load_json(DOCS / 'catalysts.json')
+    if not data:
+        return jsonify({'events': [], 'total_events': 0, 'by_category': {}}), 200
+    today = dt2.now().strftime('%Y-%m-%d')
+    # Filter only future/today events and recalculate days_away
+    filtered = []
+    for e in data.get('events', []):
+        edate = e.get('date', '')
+        if edate >= today:
+            e['days_away'] = (dt2.strptime(edate, '%Y-%m-%d') - dt2.now()).days
+            filtered.append(e)
+    data['events'] = filtered
+    data['total_events'] = len(filtered)
+    return jsonify(data)
+
+
 @app.route('/api/portfolio-news')
 def portfolio_news():
     return jsonify(_load_json(DOCS / 'portfolio_news.json') or {

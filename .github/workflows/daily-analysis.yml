@@ -189,6 +189,10 @@ jobs:
         continue-on-error: true
         run: python3 short_scanner.py || echo "Short scanner failed"
 
+      - name: Catalyst Scanner
+        continue-on-error: true
+        run: python3 catalyst_scanner.py || echo "Catalyst scanner failed"
+
       - name: Portfolio News Monitor
         continue-on-error: true
         env:

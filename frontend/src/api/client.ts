@@ -811,6 +811,53 @@ export interface EconEvent {
 export const fetchEconomicCalendar = () =>
   api.get<{ events: EconEvent[]; total: number }>('/api/economic-calendar')
 
+export interface CatalystEvent {
+  id: string
+  category: 'MACRO' | 'EARNINGS' | 'FDA' | 'OPTIONS_EXPIRY' | 'DIVIDEND'
+  type: string
+  date: string
+  days_away: number
+  title: string
+  description: string
+  impact: 'HIGH' | 'MEDIUM' | 'LOW'
+  direction_bias: 'BULLISH' | 'BEARISH' | 'VOLATILE' | 'UNKNOWN'
+  avg_move_pct: number | null
+  affected_tickers: string[]
+  bullish_sectors: string[]
+  bearish_sectors: string[]
+  source: string
+  ticker: string | null
+  company: string | null
+  sector?: string
+  current_price?: number | null
+  market_cap?: number | null
+  eps_estimate?: number | null
+  earnings_history?: {
+    beat_count: number
+    miss_count: number
+    total_quarters: number
+    avg_surprise_pct: number
+    beat_rate: number
+    last_quarters: Array<{ date: string; eps_est: number; eps_act: number; surprise_pct: number; beat: boolean }>
+  }
+  earnings_warning?: boolean
+  dividend_yield?: number
+  dividend_rate?: number
+  url?: string
+}
+
+export interface CatalystData {
+  generated_at: string
+  scan_date: string
+  horizon_days: number
+  total_events: number
+  by_category: Record<string, number>
+  events: CatalystEvent[]
+}
+
+export const fetchCatalysts = () =>
+  api.get<CatalystData>('/api/catalysts')
+
 export interface DividendTrapEntry {
   ticker: string
   company: string

@@ -44,6 +44,7 @@ import MicroCap from './pages/MicroCap'
 import Shorts from './pages/Shorts'
 import MacroCalendar from './pages/MacroCalendar'
 import TechnicalSignals from './pages/TechnicalSignals'
+import CatalystCalendar from './pages/CatalystCalendar'
 
 function NavItem({ item, onClose }: { item: (typeof NAV_PRIMARY)[0]; onClose: () => void }) {
   return (
@@ -251,6 +252,7 @@ export default function App() {
               <Route path="/shorts"         element={<Shorts />} />
               <Route path="/macro-calendar" element={<MacroCalendar />} />
               <Route path="/technical"      element={<TechnicalSignals />} />
+              <Route path="/catalysts"      element={<CatalystCalendar />} />
               <Route path="/datos"           element={<Datos />} />
             </Route>
           </Routes>

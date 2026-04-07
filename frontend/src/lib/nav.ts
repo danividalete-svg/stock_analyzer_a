@@ -3,7 +3,7 @@ import {
   ArrowLeftRight, PieChart, BarChart2, FlaskConical, Search, LayoutDashboard, Database,
   Ruler, Layers, Star, Radar, CalendarDays, AlertTriangle, Sparkles, Building2, Zap,
   DollarSign, Euro, Wallet, GitCompare, Bell, SlidersHorizontal, CalendarCheck, CandlestickChart, Brain,
-  Gem,
+  Gem, Flame,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -37,6 +37,7 @@ export const NAV_SECONDARY: NavLinkItem[] = [
   { path: '/watchlist',       icon: Star,             label: 'Watchlist',          color: '#f59e0b', keywords: ['watchlist', 'seguimiento', 'favoritos'] },
   { path: '/alerts',          icon: Bell,             label: 'Alertas',            color: '#f59e0b', keywords: ['alertas', 'email', 'notificaciones', 'precio'] },
   { path: '/earnings',        icon: CalendarDays,     label: 'Earnings',           color: '#f59e0b', keywords: ['earnings', 'resultados', 'calendario'] },
+  { path: '/catalysts',       icon: Flame,            label: 'Catalizadores',      color: '#f97316', keywords: ['catalyst', 'catalizador', 'fda', 'pdufa', 'earnings', 'opex', 'macro events'] },
   { path: '/macro-calendar',  icon: CalendarCheck,    label: 'Calendario Macro',   color: '#f59e0b', keywords: ['calendario', 'macro', 'fed', 'cpi', 'nfp'] },
   { path: '/dividend-traps',  icon: AlertTriangle,    label: 'Dividend Traps',     color: '#ef4444', keywords: ['dividendo', 'trampa', 'yield trap'] },
   { path: '/smart-portfolio', icon: Sparkles,         label: 'Smart Portfolio',    color: '#a855f7', keywords: ['portfolio', 'cartera', 'smart', 'builder'] },
