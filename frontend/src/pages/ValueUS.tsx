@@ -587,6 +587,14 @@ export default function ValueUS() {
                           </span>
                         )}
                         <OwnedBadge ticker={d.ticker} />
+                        {d.magic_formula_rank != null && d.magic_formula_rank <= 50 && (
+                          <span
+                            className="text-[0.55rem] font-bold px-1 py-0.5 rounded bg-violet-500/15 text-violet-400 border border-violet-500/25"
+                            title={`Magic Formula (Greenblatt) rank #${d.magic_formula_rank} — EBIT/EV yield ${d.ebit_ev_yield != null ? d.ebit_ev_yield.toFixed(1) + '%' : '—'} · ROIC ${d.roic_greenblatt != null ? d.roic_greenblatt.toFixed(1) + '%' : '—'}`}
+                          >
+                            MF #{d.magic_formula_rank}
+                          </span>
+                        )}
                         {d.proximity_to_52w_high != null && d.proximity_to_52w_high > -5 && (
                           <span className="text-[0.55rem] font-bold px-1 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/25" title={`A ${Math.abs(d.proximity_to_52w_high).toFixed(1)}% del máximo 52 semanas — posible entrada en techo`}>
                             TECHO
@@ -602,6 +610,7 @@ export default function ValueUS() {
                         )}
                       </div>
                       <CerebroBadges
+                        entryInfo={cerebro.entryMap[d.ticker]}
                         trapInfo={cerebro.trapMap[d.ticker]}
                         smInfo={cerebro.smMap[d.ticker]}
                         exitInfo={cerebro.exitMap[d.ticker]}

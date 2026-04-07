@@ -101,11 +101,12 @@
   color: hsl(var(--foreground));
 }
 
-/* Focus ring — consistent, accessible, Apple-style */
+/* Focus ring — consistent, accessible */
 :focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline: 1.5px solid hsl(var(--primary) / 0.7);
+  outline-offset: 3px;
+  border-radius: var(--radius, 4px);
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.10);
 }
 
 /* Sticky table headers — stick beneath the 50px TopBar */
@@ -444,15 +445,22 @@ button:active:not(:disabled) { transform: scale(0.97); }
   border: 1px solid hsl(var(--border) / 0.5);
   color: hsl(var(--muted-foreground));
   background: transparent;
-  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+  transition: border-color 0.14s ease,
+              color        0.14s ease,
+              background   0.14s ease,
+              transform    0.10s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow   0.14s ease;
   white-space: nowrap;
   cursor: pointer;
   line-height: 1;
+  will-change: transform;
 }
 .filter-btn:hover {
   border-color: hsl(var(--border) / 0.9);
   color: hsl(var(--foreground));
+  transform: translateY(-1px);
 }
+.filter-btn:active { transform: scale(0.94) translateY(0); }
 .filter-btn.active {
   border-color: hsl(var(--primary) / 0.6);
   background: hsl(var(--primary) / 0.12);
@@ -529,8 +537,10 @@ button:active:not(:disabled) { transform: scale(0.97); }
 /* CRITICAL: "to" must use transform:none — NOT translateY(0).
    translateY(0) creates a containing block that breaks position:sticky
    on descendant thead elements (first table row hidden behind header). */
-@keyframes fadeInUp  { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-8px) scaleY(0.94); } to { opacity: 1; transform: none; } }
+@keyframes fadeInUp    { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes emptyIconIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+@keyframes scoreRingIn { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+@keyframes slideDown   { from { opacity: 0; transform: translateY(-8px) scaleY(0.94); } to { opacity: 1; transform: none; } }
 @keyframes floatY    { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes shimmer   { 0% { background-position: -800px 0; } 100% { background-position: 800px 0; } }
 @keyframes spin      { to { transform: rotate(360deg); } }
@@ -915,6 +925,9 @@ tr[class*="cursor-pointer"]:hover td:first-child {
 /* ── Focus ring — electric cyan ─────────────────────────────────── */
 .dark :focus-visible {
   outline-color: hsl(194 100% 48% / 0.7);
+  box-shadow:
+    0 0 0 4px hsl(194 100% 48% / 0.12),
+    0 0 12px hsl(194 100% 48% / 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1565,6 +1578,295 @@ html {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   COLLAPSIBLE PANEL — height animation via grid-template-rows
+   Grid trick: grid-rows can transition unlike height:auto.
+   Usage: <div class="collapsible-panel [open]"><div>content</div></div>
+════════════════════════════════════════════════════════════════════ */
+
+.collapsible-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity             0.28s ease;
+  opacity: 0;
+}
+.collapsible-panel.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.collapsible-panel > * {
+  overflow: hidden;
+  /* Ensure the inner content can still animate children */
+  min-height: 0;
+}
+
+/* Toggle chevron rotation */
+.collapse-chevron {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.collapse-chevron.open {
+  transform: rotate(180deg);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   THESIS / EXPANDED TABLE ROW — slide down from above
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes thesisSlideIn {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0% 0);
+  }
+}
+
+.thesis-row > td > div,
+tr.thesis-row > td > div {
+  animation: thesisSlideIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SKELETON SHIMMER — improved wave effect
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes skeletonWave {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.dark [data-slot="skeleton"],
+.dark [class*="skeleton"] {
+  background: linear-gradient(
+    90deg,
+    hsl(212 20% 10% / 0.8)   0%,
+    hsl(212 20% 14% / 0.9)  40%,
+    hsl(194 60% 30% / 0.12) 55%,
+    hsl(212 20% 14% / 0.9)  70%,
+    hsl(212 20% 10% / 0.8) 100%
+  );
+  background-size: 800px 100%;
+  animation: skeletonWave 1.6s ease-in-out infinite;
+}
+
+:root:not(.dark) [data-slot="skeleton"],
+:root:not(.dark) [class*="skeleton"] {
+  background: linear-gradient(
+    90deg,
+    hsl(210 15% 90% / 0.9)  0%,
+    hsl(210 15% 96% / 1.0) 40%,
+    hsl(194 60% 85% / 0.15) 55%,
+    hsl(210 15% 96% / 1.0) 70%,
+    hsl(210 15% 90% / 0.9) 100%
+  );
+  background-size: 800px 100%;
+  animation: skeletonWave 1.6s ease-in-out infinite;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   BADGE POP-IN MICRO-ANIMATION
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes badgePopIn {
+  0%   { transform: scale(0.55); opacity: 0; }
+  65%  { transform: scale(1.12); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Apply to all small count badges */
+[class*="rounded-full"][class*="font-bold"]:not([class*="w-"]):not([class*="h-"]) {
+  animation: badgePopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   INTERACTIVE LINK ROWS — smooth accent line reveal
+════════════════════════════════════════════════════════════════════ */
+
+/* Ticker links in lists — underline grows from left */
+a[class*="font-mono"] {
+  position: relative;
+  text-decoration: none;
+}
+a[class*="font-mono"]::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -1px;
+  width: 0; height: 1px;
+  background: currentColor;
+  transition: width 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.5;
+}
+a[class*="font-mono"]:hover::after {
+  width: 100%;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   STAGGERED TABLE ROWS — extend to 20 rows
+════════════════════════════════════════════════════════════════════ */
+
+tbody tr:nth-child(11) { animation-delay: 300ms }
+tbody tr:nth-child(12) { animation-delay: 330ms }
+tbody tr:nth-child(13) { animation-delay: 360ms }
+tbody tr:nth-child(14) { animation-delay: 390ms }
+tbody tr:nth-child(15) { animation-delay: 420ms }
+tbody tr:nth-child(16) { animation-delay: 440ms }
+tbody tr:nth-child(17) { animation-delay: 460ms }
+tbody tr:nth-child(18) { animation-delay: 480ms }
+tbody tr:nth-child(19) { animation-delay: 500ms }
+tbody tr:nth-child(20) { animation-delay: 520ms }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE CONTAINER — staggered widget entrance
+════════════════════════════════════════════════════════════════════ */
+
+/* Smooth route change: main content fades in */
+main > * { animation: fadeInUp 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+main > *:nth-child(2)  { animation-delay: 20ms; }
+main > *:nth-child(3)  { animation-delay: 45ms; }
+main > *:nth-child(4)  { animation-delay: 70ms; }
+main > *:nth-child(5)  { animation-delay: 90ms; }
+main > *:nth-child(6)  { animation-delay: 110ms; }
+main > *:nth-child(7)  { animation-delay: 130ms; }
+main > *:nth-child(8)  { animation-delay: 150ms; }
+main > *:nth-child(9)  { animation-delay: 165ms; }
+main > *:nth-child(10) { animation-delay: 180ms; }
+main > *:nth-child(11) { animation-delay: 195ms; }
+main > *:nth-child(12) { animation-delay: 210ms; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCORE RING — entrance animation
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes ringDraw {
+  from { stroke-dashoffset: 251; opacity: 0; }
+}
+
+/* Applied via ScoreRing component's SVG circle */
+.score-ring-circle {
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIVE PRICES BAR — number tick animation
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes numTick {
+  0%   { opacity: 0.4; transform: translateY(-3px); }
+  100% { opacity: 1;   transform: translateY(0); }
+}
+
+/* Trigger via JS by toggling a class when value updates */
+.price-tick {
+  animation: numTick 0.22s ease both;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SMOOTH SCROLLBAR — more visible on hover, thinner at rest
+════════════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar         { width: 3px; height: 3px; }
+::-webkit-scrollbar:hover   { width: 6px; height: 6px; }
+::-webkit-scrollbar-track   { background: transparent; }
+
+/* Transition width on hover requires a trick — use pseudo */
+* { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+*:hover { scrollbar-color: hsl(239 30% 25% / 0.5) transparent; }
+.dark *:hover { scrollbar-color: hsl(210 28% 20% / 0.7) transparent; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   CARD SECTION DIVIDERS — subtle scan line between sections
+════════════════════════════════════════════════════════════════════ */
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--border) / 0.5) 20%,
+    hsl(var(--primary) / 0.2) 50%,
+    hsl(var(--border) / 0.5) 80%,
+    transparent 100%
+  );
+  margin: 1.5rem 0;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOOLTIP — fade + lift entrance
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes tooltipIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+[data-radix-popper-content-wrapper],
+[role="tooltip"] {
+  animation: tooltipIn 0.14s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   BADGE POP-IN — inline status badges (TECHO, MF, DIV, etc.)
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes badgePop {
+  0%   { opacity: 0; transform: scale(0.7); }
+  70%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Applied to any badge span rendered inside table rows */
+tbody td span[class*="rounded"] {
+  animation: badgePop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   FILTER / SEARCH INPUTS — glow on focus
+════════════════════════════════════════════════════════════════════ */
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 1.5px hsl(var(--primary) / 0.45),
+              0 0 8px hsl(var(--primary) / 0.15);
+  transition: box-shadow 0.18s ease;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SORT ARROW — smooth rotation when direction changes
+════════════════════════════════════════════════════════════════════ */
+
+.sort-arrow {
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity  0.2s ease;
+}
+
+.sort-arrow.asc  { transform: rotate(0deg);   opacity: 1; }
+.sort-arrow.desc { transform: rotate(180deg); opacity: 1; }
+.sort-arrow.none { opacity: 0.3; }
+
 
 /* Slightly larger tap targets for mobile buttons */
 @media (max-width: 640px) {

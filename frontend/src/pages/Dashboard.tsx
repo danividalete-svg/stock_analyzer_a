@@ -1166,6 +1166,8 @@ function PortfolioNewsWidget({ data, loading }: { data: any; loading: boolean })
 // ── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function Dashboard() {
+  const [showDetails, setShowDetails] = React.useState(false)
+
   const { data: regime, loading: loadingRegime } = useApi(() => fetchMarketRegime(), [])
   const { data: valueUS, loading: loadingUS } = useApi(() => fetchValueOpportunities(), [])
   const { data: valueEU, loading: loadingEU } = useApi(() => fetchEUValueOpportunities(), [])
@@ -1379,136 +1381,162 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Daily AI Briefing */}
-      {briefingRaw?.narrative && (
-        <div className="mb-5 animate-fade-in-up">
-          <AiNarrativeCard
-            narrative={briefingRaw.narrative}
-            label={`Briefing del día · ${briefingRaw.date ?? ''} · Régimen ${briefingRaw.macro_regime ?? ''}`}
-          />
+      {/* Win Rate — always visible */}
+      {winRate7d?.win_rate != null && (
+        <div className="mb-4 animate-fade-in-up">
+          <Link to="/portfolio" className="flex items-center gap-4 glass rounded-xl px-4 py-3 border border-border/30 hover:border-primary/30 transition-colors group">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <span className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 shrink-0">Win Rate 7d</span>
+              <span className={`text-xl font-extrabold tabular-nums ${winRateColor()}`}>
+                {winRate7d.win_rate.toFixed(1)}%
+              </span>
+              {winRateIsConviction && (
+                <span className="text-[0.55rem] font-bold px-1.5 py-0.5 rounded border bg-primary/10 text-primary border-primary/25">≥55pts</span>
+              )}
+              <span className="text-[0.68rem] text-muted-foreground/50 hidden sm:inline">
+                · avg <span className={winRate7d.avg_return >= 0 ? 'text-emerald-400' : 'text-red-400'}>{winRate7d.avg_return >= 0 ? '+' : ''}{winRate7d.avg_return.toFixed(1)}%</span>
+                {' '}· {winRate7d.count} señales
+              </span>
+            </div>
+            <ChevronRight size={13} className="text-muted-foreground/30 group-hover:text-primary transition-colors shrink-0" />
+          </Link>
         </div>
       )}
 
-      {/* Market Regime + Portfolio Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <RegimeCard label="Mercado US" data={usRegime} loading={loadingRegime} />
-        <RegimeCard label="Mercado EU" data={euRegime} loading={loadingRegime} />
-        <StatCard
-          label={winRateIsConviction ? 'Win Rate 7d (≥55pts)' : 'Win Rate 7d (base)'}
-          value={winRate7d?.win_rate != null ? `${winRate7d.win_rate.toFixed(1)}%` : '—'}
-          countTo={winRate7d?.win_rate ?? undefined}
-          countDecimals={1}
-          countSuffix="%"
-          sub={winRate7d ? (
-            <span>
-              Avg <span className={winRate7d.avg_return >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                {pct(winRate7d.avg_return)}
-              </span> · {winRate7d.count} señales
-            </span>
-          ) : 'Sin datos de retorno aún'}
-          color={winRateColor()}
-          loading={false}
-        />
-        <StatCard
-          label="Señales Activas"
-          value={signalsNum ?? '—'}
-          countTo={signalsNum ?? undefined}
-          sub={totalSignals > 0 ? `${totalSignals} señales totales` : 'Sin datos de portfolio'}
-          loading={false}
-        />
-      </div>
+      {/* Toggle: Ver datos de mercado */}
+      <button
+        onClick={() => setShowDetails(d => !d)}
+        className="w-full flex items-center justify-center gap-2 mb-5 py-2.5 rounded-lg border border-border/25 bg-muted/8 text-muted-foreground/50 hover:text-muted-foreground hover:border-border/50 hover:bg-muted/15 transition-colors text-[0.68rem] font-bold uppercase tracking-widest"
+      >
+        <ChevronDown size={12} className={`collapse-chevron ${showDetails ? 'open' : ''}`} />
+        {showDetails ? 'Ocultar datos' : 'Ver datos de mercado'}
+      </button>
 
-      {/* Setup del día — hero card */}
-      {bestPick && (
-        <Link to="/value" className="block mb-6 group">
-          <div className="glass rounded-2xl overflow-clip border border-emerald-500/25 animate-fade-in-up transition-all duration-200 group-hover:border-emerald-500/50 group-hover:bg-emerald-500/6">
-            {/* Thin accent top bar */}
-            <div className="h-0.5 bg-gradient-to-r from-emerald-500/60 via-emerald-400/80 to-emerald-500/20" />
-            <div className="p-5">
-              {/* Header row */}
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[0.58rem] font-bold tracking-[0.18em] text-emerald-400/60 uppercase">
-                  Setup del día
-                </span>
-                <span className="inline-flex items-center gap-1 text-[0.58rem] font-bold text-emerald-400/80 tracking-wide">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  LISTO
-                </span>
-              </div>
-              {/* Main content */}
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="text-3xl font-black tracking-tight text-foreground group-hover:text-emerald-400 transition-colors">
-                    {bestPick.ticker}
-                  </div>
-                  <div className="text-xs text-muted-foreground/70 mt-0.5 truncate">{bestPick.company_name}</div>
-                  {/* Metrics row */}
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-                    {bestPick.analyst_upside_pct != null && (
-                      <div>
-                        <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">Upside</div>
-                        <div className="text-sm font-bold text-emerald-400">+{bestPick.analyst_upside_pct.toFixed(0)}%</div>
-                      </div>
-                    )}
-                    {bestPick.fcf_yield_pct != null && (
-                      <div>
-                        <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">FCF Yield</div>
-                        <div className="text-sm font-semibold text-foreground/80">{bestPick.fcf_yield_pct.toFixed(1)}%</div>
-                      </div>
-                    )}
-                    {bestPick.risk_reward_ratio != null && (
-                      <div>
-                        <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">R:R</div>
-                        <div className="text-sm font-semibold text-foreground/80">{bestPick.risk_reward_ratio.toFixed(1)}x</div>
-                      </div>
-                    )}
-                    {bestPick.sector && (
-                      <div>
-                        <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">Sector</div>
-                        <div className="text-xs text-muted-foreground/70 truncate max-w-[100px]">{bestPick.sector}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {/* Score ring */}
-                <div className="flex-shrink-0">
-                  <ScoreRing score={bestPick.value_score ?? 0} size="lg" />
-                </div>
-              </div>
+      <div className={`collapsible-panel ${showDetails ? 'open' : ''}`}>
+      <div>
+          {/* Daily AI Briefing */}
+          {briefingRaw?.narrative && (
+            <div className="mb-5 animate-fade-in-up">
+              <AiNarrativeCard
+                narrative={briefingRaw.narrative}
+                label={`Briefing del día · ${briefingRaw.date ?? ''} · Régimen ${briefingRaw.macro_regime ?? ''}`}
+              />
             </div>
+          )}
+
+          {/* Market Regime + Portfolio Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <RegimeCard label="Mercado US" data={usRegime} loading={loadingRegime} />
+            <RegimeCard label="Mercado EU" data={euRegime} loading={loadingRegime} />
+            <StatCard
+              label={winRateIsConviction ? 'Win Rate 7d (≥55pts)' : 'Win Rate 7d (base)'}
+              value={winRate7d?.win_rate != null ? `${winRate7d.win_rate.toFixed(1)}%` : '—'}
+              countTo={winRate7d?.win_rate ?? undefined}
+              countDecimals={1}
+              countSuffix="%"
+              sub={winRate7d ? (
+                <span>
+                  Avg <span className={winRate7d.avg_return >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                    {pct(winRate7d.avg_return)}
+                  </span> · {winRate7d.count} señales
+                </span>
+              ) : 'Sin datos de retorno aún'}
+              color={winRateColor()}
+              loading={false}
+            />
+            <StatCard
+              label="Señales Activas"
+              value={signalsNum ?? '—'}
+              countTo={signalsNum ?? undefined}
+              sub={totalSignals > 0 ? `${totalSignals} señales totales` : 'Sin datos de portfolio'}
+              loading={false}
+            />
           </div>
-        </Link>
-      )}
 
-      {/* Top VALUE Picks */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <TopPicksTable title="Top VALUE US" rows={topUS} to="/value" loading={loadingUS} />
-        <TopPicksTable title="Top VALUE EU" rows={topEU} to="/value-eu" loading={loadingEU} />
+          {/* Setup del día — hero card */}
+          {bestPick && (
+            <Link to="/value" className="block mb-6 group">
+              <div className="glass rounded-2xl overflow-clip border border-emerald-500/25 animate-fade-in-up transition-all duration-200 group-hover:border-emerald-500/50 group-hover:bg-emerald-500/6">
+                <div className="h-0.5 bg-gradient-to-r from-emerald-500/60 via-emerald-400/80 to-emerald-500/20" />
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[0.58rem] font-bold tracking-[0.18em] text-emerald-400/60 uppercase">Setup del día</span>
+                    <span className="inline-flex items-center gap-1 text-[0.58rem] font-bold text-emerald-400/80 tracking-wide">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      LISTO
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="text-3xl font-black tracking-tight text-foreground group-hover:text-emerald-400 transition-colors">{bestPick.ticker}</div>
+                      <div className="text-xs text-muted-foreground/70 mt-0.5 truncate">{bestPick.company_name}</div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+                        {bestPick.analyst_upside_pct != null && (
+                          <div>
+                            <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">Upside</div>
+                            <div className="text-sm font-bold text-emerald-400">+{bestPick.analyst_upside_pct.toFixed(0)}%</div>
+                          </div>
+                        )}
+                        {bestPick.fcf_yield_pct != null && (
+                          <div>
+                            <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">FCF Yield</div>
+                            <div className="text-sm font-semibold text-foreground/80">{bestPick.fcf_yield_pct.toFixed(1)}%</div>
+                          </div>
+                        )}
+                        {bestPick.risk_reward_ratio != null && (
+                          <div>
+                            <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">R:R</div>
+                            <div className="text-sm font-semibold text-foreground/80">{bestPick.risk_reward_ratio.toFixed(1)}x</div>
+                          </div>
+                        )}
+                        {bestPick.sector && (
+                          <div>
+                            <div className="text-[0.58rem] text-muted-foreground/40 uppercase tracking-wider">Sector</div>
+                            <div className="text-xs text-muted-foreground/70 truncate max-w-[100px]">{bestPick.sector}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <ScoreRing score={bestPick.value_score ?? 0} size="lg" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {/* Top VALUE Picks */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <TopPicksTable title="Top VALUE US" rows={topUS} to="/value" loading={loadingUS} />
+            <TopPicksTable title="Top VALUE EU" rows={topEU} to="/value-eu" loading={loadingEU} />
+          </div>
+
+          {/* Signals Radar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <MacroRadarMini data={macroRaw} loading={loadingMacro} />
+            <InsidersMini data={insiders?.data} loading={loadingInsiders} />
+            <OptionsFlowMini data={optionsRaw} loading={loadingOptions} />
+            <MeanReversionMini data={mrRaw} loading={loadingMR} />
+          </div>
+
+          {/* Cerebro widgets */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <EntrySignalsMini data={cerebroEntry} loading={loadingEntry} />
+            <ConvergenciaMini loading={loadingConv} data={cerebroConv} />
+            <BreadthMini data={breadthRaw ?? undefined} loading={loadingBreadth} />
+            <WatchlistAlertsMini
+              alerts={cerebroAlertsRaw?.alerts}
+              watchlistTickers={watchlistTickers}
+              loading={loadingAlerts}
+            />
+          </div>
+
+          {/* Portfolio News */}
+          <div className="mb-6">
+            <PortfolioNewsWidget data={portfolioNewsRaw} loading={loadingPortfolioNews} />
+          </div>
       </div>
-
-      {/* Signals Radar: Macro + Insiders + Options + Mean Reversion */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <MacroRadarMini data={macroRaw} loading={loadingMacro} />
-        <InsidersMini data={insiders?.data} loading={loadingInsiders} />
-        <OptionsFlowMini data={optionsRaw} loading={loadingOptions} />
-        <MeanReversionMini data={mrRaw} loading={loadingMR} />
-      </div>
-
-      {/* Cerebro widgets: Entradas + Convergencia + Breadth + Watchlist Alerts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <EntrySignalsMini data={cerebroEntry} loading={loadingEntry} />
-        <ConvergenciaMini loading={loadingConv} data={cerebroConv} />
-        <BreadthMini data={breadthRaw ?? undefined} loading={loadingBreadth} />
-        <WatchlistAlertsMini
-          alerts={cerebroAlertsRaw?.alerts}
-          watchlistTickers={watchlistTickers}
-          loading={loadingAlerts}
-        />
-      </div>
-
-      {/* Portfolio News */}
-      <div className="mb-6">
-        <PortfolioNewsWidget data={portfolioNewsRaw} loading={loadingPortfolioNews} />
       </div>
 
     </>

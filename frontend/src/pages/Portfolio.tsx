@@ -317,6 +317,62 @@ export default function Portfolio() {
         )}
       </div>
 
+      {/* Correlation Matrix Heatmap */}
+      {corrData && corrData.tickers.length > 1 && (
+        <Card className="glass mb-5 animate-fade-in-up overflow-clip">
+          <div className="px-5 py-3 border-b border-border/50 flex items-center gap-2">
+            <h3 className="text-sm font-semibold">Correlación de Señales</h3>
+            <span className="text-[0.6rem] text-muted-foreground/50">{corrData.days}d · {corrData.as_of}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="text-[0.6rem] tabular-nums">
+              <thead>
+                <tr>
+                  <th className="px-2 py-1.5 text-left text-muted-foreground/50 font-medium w-16"></th>
+                  {corrData.tickers.map(t => (
+                    <th key={t} className="px-1.5 py-1.5 text-center text-muted-foreground font-mono font-bold whitespace-nowrap">{t}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {corrData.tickers.map((rowTicker, ri) => (
+                  <tr key={rowTicker} className="border-t border-border/10">
+                    <td className="px-2 py-1 font-mono font-bold text-muted-foreground whitespace-nowrap">{rowTicker}</td>
+                    {corrData.tickers.map((colTicker, ci) => {
+                      const val = corrData.matrix[ri]?.[colTicker] ?? 0
+                      const abs = Math.abs(val)
+                      const isHigh = ri !== ci && abs >= 0.7
+                      const bg = ri === ci
+                        ? 'bg-muted/20'
+                        : abs >= 0.7
+                          ? val > 0 ? 'bg-red-500/20' : 'bg-blue-500/20'
+                          : abs >= 0.4
+                            ? val > 0 ? 'bg-red-500/8' : 'bg-blue-500/8'
+                            : ''
+                      const textColor = ri === ci
+                        ? 'text-muted-foreground/30'
+                        : abs >= 0.7
+                          ? val > 0 ? 'text-red-400 font-bold' : 'text-blue-400 font-bold'
+                          : 'text-muted-foreground/60'
+                      return (
+                        <td key={colTicker} className={`px-1.5 py-1 text-center ${bg} ${textColor}`}
+                          title={isHigh ? `${rowTicker}/${colTicker}: correlación ${val > 0 ? 'positiva' : 'negativa'} alta (${val.toFixed(2)})` : ''}>
+                          {ri === ci ? '1.0' : val.toFixed(2)}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-4 py-2 border-t border-border/20 flex gap-4 text-[0.6rem] text-muted-foreground/40">
+            <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm bg-red-500/25" /> ≥0.7 correlación positiva (concentración)</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm bg-blue-500/25" /> ≥0.7 correlación negativa (diversificación)</span>
+          </div>
+        </Card>
+      )}
+
       {/* Active Signals Table — always visible */}
       {recentSignals && recentSignals.length > 0 && (
         <Card className="glass animate-fade-in-up">

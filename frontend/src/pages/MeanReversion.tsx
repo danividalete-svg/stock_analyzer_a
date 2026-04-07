@@ -102,9 +102,6 @@ export default function MeanReversion() {
   if (Array.isArray(raw?.opportunities)) items = raw.opportunities as MRItem[]
   else if (Array.isArray(raw?.data)) items = raw.data as MRItem[]
 
-    ?? items[0]?.detected_date
-    ?? null
-
   const filtered = filterQuality === ''
     ? items
     : items.filter(i => qualMatch(i.quality, filterQuality))
@@ -188,7 +185,7 @@ export default function MeanReversion() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
               {top.map((d, idx) => {
                 const strategyShort = (d.strategy || '').includes('Flag') ? 'Flag' : 'Oversold'
-                const rr = d.risk_reward != null ? Number(d.risk_reward) : null
+                const rr = d.risk_reward != null && Number(d.risk_reward) > 0 ? Number(d.risk_reward) : null
                 const rrColor = rr == null ? '' : rr >= 3 ? 'text-emerald-400' : rr >= 2 ? 'text-cyan-400' : rr >= 1 ? 'text-amber-400' : 'text-red-400'
                 return (
                   <div
@@ -326,9 +323,9 @@ export default function MeanReversion() {
                       <TableCell className="tabular-nums">{d.target ? `$${d.target.toFixed(2)}` : '—'}</TableCell>
                       <TableCell className="tabular-nums">{d.stop_loss ? `$${d.stop_loss.toFixed(2)}` : '—'}</TableCell>
                       <TableCell className="tabular-nums">
-                        {d.risk_reward != null
+                        {d.risk_reward != null && Number(d.risk_reward) > 0
                           ? <span className={(d.risk_reward as number) >= 2 ? 'text-emerald-400' : (d.risk_reward as number) >= 1 ? 'text-amber-400' : 'text-red-400'}>{Number(d.risk_reward).toFixed(1)}</span>
-                          : '—'}
+                          : <span className="text-muted-foreground/30">—</span>}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -398,7 +395,6 @@ export default function MeanReversion() {
       {/* Desktop table */}
       <div className="hidden sm:block">
         <Card className="glass animate-fade-in-up">
-          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
@@ -460,9 +456,9 @@ export default function MeanReversion() {
                       <TableCell className="tabular-nums">{d.stop_loss ? `$${d.stop_loss.toFixed(2)}` : '—'}</TableCell>
                     )}
                     <TableCell className="tabular-nums">
-                      {d.risk_reward != null
+                      {d.risk_reward != null && Number(d.risk_reward) > 0
                         ? <span className={(d.risk_reward as number) >= 2 ? 'text-emerald-400' : (d.risk_reward as number) >= 1 ? 'text-amber-400' : 'text-red-400'}>{Number(d.risk_reward).toFixed(1)}</span>
-                        : '—'}
+                        : <span className="text-muted-foreground/30">—</span>}
                     </TableCell>
                   </TableRow>
                   {expanded === d.ticker && (
@@ -518,7 +514,6 @@ export default function MeanReversion() {
               ))}
             </TableBody>
           </Table>
-          </div>
           {sorted.length === 0 && (
             <EmptyState
               icon="🔄"

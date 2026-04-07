@@ -47,12 +47,10 @@ jobs:
         run: python3 run_super_analyzer_4d.py || echo "5D analyzer failed — pipeline continues"
 
       - name: Fundamental Scoring [CRITICAL - before integrator]
-        continue-on-error: true
-        run: python3 fundamental_scorer.py --vcp --5d --value --top 100 || echo "Fundamental scorer failed — pipeline continues"
+        run: python3 fundamental_scorer.py --vcp --5d --value --top 100
 
       - name: Run Super Score Integration [CRITICAL]
-        continue-on-error: true
-        run: python3 super_score_integrator.py || echo "Super score integrator failed — pipeline continues"
+        run: python3 super_score_integrator.py
 
       - name: AI Quality Filter [CRITICAL]
         continue-on-error: true

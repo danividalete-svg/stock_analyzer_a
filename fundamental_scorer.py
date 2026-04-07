@@ -551,7 +551,8 @@ class FundamentalScorer:
                         # 50-day slope (use fewer days if series is short)
                         lookback = min(50, len(rs_line) - 1)
                         if lookback >= 5:
-                            slope_pct = (rs_line.iloc[-1] - rs_line.iloc[-lookback]) / abs(rs_line.iloc[-lookback]) * 100
+                            base = abs(rs_line.iloc[-lookback])
+                            slope_pct = (rs_line.iloc[-1] - rs_line.iloc[-lookback]) / base * 100 if base > 0 else 0.0
                             rs_line_trend = "up" if slope_pct > 2 else ("down" if slope_pct < -2 else "flat")
                         else:
                             rs_line_trend = "flat"

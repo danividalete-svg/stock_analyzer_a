@@ -3,6 +3,7 @@ import {
   fetchCerebroValueTraps, fetchCerebroSmartMoney,
   fetchCerebroExitSignals, fetchCerebroDividendSafety, fetchCerebroPiotroski,
   fetchCerebroShortSqueeze, fetchCerebroQualityDecay, fetchCerebroSectorRV,
+  fetchCerebroEntrySignals,
 } from '../api/client'
 
 export interface TrapInfo    { severity: 'HIGH' | 'MEDIUM'; trap_score: number; flags: string[] }
@@ -13,6 +14,7 @@ export interface PiotrInfo   { trend: string; piotroski_current: number; delta: 
 export interface SqueezeInfo { severity: 'HIGH' | 'MEDIUM'; squeeze_score: number; short_pct_float: number; flags: string[] }
 export interface DecayInfo   { severity: 'HIGH' | 'MEDIUM'; decay_score: number; flags: string[] }
 export interface SectorRVInfo { label: 'BEST_IN_SECTOR' | 'PRICEY_VS_PEERS'; fcf_yield_pct: number; fcf_rank: number; fcf_rank_of: number; sector: string }
+export interface EntryInfo   { signal: 'STRONG_BUY' | 'BUY'; entry_score: number }
 
 export interface CerebroMaps {
   trapMap:    Record<string, TrapInfo>
@@ -23,11 +25,12 @@ export interface CerebroMaps {
   squeezeMap: Record<string, SqueezeInfo>
   decayMap:   Record<string, DecayInfo>
   sectorMap:  Record<string, SectorRVInfo>
+  entryMap:   Record<string, EntryInfo>
 }
 
 const EMPTY: CerebroMaps = {
   trapMap: {}, smMap: {}, exitMap: {}, divMap: {}, piotrMap: {},
-  squeezeMap: {}, decayMap: {}, sectorMap: {},
+  squeezeMap: {}, decayMap: {}, sectorMap: {}, entryMap: {},
 }
 
 export function useCerebroSignals(): CerebroMaps {
@@ -43,7 +46,8 @@ export function useCerebroSignals(): CerebroMaps {
       fetchCerebroShortSqueeze(),
       fetchCerebroQualityDecay(),
       fetchCerebroSectorRV(),
-    ]).then(([traps, sm, exits, div, piotr, squeeze, decay, sectorRv]) => {
+      fetchCerebroEntrySignals(),
+    ]).then(([traps, sm, exits, div, piotr, squeeze, decay, sectorRv, entry]) => {
       const trapMap:    Record<string, TrapInfo>    = {}
       const smMap:      Record<string, SmartInfo>   = {}
       const exitMap:    Record<string, ExitInfo>    = {}
@@ -52,6 +56,7 @@ export function useCerebroSignals(): CerebroMaps {
       const squeezeMap: Record<string, SqueezeInfo> = {}
       const decayMap:   Record<string, DecayInfo>   = {}
       const sectorMap:  Record<string, SectorRVInfo>= {}
+      const entryMap:   Record<string, EntryInfo>   = {}
 
       if (traps.status === 'fulfilled')
         for (const t of traps.value.data.traps ?? [])
@@ -87,7 +92,12 @@ export function useCerebroSignals(): CerebroMaps {
         for (const s of sectorRv.value.data.standouts ?? [])
           sectorMap[s.ticker] = { label: s.label, fcf_yield_pct: s.fcf_yield_pct, fcf_rank: s.fcf_rank, fcf_rank_of: s.fcf_rank_of, sector: s.sector }
 
-      setMaps({ trapMap, smMap, exitMap, divMap, piotrMap, squeezeMap, decayMap, sectorMap })
+      if (entry.status === 'fulfilled')
+        for (const s of entry.value.data.signals ?? [])
+          if (s.signal === 'STRONG_BUY' || s.signal === 'BUY')
+            entryMap[s.ticker] = { signal: s.signal, entry_score: s.entry_score }
+
+      setMaps({ trapMap, smMap, exitMap, divMap, piotrMap, squeezeMap, decayMap, sectorMap, entryMap })
     })
   }, [])
 

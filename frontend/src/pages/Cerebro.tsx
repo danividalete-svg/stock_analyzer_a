@@ -6,7 +6,9 @@ import {
   fetchCerebroEntrySignals, fetchCerebroExitSignals, fetchCerebroValueTraps, fetchCerebroSmartMoney,
   fetchCerebroInsiderClusters, fetchCerebroDividendSafety, fetchCerebroPiotroski,
   fetchCerebroStressTest, fetchCerebroBriefing, fetchMeanReversion,
+  fetchCerebroShortSqueeze, fetchCerebroQualityDecay,
   type CerebroTier, type CerebroAlert, type EntrySignal, type MeanReversionItem,
+  type ShortSqueezeSetup, type QualityDecay,
 } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
@@ -156,24 +158,27 @@ function EntrySignalCard({ sig }: Readonly<{ sig: EntrySignal }>) {
               </div>
             )}
 
-            {/* Missing signals — toggle */}
+            {/* Optional extra signals — toggle */}
             {sig.signals_missing.length > 0 && (
               <button
                 onClick={() => setExpanded(e => !e)}
-                className="flex items-center gap-1 text-[0.65rem] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                className="flex items-center gap-1 text-[0.65rem] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
               >
-                <XCircle size={10} className="text-red-400/60" />
-                {expanded ? 'Ocultar' : `Ver qué falta (${sig.signals_missing.length})`}
+                <Minus size={10} className="text-muted-foreground/40" />
+                {expanded ? 'Ocultar' : `+${sig.signals_missing.length} señales extra posibles`}
                 <ChevronRight size={10} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
               </button>
             )}
             {expanded && (
-              <div className="flex flex-wrap gap-1 mt-1.5">
-                {sig.signals_missing.map(s => (
-                  <span key={s} className="flex items-center gap-0.5 text-[0.6rem] px-1.5 py-0.5 rounded bg-red-500/8 text-red-400/70 border border-red-500/15">
-                    <XCircle size={9} /> {s}
-                  </span>
-                ))}
+              <div>
+                <p className="text-[0.6rem] text-muted-foreground/50 mb-1">Confirmaciones adicionales que aumentarían la convicción (no son requisitos):</p>
+                <div className="flex flex-wrap gap-1">
+                  {sig.signals_missing.map(s => (
+                    <span key={s} className="flex items-center gap-0.5 text-[0.6rem] px-1.5 py-0.5 rounded bg-muted/20 text-muted-foreground/60 border border-border/30">
+                      {s}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -205,6 +210,8 @@ export default function Cerebro() {
   const { data: piotrData }   = useApi(() => fetchCerebroPiotroski(), [])
   const { data: stressData }  = useApi(() => fetchCerebroStressTest(), [])
   const { data: briefingData }= useApi(() => fetchCerebroBriefing(), [])
+  const { data: squeezeData } = useApi(() => fetchCerebroShortSqueeze(), [])
+  const { data: decayData }   = useApi(() => fetchCerebroQualityDecay(), [])
   const { data: mrRaw }       = useApi(() => fetchMeanReversion(), [])
 
   const [activeTab, setActiveTab] = useState<'briefing' | 'entry' | 'bounces' | 'convergence' | 'agents' | 'alerts' | 'insights' | 'calibration'>('briefing')
@@ -255,7 +262,7 @@ export default function Cerebro() {
     { id: 'entry' as const,       label: 'Señales',         icon: Zap,              count: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0), highlight: (entryData?.strong_buy ?? 0) > 0 },
     { id: 'bounces' as const,     label: 'Rebotes',         icon: Repeat2,          count: topBounces.length, highlight: topBounces.length > 0 },
     { id: 'convergence' as const, label: 'Convergencias',   icon: Crosshair,        count: convergence?.triple_or_more, highlight: (convergence?.triple_or_more ?? 0) > 0 },
-    { id: 'agents' as const,      label: 'Agentes IA',      icon: Bot,              count: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0), highlight: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0) > 0 },
+    { id: 'agents' as const,      label: 'Agentes IA',      icon: Bot,              count: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0) + (squeezeData?.high_count ?? 0) + (decayData?.high_count ?? 0), highlight: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0) + (squeezeData?.high_count ?? 0) + (decayData?.high_count ?? 0) > 0 },
     { id: 'alerts' as const,      label: 'Alertas',         icon: Bell,             count: alerts.filter(a => a.severity === 'HIGH').length || undefined, highlight: alerts.some(a => a.severity === 'HIGH') },
     { id: 'insights' as const,    label: 'Patrones',        icon: Brain,            count: undefined },
     { id: 'calibration' as const, label: 'Calibración',     icon: SlidersHorizontal, count: calibration?.total_recommendations },
@@ -318,7 +325,7 @@ export default function Cerebro() {
 
       {/* ── TAB: Briefing ─────────────────────────────────────────────────────── */}
       {activeTab === 'briefing' && (
-        <div className="space-y-4 animate-fade-in-up">
+        <div key="briefing" className="space-y-4 animate-fade-in-up">
           {briefingData?.narrative ? (
             <AiNarrativeCard narrative={briefingData.narrative} label={`Briefing diario · ${briefingData.generated_at} · Régimen ${briefingData.regime}`} />
           ) : (
@@ -1073,6 +1080,74 @@ export default function Cerebro() {
                 </CardContent>
               </Card>
             )}
+          </section>
+
+          {/* Short Squeeze Detector */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <Zap size={14} className="text-cyan-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Short Squeeze Detector</h3>
+              {squeezeData && <span className="text-[0.6rem] text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-1.5 py-0.5 rounded font-bold">{squeezeData.high_count} HIGH · {squeezeData.total} total</span>}
+            </div>
+            {squeezeData?.narrative && <AiNarrativeCard narrative={squeezeData.narrative} label="" />}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              {((squeezeData as { setups?: ShortSqueezeSetup[] } | null)?.setups ?? []).slice(0, 8).map((s: ShortSqueezeSetup) => (
+                <div key={s.ticker} className={`p-3 rounded-xl border ${s.severity === 'HIGH' ? 'border-cyan-500/30 bg-cyan-500/5' : 'border-border/30 bg-muted/5'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Link to={`/search?q=${s.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{s.ticker}</Link>
+                    <span className={`text-[0.55rem] font-bold px-1 py-0.5 rounded border ${s.severity === 'HIGH' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-muted/20 text-muted-foreground border-border/30'}`}>{s.severity}</span>
+                    <span className="text-[0.65rem] text-muted-foreground ml-auto">squeeze {s.squeeze_score}/10</span>
+                  </div>
+                  <div className="text-[0.65rem] text-muted-foreground mb-1">
+                    {s.short_pct_float.toFixed(1)}% short float
+                    {s.insider_buying && <span className="ml-1.5 text-teal-400">· insiders comprando</span>}
+                    {s.hf_present && <span className="ml-1.5 text-purple-400">· HF presente</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {s.flags.map((f, i) => <span key={i} className="text-[0.6rem] text-muted-foreground/70 bg-muted/10 border border-border/20 px-1.5 py-0.5 rounded">{f}</span>)}
+                  </div>
+                </div>
+              ))}
+              {!(squeezeData as { setups?: ShortSqueezeSetup[] } | null)?.setups?.length && (
+                <p className="text-sm text-muted-foreground text-center py-4 col-span-2">Sin short squeeze setups detectados</p>
+              )}
+            </div>
+          </section>
+
+          {/* Quality Decay Monitor */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingDown size={14} className="text-orange-400" />
+              <h3 className="text-sm font-bold text-foreground/80">Quality Decay Monitor</h3>
+              {decayData && <span className="text-[0.6rem] text-orange-400 bg-orange-500/10 border border-orange-500/20 px-1.5 py-0.5 rounded font-bold">{decayData.high_count} HIGH · {decayData.total} total</span>}
+            </div>
+            {decayData?.narrative && <AiNarrativeCard narrative={decayData.narrative} label="" />}
+            <div className="space-y-2 mt-2">
+              {((decayData as { decays?: QualityDecay[] } | null)?.decays ?? []).slice(0, 8).map((d: QualityDecay) => (
+                <div key={d.ticker} className={`p-3 rounded-xl border ${d.severity === 'HIGH' ? 'border-orange-500/25 bg-orange-500/5' : 'border-amber-500/15 bg-amber-500/5'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Link to={`/search?q=${d.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">{d.ticker}</Link>
+                    <span className="text-[0.65rem] text-muted-foreground">{d.company_name}</span>
+                    <span className={`text-[0.55rem] font-bold px-1 py-0.5 rounded border ml-auto ${d.severity === 'HIGH' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/25'}`}>{d.severity}</span>
+                    <span className="text-[0.65rem] text-muted-foreground">decay {d.decay_score}/10</span>
+                  </div>
+                  {d.margin_prev != null && d.margin_curr != null && (
+                    <div className="text-[0.65rem] text-muted-foreground mb-1">
+                      Margen: <span className="text-red-400">{d.margin_prev.toFixed(1)}% → {d.margin_curr.toFixed(1)}%</span>
+                      {d.fcf_prev != null && d.fcf_curr != null && (
+                        <span className="ml-2">FCF: <span className="text-red-400">{d.fcf_prev.toFixed(0)}M → {d.fcf_curr.toFixed(0)}M</span></span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-1">
+                    {d.flags.map((f, i) => <span key={i} className="text-[0.6rem] text-muted-foreground/70 bg-muted/10 border border-border/20 px-1.5 py-0.5 rounded">{f}</span>)}
+                  </div>
+                </div>
+              ))}
+              {!(decayData as { decays?: QualityDecay[] } | null)?.decays?.length && (
+                <p className="text-sm text-muted-foreground text-center py-4">Sin señales de deterioro detectadas</p>
+              )}
+            </div>
           </section>
 
         </div>

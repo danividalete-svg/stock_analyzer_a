@@ -827,16 +827,52 @@ ESTRUCTURA (usa **negrita** para cada sección):
         if extras:
             parts.append("\n**Catalizadores:**\n" + "\n".join(f"• {e}" for e in extras))
 
-        # Conclusión
-        has_targets = t_analyst or t_dcf or t_pe
-        if score >= 45 and roe_pct and roe_pct > 15 and insiders_score >= 60 and is_recent:
-            parts.append("\n**Conclusión:** Empresa con buenos fundamentales, respaldada por compras recientes de insiders. Candidata sólida para posición value.")
-        elif score >= 45 and roe_pct and roe_pct > 15 and insiders_score >= 60:
-            parts.append("\n**Conclusión:** Buenos fundamentales con actividad de insiders positiva (aunque no reciente). Candidata para posición value con seguimiento.")
+        # Conclusión — veredicto accionable con entrada/target/R:R
+        best_target = t_analyst or t_dcf or t_pe
+        rr_str = ''
+        entry_suggestion = ''
+        if best_target and current_price and current_price > 0:
+            stop = current_price * 0.92  # stop estándar 8%
+            reward = best_target - current_price
+            risk = current_price - stop
+            rr = reward / risk if risk > 0 else 0
+            upside_pct = (best_target / current_price - 1) * 100
+            rr_str = f" · R:R {rr:.1f}x (objetivo ${best_target:.2f}, +{upside_pct:.0f}%)"
+            if mr_bonus > 0:
+                entry_suggestion = f" Entrada en zona actual (señal MR activa)."
+            elif prox and prox >= -5:
+                entry_suggestion = f" Entrada en pullback a soporte; zona actual cerca de máximos."
+            else:
+                entry_suggestion = f" Entrada en zona actual ${current_price:.2f}, stop 8% en ${stop:.2f}."
+
+        days_to_earn = row.get('days_to_earnings')
+        earnings_caveat = ''
+        if days_to_earn is not None:
+            try:
+                d = int(float(days_to_earn))
+                if 0 <= d <= 7:
+                    earnings_caveat = f" ⚠️ Earnings en {d} días — esperar resultado o reducir tamaño."
+                elif 0 <= d <= 14:
+                    earnings_caveat = f" Earnings en {d} días — considerar esperar."
+            except (ValueError, TypeError):
+                pass
+
+        strong = score >= 60 and (roe_pct or 0) > 12 and insiders_score >= 50
+        decent = score >= 45 and ((roe_pct or 0) > 10 or insiders_score >= 60)
+
+        if strong and is_recent:
+            parts.append(f"\n**Conclusión:** ✅ COMPRAR — alta convicción. Fundamentales sólidos con compras recientes de insiders.{rr_str}{entry_suggestion}{earnings_caveat}")
+        elif strong:
+            parts.append(f"\n**Conclusión:** ✅ COMPRAR — convicción alta. Fundamentales y valoración favorables.{rr_str}{entry_suggestion}{earnings_caveat}")
+        elif decent and best_target:
+            parts.append(f"\n**Conclusión:** 👀 VIGILAR — candidata válida, esperar confirmación técnica (señal MR o ruptura de resistencia).{rr_str}{entry_suggestion}{earnings_caveat}")
         elif score >= 40:
-            parts.append("\n**Conclusión:** Oportunidad interesante que requiere análisis adicional del timing de entrada.")
+            if best_target:
+                parts.append(f"\n**Conclusión:** ⏸ BAJA PRIORIDAD — perfil incompleto o calidad moderada. Solo considerar si se confirma señal técnica adicional.{rr_str}{earnings_caveat}")
+            else:
+                parts.append(f"\n**Conclusión:** ⏸ BAJA PRIORIDAD — sin targets de valoración disponibles. Monitorizar fundamentales.{earnings_caveat}")
         else:
-            parts.append("\n**Conclusión:** En observación. Monitorizar evolución de fundamentales y actividad de insiders.")
+            parts.append(f"\n**Conclusión:** ❌ DESCARTAR por ahora — score insuficiente ({score:.0f}). Revisar si mejoran fundamentales o insiders.{earnings_caveat}")
 
         return "\n".join(parts)
 

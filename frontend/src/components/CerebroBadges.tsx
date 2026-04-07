@@ -1,4 +1,4 @@
-import type { TrapInfo, SmartInfo, ExitInfo, DivRiskInfo, PiotrInfo, SqueezeInfo, DecayInfo, SectorRVInfo } from '../hooks/useCerebroSignals'
+import type { TrapInfo, SmartInfo, ExitInfo, DivRiskInfo, PiotrInfo, SqueezeInfo, DecayInfo, SectorRVInfo, EntryInfo } from '../hooks/useCerebroSignals'
 
 interface Props {
   trapInfo?:    TrapInfo
@@ -9,13 +9,28 @@ interface Props {
   squeezeInfo?: SqueezeInfo
   decayInfo?:   DecayInfo
   sectorInfo?:  SectorRVInfo
+  entryInfo?:   EntryInfo
 }
 
-export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, piotrInfo, squeezeInfo, decayInfo, sectorInfo }: Props) {
-  if (!trapInfo && !smInfo && !exitInfo && !divInfo && !piotrInfo && !squeezeInfo && !decayInfo && !sectorInfo) return null
+export default function CerebroBadges({ trapInfo, smInfo, exitInfo, divInfo, piotrInfo, squeezeInfo, decayInfo, sectorInfo, entryInfo }: Props) {
+  if (!trapInfo && !smInfo && !exitInfo && !divInfo && !piotrInfo && !squeezeInfo && !decayInfo && !sectorInfo && !entryInfo) return null
 
   return (
     <div className="flex items-center gap-0.5 flex-wrap mt-0.5">
+
+      {/* CEREBRO ENTRY — positive signal, shown first */}
+      {entryInfo && (
+        <span
+          title={`Cerebro señal de ENTRADA (${entryInfo.signal.replace('_', ' ')}): entry score ${entryInfo.entry_score}`}
+          className={`inline-flex items-center gap-0.5 text-[0.48rem] font-black px-1 py-px rounded border tracking-wide ${
+            entryInfo.signal === 'STRONG_BUY'
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+              : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+          }`}
+        >
+          ⚡ {entryInfo.signal === 'STRONG_BUY' ? 'STRONG BUY' : 'BUY'}
+        </span>
+      )}
 
       {/* EXIT — highest priority, most alarming */}
       {exitInfo && (

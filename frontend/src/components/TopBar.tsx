@@ -91,8 +91,11 @@ export default function TopBar({ onMenuClick, onOpenCmd }: Readonly<Props>) {
         >
           <Brain size={14} strokeWidth={1.75} className="text-muted-foreground" />
           {highAlerts > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[0.45rem] font-bold text-white leading-none">
-              {highAlerts > 9 ? '9+' : highAlerts}
+            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center">
+              <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-60" />
+              <span className="relative flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[0.45rem] font-bold text-white leading-none">
+                {highAlerts > 9 ? '9+' : highAlerts}
+              </span>
             </span>
           )}
         </Link>

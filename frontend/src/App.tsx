@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom'
-import { LayoutDashboard, X, LogOut } from 'lucide-react'
+import { LayoutDashboard, X, LogOut, ChevronDown } from 'lucide-react'
 import { ThemeProvider } from './context/ThemeContext'
 import { useAuth } from './context/AuthContext'
 import { PersonalPortfolioProvider } from './context/PersonalPortfolioContext'
@@ -105,14 +105,14 @@ function SidebarContent({ onClose, onSignOut }: Readonly<{ onClose: () => void; 
             className="flex w-full items-center gap-2 px-3 py-1.5 rounded-lg text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
           >
             <span className="flex-1 text-left">Más herramientas</span>
-            <span className={cn('transition-transform duration-200 text-[10px]', moreOpen ? 'rotate-180' : '')}>▾</span>
+            <ChevronDown size={12} strokeWidth={2} className={cn('transition-transform duration-200', moreOpen ? 'rotate-180' : '')} />
           </button>
 
-          {moreOpen && (
+          <div className={cn('collapsible-panel', moreOpen && 'open')}>
             <div className="space-y-0.5 mt-0.5">
               {NAV_SECONDARY.map(item => <NavItem key={item.path} item={item} onClose={onClose} />)}
             </div>
-          )}
+          </div>
         </div>
       </nav>
 
