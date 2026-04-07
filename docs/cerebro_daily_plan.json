@@ -1,116 +1,58 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "macro_regime": "STRESS",
   "composite_score": -2.0,
   "sesgo": "NEUTRO",
-  "confianza": 57,
-  "situacion": "R\u00e9gimen STRESS, composite -2.5/30. 3 plays macro identificadas.",
-  "narrativa": "El mercado se encuentra en r\u00e9gimen STRESS con score -2.5. Contexto permite selecci\u00f3n VALUE disciplinada. Cerebro detecta 2 tickers a evitar y 0 potenciales short squeezes.",
+  "confianza": 56,
+  "situacion": "R\u00e9gimen STRESS, composite -2.0/30. 1 plays macro identificadas.",
+  "narrativa": "El mercado se encuentra en r\u00e9gimen STRESS con score -2.0. Contexto permite selecci\u00f3n VALUE disciplinada. Cerebro detecta 0 tickers a evitar y 1 potenciales short squeezes.",
   "acciones_inmediatas": [
     {
       "prioridad": 1,
       "accion": "COMPRAR",
-      "instrumento": "TLT/VGLT",
-      "razon": "Yield 30yr en 4.91% \u2014 zona hist\u00f3ricamente atractiva para bonos largos",
-      "catalizador": "2018-19: TLT +18% cuando yields revertieron desde 3.25%",
+      "instrumento": "XLP/XLV/XLU",
+      "razon": "Copper/Gold en percentil 18% \u2014 se\u00f1al de desaceleraci\u00f3n, rotar a defensivos",
+      "catalizador": "2015-16: XLU +20% mientras IWM -20% en ciclo de subidas Fed",
       "size_hint": "peque\u00f1a (1-2%)",
-      "invalidacion": "La Fed puede mantener tipos altos m\u00e1s tiempo \u2014 size peque\u00f1o"
-    },
-    {
-      "prioridad": 2,
-      "accion": "COMPRAR",
-      "instrumento": "XLE",
-      "razon": "Petr\u00f3leo en percentil 96% con +36% en 20d \u2014 componente geopol\u00edtico",
-      "catalizador": "2022 Ucrania: XLE +65% en 6 meses",
-      "size_hint": "peque\u00f1a (1-2%)",
-      "invalidacion": "Acuerdo geopol\u00edtico o recesi\u00f3n colapsa el oil \u2014 stop ajustado"
-    },
-    {
-      "prioridad": 3,
-      "accion": "COMPRAR",
-      "instrumento": "UVXY",
-      "razon": "VVIX en percentil 93% con VIX a\u00fan bajo \u2014 spike de volatilidad inminente",
-      "catalizador": "2018 VIXplosion: UVXY +200% en 2 d\u00edas",
-      "size_hint": "peque\u00f1a (1-2%)",
-      "invalidacion": "El tiempo trabaja en contra de VIX products \u2014 size m\u00e1ximo 1%"
-    },
-    {
-      "prioridad": 4,
-      "accion": "VENDER",
-      "instrumento": "ATEX",
-      "razon": "Value trap HIGH (score 7/10): Piotroski muy d\u00e9bil (2/9) \u2014 calidad financiera en ",
-      "catalizador": "Se\u00f1al AVOID activa en Cerebro",
-      "size_hint": "grande (5%+)",
-      "invalidacion": "Score Cerebro mejora a neutral"
-    },
-    {
-      "prioridad": 5,
-      "accion": "VENDER",
-      "instrumento": "NEWT",
-      "razon": "Value trap HIGH (score 7/10): Piotroski muy d\u00e9bil (2/9) \u2014 calidad financiera en ",
-      "catalizador": "Se\u00f1al AVOID activa en Cerebro",
-      "size_hint": "grande (5%+)",
-      "invalidacion": "Score Cerebro mejora a neutral"
+      "invalidacion": "Recuperaci\u00f3n econ\u00f3mica inesperada revertir\u00eda la rotaci\u00f3n"
     }
   ],
   "macro_plays": [
     {
-      "instrument": "GLD / GDX",
+      "instrument": "XLP/XLV/XLU",
       "direction": "LONG",
-      "thesis": "Oro superando al mercado (p84) con VIX elevado \u2014 refugio activo",
-      "historical": "GLD +15% promedio en entornos VIX>25 sostenido",
-      "risk": "Subida de tipos reales puede frenar el oro",
-      "timeframe": "1-3 meses",
-      "score": 80
-    },
-    {
-      "instrument": "XLP / XLV / XLU",
-      "direction": "LONG",
-      "thesis": "Cobre/Oro en p18 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
-      "historical": "XLP supera S&P +12% en los 6m siguientes a Copper/Gold < p20",
-      "risk": "Rebote econ\u00f3mico revertir\u00eda rotaci\u00f3n",
+      "thesis": "Copper/Gold en percentil 18% \u2014 se\u00f1al de desaceleraci\u00f3n, rotar a defensivos",
+      "historical": "2015-16: XLU +20% mientras IWM -20% en ciclo de subidas Fed",
+      "risk": "Recuperaci\u00f3n econ\u00f3mica inesperada revertir\u00eda la rotaci\u00f3n",
       "timeframe": "2-4 meses",
-      "score": 75
+      "score": 75,
+      "eu_alternative": {
+        "ticker": "WCOS/WHCS/WUTS",
+        "name": "iShares MSCI World Consumer Staples / Health Care / Utilities UCITS ETF",
+        "exchange": "LSE",
+        "available": "DEGIRO/IB"
+      }
     }
   ],
-  "macro_plays_commentary": "3 plays macro rule-based generadas sin IA.",
-  "value_en_entorno": [
-    {
-      "ticker": "PRU.L",
-      "score": 71.0,
-      "sector": "Financial Services",
-      "fcf_yield_pct": 8.33,
-      "grade": ""
-    },
-    {
-      "ticker": "AON",
-      "score": 66.4,
-      "sector": "Financial Services",
-      "fcf_yield_pct": 4.37,
-      "grade": ""
-    }
-  ],
+  "macro_plays_commentary": "1 plays macro rule-based generadas sin IA.",
+  "value_en_entorno": [],
   "value_en_entorno_razon": "Tickers VALUE seleccionados para r\u00e9gimen STRESS.",
-  "evitar": [
-    {
-      "ticker": "ATEX",
-      "razon": "Value trap HIGH (score 7/10): Piotroski muy d\u00e9bil (2/9) \u2014 calidad financiera en "
-    },
-    {
-      "ticker": "NEWT",
-      "razon": "Value trap HIGH (score 7/10): Piotroski muy d\u00e9bil (2/9) \u2014 calidad financiera en "
-    }
-  ],
+  "evitar": [],
   "agenda_semana": [
     {
-      "fecha": "2026-03-27",
-      "evento": "PCE Febrero",
+      "fecha": "2026-04-10",
+      "evento": "CPI Marzo",
       "impacto": "ALTO",
+      "accion_sugerida": "Reducir riesgo antes / evaluar reacci\u00f3n del mercado despu\u00e9s"
+    },
+    {
+      "fecha": "2026-04-14",
+      "evento": "Inicio Earnings Q1",
+      "impacto": "MEDIO",
       "accion_sugerida": "Reducir riesgo antes / evaluar reacci\u00f3n del mercado despu\u00e9s"
     }
   ],
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
-  "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-03-24 | STRESS (-2.5) | NEUTRO | VALUE: PRU.L AON | Evitar: ATEX NEWT",
-  "ai_powered": false,
-  "intraday_refresh": "2026-04-06T21:31:21.923457"
+  "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-04-07 | STRESS (-2.0) | NEUTRO | VALUE:  | Evitar: ",
+  "ai_powered": false
 }

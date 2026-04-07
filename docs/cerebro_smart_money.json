@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "total": 11,
   "narrative": null,
   "signals": [
@@ -47,20 +47,6 @@
       "in_value": false
     },
     {
-      "ticker": "GPK",
-      "company_name": "GPK",
-      "sector": "",
-      "value_score": null,
-      "n_hedge_funds": 1,
-      "hedge_funds": [
-        "Appaloosa (Tepper)"
-      ],
-      "n_insiders": 2,
-      "insider_purchases": 4,
-      "convergence_score": 35,
-      "in_value": false
-    },
-    {
       "ticker": "ALIT",
       "company_name": "ALIT",
       "sector": "",
@@ -89,8 +75,22 @@
       "in_value": false
     },
     {
-      "ticker": "BATRK",
-      "company_name": "BATRK",
+      "ticker": "GPK",
+      "company_name": "GPK",
+      "sector": "",
+      "value_score": null,
+      "n_hedge_funds": 1,
+      "hedge_funds": [
+        "Appaloosa (Tepper)"
+      ],
+      "n_insiders": 2,
+      "insider_purchases": 4,
+      "convergence_score": 35,
+      "in_value": false
+    },
+    {
+      "ticker": "LPX",
+      "company_name": "LPX",
       "sector": "",
       "value_score": null,
       "n_hedge_funds": 1,
@@ -98,18 +98,18 @@
         "Berkshire Hathaway (Buffett)"
       ],
       "n_insiders": 1,
-      "insider_purchases": 2,
+      "insider_purchases": 3,
       "convergence_score": 25,
       "in_value": false
     },
     {
-      "ticker": "FCNCA",
-      "company_name": "FCNCA",
+      "ticker": "BATRK",
+      "company_name": "BATRK",
       "sector": "",
       "value_score": null,
       "n_hedge_funds": 1,
       "hedge_funds": [
-        "Appaloosa (Tepper)"
+        "Berkshire Hathaway (Buffett)"
       ],
       "n_insiders": 1,
       "insider_purchases": 2,
@@ -145,16 +145,16 @@
       "in_value": false
     },
     {
-      "ticker": "LPX",
-      "company_name": "LPX",
+      "ticker": "FCNCA",
+      "company_name": "FCNCA",
       "sector": "",
       "value_score": null,
       "n_hedge_funds": 1,
       "hedge_funds": [
-        "Berkshire Hathaway (Buffett)"
+        "Appaloosa (Tepper)"
       ],
       "n_insiders": 1,
-      "insider_purchases": 3,
+      "insider_purchases": 2,
       "convergence_score": 25,
       "in_value": false
     }

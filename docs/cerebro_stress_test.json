@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "total_positions": 176,
   "risks": [
     {
@@ -12,7 +12,7 @@
       }
     }
   ],
-  "narrative": "Para mitigar el riesgo de concentraci\u00f3n geogr\u00e1fica, se puede diversificar la cartera invirtiendo en mercados internacionales, como Europa, Asia o Am\u00e9rica Latina, lo que ayudar\u00eda a reducir la dependencia del mercado estadounidense. Adem\u00e1s, considerar la inversi\u00f3n en fondos o ETFs que tengan una exposici\u00f3n global puede ser una estrategia efectiva para reducir la concentraci\u00f3n geogr\u00e1fica y aumentar la diversificaci\u00f3n de la cartera.",
+  "narrative": null,
   "sector_breakdown": [
     {
       "sector": "Financial Services",
@@ -25,12 +25,12 @@
       "pct": 18
     },
     {
-      "sector": "Industrials",
+      "sector": "Technology",
       "count": 20,
       "pct": 11
     },
     {
-      "sector": "Technology",
+      "sector": "Industrials",
       "count": 20,
       "pct": 11
     },
@@ -40,7 +40,7 @@
       "pct": 8
     },
     {
-      "sector": "Basic Materials",
+      "sector": "Healthcare",
       "count": 10,
       "pct": 6
     },
@@ -50,7 +50,7 @@
       "pct": 6
     },
     {
-      "sector": "Healthcare",
+      "sector": "Basic Materials",
       "count": 10,
       "pct": 6
     }

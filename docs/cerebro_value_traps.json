@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "total": 12,
   "high_count": 0,
   "narrative": null,
@@ -9,7 +9,7 @@
       "company_name": "Duke Energy Corporation (Holdin",
       "severity": "MEDIUM",
       "trap_score": 5,
-      "value_score": 33.02,
+      "value_score": 33.019999999999996,
       "flags": [
         "FCF negativo (-2.0%) \u2014 quema caja pese a valuaci\u00f3n barata",
         "Fundamental score cerca de default (50) \u2014 datos poco fiables"
@@ -118,7 +118,7 @@
       "company_name": "American Water Works Company, I",
       "severity": "MEDIUM",
       "trap_score": 3,
-      "value_score": 30.02,
+      "value_score": 30.019999999999996,
       "flags": [
         "FCF negativo (-8.8%) \u2014 quema caja pese a valuaci\u00f3n barata"
       ],

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "regime": "NEUTRAL",
   "narrative": "R\u00e9gimen NEUTRAL. 3 oportunidades de entrada, 3 se\u00f1ales de salida HIGH. Sin trampas de valor relevantes.",
   "sections": {
@@ -27,11 +27,11 @@
       ],
       [
         "ALLY",
-        80
+        90
       ],
       [
-        "AMRZ",
-        78
+        "THRY",
+        87
       ]
     ],
     "high_alerts": [

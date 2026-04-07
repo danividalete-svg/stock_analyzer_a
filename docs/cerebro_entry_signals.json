@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "total": 18,
   "strong_buy": 0,
   "buy": 5,
@@ -18,7 +18,7 @@
       "analyst_upside_pct": 51.4,
       "fcf_yield_pct": 5.2,
       "risk_reward_ratio": 6.42,
-      "days_in_value": 5,
+      "days_in_value": 6,
       "streak_days": 1,
       "entry_score": 68,
       "signal": "BUY",
@@ -78,7 +78,7 @@
       "analyst_upside_pct": 53.6,
       "fcf_yield_pct": 6.02,
       "risk_reward_ratio": 6.7,
-      "days_in_value": 5,
+      "days_in_value": 6,
       "streak_days": 1,
       "entry_score": 68,
       "signal": "BUY",
@@ -138,7 +138,7 @@
       "analyst_upside_pct": 19.2,
       "fcf_yield_pct": 8.33,
       "risk_reward_ratio": 2.4,
-      "days_in_value": 5,
+      "days_in_value": 6,
       "streak_days": 1,
       "entry_score": 65,
       "signal": "BUY",
@@ -199,8 +199,8 @@
       "analyst_upside_pct": 31.5,
       "fcf_yield_pct": 9.21,
       "risk_reward_ratio": 3.94,
-      "days_in_value": 1,
-      "streak_days": 1,
+      "days_in_value": 2,
+      "streak_days": 2,
       "entry_score": 58,
       "signal": "BUY",
       "signals_fired": [
@@ -238,7 +238,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -255,7 +255,7 @@
       "analyst_upside_pct": 46.4,
       "fcf_yield_pct": 3.89,
       "risk_reward_ratio": 5.8,
-      "days_in_value": 5,
+      "days_in_value": 6,
       "streak_days": 1,
       "entry_score": 58,
       "signal": "BUY",
@@ -311,8 +311,8 @@
       "analyst_upside_pct": 46.4,
       "fcf_yield_pct": 1.67,
       "risk_reward_ratio": 5.8,
-      "days_in_value": 1,
-      "streak_days": 1,
+      "days_in_value": 2,
+      "streak_days": 2,
       "entry_score": 48,
       "signal": "MONITOR",
       "signals_fired": [
@@ -346,7 +346,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -363,8 +363,8 @@
       "analyst_upside_pct": 21.9,
       "fcf_yield_pct": 4.37,
       "risk_reward_ratio": 2.74,
-      "days_in_value": 1,
-      "streak_days": 1,
+      "days_in_value": 2,
+      "streak_days": 2,
       "entry_score": 48,
       "signal": "MONITOR",
       "signals_fired": [
@@ -398,7 +398,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -415,8 +415,8 @@
       "analyst_upside_pct": 21.5,
       "fcf_yield_pct": 4.54,
       "risk_reward_ratio": 2.69,
-      "days_in_value": 1,
-      "streak_days": 1,
+      "days_in_value": 2,
+      "streak_days": 2,
       "entry_score": 43,
       "signal": "MONITOR",
       "signals_fired": [
@@ -445,7 +445,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -462,7 +462,7 @@
       "analyst_upside_pct": 26.4,
       "fcf_yield_pct": 6.53,
       "risk_reward_ratio": 3.3,
-      "days_in_value": 5,
+      "days_in_value": 6,
       "streak_days": 1,
       "entry_score": 43,
       "signal": "MONITOR",
@@ -518,8 +518,8 @@
       "analyst_upside_pct": null,
       "fcf_yield_pct": 4.34,
       "risk_reward_ratio": null,
-      "days_in_value": 5,
-      "streak_days": 2,
+      "days_in_value": 6,
+      "streak_days": 3,
       "entry_score": 40,
       "signal": "MONITOR",
       "signals_fired": [
@@ -566,7 +566,7 @@
       "analyst_upside_pct": 43.9,
       "fcf_yield_pct": 6.0,
       "risk_reward_ratio": 5.49,
-      "days_in_value": 1,
+      "days_in_value": 2,
       "streak_days": 1,
       "entry_score": 33,
       "signal": "MONITOR",
@@ -601,7 +601,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -618,7 +618,7 @@
       "analyst_upside_pct": 25.5,
       "fcf_yield_pct": 5.08,
       "risk_reward_ratio": 3.19,
-      "days_in_value": 1,
+      "days_in_value": 2,
       "streak_days": 1,
       "entry_score": 33,
       "signal": "MONITOR",
@@ -653,7 +653,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -670,7 +670,7 @@
       "analyst_upside_pct": 26.9,
       "fcf_yield_pct": 9.88,
       "risk_reward_ratio": 3.36,
-      "days_in_value": 1,
+      "days_in_value": 2,
       "streak_days": 1,
       "entry_score": 33,
       "signal": "MONITOR",
@@ -705,7 +705,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -722,7 +722,7 @@
       "analyst_upside_pct": 29.4,
       "fcf_yield_pct": 4.08,
       "risk_reward_ratio": 3.68,
-      "days_in_value": 1,
+      "days_in_value": 2,
       "streak_days": 1,
       "entry_score": 23,
       "signal": "WAIT",
@@ -753,7 +753,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -770,7 +770,7 @@
       "analyst_upside_pct": 30.5,
       "fcf_yield_pct": 4.12,
       "risk_reward_ratio": 3.81,
-      "days_in_value": 1,
+      "days_in_value": 2,
       "streak_days": 1,
       "entry_score": 23,
       "signal": "WAIT",
@@ -801,7 +801,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -818,7 +818,7 @@
       "analyst_upside_pct": 30.6,
       "fcf_yield_pct": 2.8,
       "risk_reward_ratio": 3.82,
-      "days_in_value": 1,
+      "days_in_value": 2,
       "streak_days": 1,
       "entry_score": 23,
       "signal": "WAIT",
@@ -849,7 +849,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
@@ -866,7 +866,7 @@
       "analyst_upside_pct": 13.1,
       "fcf_yield_pct": 5.68,
       "risk_reward_ratio": 1.64,
-      "days_in_value": 5,
+      "days_in_value": 6,
       "streak_days": 1,
       "entry_score": 20,
       "signal": "WAIT",
@@ -914,7 +914,7 @@
       "analyst_upside_pct": 10.0,
       "fcf_yield_pct": 9.6,
       "risk_reward_ratio": 1.25,
-      "days_in_value": 1,
+      "days_in_value": 2,
       "streak_days": 1,
       "entry_score": 10,
       "signal": "WAIT",
@@ -941,7 +941,7 @@
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 1d en VALUE"
+        "Solo 2d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,

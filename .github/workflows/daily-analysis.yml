@@ -368,7 +368,9 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions Bot"
 
-          git add docs/ data/ || echo "Nothing to add"
+          # Exclude docs/app/ (React build) — only added by deploy workflow, conflicts with manual pushes
+          git add docs/ ':!docs/app/' || echo "Nothing to add"
+          git add data/ || echo "No data"
           git add docs/theses.json || echo "No theses"
           git add data/sector_cache.json || echo "No sector cache"
           git add data/backtest/ || echo "No backtest data"
@@ -378,7 +380,7 @@ jobs:
           git commit -m "chore: Daily full pipeline - ${SCAN_DATE}" \
             -m "Automated via GitHub Actions" || echo "No changes to commit"
 
-          git pull --rebase origin main && git push || echo "Push failed"
+          git pull --rebase origin main && git push || (echo "Push failed — retrying after pull" && git pull --rebase origin main && git push) || echo "Push failed after retry"
 
       - name: Trigger GitHub Pages Deployment
         if: always()

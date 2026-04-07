@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "total_analyzed": 1004,
   "baseline_win_rate_7d": 19.9,
   "baseline_avg_return_7d": -4.61,
@@ -252,5 +252,5 @@
       "vs_baseline_ret": -1.13
     }
   ],
-  "narrative": "Bas\u00e1ndonos en el an\u00e1lisis de 1004 se\u00f1ales, podemos concluir que el r\u00e9gimen de CORRECTION y el sector de Communication Services son los que presentan un mejor desempe\u00f1o, con un win rate del 33.3% y 60.0%, respectivamente. Sin embargo, el mejor score tier se encuentra en el rango de 80-90, con un win rate del 50.0%. Es importante destacar que la condici\u00f3n de FCF\u22655% no es un indicador fuerte de victoria, ya que solo presenta un win rate del 26.3%. Por lo tanto, se recomienda enfocarse en el r\u00e9gimen de CORRECTION y el sector de Communication Services para aumentar las posibilidades de victoria."
+  "narrative": "Sistema analiz\u00f3 1004 se\u00f1ales. Win rate base 19.9%. Mejor tier: 80\u201390 con 50.0% WR."
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "recommendations": [
     {
       "type": "BOOST",
@@ -20,6 +20,6 @@
       "n": 317
     }
   ],
-  "narrative": "Los ajustes m\u00e1s urgentes para el sistema VALUE son priorizar el rango de Score 60-70 y aumentar el peso de la relaci\u00f3n R:R (Retorno-Riesgo) y el rendimiento del flujo de caja libre (FCF Yield). Esto se debe a que estos ajustes ofrecen mejoras significativas en la tasa de ganancia (WR), con un aumento de 11.1 puntos porcentuales en el rango de Score 60-70 y mejoras de 6.4 y 14.6 puntos porcentuales para FCF Yield y R:R, respectivamente.",
+  "narrative": "El sistema contin\u00faa aprendiendo. Se necesitan m\u00e1s se\u00f1ales completadas para recomendaciones precisas.",
   "total_recommendations": 3
 }

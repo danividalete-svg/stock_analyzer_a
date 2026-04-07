@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "total": 93,
   "rerate_sectors": 0,
   "narrative": null,
@@ -90,7 +90,7 @@
       "fcf_yield_pct": 21.92,
       "fcf_rank": 3,
       "fcf_rank_of": 17,
-      "value_score": 52.6,
+      "value_score": 52.599999999999994,
       "analyst_upside_pct": 3.6,
       "sector_avg_fcf": 10.73,
       "peers_in_sector": 17
@@ -233,7 +233,7 @@
       "fcf_yield_pct": 12.53,
       "fcf_rank": 2,
       "fcf_rank_of": 14,
-      "value_score": 30.12,
+      "value_score": 30.119999999999997,
       "analyst_upside_pct": 15.3,
       "sector_avg_fcf": 7.82,
       "peers_in_sector": 14
@@ -896,7 +896,7 @@
       "fcf_yield_pct": 1.98,
       "fcf_rank": 19,
       "fcf_rank_of": 22,
-      "value_score": 56.24,
+      "value_score": 56.239999999999995,
       "analyst_upside_pct": 30.8,
       "sector_avg_fcf": 9.45,
       "peers_in_sector": 22
@@ -1000,7 +1000,7 @@
       "fcf_yield_pct": 1.54,
       "fcf_rank": 16,
       "fcf_rank_of": 17,
-      "value_score": 32.52,
+      "value_score": 32.519999999999996,
       "analyst_upside_pct": 22.1,
       "sector_avg_fcf": 10.73,
       "peers_in_sector": 17
@@ -1208,7 +1208,7 @@
       "fcf_yield_pct": -8.84,
       "fcf_rank": 6,
       "fcf_rank_of": 6,
-      "value_score": 30.02,
+      "value_score": 30.019999999999996,
       "analyst_upside_pct": 1.5,
       "sector_avg_fcf": -0.74,
       "peers_in_sector": 6

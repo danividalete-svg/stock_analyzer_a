@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24",
+  "generated_at": "2026-04-07",
   "total": 8,
   "high_count": 1,
   "narrative": null,
@@ -79,7 +79,7 @@
       "squeeze_score": 45,
       "short_pct_float": 15.3,
       "piotroski": 4.0,
-      "value_score": 32.52,
+      "value_score": 32.519999999999996,
       "insider_buying": true,
       "hf_present": false,
       "flags": [
