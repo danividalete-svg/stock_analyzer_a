@@ -21,7 +21,7 @@
     {
       "instrument": "GLD / GDX",
       "direction": "LONG",
-      "thesis": "Oro superando al mercado (p85) con VIX elevado \u2014 refugio activo",
+      "thesis": "Oro superando al mercado (p86) con VIX elevado \u2014 refugio activo",
       "historical": "GLD +15% promedio en entornos VIX>25 sostenido",
       "risk": "Subida de tipos reales puede frenar el oro",
       "timeframe": "1-3 meses",
@@ -30,7 +30,7 @@
     {
       "instrument": "XLP / XLV / XLU",
       "direction": "LONG",
-      "thesis": "Cobre/Oro en p16 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
+      "thesis": "Cobre/Oro en p15 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
       "historical": "XLP supera S&P +12% en los 6m siguientes a Copper/Gold < p20",
       "risk": "Rebote econ\u00f3mico revertir\u00eda rotaci\u00f3n",
       "timeframe": "2-4 meses",
@@ -39,7 +39,7 @@
     {
       "instrument": "UVXY (small)",
       "direction": "LONG",
-      "thesis": "VVIX en p86 con VIX moderado \u2014 spike de volatilidad inminente",
+      "thesis": "VVIX en p88 con VIX moderado \u2014 spike de volatilidad inminente",
       "historical": "VIX sube >30% en las 2 semanas siguientes al 80% de las veces con VVIX >p85",
       "risk": "Theta decay si spike no materializa en <2 semanas",
       "timeframe": "1-2 semanas",
@@ -67,5 +67,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-04-07 | STRESS (-2.0) | NEUTRO | VALUE:  | Evitar: ",
   "ai_powered": false,
-  "intraday_refresh": "2026-04-07T18:11:36.011152"
+  "intraday_refresh": "2026-04-07T19:33:46.860767"
 }
