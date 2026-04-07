@@ -124,6 +124,9 @@ export interface MicroCapOpportunity {
   analyst_count?: number
   earnings_warning?: boolean
   days_to_earnings?: number
+  ai_verdict?: string | null
+  ai_confidence?: number | null
+  ai_reasoning?: string | null
 }
 
 export interface InsiderData {

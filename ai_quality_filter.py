@@ -109,6 +109,43 @@ IMPORTANT: For SHORT strategy, BUY means "confirmed SHORT opportunity" (good to 
 Respond ONLY with JSON:
 {{"verdict": "BUY"|"HOLD"|"AVOID", "confidence": 0-100, "reasoning": "brief explanation of bearish thesis strength"}}"""
 
+        elif strategy == "MICRO_CAP":
+            prompt = f"""You are a micro-cap specialist. Validate this small company for a high-conviction long entry.
+
+{ticker_data['ticker']} - {ticker_data.get('company_name','')} - {ticker_data.get('sector','?')} - ${ticker_data.get('current_price',0):.2f}
+Market cap: ${ticker_data.get('market_cap',0):,.0f} | Score: {ticker_data.get('micro_cap_score','N/A')}/100 | Quality: {ticker_data.get('quality','')}
+
+GROWTH QUALITY:
+EPS growth YoY: {ticker_data.get('eps_growth_yoy','N/A')}% | Accelerating: {ticker_data.get('eps_accelerating','N/A')}
+Revenue growth YoY: {ticker_data.get('rev_growth_yoy','N/A')}% | Accelerating: {ticker_data.get('rev_accelerating','N/A')}
+
+FINANCIAL HEALTH:
+Piotroski score: {ticker_data.get('piotroski_score','N/A')}/9 (>=7 = strong)
+FCF yield: {ticker_data.get('fcf_yield_pct','N/A')}%
+Interest coverage: {ticker_data.get('interest_coverage','N/A')}x
+Financial health score: {ticker_data.get('financial_health_score','N/A')}/25
+
+TECHNICAL SETUP:
+RS line at new high: {ticker_data.get('rs_line_at_new_high','N/A')} (key for micro-cap breakout)
+RS line percentile: {ticker_data.get('rs_line_percentile','N/A')}%
+Trend template pass: {ticker_data.get('trend_template_pass','N/A')}
+
+RISK FACTORS:
+Short % float: {ticker_data.get('short_percent_float','N/A')}% | Squeeze potential: {ticker_data.get('short_squeeze_potential','N/A')}
+Analyst upside: {ticker_data.get('analyst_upside_pct','N/A')}%
+Earnings warning: {ticker_data.get('earnings_warning','N/A')}
+
+Micro-cap conviction check:
+1. Is growth real and accelerating? (not a one-off quarter)
+2. Is the balance sheet solid? (Piotroski >=6, positive FCF, covered debt)
+3. Is relative strength confirming? (RS line at new high = institutional accumulation)
+4. Is the risk/reward compelling vs. liquidity risk of small caps?
+5. Any red flags: dilution risk, no analyst coverage, sector headwinds, extreme short interest?
+
+Only BUY if this is genuinely high-conviction. Micro-caps require extra scrutiny.
+Respond ONLY with JSON:
+{{"verdict": "BUY"|"HOLD"|"AVOID", "confidence": 0-100, "reasoning": "brief explanation"}}"""
+
         else:  # VALUE
             prompt = f"""Analyze this VALUE stock opportunity as a fundamental analyst.
 
@@ -722,6 +759,120 @@ def filter_shorts():
     return len(confirmed_shorts)
 
 
+def filter_micro_cap():
+    """
+    AI double-check for micro-cap opportunities.
+    Only reviews EXCELLENT + GOOD quality tickers (score >= 65).
+    Saves docs/micro_cap_opportunities_filtered.csv — only AI-confirmed high-conviction picks.
+    """
+    import csv as _csv, io as _io
+
+    mc_path = Path('docs/micro_cap_opportunities.csv')
+    if not mc_path.exists():
+        print("❌ micro_cap_opportunities.csv not found — run micro_cap_scanner.py first")
+        return 0
+
+    with open(mc_path, newline='') as f:
+        reader = _csv.DictReader(f)
+        rows = list(reader)
+        fieldnames = reader.fieldnames or []
+
+    if not rows:
+        print("⚠️  No micro-cap opportunities to filter")
+        return 0
+
+    # Only review EXCELLENT + GOOD (score >= 65) — skip noise
+    candidates = [r for r in rows if float(r.get('micro_cap_score') or 0) >= 65]
+    print(f"\n📊 Micro-cap candidates for AI review: {len(candidates)}/{len(rows)} (score ≥65)")
+
+    confirmed = []
+    print(f"\n🤖 Validating with Groq AI (MICRO-CAP strategy)...")
+    print("-" * 100)
+
+    for r in candidates:
+        ticker = r.get('ticker', '?')
+        def _f(key, default=None):
+            v = r.get(key)
+            if v in (None, '', 'N/A', 'nan', 'None'): return default
+            try: return float(v)
+            except: return v
+
+        ticker_data = {
+            'ticker': ticker,
+            'company_name': r.get('company_name', ''),
+            'sector': r.get('sector', ''),
+            'current_price': _f('current_price', 0),
+            'market_cap': _f('market_cap', 0),
+            'micro_cap_score': _f('micro_cap_score', 0),
+            'quality': r.get('quality', ''),
+            'tier': r.get('tier', ''),
+            # Numeric fields — fallback_analysis expects float or None
+            'piotroski_score': _f('piotroski_score'),
+            'fcf_yield_pct': _f('fcf_yield_pct'),
+            'eps_growth_yoy': _f('eps_growth_yoy'),
+            'rev_growth_yoy': _f('rev_growth_yoy'),
+            'analyst_upside_pct': _f('analyst_upside_pct'),
+            'analyst_count': _f('analyst_count', 0),
+            'rs_line_percentile': _f('rs_line_percentile'),
+            'financial_health_score': _f('financial_health_score'),
+            'short_percent_float': _f('short_percent_float'),
+            'interest_coverage': _f('interest_coverage'),
+            # Boolean/string fields
+            'eps_accelerating': r.get('eps_accelerating', 'N/A'),
+            'rev_accelerating': r.get('rev_accelerating', 'N/A'),
+            'rs_line_at_new_high': r.get('rs_line_at_new_high', 'N/A'),
+            'trend_template_pass': r.get('trend_template_pass', 'N/A'),
+            'short_squeeze_potential': r.get('short_squeeze_potential', 'N/A'),
+            'earnings_warning': r.get('earnings_warning', 'N/A'),
+            # Standard fallback keys
+            'roe': _f('roe_pct'),
+            'profit_margin': _f('operating_margin_pct'),
+            'debt_to_equity': _f('debt_to_equity'),
+            'rev_growth': _f('rev_growth_yoy'),
+            'target_price_analyst': _f('target_price_analyst'),
+        }
+        analysis = analyze_with_ai(ticker_data, strategy='MICRO_CAP')
+        r['ai_verdict'] = analysis['verdict']
+        r['ai_confidence'] = analysis['confidence']
+        r['ai_reasoning'] = analysis['reasoning']
+
+        emoji = '🟢' if analysis['verdict'] == 'BUY' else ('🟡' if analysis['verdict'] == 'HOLD' else '🔴')
+        if analysis['verdict'] == 'BUY' and analysis['confidence'] >= 65:
+            confirmed.append(r)
+        print(f"{emoji} {ticker:<8} {analysis['verdict']:<6} (conf:{analysis['confidence']:>3}) — {analysis['reasoning'][:70]}")
+
+    confirmed.sort(key=lambda x: float(x.get('micro_cap_score') or 0), reverse=True)
+
+    # Save confirmed-only filtered CSV
+    all_fields = list(fieldnames) + ['ai_verdict', 'ai_confidence', 'ai_reasoning']
+    filtered_path = Path('docs/micro_cap_opportunities_filtered.csv')
+    with open(filtered_path, 'w', newline='') as f:
+        writer = _csv.DictWriter(f, fieldnames=all_fields, extrasaction='ignore')
+        writer.writeheader()
+        writer.writerows(confirmed)
+
+    # Also update main CSV with AI annotations
+    annotated_tickers = {r['ticker'] for r in candidates}
+    for orig in rows:
+        if orig['ticker'] not in annotated_tickers:
+            orig['ai_verdict'] = None
+            orig['ai_confidence'] = None
+            orig['ai_reasoning'] = None
+    all_fields_main = list(fieldnames) + ['ai_verdict', 'ai_confidence', 'ai_reasoning']
+    with open(mc_path, 'w', newline='') as f:
+        writer = _csv.DictWriter(f, fieldnames=all_fields_main, extrasaction='ignore')
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print(f"\n{'=' * 100}")
+    print(f"MICRO-CAP AI FILTER RESULTS")
+    print(f"  Candidates reviewed : {len(candidates)}")
+    print(f"  Confirmed (BUY ≥65) : {len(confirmed)}")
+    print(f"  Saved               : {filtered_path}")
+    print(f"{'=' * 100}")
+    return len(confirmed)
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='AI Quality Filter')
@@ -729,6 +880,8 @@ def main():
                         help='Filter European VALUE opportunities only')
     parser.add_argument('--shorts', action='store_true',
                         help='AI double-check for short opportunities')
+    parser.add_argument('--micro-cap', action='store_true',
+                        help='AI double-check for micro-cap opportunities')
     args = parser.parse_args()
 
     if args.shorts:
@@ -737,6 +890,14 @@ def main():
         print("=" * 100)
         n = filter_shorts()
         print(f"\n✅ Confirmed short opportunities: {n}")
+        return
+
+    if getattr(args, 'micro_cap', False):
+        print("=" * 100)
+        print("AI-POWERED QUALITY FILTER - MICRO-CAP OPPORTUNITIES")
+        print("=" * 100)
+        n = filter_micro_cap()
+        print(f"\n✅ Confirmed micro-cap opportunities: {n}")
         return
 
     if args.european:

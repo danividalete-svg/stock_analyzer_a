@@ -195,6 +195,12 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python3 ai_quality_filter.py --shorts || echo "Short AI filter failed"
 
+      - name: Micro-Cap AI Filter
+        continue-on-error: true
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python3 ai_quality_filter.py --micro-cap || echo "Micro-cap AI filter failed"
+
       - name: Catalyst Scanner
         continue-on-error: true
         run: python3 catalyst_scanner.py || echo "Catalyst scanner failed"

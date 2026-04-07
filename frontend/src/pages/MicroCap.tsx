@@ -11,159 +11,118 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { Gem } from 'lucide-react'
 
-type SortKey = 'micro_cap_score' | 'current_price' | 'market_cap' | 'piotroski_score' | 'fcf_yield_pct' | 'rev_growth_yoy'
-type SortDir = 'asc' | 'desc'
-
-function QualityBadge({ q }: { q: string }) {
-  const map: Record<string, string> = {
-    FUERTE:   'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-    BUENA:    'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
-    MODERADA: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-    DÉBIL:    'bg-red-500/15 text-red-400 border-red-500/30',
-  }
-  return (
-    <span className={`text-[0.65rem] font-bold px-1.5 py-0.5 rounded border ${map[q] ?? 'bg-muted/20 text-muted-foreground border-border/20'}`}>
-      {q}
-    </span>
-  )
-}
-
-function fmt(n: number | undefined, decimals = 1, prefix = '') {
+function fmt(n: number | undefined, decimals = 1) {
   if (n == null || isNaN(n)) return <span className="text-muted-foreground/30">—</span>
   const sign = n > 0 ? '+' : ''
-  return <span>{prefix}{sign}{n.toFixed(decimals)}</span>
+  return <span>{sign}{n.toFixed(decimals)}</span>
+}
+
+function AiBadge({ verdict, confidence }: { verdict: string | null | undefined; confidence: number | null | undefined }) {
+  if (!verdict) return null
+  if (verdict === 'BUY') return (
+    <span className="text-[0.6rem] font-bold px-1.5 py-0.5 rounded border bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
+      IA {confidence}
+    </span>
+  )
+  return null
 }
 
 export default function MicroCap() {
   const { data, loading, error } = useApi(() => fetchMicroCapOpportunities(), [])
-  const [sortKey, setSortKey] = useState<SortKey>('micro_cap_score')
-  const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [filterQuality, setFilterQuality] = useState('ALL')
-  const [filterSector, setFilterSector]   = useState('ALL')
+  const [showAll, setShowAll] = useState(false)
 
   if (loading) return <Loading />
   if (error)   return <ErrorState message={error} />
 
   const rows: MicroCapOpportunity[] = (data as any)?.data ?? data ?? []
 
-  const sectors = Array.from(new Set(rows.map(r => r.sector).filter(Boolean))).sort() as string[]
+  const aiAvailable = rows.some(r => r.ai_verdict != null)
 
-  const filtered = rows
-    .filter(r => filterQuality === 'ALL' || r.micro_cap_quality === filterQuality)
-    .filter(r => filterSector  === 'ALL' || r.sector === filterSector)
-    .sort((a, b) => {
-      const av = (a as any)[sortKey] ?? 0
-      const bv = (b as any)[sortKey] ?? 0
-      return sortDir === 'desc' ? bv - av : av - bv
-    })
+  // High-conviction: AI BUY ≥65, or if no AI data yet, score ≥65 + quality contains "Excellent"/"Good"
+  const highConviction = rows.filter(r => {
+    if (aiAvailable) return r.ai_verdict === 'BUY' && (r.ai_confidence ?? 0) >= 65
+    return (r.micro_cap_score ?? 0) >= 65
+  }).sort((a, b) => (b.micro_cap_score ?? 0) - (a.micro_cap_score ?? 0))
 
-  function toggleSort(k: SortKey) {
-    if (k === sortKey) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
-    else { setSortKey(k); setSortDir('desc') }
-  }
-
-  function SortTh({ k, children }: { k: SortKey; children: React.ReactNode }) {
-    const active = k === sortKey
-    return (
-      <TableHead
-        className="cursor-pointer select-none whitespace-nowrap"
-        onClick={() => toggleSort(k)}
-      >
-        {children}{active ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}
-      </TableHead>
-    )
-  }
+  const displayed = showAll
+    ? [...rows].sort((a, b) => (b.micro_cap_score ?? 0) - (a.micro_cap_score ?? 0))
+    : highConviction
 
   return (
     <div className="space-y-4 p-4">
       <StaleDataBanner module="micro_cap" />
+
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
             <Gem size={18} className="text-amber-400" />
             Micro-Cap de Calidad
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Penny stocks $1-$10 con fundamentos sólidos · Alto riesgo / Alto potencial · Máx 5-10% cartera
+            {aiAvailable
+              ? `${highConviction.length} confirmadas por IA · Alta convicción únicamente`
+              : `${highConviction.length} con score ≥65 · Sin filtro IA aún`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-0.5">
+          {!showAll ? (
+            <button onClick={() => setShowAll(true)} className="filter-btn">
+              Ver todas ({rows.length})
+            </button>
+          ) : (
+            <button onClick={() => setShowAll(false)} className="filter-btn active">
+              Solo IA ({highConviction.length})
+            </button>
+          )}
           <CsvDownload dataset="micro-cap" label="CSV" />
         </div>
       </div>
 
-      {/* Aviso de riesgo */}
+      {/* Risk warning */}
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/8 px-4 py-2.5 text-xs text-amber-300/80">
-        ⚠️ Sección experimental — micro-caps con alta volatilidad. Usa stops ajustados y tamaños de posición reducidos.
-        Ejecuta <code className="font-mono bg-black/20 px-1 rounded">python3 micro_cap_scanner.py</code> para actualizar datos.
+        ⚠️ Micro-caps con alta volatilidad. Stops ajustados, posiciones reducidas (máx 5% cartera).
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <select
-          value={filterQuality}
-          onChange={e => setFilterQuality(e.target.value)}
-          className="text-xs rounded-md border border-border/40 bg-background/60 px-2 py-1.5 text-foreground"
-        >
-          <option value="ALL">Todas las calidades</option>
-          {['FUERTE','BUENA','MODERADA'].map(q => <option key={q} value={q}>{q}</option>)}
-        </select>
-        {sectors.length > 0 && (
-          <select
-            value={filterSector}
-            onChange={e => setFilterSector(e.target.value)}
-            className="text-xs rounded-md border border-border/40 bg-background/60 px-2 py-1.5 text-foreground"
-          >
-            <option value="ALL">Todos los sectores</option>
-            {sectors.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        )}
-        <span className="text-xs text-muted-foreground ml-auto">{filtered.length} tickers</span>
-      </div>
-
-      {/* Tabla */}
-      {filtered.length === 0 ? (
+      {/* Table */}
+      {displayed.length === 0 ? (
         <EmptyState
           icon="💎"
-          title="Sin micro-caps de calidad"
-          subtitle="Ejecuta python3 micro_cap_scanner.py para analizar el universo"
+          title="Sin micro-caps de alta convicción hoy"
+          subtitle={aiAvailable ? 'La IA no confirmó ninguna entrada — mercado no favorable para micro-caps' : 'Ejecuta python3 micro_cap_scanner.py para analizar el universo'}
         />
       ) : (
         <div className="glass rounded-xl overflow-clip">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-8" />
                 <TableHead>Ticker</TableHead>
                 <TableHead>Empresa</TableHead>
-                <SortTh k="micro_cap_score">Score</SortTh>
-                <TableHead>Calidad</TableHead>
-                <SortTh k="current_price">Precio</SortTh>
-                <SortTh k="market_cap">MCap</SortTh>
-                <SortTh k="piotroski_score">Piotroski</SortTh>
-                <SortTh k="fcf_yield_pct">FCF%</SortTh>
-                <SortTh k="rev_growth_yoy">Rev+%</SortTh>
+                <TableHead>Score</TableHead>
+                <TableHead>IA</TableHead>
+                <TableHead>Precio</TableHead>
+                <TableHead>MCap</TableHead>
+                <TableHead>Piotroski</TableHead>
+                <TableHead>FCF%</TableHead>
+                <TableHead>Rev+%</TableHead>
                 <TableHead>Objetivo</TableHead>
                 <TableHead>Sector</TableHead>
                 <TableHead className="w-8" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(r => {
+              {displayed.map(r => {
                 const mcapM = ((r.market_cap ?? 0) / 1e6).toFixed(0)
                 const hasEarningsWarning = r.earnings_warning || (r.days_to_earnings != null && r.days_to_earnings >= 0 && r.days_to_earnings <= 7)
                 return (
-                  <TableRow key={r.ticker} className="hover:bg-white/5">
-                    <TableCell className="text-center">
-                      {r.short_squeeze_potential === 'HIGH' && (
-                        <span title="Potencial short squeeze" className="text-xs">🚀</span>
-                      )}
-                    </TableCell>
+                  <TableRow key={r.ticker} className="hover:bg-white/5" title={r.ai_reasoning ?? undefined}>
                     <TableCell className="font-mono font-bold text-foreground">
                       {r.ticker}
+                      {r.short_squeeze_potential === 'HIGH' && (
+                        <span title="Potencial short squeeze" className="ml-1 text-xs">🚀</span>
+                      )}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground max-w-[160px] truncate">
+                    <TableCell className="text-sm text-muted-foreground max-w-[140px] truncate">
                       {r.company_name ?? '—'}
                     </TableCell>
                     <TableCell>
@@ -173,7 +132,7 @@ export default function MicroCap() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <QualityBadge q={r.micro_cap_quality ?? ''} />
+                      <AiBadge verdict={r.ai_verdict} confidence={r.ai_confidence} />
                     </TableCell>
                     <TableCell className="tabular-nums text-sm font-medium">
                       ${r.current_price?.toFixed(2) ?? '—'}
