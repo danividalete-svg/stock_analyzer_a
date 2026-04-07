@@ -1,7 +1,6 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
-import { TrendingDown, ChevronDown, ChevronRight, Activity, Wallet } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { TrendingDown, ChevronDown, ChevronRight, Activity } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
-import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import Loading, { ErrorState } from '../components/Loading'
 import TickerLogo from '../components/TickerLogo'
 import { fetchTechnicalSignals, type TechnicalSignal, type TechnicalSummary } from '../api/client'
@@ -175,361 +174,107 @@ function TickerCard({ row, signals }: Readonly<{ row: TechnicalSummary; signals:
   )
 }
 
-function SignalStrengthDots({ strength }: Readonly<{ strength: number }>) {
-  return (
-    <span className="flex gap-0.5 text-emerald-400">
-      {Array.from({ length: 3 }, (_, j) => (
-        <span key={j} className={`inline-block w-1 h-1 rounded-full ${j < strength ? 'bg-emerald-400' : 'bg-emerald-400/20'}`} />
-      ))}
-    </span>
-  )
-}
-
-type BiasFilter = 'ALL' | 'BULLISH' | 'BEARISH' | 'NEUTRAL'
-
-function biasBtnCls(b: BiasFilter, active: boolean): string {
-  if (!active) return 'text-muted-foreground hover:text-foreground border-transparent'
-  if (b === 'BULLISH') return 'bg-background text-emerald-400 border-emerald-500/40 shadow-sm'
-  if (b === 'BEARISH') return 'bg-background text-red-400 border-red-500/40 shadow-sm'
-  return 'bg-background text-foreground border-border/40 shadow-sm'
-}
-
-function biasBtnLabel(b: BiasFilter): string {
-  if (b === 'BULLISH') return '▲ Alcistas'
-  if (b === 'BEARISH') return '▼ Bajistas'
-  if (b === 'NEUTRAL') return '— Neutros'
-  return 'Todos'
-}
-
-function biasResultLabel(b: BiasFilter): string {
-  if (b === 'BULLISH') return 'alcistas'
-  if (b === 'BEARISH') return 'bajistas'
-  if (b === 'NEUTRAL') return 'neutros'
-  return ''
-}
-
-function tfLabel(tf: 'ALL' | 'DAILY' | 'WEEKLY'): string {
-  if (tf === 'DAILY') return 'Diario'
-  if (tf === 'WEEKLY') return 'Semanal'
-  return 'D+W'
-}
-
 export default function TechnicalSignals() {
   const { data, loading, error } = useApi(() => fetchTechnicalSignals().then(d => ({ data: d })), [])
-  const { isOwned, positions: myPositions } = usePersonalPortfolio()
+  const [showBearish, setShowBearish] = useState(false)
 
-  const [biasFilter, setBiasFilter] = useState<BiasFilter>('ALL')
-  const [sourceFilter, setSourceFilter] = useState<string>('ALL')
-  const [tfFilter, setTfFilter] = useState<'ALL' | 'DAILY' | 'WEEKLY'>('ALL')
-  const [strengthFilter, setStrengthFilter] = useState<number>(1)
-  const [onlyMyPortfolio, setOnlyMyPortfolio] = useState(false)
-  const [page, setPage] = useState(1)
-  const PAGE_SIZE = 20
-
-  // All hooks must be called unconditionally — before any early returns
   const { signals = [], summary = [] } = (data as { signals: TechnicalSignal[]; summary: TechnicalSummary[] }) ?? {}
 
-  const sources = ['ALL', ...Array.from(new Set(summary.map(r => r.source))).filter(Boolean)]
+  // Señales accionables: BULLISH con ≥3 señales alcistas confirmadas, ordenadas por net_score
+  const actionable = useMemo(() => summary
+    .filter(r => r.bias === 'BULLISH' && r.bullish_count >= 3)
+    .sort((a, b) => b.net_score - a.net_score)
+  , [summary])
 
-  const filteredSummary = useMemo(() => {
-    return summary.filter(row => {
-      if (biasFilter !== 'ALL' && row.bias !== biasFilter) return false
-      if (sourceFilter !== 'ALL' && row.source !== sourceFilter) return false
-      if (onlyMyPortfolio && !isOwned(row.ticker)) return false
-      return true
-    }).sort((a, b) => {
-      if (a.bias === 'BULLISH' && b.bias !== 'BULLISH') return -1
-      if (b.bias === 'BULLISH' && a.bias !== 'BULLISH') return 1
-      return b.net_score - a.net_score
-    })
-  }, [summary, biasFilter, sourceFilter, onlyMyPortfolio, isOwned])
+  // Alertas de cartera: posiciones con sesgo bajista
+  const portfolioBearish = useMemo(() =>
+    summary.filter(r => r.source === 'portfolio' && r.bias === 'BEARISH')
+  , [summary])
 
-  useEffect(() => { setPage(1) }, [biasFilter, sourceFilter, onlyMyPortfolio, tfFilter, strengthFilter])
+  // Cortos técnicos: BEARISH con ≥3 señales bajistas
+  const bearishSetups = useMemo(() => summary
+    .filter(r => r.bias === 'BEARISH' && r.bearish_count >= 3)
+    .sort((a, b) => b.net_score - a.net_score)
+    .slice(0, 10)
+  , [summary])
 
-  const totalPages = Math.ceil(filteredSummary.length / PAGE_SIZE)
-  const pagedSummary = filteredSummary.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-
-  const goToPage = useCallback((p: number) => {
-    setPage(p)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
-
-  // O(N) pre-build once per filter change — O(1) lookup per card
   const signalsMap = useMemo(() => {
     const map = new Map<string, TechnicalSignal[]>()
     for (const s of signals) {
-      if (tfFilter !== 'ALL' && s.timeframe !== tfFilter) continue
-      if (s.strength < strengthFilter) continue
       const arr = map.get(s.ticker)
       if (arr) arr.push(s)
       else map.set(s.ticker, [s])
     }
     return map
-  }, [signals, tfFilter, strengthFilter])
+  }, [signals])
 
-  // Stats
-  const bullishCount = summary.filter(r => r.bias === 'BULLISH').length
-  const bearishCount = summary.filter(r => r.bias === 'BEARISH').length
-  const neutralCount = summary.filter(r => r.bias === 'NEUTRAL').length
-  const portfolioTickers = summary.filter(r => r.source === 'portfolio')
-  const portfolioBullish = portfolioTickers.filter(r => r.bias === 'BULLISH').length
   const generatedAt = summary[0]?.generated_at ?? ''
 
   if (loading) return <Loading />
   if (error) return (
     <ErrorState message={
       error.includes('not available')
-        ? 'Los datos técnicos se generan una vez al día. Estarán disponibles después del próximo ciclo de análisis.'
+        ? 'Los datos técnicos se generan una vez al día. Disponibles tras el próximo ciclo de análisis.'
         : error
     } />
   )
 
-  return (
-    <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Activity size={20} className="text-primary" />
-            <h1 className="text-2xl font-bold gradient-title">Señales Técnicas</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Detección automática de patrones técnicos — cartera activa + oportunidades value
-          </p>
-          {generatedAt && (
-            <p className="text-xs text-muted-foreground/50 mt-1">Actualizado: {generatedAt}</p>
-          )}
-        </div>
+  const displayed = showBearish ? bearishSetups : actionable
 
-        {/* Stats summary */}
-        <div className="flex gap-3 flex-wrap">
-          <div className="glass-panel px-3 py-2 rounded-lg text-center">
-            <div className="text-lg font-bold text-emerald-400">{bullishCount}</div>
-            <div className="text-xs text-muted-foreground">Alcistas</div>
-          </div>
-          <div className="glass-panel px-3 py-2 rounded-lg text-center">
-            <div className="text-lg font-bold text-red-400">{bearishCount}</div>
-            <div className="text-xs text-muted-foreground">Bajistas</div>
-          </div>
-          <div className="glass-panel px-3 py-2 rounded-lg text-center">
-            <div className="text-lg font-bold text-muted-foreground">{neutralCount}</div>
-            <div className="text-xs text-muted-foreground">Neutros</div>
-          </div>
-          {portfolioTickers.length > 0 && (
-            <div className="glass-panel px-3 py-2 rounded-lg text-center">
-              <div className="text-lg font-bold text-primary">{portfolioBullish}/{portfolioTickers.length}</div>
-              <div className="text-xs text-muted-foreground">Cartera ↑</div>
-            </div>
-          )}
+  return (
+    <div className="space-y-5 max-w-4xl">
+      {/* Header */}
+      <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight gradient-title mb-1 flex items-center gap-2">
+            <Activity size={20} className="text-primary" />
+            Señales Técnicas
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Entradas con ≥3 señales alcistas confirmadas · {actionable.length} setups hoy
+            {generatedAt && <span className="ml-2 text-muted-foreground/40">· {generatedAt}</span>}
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0 mt-1">
+          <button onClick={() => setShowBearish(false)} className={`filter-btn ${!showBearish ? 'active' : ''}`}>
+            ▲ Alcistas ({actionable.length})
+          </button>
+          <button onClick={() => setShowBearish(true)} className={`filter-btn ${showBearish ? 'active-red' : ''}`}>
+            ▼ Bajistas ({bearishSetups.length})
+          </button>
         </div>
       </div>
 
-      {/* Portfolio alert if any are bearish */}
-      {portfolioTickers.some(r => r.bias === 'BEARISH') && (
+      {/* Alerta posiciones en cartera */}
+      {portfolioBearish.length > 0 && (
         <div className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/25 text-sm">
           <TrendingDown size={16} className="text-red-400 shrink-0 mt-0.5" />
           <span className="text-red-300">
-            <strong>{portfolioTickers.filter(r => r.bias === 'BEARISH').length} posición(es) de cartera</strong> muestran sesgo bajista técnico —{' '}
-            {portfolioTickers.filter(r => r.bias === 'BEARISH').map(r => r.ticker).join(', ')}
+            <strong>{portfolioBearish.length} posición{portfolioBearish.length > 1 ? 'es' : ''} en cartera</strong> con sesgo bajista —{' '}
+            {portfolioBearish.map(r => r.ticker).join(', ')}
           </span>
         </div>
       )}
 
-      {/* ── Entradas Destacadas ─────────────────────────────────────────── */}
-      {(() => {
-        const top = summary
-          .filter(r => r.bias === 'BULLISH' && r.bullish_count >= 2)
-          .sort((a, b) => b.net_score - a.net_score)
-          .slice(0, 6)
-        if (top.length === 0) return null
-        return (
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[0.6rem] font-bold uppercase tracking-widest text-emerald-400">⚡ Entradas Destacadas</span>
-              <span className="text-[0.6rem] text-muted-foreground/50">— alcistas con ≥2 señales confirmadas</span>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {top.map(row => {
-                const topSig = signals
-                  .filter(s => s.ticker === row.ticker && s.direction === 'BULLISH')
-                  .sort((a, b) => b.strength - a.strength)
-                  .slice(0, 2)
-                const inPortfolio = row.source === 'portfolio'
-                return (
-                  <div
-                    key={row.ticker}
-                    className="glass flex-shrink-0 w-52 rounded-xl p-3 border border-emerald-500/20 bg-emerald-500/5 hover:border-emerald-500/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <TickerLogo ticker={row.ticker} size="xs" />
-                      <span className="font-mono font-bold text-sm text-foreground">{row.ticker}</span>
-                      {inPortfolio && (
-                        <span className="text-[0.55rem] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25 font-bold ml-auto">
-                          EN CARTERA
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <span className="text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-                        +{row.bullish_count} ALCISTAS
-                      </span>
-                      <span className="text-[0.6rem] text-muted-foreground/50">{SOURCE_LABELS[row.source] ?? row.source}</span>
-                    </div>
-                    <div className="space-y-1">
-                      {topSig.map((s) => (
-                        <div key={`${s.signal_name}-${s.timeframe}`} className="flex items-center gap-1.5">
-                          <SignalStrengthDots strength={s.strength} />
-                          <span className="text-[0.68rem] text-foreground/70 truncate">{s.signal_name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )
-      })()}
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        {/* Bias filter */}
-        <div className="flex rounded-lg bg-muted/20 border border-border/30 p-1 gap-1">
-          {(['ALL', 'BULLISH', 'BEARISH', 'NEUTRAL'] as const).map(b => (
-            <button
-              key={b}
-              onClick={() => setBiasFilter(b)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ${biasBtnCls(b, biasFilter === b)}`}
-            >
-              {biasBtnLabel(b)}
-            </button>
-          ))}
-        </div>
-
-        {/* Source filter */}
-        <div className="flex flex-wrap gap-1.5">
-          {sources.map(s => (
-            <button
-              key={s}
-              onClick={() => setSourceFilter(s)}
-              className={`text-[0.68rem] px-2.5 py-0.5 rounded-full border transition-colors ${
-                sourceFilter === s
-                  ? 'border-primary/60 bg-primary/15 text-primary'
-                  : 'border-border/40 text-muted-foreground hover:border-border/70 hover:text-foreground'
-              }`}
-            >
-              {s === 'ALL' ? 'Todas las fuentes' : SOURCE_LABELS[s] ?? s}
-            </button>
-          ))}
-        </div>
-
-        {/* Timeframe filter */}
-        <div className="flex rounded-lg bg-muted/20 border border-border/30 p-1 gap-1">
-          {(['ALL', 'DAILY', 'WEEKLY'] as const).map(tf => (
-            <button
-              key={tf}
-              onClick={() => setTfFilter(tf)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ${
-                tfFilter === tf
-                  ? 'bg-background text-foreground border-border/40 shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground border-transparent'
-              }`}
-            >
-              {tfLabel(tf)}
-            </button>
-          ))}
-        </div>
-
-        {/* Min strength filter */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/20 border border-border/30">
-          <span className="text-xs text-muted-foreground">Fuerza mín:</span>
-          {[1, 2, 3].map(s => (
-            <button
-              key={s}
-              onClick={() => setStrengthFilter(s)}
-              className={`w-5 h-5 rounded-full text-xs font-bold transition-all ${
-                strengthFilter === s ? 'bg-primary text-primary-foreground' : 'bg-muted/40 text-muted-foreground hover:bg-muted/60'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        {/* My portfolio filter */}
-        {myPositions.length > 0 && (
-          <button
-            onClick={() => setOnlyMyPortfolio(v => !v)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-              onlyMyPortfolio
-                ? 'bg-primary/20 border-primary/50 text-primary'
-                : 'bg-muted/20 border-border/30 text-muted-foreground hover:text-foreground hover:border-border/60'
-            }`}
-          >
-            <Wallet size={12} />
-            Mi Cartera
-          </button>
-        )}
-      </div>
-
-      {/* Results count */}
-      <div className="text-sm text-muted-foreground">
-        Mostrando <strong className="text-foreground">{filteredSummary.length}</strong> tickers
-        {biasFilter !== 'ALL' && ` · ${biasResultLabel(biasFilter)}`}
-        {sourceFilter !== 'ALL' && ` · ${SOURCE_LABELS[sourceFilter] ?? sourceFilter}`}
-        {totalPages > 1 && ` · pág. ${page}/${totalPages}`}
-      </div>
-
       {/* Cards */}
-      {filteredSummary.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          No hay tickers con los filtros seleccionados.
+      {displayed.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground">
+          No hay setups {showBearish ? 'bajistas' : 'alcistas'} con ≥3 señales confirmadas hoy.
         </div>
       ) : (
-        <div className="space-y-3 animate-fade-in-up">
-          {pagedSummary.map(row => {
+        <div className="space-y-2.5 animate-fade-in-up">
+          {displayed.map(row => {
             const rowSignals = signalsMap.get(row.ticker) ?? []
-            if (rowSignals.length === 0 && strengthFilter > 1) return null
-            return (
-              <TickerCard key={row.ticker} row={row} signals={rowSignals} />
-            )
+            return <TickerCard key={row.ticker} row={row} signals={rowSignals} />
           })}
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-2">
-          <button
-            onClick={() => goToPage(page - 1)}
-            disabled={page === 1}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border/40 bg-muted/20 text-muted-foreground hover:text-foreground hover:border-border/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            ← Anterior
-          </button>
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-              <button
-                key={p}
-                onClick={() => goToPage(p)}
-                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all border ${
-                  p === page
-                    ? 'bg-primary/20 border-primary/50 text-primary'
-                    : 'border-border/30 bg-muted/20 text-muted-foreground hover:text-foreground hover:border-border/60'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => goToPage(page + 1)}
-            disabled={page === totalPages}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border/40 bg-muted/20 text-muted-foreground hover:text-foreground hover:border-border/60 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            Siguiente →
-          </button>
-        </div>
+      {/* Footer: cuántos más hay */}
+      {!showBearish && summary.filter(r => r.bias === 'BULLISH').length > actionable.length && (
+        <p className="text-center text-xs text-muted-foreground/40 pt-2">
+          {summary.filter(r => r.bias === 'BULLISH').length - actionable.length} tickers alcistas adicionales con &lt;3 señales — no mostrados
+        </p>
       )}
     </div>
   )
