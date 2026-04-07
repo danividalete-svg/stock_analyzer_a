@@ -102,7 +102,6 @@ export default function MeanReversion() {
   if (Array.isArray(raw?.opportunities)) items = raw.opportunities as MRItem[]
   else if (Array.isArray(raw?.data)) items = raw.data as MRItem[]
 
-  const scanDate = (raw?.scan_date as string | undefined)?.slice(0, 10)
     ?? items[0]?.detected_date
     ?? null
 
@@ -147,7 +146,7 @@ export default function MeanReversion() {
 
   return (
     <>
-      <StaleDataBanner dataDate={scanDate} />
+      <StaleDataBanner module="mean_reversion" />
       <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
         <div className="flex-1">
           <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Mean Reversion</h2>

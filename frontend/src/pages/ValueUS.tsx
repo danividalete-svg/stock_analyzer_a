@@ -238,7 +238,7 @@ export default function ValueUS() {
 
   return (
     <>
-      <StaleDataBanner />
+      <StaleDataBanner module="value_us" />
       <PageHeader
         title={<>
           VALUE US

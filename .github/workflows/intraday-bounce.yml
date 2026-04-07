@@ -1,0 +1,53 @@
+name: Intraday Bounce Scanner
+
+on:
+  schedule:
+    # Cada 30 min Lun-Vie 13:30-20:30 UTC (9:30am-4:30pm ET)
+    - cron: '*/30 13-20 * * 1-5'
+  workflow_dispatch:  # Trigger manual para testing
+
+jobs:
+  bounce-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install deps
+        run: pip install pandas numpy yfinance requests
+
+      - name: Run Bounce Scanner
+        id: bounce
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python3 intraday_bounce_scanner.py
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Commit alert log
+        if: steps.bounce.outputs.exit_code == '0'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name  "GitHub Actions Bot"
+          git add docs/intraday_bounce_alerts.json 2>/dev/null || true
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          TIMESTAMP=$(date -u +"%H:%M UTC")
+          git commit -m "chore: Bounce alert log — ${TIMESTAMP}"
+          git fetch origin main && git rebase origin/main && git push || \
+          (git rebase --abort 2>/dev/null || true; git fetch origin main && git rebase origin/main && git push) || \
+          echo "Push failed after retry (concurrent update)"
+
+env:
+  PYTHONUNBUFFERED: 1

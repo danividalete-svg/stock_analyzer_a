@@ -1272,7 +1272,6 @@ export default function Dashboard() {
 
   const signalsNum = activeSignals > 0 ? activeSignals : totalSignals > 0 ? totalSignals : null
 
-  const macroDate = (macroRaw as { date?: string } | null)?.date ?? null
 
   return (
     <>
@@ -1284,7 +1283,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <StaleDataBanner dataDate={macroDate} />
+      <StaleDataBanner module="macro" />
 
       {/* Live prices bar — real-time, polls every 60s */}
       <LivePricesBar />

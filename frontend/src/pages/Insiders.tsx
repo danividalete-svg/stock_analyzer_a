@@ -130,7 +130,7 @@ export default function Insiders() {
 
   return (
     <>
-      <StaleDataBanner />
+      <StaleDataBanner module="insiders" />
       <div className="mb-7 animate-fade-in-up">
         <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title">Recurring Insiders</h2>
         <p className="text-sm text-muted-foreground">Insiders comprando repetidamente sus propias acciones — señal de convicción directiva</p>

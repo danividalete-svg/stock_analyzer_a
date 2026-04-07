@@ -261,11 +261,10 @@ export default function Cerebro() {
     { id: 'calibration' as const, label: 'Calibración',     icon: SlidersHorizontal, count: calibration?.total_recommendations },
   ]
 
-  const cerebroDate = briefingData?.generated_at?.slice(0, 10) ?? null
 
   return (
     <>
-      <StaleDataBanner dataDate={cerebroDate} />
+      <StaleDataBanner module="cerebro" />
       {/* Header */}
       <div className="mb-7 animate-fade-in-up">
         <h2 className="text-2xl font-extrabold tracking-tight mb-2 gradient-title flex items-center gap-2">

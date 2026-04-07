@@ -1,64 +1,56 @@
 import { useEffect, useState } from 'react'
-import { fetchPipelineStatus } from '../api/client'
-import type { PipelineStatus } from '../api/client'
+import { fetchPipelineStatus, fetchPipelineHealth } from '../api/client'
+import type { PipelineStatus, PipelineHealth } from '../api/client'
 
-// ── Business-day staleness logic ─────────────────────────────────────────────
-// Pipeline runs Mon-Fri at ~07:00 UTC. We consider data stale if:
-//   - It's a weekday and last_run is >1 calendar day old (missed today's run)
-//   - It's a weekend and last_run is >3 calendar days old (missed Friday)
-// Threshold: 1.5 business days to tolerate timezone offsets + CI delays.
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-function businessDaysSince(isoDate: string): { calendarDays: number; stale: boolean; label: string } {
-  const runDate = new Date(isoDate)
-  const now = new Date()
-  const diffMs = now.getTime() - runDate.getTime()
-  const calendarDays = diffMs / (1000 * 60 * 60 * 24)
-
-  const dowNow = now.getUTCDay() // 0=Sun,6=Sat
-  const isWeekend = dowNow === 0 || dowNow === 6
-
-  // Stale if last run is more than 1 business day old
-  // On weekends: 3 days is fine (Friday run), 4+ is stale
-  const threshold = isWeekend ? 3.5 : 1.5
-  const stale = calendarDays > threshold
-
-  const daysRounded = Math.floor(calendarDays)
-  const label = daysRounded === 0
-    ? 'hoy'
-    : daysRounded === 1
-    ? 'ayer'
-    : `hace ${daysRounded} días`
-
-  return { calendarDays, stale, label }
+function daysSince(isoDate: string): number {
+  return (Date.now() - new Date(isoDate).getTime()) / (1000 * 60 * 60 * 24)
 }
 
-function formatRunDate(isoDate: string): string {
-  const d = new Date(isoDate)
-  return d.toLocaleDateString('es-ES', {
+function isPipelineStale(lastRun: string): boolean {
+  const days = daysSince(lastRun)
+  const dow = new Date().getUTCDay()
+  const isWeekend = dow === 0 || dow === 6
+  return days > (isWeekend ? 3.5 : 1.5)
+}
+
+function daysLabel(isoDate: string): string {
+  const d = Math.floor(daysSince(isoDate))
+  if (d === 0) return 'hoy'
+  if (d === 1) return 'ayer'
+  return `hace ${d} días`
+}
+
+function formatDate(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString('es-ES', {
     weekday: 'short', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit', timeZone: 'UTC',
   }) + ' UTC'
 }
 
-// ── Hook ─────────────────────────────────────────────────────────────────────
+// ── Module-level caches ───────────────────────────────────────────────────────
 
-let _cached: PipelineStatus | null | undefined = undefined  // module-level cache
+let _statusCache: PipelineStatus | null | undefined = undefined
+let _healthCache: PipelineHealth | null | undefined = undefined
 
 export function usePipelineStatus() {
-  const [status, setStatus] = useState<PipelineStatus | null | undefined>(_cached)
-
+  const [status, setStatus] = useState<PipelineStatus | null | undefined>(_statusCache)
   useEffect(() => {
-    if (_cached !== undefined) return  // already fetched this session
-    fetchPipelineStatus().then(s => {
-      _cached = s
-      setStatus(s)
-    })
+    if (_statusCache !== undefined) return
+    fetchPipelineStatus().then(s => { _statusCache = s; setStatus(s) })
   }, [])
+  if (!status) return null
+  return { status, stale: isPipelineStale(status.last_run), label: daysLabel(status.last_run) }
+}
 
-  if (status === undefined || status === null) return null
-
-  const { calendarDays, stale, label } = businessDaysSince(status.last_run)
-  return { status, calendarDays, stale, label }
+export function usePipelineHealth() {
+  const [health, setHealth] = useState<PipelineHealth | null | undefined>(_healthCache)
+  useEffect(() => {
+    if (_healthCache !== undefined) return
+    fetchPipelineHealth().then(h => { _healthCache = h; setHealth(h) })
+  }, [])
+  return health ?? null
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -66,63 +58,112 @@ export function usePipelineStatus() {
 const ACTIONS_URL = 'https://github.com/tantancansado/stock_analyzer_a/actions/workflows/daily-analysis.yml'
 
 interface StaleDataBannerProps {
-  /** Override: only show if data age > this many days (default: uses pipeline_status) */
+  /** Module name from pipeline_health.json (e.g. "cerebro", "value_us") */
+  module?: string
+  /** Legacy: explicit date override — use module instead */
   dataDate?: string | null
   className?: string
 }
 
-export default function StaleDataBanner({ dataDate, className = '' }: StaleDataBannerProps) {
+export default function StaleDataBanner({ module, dataDate, className = '' }: StaleDataBannerProps) {
   const pipelineInfo = usePipelineStatus()
+  const health = usePipelineHealth()
 
-  // Determine what date to use for staleness check
+  // ── Case 1: module-aware mode ────────────────────────────────────────────
+  if (module && health) {
+    const mod = health.modules[module]
+    const pipelineRanToday = health.pipeline_date === new Date().toISOString().slice(0, 10)
+    const pipelineRanRecently = !isPipelineStale(health.generated_at)
+
+    // Module is fresh → no banner
+    if (mod?.status === 'ok') return null
+
+    // Pipeline never ran recently → red global warning (not module-specific)
+    if (!pipelineRanRecently) {
+      const days = Math.floor(daysSince(health.generated_at))
+      return (
+        <div className={`rounded-xl border px-4 py-3 mb-5 animate-fade-in-up flex items-start gap-3 bg-red-500/8 border-red-500/30 ${className}`}>
+          <span className="text-lg shrink-0 mt-0.5">🔴</span>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-red-400 mb-0.5">
+              Pipeline no ejecutado en {days} días
+              <span className="font-normal ml-1.5 text-[0.8rem] text-red-300/80">— datos posiblemente incorrectos</span>
+            </div>
+            <div className="text-[0.7rem] text-muted-foreground/60">Última ejecución: {formatDate(health.generated_at)}</div>
+          </div>
+          <a href={ACTIONS_URL} target="_blank" rel="noopener noreferrer"
+            className="shrink-0 text-[0.7rem] font-bold px-3 py-1.5 rounded-lg border bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25 transition-colors">
+            Lanzar pipeline →
+          </a>
+        </div>
+      )
+    }
+
+    // Pipeline ran but this module didn't update → amber warning
+    const moduleDate = mod?.date ?? null
+    const daysOld = moduleDate ? Math.floor(daysSince(moduleDate)) : null
+    return (
+      <div className={`rounded-xl border px-4 py-3 mb-5 animate-fade-in-up flex items-start gap-3 bg-amber-500/8 border-amber-500/30 ${className}`}>
+        <span className="text-lg shrink-0 mt-0.5">🟡</span>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-bold text-amber-400 mb-0.5">
+            {mod?.status === 'missing' ? 'Módulo sin datos' : 'Módulo no actualizado hoy'}
+            {daysOld != null && daysOld > 0 && (
+              <span className="font-normal ml-1.5 text-[0.8rem]">— última actualización hace {daysOld} días</span>
+            )}
+          </div>
+          <div className="text-[0.7rem] text-muted-foreground/60">
+            {pipelineRanToday
+              ? 'El pipeline corrió hoy pero este módulo no generó datos nuevos — puede haber fallado o no tener datos disponibles.'
+              : `Pipeline ejecutado: ${formatDate(health.generated_at)}`}
+          </div>
+        </div>
+        <a href={ACTIONS_URL} target="_blank" rel="noopener noreferrer"
+          className="shrink-0 text-[0.7rem] font-bold px-3 py-1.5 rounded-lg border bg-amber-500/15 border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-colors">
+          Ver pipeline →
+        </a>
+      </div>
+    )
+  }
+
+  // ── Case 2: legacy date-override or global pipeline check ────────────────
   const checkDate = dataDate || pipelineInfo?.status?.last_run || null
-
   if (!checkDate) return null
 
-  const { stale, label, calendarDays } = businessDaysSince(checkDate)
+  const days = daysSince(checkDate)
+  const stale = isPipelineStale(checkDate)
   if (!stale) return null
 
-  const daysOld = Math.floor(calendarDays)
+  const daysOld = Math.floor(days)
   const isVeryStale = daysOld >= 3
 
   return (
     <div className={`rounded-xl border px-4 py-3 mb-5 animate-fade-in-up flex items-start gap-3 ${
-      isVeryStale
-        ? 'bg-red-500/8 border-red-500/30'
-        : 'bg-amber-500/8 border-amber-500/30'
+      isVeryStale ? 'bg-red-500/8 border-red-500/30' : 'bg-amber-500/8 border-amber-500/30'
     } ${className}`}>
-      {/* Icon */}
       <span className="text-lg shrink-0 mt-0.5">{isVeryStale ? '🔴' : '🟡'}</span>
-
-      {/* Main content */}
       <div className="flex-1 min-w-0">
         <div className={`text-sm font-bold mb-0.5 ${isVeryStale ? 'text-red-400' : 'text-amber-400'}`}>
           Datos posiblemente desactualizados
-          <span className="font-normal ml-1.5 text-[0.8rem]">— última actualización {label}</span>
+          <span className="font-normal ml-1.5 text-[0.8rem]">— última actualización {daysLabel(checkDate)}</span>
         </div>
         {pipelineInfo?.status && (
           <div className="text-[0.7rem] text-muted-foreground/60">
-            Pipeline ejecutado: {formatRunDate(pipelineInfo.status.last_run)}
+            Pipeline ejecutado: {formatDate(pipelineInfo.status.last_run)}
             {isVeryStale && (
               <span className="ml-2 text-red-400/80 font-semibold">
-                El pipeline no se ha ejecutado en {daysOld} días — los datos pueden ser incorrectos
+                · No ejecutado en {daysOld} días
               </span>
             )}
           </div>
         )}
       </div>
-
-      {/* Action */}
-      <a
-        href={ACTIONS_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+      <a href={ACTIONS_URL} target="_blank" rel="noopener noreferrer"
         className={`shrink-0 text-[0.7rem] font-bold px-3 py-1.5 rounded-lg border transition-colors ${
           isVeryStale
             ? 'bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25'
             : 'bg-amber-500/15 border-amber-500/30 text-amber-400 hover:bg-amber-500/25'
-        }`}
-      >
+        }`}>
         Lanzar pipeline →
       </a>
     </div>

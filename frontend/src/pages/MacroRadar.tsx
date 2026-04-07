@@ -919,7 +919,7 @@ export default function MacroRadar() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <StaleDataBanner dataDate={date} />
+      <StaleDataBanner module="macro" />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">

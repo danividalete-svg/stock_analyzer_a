@@ -76,7 +76,7 @@ export default function MicroCap() {
 
   return (
     <div className="space-y-4 p-4">
-      <StaleDataBanner />
+      <StaleDataBanner module="micro_cap" />
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>

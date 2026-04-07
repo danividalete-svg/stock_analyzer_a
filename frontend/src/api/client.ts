@@ -756,13 +756,37 @@ export interface PipelineStatus {
   run_id?: string
 }
 
+export interface ModuleHealth {
+  status: 'ok' | 'stale' | 'missing'
+  date: string | null
+  days_ago?: number
+}
+
+export interface PipelineHealth {
+  generated_at: string        // ISO UTC
+  pipeline_date: string       // YYYY-MM-DD
+  ok_count: number
+  total: number
+  modules: Record<string, ModuleHealth>
+}
+
+const _csvBase = () => (import.meta.env.VITE_CSV_BASE as string | undefined) || ''
+
 export const fetchPipelineStatus = async (): Promise<PipelineStatus | null> => {
   try {
-    const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
-    const base = csvBase || ''
-    const res = await fetch(`${base}/docs/pipeline_status.json`, { cache: 'no-store' })
+    const res = await fetch(`${_csvBase()}/docs/pipeline_status.json`, { cache: 'no-store' })
     if (!res.ok) return null
     return await res.json() as PipelineStatus
+  } catch {
+    return null
+  }
+}
+
+export const fetchPipelineHealth = async (): Promise<PipelineHealth | null> => {
+  try {
+    const res = await fetch(`${_csvBase()}/docs/pipeline_health.json`, { cache: 'no-store' })
+    if (!res.ok) return null
+    return await res.json() as PipelineHealth
   } catch {
     return null
   }

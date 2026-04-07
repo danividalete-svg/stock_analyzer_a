@@ -77,7 +77,7 @@ export default function Momentum() {
 
   return (
     <>
-      <StaleDataBanner />
+      <StaleDataBanner module="momentum" />
       <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
         <div className="flex-1">
           <h2 className="text-2xl font-extrabold tracking-tight mb-2 flex items-center gap-2">

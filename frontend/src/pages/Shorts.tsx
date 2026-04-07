@@ -72,7 +72,6 @@ export default function Shorts() {
   if (error)   return <ErrorState message={error} />
 
   const rows: ShortOpportunity[] = (data as any)?.data ?? []
-  const scanDate: string = (data as any)?.scan_date ?? ''
   const aiFilterAvailable: boolean = (data as any)?.ai_filtered_available ?? false
 
   // Por defecto: solo ALTA calidad + squeeze risk no HIGH
@@ -110,7 +109,7 @@ export default function Shorts() {
 
   return (
     <div className="space-y-4">
-      <StaleDataBanner dataDate={scanDate} />
+      <StaleDataBanner module="shorts" />
 
       {/* Header */}
       <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">

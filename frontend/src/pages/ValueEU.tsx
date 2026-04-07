@@ -219,7 +219,7 @@ export default function ValueEU() {
 
   return (
     <>
-      <StaleDataBanner />
+      <StaleDataBanner module="value_eu" />
       <PageHeader
         title={<>
           VALUE Europa
