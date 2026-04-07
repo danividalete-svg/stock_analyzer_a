@@ -21,7 +21,7 @@
     {
       "instrument": "GLD / GDX",
       "direction": "LONG",
-      "thesis": "Oro superando al mercado (p84) con VIX elevado \u2014 refugio activo",
+      "thesis": "Oro superando al mercado (p85) con VIX elevado \u2014 refugio activo",
       "historical": "GLD +15% promedio en entornos VIX>25 sostenido",
       "risk": "Subida de tipos reales puede frenar el oro",
       "timeframe": "1-3 meses",
@@ -67,5 +67,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-04-07 | STRESS (-2.0) | NEUTRO | VALUE:  | Evitar: ",
   "ai_powered": false,
-  "intraday_refresh": "2026-04-07T17:13:44.873335"
+  "intraday_refresh": "2026-04-07T18:11:36.011152"
 }
