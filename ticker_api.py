@@ -1160,6 +1160,10 @@ def micro_cap():
 def shorts():
     data = _load_json(DOCS / 'short_opportunities.json')
     if data:
+        # Annotate whether AI filter has run
+        filtered = _load_json(DOCS / 'short_opportunities_filtered.json')
+        data['ai_filtered_available'] = bool(filtered and filtered.get('data'))
+        data['confirmed_count'] = filtered.get('confirmed_shorts', 0) if filtered else 0
         return jsonify(data)
     return _csv_to_json_response([
         (DOCS / 'short_opportunities.csv', 'csv'),

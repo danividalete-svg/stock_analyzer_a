@@ -326,6 +326,9 @@ export interface ShortOpportunity {
   piotroski_score?: number
   key_risks?: string
   short_thesis?: string
+  ai_verdict?: 'BUY' | 'HOLD' | 'AVOID' | null
+  ai_confidence?: number | null
+  ai_reasoning?: string | null
 }
 
 export interface ShortScanData {
@@ -335,6 +338,8 @@ export interface ShortScanData {
   media: number
   baja: number
   data: ShortOpportunity[]
+  ai_filtered_available?: boolean
+  confirmed_count?: number
 }
 
 export const fetchShortOpportunities = () =>

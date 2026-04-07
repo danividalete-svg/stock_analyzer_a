@@ -69,6 +69,7 @@ export default function Shorts() {
   const [filterQuality, setFilterQuality] = useState('ALL')
   const [filterSector, setFilterSector]   = useState('ALL')
   const [filterSqueeze, setFilterSqueeze] = useState('ALL')
+  const [onlyAiConfirmed, setOnlyAiConfirmed] = useState(false)
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null)
 
   if (loading) return <Loading />
@@ -76,6 +77,8 @@ export default function Shorts() {
 
   const rows: ShortOpportunity[] = (data as any)?.data ?? []
   const scanDate: string = (data as any)?.scan_date ?? ''
+  const aiFilterAvailable: boolean = (data as any)?.ai_filtered_available ?? false
+  const confirmedCount: number = (data as any)?.confirmed_count ?? 0
 
   const sectors = Array.from(new Set(rows.map(r => r.sector).filter(Boolean))).sort() as string[]
 
@@ -84,6 +87,10 @@ export default function Shorts() {
     .filter(r => filterSector  === 'ALL' || r.sector === filterSector)
     .filter(r => {
       if (filterSqueeze === 'LOW_ONLY') return r.squeeze_risk === 'LOW' || !r.squeeze_risk
+      return true
+    })
+    .filter(r => {
+      if (onlyAiConfirmed) return r.ai_verdict === 'BUY' && (r.ai_confidence ?? 0) >= 65
       return true
     })
     .sort((a, b) => {
@@ -110,21 +117,45 @@ export default function Shorts() {
   const media = rows.filter(r => r.short_quality === 'MEDIA').length
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4">
       <StaleDataBanner dataDate={scanDate} />
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+      <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <TrendingDown size={18} className="text-red-400" />
-            Oportunidades en Corto
+          <h1 className="text-2xl font-extrabold tracking-tight gradient-title mb-1 flex items-center gap-2">
+            <TrendingDown size={20} className="text-red-400" />
+            Cortos
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Empresas con deterioro fundamental + rotura técnica confirmada · Solo cortos con bajo riesgo de squeeze
+          <p className="text-sm text-muted-foreground">
+            Deterioro fundamental + rotura técnica confirmada · Solo bajo riesgo de squeeze
           </p>
         </div>
       </div>
+
+      {/* AI filter status banner */}
+      {aiFilterAvailable ? (
+        <div className="rounded-xl border border-purple-500/30 bg-purple-500/8 px-4 py-3 flex items-center gap-3">
+          <span className="text-lg">🤖</span>
+          <div className="flex-1">
+            <span className="text-sm font-semibold text-purple-400">Filtro IA activo</span>
+            <span className="text-xs text-muted-foreground ml-2">
+              {confirmedCount} cortos confirmados por Groq (llama-3.3-70b) de {rows.filter(r => r.ai_verdict).length} analizados
+            </span>
+          </div>
+          <button
+            onClick={() => setOnlyAiConfirmed(v => !v)}
+            className={`filter-btn ${onlyAiConfirmed ? 'active' : ''}`}
+          >
+            {onlyAiConfirmed ? `🤖 IA: ${confirmedCount} activos` : '🤖 Solo IA confirmados'}
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/30 bg-muted/5 px-4 py-3 flex items-center gap-3 text-xs text-muted-foreground/50">
+          <span>🤖</span>
+          <span>Filtro IA pendiente — se ejecutará en el próximo pipeline diario</span>
+        </div>
+      )}
 
       {/* Risk disclaimer */}
       <div className="rounded-lg border border-red-500/30 bg-red-500/8 px-4 py-2.5 text-xs text-red-300/80 space-y-1">
@@ -198,6 +229,7 @@ export default function Shorts() {
                 <SortTh k="rev_growth_yoy">Rev%</SortTh>
                 <SortTh k="short_interest_pct">SI%</SortTh>
                 <TableHead>Riesgos</TableHead>
+                {aiFilterAvailable && <TableHead>IA</TableHead>}
                 <TableHead className="w-8" />
               </TableRow>
             </TableHeader>
@@ -281,6 +313,25 @@ export default function Shorts() {
                           ))}
                         </div>
                       </TableCell>
+                      {aiFilterAvailable && (
+                        <TableCell>
+                          {r.ai_verdict === 'BUY' ? (
+                            <span title={r.ai_reasoning ?? ''} className="text-[0.62rem] font-bold px-1.5 py-0.5 rounded border bg-purple-500/15 border-purple-500/30 text-purple-400 cursor-help">
+                              ✓ {r.ai_confidence}
+                            </span>
+                          ) : r.ai_verdict === 'AVOID' ? (
+                            <span title={r.ai_reasoning ?? ''} className="text-[0.62rem] font-bold px-1.5 py-0.5 rounded border bg-red-500/10 border-red-500/20 text-red-400/60 cursor-help">
+                              ✗
+                            </span>
+                          ) : r.ai_verdict === 'HOLD' ? (
+                            <span title={r.ai_reasoning ?? ''} className="text-[0.62rem] font-bold px-1.5 py-0.5 rounded border bg-amber-500/10 border-amber-500/20 text-amber-400/60 cursor-help">
+                              ~
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground/30 text-xs">—</span>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell>
                         <WatchlistButton ticker={r.ticker} />
                       </TableCell>
@@ -337,8 +388,16 @@ export default function Shorts() {
 
                               {r.short_thesis && (
                                 <div className="mt-2 rounded-lg bg-red-500/6 border border-red-500/15 px-3 py-2">
-                                  <p className="text-[0.6rem] font-bold uppercase text-red-400/60 mb-1">Tesis bajista (IA)</p>
+                                  <p className="text-[0.6rem] font-bold uppercase text-red-400/60 mb-1">Tesis bajista</p>
                                   <p className="text-xs text-foreground/80 leading-snug">{r.short_thesis}</p>
+                                </div>
+                              )}
+                              {r.ai_reasoning && (
+                                <div className={`mt-2 rounded-lg px-3 py-2 border ${r.ai_verdict === 'BUY' ? 'bg-purple-500/8 border-purple-500/20' : 'bg-amber-500/6 border-amber-500/15'}`}>
+                                  <p className="text-[0.6rem] font-bold uppercase mb-1" style={{ color: r.ai_verdict === 'BUY' ? '#a78bfa' : '#fbbf24' }}>
+                                    🤖 Validación IA — {r.ai_verdict} ({r.ai_confidence}% conf.)
+                                  </p>
+                                  <p className="text-xs text-foreground/80 leading-snug">{r.ai_reasoning}</p>
                                 </div>
                               )}
                             </div>

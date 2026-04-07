@@ -62,6 +62,53 @@ CRITICAL SAFETY CHECKS:
 
 Respond ONLY with JSON:
 {{"verdict": "BUY"|"HOLD"|"AVOID", "confidence": 0-100, "reasoning": "brief explanation"}}"""
+        elif strategy == "SHORT":
+            prompt = f"""You are a short-seller analyst. Validate this bearish opportunity.
+
+{ticker_data['ticker']} - {ticker_data.get('sector','?')} - ${ticker_data.get('current_price', 0):.2f}
+
+SHORT THESIS SCORE: {ticker_data.get('short_score', 'N/A')}/100
+Quality: {ticker_data.get('short_quality', 'N/A')}
+
+TECHNICAL BREAKDOWN (bearish signals):
+Weinstein Stage: {ticker_data.get('weinstein_stage', 'N/A')} (4 = confirmed downtrend)
+Death Cross (MA50<MA200): {ticker_data.get('death_cross', 'N/A')}
+Below MA200: {ticker_data.get('below_ma200', 'N/A')}
+% from 52w high: {ticker_data.get('pct_from_52w_high', 'N/A')}%
+RSI daily: {ticker_data.get('rsi_daily', 'N/A')}
+
+FUNDAMENTAL DETERIORATION:
+Revenue growth YoY: {ticker_data.get('rev_growth_yoy', 'N/A')}%
+ROE: {ticker_data.get('roe_pct', 'N/A')}%
+FCF yield: {ticker_data.get('fcf_yield_pct', 'N/A')}%
+Debt/Equity: {ticker_data.get('debt_to_equity', 'N/A')}
+Operating margin: {ticker_data.get('operating_margin', 'N/A')}%
+Piotroski score: {ticker_data.get('piotroski_score', 'N/A')}/9 (low = weak fundamentals)
+
+ANALYST CONSENSUS:
+Analyst target: ${ticker_data.get('analyst_target', 'N/A')} (upside from current: {ticker_data.get('analyst_upside_pct', 'N/A')}%)
+Note: For shorts, NEGATIVE analyst upside = analyst target BELOW current price = bearish confirmation
+
+SHORT RISK FACTORS (why this short could FAIL):
+Short interest: {ticker_data.get('short_interest_pct', 'N/A')}% (>20% = squeeze risk)
+Squeeze risk: {ticker_data.get('squeeze_risk', 'N/A')}
+Earnings within 5 days: {ticker_data.get('earnings_warning', 'N/A')}
+
+EXISTING SHORT THESIS (auto-generated):
+{ticker_data.get('short_thesis', 'N/A')}
+
+Validate this bearish thesis. Key questions:
+1. Is the technical breakdown CONFIRMED and sustained (not a temporary dip)?
+2. Are fundamentals GENUINELY deteriorating (not cyclical)?
+3. Is squeeze risk LOW enough to safely short?
+4. Does the analyst consensus support the bear case?
+5. Is there a specific catalyst driving further downside?
+
+IMPORTANT: For SHORT strategy, BUY means "confirmed SHORT opportunity" (good to short), AVOID means the thesis is weak or squeeze risk too high.
+
+Respond ONLY with JSON:
+{{"verdict": "BUY"|"HOLD"|"AVOID", "confidence": 0-100, "reasoning": "brief explanation of bearish thesis strength"}}"""
+
         else:  # VALUE
             prompt = f"""Analyze this VALUE stock opportunity as a fundamental analyst.
 
@@ -557,12 +604,140 @@ def filter_opportunities(input_path: Path, strategy_name: str, score_field: str)
     return len(df_filtered)
 
 
+def filter_shorts():
+    """
+    AI double-check for short opportunities from short_opportunities.json.
+    Adds ai_verdict, ai_confidence, ai_reasoning to each short.
+    Saves docs/short_opportunities_filtered.json — only HIGH-confidence confirmed shorts.
+    """
+    import json as _json
+    short_path = Path('docs/short_opportunities.json')
+    if not short_path.exists():
+        print("❌ short_opportunities.json not found — run short_scanner.py first")
+        return 0
+
+    try:
+        with open(short_path) as f:
+            raw = _json.load(f)
+    except Exception as e:
+        print(f"❌ Error loading short_opportunities.json: {e}")
+        return 0
+
+    shorts = raw.get('data', [])
+    if not shorts:
+        print("⚠️  No short opportunities to filter")
+        return 0
+
+    # Only process MEDIA + ALTA quality shorts (BAJA not worth AI time)
+    candidates = [s for s in shorts if s.get('short_quality') in ('ALTA', 'MEDIA')]
+    print(f"\n📊 Short candidates for AI review: {len(candidates)}/{len(shorts)} (ALTA+MEDIA quality)")
+
+    results = []
+    confirmed = 0
+
+    print(f"\n🤖 Validating with Groq AI (SHORT strategy)...")
+    print("-" * 100)
+
+    for s in candidates:
+        ticker = s.get('ticker', '?')
+        ticker_data = {
+            'ticker': ticker,
+            'sector': s.get('sector', ''),
+            'current_price': s.get('current_price', 0),
+            'short_score': s.get('short_score', 0),
+            'short_quality': s.get('short_quality', ''),
+            'weinstein_stage': s.get('weinstein_stage'),
+            'death_cross': s.get('death_cross'),
+            'below_ma200': s.get('below_ma200'),
+            'pct_from_52w_high': s.get('pct_from_52w_high'),
+            'rsi_daily': s.get('rsi_daily'),
+            'rev_growth_yoy': s.get('rev_growth_yoy'),
+            'roe_pct': s.get('roe_pct'),
+            'fcf_yield_pct': s.get('fcf_yield_pct'),
+            'debt_to_equity': s.get('debt_to_equity'),
+            'operating_margin': s.get('operating_margin'),
+            'piotroski_score': s.get('piotroski_score'),
+            'analyst_target': s.get('analyst_target'),
+            'analyst_upside_pct': s.get('analyst_upside_pct'),
+            'short_interest_pct': s.get('short_interest_pct'),
+            'squeeze_risk': s.get('squeeze_risk', 'UNKNOWN'),
+            'earnings_warning': s.get('earnings_warning', False),
+            'short_thesis': s.get('short_thesis', ''),
+        }
+
+        analysis = analyze_with_ai(ticker_data, strategy='SHORT')
+
+        s['ai_verdict'] = analysis['verdict']
+        s['ai_confidence'] = analysis['confidence']
+        s['ai_reasoning'] = analysis['reasoning']
+        results.append(s)
+
+        emoji = '🟢' if analysis['verdict'] == 'BUY' else ('🟡' if analysis['verdict'] == 'HOLD' else '🔴')
+        if analysis['verdict'] == 'BUY':
+            confirmed += 1
+        print(f"{emoji} {ticker:<6} {analysis['verdict']:<6} (conf:{analysis['confidence']:>3}) — {analysis['reasoning'][:70]}")
+
+    # All candidates get AI annotation, but filtered = only BUY >= 65 confidence
+    confirmed_shorts = [s for s in results if s.get('ai_verdict') == 'BUY' and s.get('ai_confidence', 0) >= 65]
+    confirmed_shorts.sort(key=lambda x: x.get('ai_confidence', 0), reverse=True)
+
+    # Save annotated full list back to short_opportunities.json
+    # (add AI fields, keep all shorts)
+    all_shorts_annotated = []
+    tickers_done = {s['ticker'] for s in results}
+    for s in shorts:
+        if s['ticker'] in tickers_done:
+            annotated = next(r for r in results if r['ticker'] == s['ticker'])
+            all_shorts_annotated.append(annotated)
+        else:
+            # BAJA quality — no AI annotation, passthrough
+            s.setdefault('ai_verdict', None)
+            s.setdefault('ai_confidence', None)
+            s.setdefault('ai_reasoning', None)
+            all_shorts_annotated.append(s)
+
+    raw['data'] = all_shorts_annotated
+    with open(short_path, 'w') as f:
+        _json.dump(raw, f, indent=2, default=str)
+
+    # Save filtered (high-confidence confirmed shorts only)
+    filtered_output = {
+        'scan_date': raw.get('scan_date', ''),
+        'generated_at': raw.get('generated_at', ''),
+        'ai_filtered': True,
+        'total_candidates': len(candidates),
+        'confirmed_shorts': len(confirmed_shorts),
+        'data': confirmed_shorts,
+    }
+    filtered_path = Path('docs/short_opportunities_filtered.json')
+    with open(filtered_path, 'w') as f:
+        _json.dump(filtered_output, f, indent=2, default=str)
+
+    print(f"\n{'=' * 100}")
+    print(f"SHORT AI FILTER RESULTS")
+    print(f"  Candidates reviewed: {len(candidates)}")
+    print(f"  Confirmed SHORT (BUY ≥65): {len(confirmed_shorts)}")
+    print(f"  Saved: {filtered_path}")
+    print(f"{'=' * 100}")
+    return len(confirmed_shorts)
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='AI Quality Filter')
     parser.add_argument('--european', action='store_true',
                         help='Filter European VALUE opportunities only')
+    parser.add_argument('--shorts', action='store_true',
+                        help='AI double-check for short opportunities')
     args = parser.parse_args()
+
+    if args.shorts:
+        print("=" * 100)
+        print("AI-POWERED QUALITY FILTER - SHORT OPPORTUNITIES")
+        print("=" * 100)
+        n = filter_shorts()
+        print(f"\n✅ Confirmed short opportunities: {n}")
+        return
 
     if args.european:
         print("=" * 100)
