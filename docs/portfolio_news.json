@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-07",
-  "scan_time": "01:29",
+  "scan_time": "07:06",
   "tickers": [
     "BSX",
     "CRH",
@@ -13,10 +13,10 @@
     "V",
     "ZTS"
   ],
-  "count": 35,
-  "alta_count": 11,
+  "count": 37,
+  "alta_count": 13,
   "media_count": 7,
-  "new_alerts": 10,
+  "new_alerts": 3,
   "items": [
     {
       "id": "648b4b62-0f2e-3305-a9db-fe747a6e1ccc",
@@ -24,7 +24,7 @@
       "title": "Boston Scientific closes buyout of Valencia Technologies",
       "source": "MedTech Dive",
       "pub_date": "2026-04-06T10:00:00Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 21h",
       "url": "https://www.medtechdive.com/news/boston-scientific-closes-buyout-of-valencia-technologies/816669/",
       "importance": "ALTA"
     },
@@ -34,7 +34,7 @@
       "title": "Big Tech's second quarter just started, and it's already facing major challenges",
       "source": "Yahoo Finance",
       "pub_date": "2026-04-06T10:33:40Z",
-      "time_ago": "hace 14h",
+      "time_ago": "hace 20h",
       "url": "https://finance.yahoo.com/sectors/technology/article/big-techs-second-quarter-just-started-and-its-already-facing-major-challenges-103340081.html",
       "importance": "ALTA"
     },
@@ -44,7 +44,7 @@
       "title": "UnitedHealth Q1 Earnings Preview: What To Expect From Upcoming Report",
       "source": "GuruFocus.com",
       "pub_date": "2026-04-06T12:50:22Z",
-      "time_ago": "hace 12h",
+      "time_ago": "hace 18h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-q1-earnings-preview-expect-125022021.html",
       "importance": "ALTA"
     },
@@ -54,7 +54,7 @@
       "title": "Why Visa (V) Could Beat Earnings Estimates Again",
       "source": "Zacks",
       "pub_date": "2026-04-06T16:10:02Z",
-      "time_ago": "hace 9h",
+      "time_ago": "hace 14h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/why-visa-v-could-beat-161002847.html",
       "importance": "ALTA"
     },
@@ -64,7 +64,7 @@
       "title": "Privileged Access Management: Segura Chief Security Evangelist & Advisory CISO Joseph Carson, Live at RSAC 2026",
       "source": "Exec Edge",
       "pub_date": "2026-04-06T20:14:22Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 10h",
       "url": "https://tech.yahoo.com/cybersecurity/articles/privileged-access-management-segura-chief-201422625.html",
       "importance": "ALTA"
     },
@@ -74,7 +74,7 @@
       "title": "Humana shares surge 12% on 2027 Medicare rate boost; UNH, CVS rally",
       "source": "Investing.com",
       "pub_date": "2026-04-06T20:58:31Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/humana-shares-surge-12-2027-205831451.html",
       "importance": "ALTA"
     },
@@ -84,7 +84,7 @@
       "title": "New Medicare Payment Rate Released. Why UnitedHealth, Humana Are Popping.",
       "source": "Barrons.com",
       "pub_date": "2026-04-06T21:50:00Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 9h",
       "url": "https://www.barrons.com/articles/medicare-payment-rate-insurance-healthcare-unitedhealth-stock-7fb6d92c?siteid=yhoof2&yptr=yahoo",
       "importance": "ALTA"
     },
@@ -94,7 +94,7 @@
       "title": "UnitedHealth, Humana Among Stocks Getting a Boost From Medicare Decision",
       "source": "The Wall Street Journal",
       "pub_date": "2026-04-06T22:21:39Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 8h",
       "url": "https://www.wsj.com/livecoverage/stock-market-today-dow-sp-500-nasdaq-04-06-2026/card/unitedhealth-humana-among-stocks-getting-a-boost-from-medicare-decision-RDIhbhDEkwC5J0BKID3t?siteid=yhoof2&yptr=yahoo",
       "importance": "ALTA"
     },
@@ -104,7 +104,7 @@
       "title": "Microsoft’s Carbon Deal Tests How AI Growth Meets Environmental Demands",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-07T00:17:51Z",
-      "time_ago": "hace 1h",
+      "time_ago": "hace 6h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/microsoft-carbon-deal-tests-ai-001751150.html",
       "importance": "ALTA"
     },
@@ -114,7 +114,7 @@
       "title": "Microsoft's 84 Earnings Calls Reveal AI Reality Check As Nadella's Words Outpace Results",
       "source": "Benzinga",
       "pub_date": "2026-04-07T00:31:33Z",
-      "time_ago": "hace 57min",
+      "time_ago": "hace 6h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/microsofts-84-earnings-calls-reveal-003133571.html",
       "importance": "ALTA"
     },
@@ -124,19 +124,29 @@
       "title": "UnitedHealth, Humana, Health Insurers Jump On Higher Medicare Advantage Payments",
       "source": "Investor's Business Daily",
       "pub_date": "2026-04-07T01:10:43Z",
-      "time_ago": "hace 18min",
+      "time_ago": "hace 5h",
       "url": "https://www.investors.com/news/unitedhealth-humana-health-insurers-medicare-advantage-payments/?src=A00220&yptr=yahoo",
       "importance": "ALTA"
     },
     {
-      "id": "73e1e4ec-d9c0-3f10-8630-7394635ecd77",
-      "ticker": "V",
-      "title": "Why The Narrative Around Visa (V) Is Shifting As Analysts Reassess Upside And Risks",
+      "id": "d37f30e3-5156-3b7a-99a7-daa208f50e8e",
+      "ticker": "UNH",
+      "title": "UnitedHealth Faces 2027 Medicare Shift As Margin Recovery Efforts Scrutinized",
       "source": "Simply Wall St.",
-      "pub_date": "2026-04-05T02:13:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/why-narrative-around-visa-v-021300477.html",
-      "importance": "MEDIA"
+      "pub_date": "2026-04-07T05:11:54Z",
+      "time_ago": "hace 1h",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-faces-2027-medicare-shift-051154408.html",
+      "importance": "ALTA"
+    },
+    {
+      "id": "a5fdf442-039f-321c-86c7-76975c8a99b0",
+      "ticker": "V",
+      "title": "Visa’s BTS Tour Deal Links K Pop Reach With Undervalued Shares",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-07T05:13:00Z",
+      "time_ago": "hace 1h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/visa-bts-tour-deal-links-051300349.html",
+      "importance": "ALTA"
     },
     {
       "id": "287f8bb3-04bf-30fe-ad4f-470ba0da8e5b",
@@ -154,7 +164,7 @@
       "title": "1 Profitable Stock to Own for Decades and 2 That Underwhelm",
       "source": "StockStory",
       "pub_date": "2026-04-06T10:11:51Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 20h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/1-profitable-stock-own-decades-101151453.html",
       "importance": "MEDIA"
     },
@@ -164,7 +174,7 @@
       "title": "The Zacks Analyst Blog Highlights Broadcom, Visa, Home Depot and BayFirst Financial",
       "source": "Zacks",
       "pub_date": "2026-04-06T15:05:00Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 16h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/zacks-analyst-blog-highlights-broadcom-150500497.html",
       "importance": "MEDIA"
     },
@@ -174,7 +184,7 @@
       "title": "Mag 7 needs Q2 revenue growth in order to 'justify' massive capex",
       "source": "Yahoo Finance Video",
       "pub_date": "2026-04-06T19:56:12Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 11h",
       "url": "https://finance.yahoo.com/video/mag-7-needs-q2-revenue-growth-in-order-to-justify-massive-capex-195612917.html",
       "importance": "MEDIA"
     },
@@ -184,7 +194,7 @@
       "title": "Hon Hai Sales Rise 29.7% as AI Demand Holds Amid Geopolitical Risks",
       "source": "GuruFocus.com",
       "pub_date": "2026-04-06T21:04:04Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/sectors/technology/articles/hon-hai-sales-rise-29-210404376.html",
       "importance": "MEDIA"
     },
@@ -194,8 +204,18 @@
       "title": "Mega IPO Wave Builds As SpaceX Targets $2 Trillion Valuation",
       "source": "GuruFocus.com",
       "pub_date": "2026-04-06T21:09:00Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 9h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/mega-ipo-wave-builds-spacex-210900759.html",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "0824e753-dbfb-36b9-87d1-82bc8e5fd416",
+      "ticker": "MA",
+      "title": "Mastercard (MA) Price Target Cut by $60",
+      "source": "Insider Monkey",
+      "pub_date": "2026-04-07T07:02:50Z",
+      "time_ago": "hace 3min",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/mastercard-ma-price-target-cut-070250929.html",
       "importance": "MEDIA"
     },
     {
@@ -214,7 +234,7 @@
       "title": "Digital Payment Today - OwlTing Expands Digital Payment Reach with New Enterprise Clients",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-06T12:37:48Z",
-      "time_ago": "hace 12h",
+      "time_ago": "hace 18h",
       "url": "https://finance.yahoo.com/markets/crypto/articles/digital-payment-today-owlting-expands-123748845.html",
       "importance": "BAJA"
     },
@@ -224,7 +244,7 @@
       "title": "Investors Heavily Search Visa Inc. (V): Here is What You Need to Know",
       "source": "Zacks",
       "pub_date": "2026-04-06T13:00:06Z",
-      "time_ago": "hace 12h",
+      "time_ago": "hace 18h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/investors-heavily-search-visa-inc-130006006.html",
       "importance": "BAJA"
     },
@@ -234,7 +254,7 @@
       "title": "Is April 21 When UnitedHealth Group Finally Sheds Its Problem Past?",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-06T14:59:36Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 16h",
       "url": "https://247wallst.com/investing/2026/04/06/is-april-21-when-unitedhealth-group-finally-sheds-its-problem-past/",
       "importance": "BAJA"
     },
@@ -244,7 +264,7 @@
       "title": "3 of Wall Street’s Favorite Stocks for Long-Term Investors",
       "source": "StockStory",
       "pub_date": "2026-04-06T15:39:51Z",
-      "time_ago": "hace 9h",
+      "time_ago": "hace 15h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/3-wall-street-favorite-stocks-153951504.html",
       "importance": "BAJA"
     },
@@ -254,7 +274,7 @@
       "title": "Is Visa (V) the Safest Stock to Buy Now?",
       "source": "Insider Monkey",
       "pub_date": "2026-04-06T15:47:24Z",
-      "time_ago": "hace 9h",
+      "time_ago": "hace 15h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/visa-v-safest-stock-buy-154724945.html",
       "importance": "BAJA"
     },
@@ -264,7 +284,7 @@
       "title": "Is Visa (V) the Safest Stock to Buy Now?",
       "source": "Insider Monkey",
       "pub_date": "2026-04-06T15:47:24Z",
-      "time_ago": "hace 9h",
+      "time_ago": "hace 15h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/visa-v-safest-stock-buy-154724945.html",
       "importance": "BAJA"
     },
@@ -274,7 +294,7 @@
       "title": "How Visa Is Positioning for the Rise of AI-Led Commerce",
       "source": "Zacks",
       "pub_date": "2026-04-06T17:00:00Z",
-      "time_ago": "hace 8h",
+      "time_ago": "hace 14h",
       "url": "https://finance.yahoo.com/sectors/technology/articles/visa-positioning-rise-ai-led-170000194.html",
       "importance": "BAJA"
     },
@@ -284,7 +304,7 @@
       "title": "How Visa Is Positioning for the Rise of AI-Led Commerce",
       "source": "Zacks",
       "pub_date": "2026-04-06T17:00:00Z",
-      "time_ago": "hace 8h",
+      "time_ago": "hace 14h",
       "url": "https://finance.yahoo.com/sectors/technology/articles/visa-positioning-rise-ai-led-170000194.html",
       "importance": "BAJA"
     },
@@ -294,7 +314,7 @@
       "title": "2 Reasons to Watch UNH and 1 to Stay Cautious",
       "source": "StockStory",
       "pub_date": "2026-04-06T18:11:51Z",
-      "time_ago": "hace 7h",
+      "time_ago": "hace 12h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/2-reasons-watch-unh-1-181151564.html",
       "importance": "BAJA"
     },
@@ -304,18 +324,8 @@
       "title": "Got $1,000? The Best Pick-and-Shovel Growth Stock for the AI Supercycle Isn't American.",
       "source": "Motley Fool",
       "pub_date": "2026-04-06T18:20:00Z",
-      "time_ago": "hace 7h",
+      "time_ago": "hace 12h",
       "url": "https://www.fool.com/investing/2026/04/06/got-1000-best-pick-and-shovel-growth-stock-ai/",
-      "importance": "BAJA"
-    },
-    {
-      "id": "189d49fc-8b20-3397-9fe4-d7cc6b97167f",
-      "ticker": "MSFT",
-      "title": "Are Bearish Investors Wrong About Microsoft Stock?",
-      "source": "Motley Fool",
-      "pub_date": "2026-04-06T18:20:00Z",
-      "time_ago": "hace 7h",
-      "url": "https://www.fool.com/investing/2026/04/06/are-bearish-investors-wrong-about-microsoft-stock/",
       "importance": "BAJA"
     },
     {
@@ -324,7 +334,7 @@
       "title": "Market Chatter: OpenAI, Anthropic Finances Show Soaring Costs to Train AI Models, Process Queries",
       "source": "MT Newswires",
       "pub_date": "2026-04-06T19:00:24Z",
-      "time_ago": "hace 6h",
+      "time_ago": "hace 12h",
       "url": "https://finance.yahoo.com/sectors/technology/articles/market-chatter-openai-anthropic-finances-190024342.html",
       "importance": "BAJA"
     },
@@ -334,7 +344,7 @@
       "title": "Why Lennar Corporation Stock Fell 24.1% In March",
       "source": "Motley Fool",
       "pub_date": "2026-04-06T19:16:06Z",
-      "time_ago": "hace 6h",
+      "time_ago": "hace 11h",
       "url": "https://www.fool.com/investing/2026/04/06/why-lennar-corporation-stock-fell-241-in-march/",
       "importance": "BAJA"
     },
@@ -344,7 +354,7 @@
       "title": "Are consumers ready for AI to do their shopping for them?",
       "source": "Yahoo Finance Video",
       "pub_date": "2026-04-06T20:15:00Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/video/are-consumers-ready-for-ai-to-do-their-shopping-for-them-201500705.html",
       "importance": "BAJA"
     },
@@ -354,7 +364,7 @@
       "title": "Here’s Why Warren Buffett and Ken Griffin Love Apple (AAPL)",
       "source": "Insider Monkey",
       "pub_date": "2026-04-06T21:19:03Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 9h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/why-warren-buffett-ken-griffin-211903502.html",
       "importance": "BAJA"
     },
@@ -364,8 +374,18 @@
       "title": "MasterCard (MA) Rises Higher Than Market: Key Facts",
       "source": "Zacks",
       "pub_date": "2026-04-06T21:50:02Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 9h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/mastercard-ma-rises-higher-market-215002285.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "edd472d5-a5a1-3bbb-8e17-d810dc7d02b3",
+      "ticker": "MSFT",
+      "title": "Worldcoin Prices Dips As Sam Altman’s Trust Crisis Deepens With New SBF Comparison",
+      "source": "BeInCrypto",
+      "pub_date": "2026-04-07T06:21:20Z",
+      "time_ago": "hace 44min",
+      "url": "https://beincrypto.com/sam-altman-trust-crisis-sbf-worldcoin/",
       "importance": "BAJA"
     }
   ]
