@@ -7,7 +7,6 @@ import Loading, { ErrorState } from '../components/Loading'
 import ScoreBar from '../components/ScoreBar'
 import WatchlistButton from '../components/WatchlistButton'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { TrendingDown } from 'lucide-react'
 
@@ -66,10 +65,7 @@ export default function Shorts() {
   const { data, loading, error } = useApi(() => fetchShortOpportunities(), [])
   const [sortKey, setSortKey] = useState<SortKey>('short_score')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [filterQuality, setFilterQuality] = useState('ALL')
-  const [filterSector, setFilterSector]   = useState('ALL')
-  const [filterSqueeze, setFilterSqueeze] = useState('ALL')
-  const [onlyAiConfirmed, setOnlyAiConfirmed] = useState(false)
+  const [showAll, setShowAll] = useState(false)
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null)
 
   if (loading) return <Loading />
@@ -78,26 +74,25 @@ export default function Shorts() {
   const rows: ShortOpportunity[] = (data as any)?.data ?? []
   const scanDate: string = (data as any)?.scan_date ?? ''
   const aiFilterAvailable: boolean = (data as any)?.ai_filtered_available ?? false
-  const confirmedCount: number = (data as any)?.confirmed_count ?? 0
 
-  const sectors = Array.from(new Set(rows.map(r => r.sector).filter(Boolean))).sort() as string[]
+  // Por defecto: solo ALTA calidad + squeeze risk no HIGH
+  // Si hay filtro IA activo: solo confirmados por IA (BUY ≥65)
+  const highConviction = rows.filter(r => {
+    if (r.short_quality !== 'ALTA') return false
+    if (r.squeeze_risk === 'HIGH') return false
+    if (aiFilterAvailable && r.ai_verdict !== null) {
+      return r.ai_verdict === 'BUY' && (r.ai_confidence ?? 0) >= 65
+    }
+    return true
+  })
 
-  const filtered = rows
-    .filter(r => filterQuality === 'ALL' || r.short_quality === filterQuality)
-    .filter(r => filterSector  === 'ALL' || r.sector === filterSector)
-    .filter(r => {
-      if (filterSqueeze === 'LOW_ONLY') return r.squeeze_risk === 'LOW' || !r.squeeze_risk
-      return true
-    })
-    .filter(r => {
-      if (onlyAiConfirmed) return r.ai_verdict === 'BUY' && (r.ai_confidence ?? 0) >= 65
-      return true
-    })
-    .sort((a, b) => {
-      const av = (a as any)[sortKey] ?? 0
-      const bv = (b as any)[sortKey] ?? 0
-      return sortDir === 'desc' ? bv - av : av - bv
-    })
+  const displayed = showAll
+    ? [...rows].sort((a, b) => b.short_score - a.short_score)
+    : [...highConviction].sort((a, b) => {
+        const av = (a as any)[sortKey] ?? 0
+        const bv = (b as any)[sortKey] ?? 0
+        return sortDir === 'desc' ? bv - av : av - bv
+      })
 
   function toggleSort(k: SortKey) {
     if (k === sortKey) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
@@ -113,9 +108,6 @@ export default function Shorts() {
     )
   }
 
-  const alta  = rows.filter(r => r.short_quality === 'ALTA').length
-  const media = rows.filter(r => r.short_quality === 'MEDIA').length
-
   return (
     <div className="space-y-4">
       <StaleDataBanner dataDate={scanDate} />
@@ -128,90 +120,34 @@ export default function Shorts() {
             Cortos
           </h1>
           <p className="text-sm text-muted-foreground">
-            Deterioro fundamental + rotura técnica confirmada · Solo bajo riesgo de squeeze
+            Alta convicción · deterioro fundamental + rotura técnica · squeeze risk bajo
+            {aiFilterAvailable && <span className="ml-2 text-purple-400/70">· validados por IA</span>}
           </p>
         </div>
-      </div>
-
-      {/* AI filter status banner */}
-      {aiFilterAvailable ? (
-        <div className="rounded-xl border border-purple-500/30 bg-purple-500/8 px-4 py-3 flex items-center gap-3">
-          <span className="text-lg">🤖</span>
-          <div className="flex-1">
-            <span className="text-sm font-semibold text-purple-400">Filtro IA activo</span>
-            <span className="text-xs text-muted-foreground ml-2">
-              {confirmedCount} cortos confirmados por Groq (llama-3.3-70b) de {rows.filter(r => r.ai_verdict).length} analizados
-            </span>
-          </div>
-          <button
-            onClick={() => setOnlyAiConfirmed(v => !v)}
-            className={`filter-btn ${onlyAiConfirmed ? 'active' : ''}`}
-          >
-            {onlyAiConfirmed ? `🤖 IA: ${confirmedCount} activos` : '🤖 Solo IA confirmados'}
+        {!showAll && rows.length > highConviction.length && (
+          <button onClick={() => setShowAll(true)} className="filter-btn shrink-0 mt-1">
+            Ver todos ({rows.length})
           </button>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-border/30 bg-muted/5 px-4 py-3 flex items-center gap-3 text-xs text-muted-foreground/50">
-          <span>🤖</span>
-          <span>Filtro IA pendiente — se ejecutará en el próximo pipeline diario</span>
-        </div>
-      )}
-
-      {/* Risk disclaimer */}
-      <div className="rounded-lg border border-red-500/30 bg-red-500/8 px-4 py-2.5 text-xs text-red-300/80 space-y-1">
-        <p className="font-semibold">⚠️ Riesgo elevado — Lee antes de operar</p>
-        <p className="text-red-300/60">
-          Los cortos tienen pérdida potencial ilimitada. Usa siempre stop-loss ajustado (5-8% sobre precio entrada).
-          Máx 3-5% de cartera por posición. Evita cortos en valores con squeeze_risk HIGH.
-          Ejecuta <code className="font-mono bg-black/20 px-1 rounded">python3 short_scanner.py</code> para actualizar datos.
-        </p>
+        )}
+        {showAll && (
+          <button onClick={() => setShowAll(false)} className="filter-btn active shrink-0 mt-1">
+            Solo alta convicción
+          </button>
+        )}
       </div>
 
-      {/* Summary cards */}
-      {rows.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: 'Alta convicción', value: alta,  color: 'text-red-400',  sub: 'score ≥70' },
-            { label: 'Media convicción', value: media, color: 'text-amber-400', sub: 'score 55-69' },
-            { label: 'Total escaneados', value: rows.length, color: 'text-muted-foreground', sub: 'con filtros activos' },
-          ].map(c => (
-            <Card key={c.label} className="glass p-4">
-              <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-1">{c.label}</div>
-              <div className={`text-3xl font-extrabold tabular-nums leading-none mb-1 ${c.color}`}>{c.value}</div>
-              <div className="text-[0.65rem] text-muted-foreground/60">{c.sub}</div>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <select value={filterQuality} onChange={e => setFilterQuality(e.target.value)}
-          className="text-xs rounded-md border border-border/40 bg-background/60 px-2 py-1.5 text-foreground">
-          <option value="ALL">Todas las calidades</option>
-          {['ALTA','MEDIA','BAJA'].map(q => <option key={q} value={q}>{q}</option>)}
-        </select>
-        {sectors.length > 0 && (
-          <select value={filterSector} onChange={e => setFilterSector(e.target.value)}
-            className="text-xs rounded-md border border-border/40 bg-background/60 px-2 py-1.5 text-foreground">
-            <option value="ALL">Todos los sectores</option>
-            {sectors.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        )}
-        <select value={filterSqueeze} onChange={e => setFilterSqueeze(e.target.value)}
-          className="text-xs rounded-md border border-border/40 bg-background/60 px-2 py-1.5 text-foreground">
-          <option value="ALL">Todos los squeeze risks</option>
-          <option value="LOW_ONLY">Solo LOW squeeze risk</option>
-        </select>
-        <span className="text-xs text-muted-foreground ml-auto">{filtered.length} resultados</span>
+      {/* Risk disclaimer — compacto */}
+      <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-2 text-xs text-red-300/60 flex items-center gap-2">
+        <span>⚠️</span>
+        <span>Pérdida potencial ilimitada. Stop-loss 5-8%, máx 3-5% cartera por posición.</span>
       </div>
 
       {/* Tabla */}
-      {filtered.length === 0 ? (
+      {displayed.length === 0 ? (
         <EmptyState
           icon="📉"
-          title="Sin oportunidades en corto"
-          subtitle="Ejecuta python3 short_scanner.py para analizar el universo"
+          title={rows.length === 0 ? "Sin datos" : "Sin cortos de alta convicción hoy"}
+          subtitle={rows.length === 0 ? "Lanza el pipeline para escanear el universo" : `${rows.length} escaneados, ninguno supera el filtro de calidad`}
         />
       ) : (
         <div className="glass rounded-xl overflow-clip">
@@ -221,7 +157,6 @@ export default function Shorts() {
                 <TableHead>Ticker</TableHead>
                 <TableHead>Empresa</TableHead>
                 <SortTh k="short_score">Score</SortTh>
-                <TableHead>Calidad</TableHead>
                 <SortTh k="current_price">Precio</SortTh>
                 <TableHead>Técnico</TableHead>
                 <SortTh k="pct_from_52w_high">Dist.Máx</SortTh>
@@ -234,7 +169,7 @@ export default function Shorts() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(r => {
+              {displayed.map(r => {
                 const isExpanded = expandedTicker === r.ticker
                 const riskList: string[] = r.key_risks
                   ? JSON.parse(r.key_risks).filter((x: string) => !x.startsWith('SHORT_INTEREST'))
