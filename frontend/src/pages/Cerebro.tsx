@@ -210,6 +210,8 @@ export default function Cerebro() {
   const [activeTab, setActiveTab] = useState<'briefing' | 'entry' | 'bounces' | 'convergence' | 'agents' | 'alerts' | 'insights' | 'calibration'>('briefing')
   const [entryFilter, setEntryFilter] = useState<'ACTIONABLE' | 'STRONG_BUY' | 'BUY' | 'MONITOR'>('ACTIONABLE')
   const [focusedIdx, setFocusedIdx] = useState(-1)
+  const [showAllAlerts, setShowAllAlerts] = useState(false)
+  const [showAllConvergences, setShowAllConvergences] = useState(false)
 
   // pagedRef must be declared before early returns (React Rules of Hooks)
   const pagedRef = useRef<EntrySignal[]>([])
@@ -252,10 +254,10 @@ export default function Cerebro() {
     { id: 'briefing' as const,    label: 'Briefing',        icon: Newspaper,        count: undefined, highlight: !!briefingData?.narrative },
     { id: 'entry' as const,       label: 'Señales',         icon: Zap,              count: (entryData?.strong_buy ?? 0) + (entryData?.buy ?? 0), highlight: (entryData?.strong_buy ?? 0) > 0 },
     { id: 'bounces' as const,     label: 'Rebotes',         icon: Repeat2,          count: topBounces.length, highlight: topBounces.length > 0 },
-    { id: 'convergence' as const, label: 'Convergencias',   icon: Crosshair,        count: convergence?.total_convergences },
+    { id: 'convergence' as const, label: 'Convergencias',   icon: Crosshair,        count: convergence?.triple_or_more, highlight: (convergence?.triple_or_more ?? 0) > 0 },
     { id: 'agents' as const,      label: 'Agentes IA',      icon: Bot,              count: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0), highlight: (exitData?.high_count ?? 0) + (trapsData?.high_count ?? 0) > 0 },
-    { id: 'alerts' as const,      label: 'Alertas',         icon: Bell,             count: alertsData?.high_count, highlight: (alertsData?.high_count ?? 0) > 0 },
-    { id: 'insights' as const,    label: 'Patrones',        icon: Brain,            count: insights?.total_analyzed },
+    { id: 'alerts' as const,      label: 'Alertas',         icon: Bell,             count: alerts.filter(a => a.severity === 'HIGH').length || undefined, highlight: alerts.some(a => a.severity === 'HIGH') },
+    { id: 'insights' as const,    label: 'Patrones',        icon: Brain,            count: undefined },
     { id: 'calibration' as const, label: 'Calibración',     icon: SlidersHorizontal, count: calibration?.total_recommendations },
   ]
 
@@ -271,7 +273,7 @@ export default function Cerebro() {
           Cerebro — IA Proactiva
         </h2>
         <p className="text-sm text-muted-foreground">
-          Agente autónomo · Aprende de {insights?.total_analyzed ?? '—'} señales históricas · Actualización diaria
+          Agente autónomo · Aprende del historial de señales · Actualización diaria
         </p>
       </div>
 
@@ -625,8 +627,25 @@ export default function Cerebro() {
         <div className="space-y-4 animate-fade-in-up">
           {signals.length === 0 ? (
             <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin convergencias detectadas hoy</CardContent></Card>
-          ) : (
-            signals.map((sig, i) => (
+          ) : (() => {
+            const tripleSignals = signals.filter(s => s.strategy_count >= 3)
+            const displayedSignals = showAllConvergences ? signals : tripleSignals
+            return (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {showAllConvergences ? `${signals.length} convergencias totales` : `${tripleSignals.length} convergencias triples (≥3 estrategias)`}
+                </p>
+                {!showAllConvergences && signals.length > tripleSignals.length ? (
+                  <button onClick={() => setShowAllConvergences(true)} className="filter-btn">Ver todas ({signals.length})</button>
+                ) : showAllConvergences ? (
+                  <button onClick={() => setShowAllConvergences(false)} className="filter-btn active">Solo triples ({tripleSignals.length})</button>
+                ) : null}
+              </div>
+              {displayedSignals.length === 0 && (
+                <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin convergencias triples hoy</CardContent></Card>
+              )}
+            {displayedSignals.map((sig, i) => (
               <Card key={sig.ticker} className={`glass border hover:border-border/60 animate-fade-in-up ${sig.strategy_count >= 3 ? 'border-amber-500/30' : 'border-border/40'}`} style={{ animationDelay: `${i * 60}ms` }}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
@@ -659,7 +678,10 @@ export default function Cerebro() {
                 </CardContent>
               </Card>
             ))
-          )}
+            }
+            </>
+            )
+          })()}
         </div>
       )}
 
@@ -734,11 +756,31 @@ export default function Cerebro() {
         <div className="space-y-2 animate-fade-in-up">
           {alerts.length === 0 ? (
             <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin alertas activas hoy</CardContent></Card>
-          ) : (
+          ) : (() => {
+            const highAlerts = alerts.filter(a => a.severity === 'HIGH')
+            const displayedAlerts = showAllAlerts ? alerts : highAlerts
+            return (
             <>
+              {highAlerts.length === 0 && !showAllAlerts && (
+                <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin alertas HIGH hoy</CardContent></Card>
+              )}
+              {!showAllAlerts && alerts.length > highAlerts.length && (
+                <div className="flex justify-end">
+                  <button onClick={() => setShowAllAlerts(true)} className="filter-btn">
+                    Ver todas ({alerts.length})
+                  </button>
+                </div>
+              )}
+              {showAllAlerts && (
+                <div className="flex justify-end">
+                  <button onClick={() => setShowAllAlerts(false)} className="filter-btn active">
+                    Solo HIGH ({highAlerts.length})
+                  </button>
+                </div>
+              )}
               {/* Mobile cards */}
               <div className="sm:hidden space-y-2">
-                {alerts.map((alert, i) => (
+                {displayedAlerts.map((alert, i) => (
                   <div key={`mob-${alert.ticker}-${alert.type}-${i}`} className={`p-3 rounded-xl border animate-fade-in-up ${alertColor(alert.severity)}`} style={{ animationDelay: `${i * 60}ms` }}>
                     <div className="flex items-center gap-2 mb-1">
                       <div className="shrink-0">{alertIcon(alert.type)}</div>
@@ -753,7 +795,7 @@ export default function Cerebro() {
 
               {/* Desktop list */}
               <div className="hidden sm:block space-y-2">
-                {alerts.map((alert, i) => (
+                {displayedAlerts.map((alert, i) => (
                   <div key={`${alert.ticker}-${alert.type}-${i}`} className={`flex items-start gap-3 p-4 rounded-xl border animate-fade-in-up ${alertColor(alert.severity)}`} style={{ animationDelay: `${i * 60}ms` }}>
                     <div className="mt-0.5 shrink-0">{alertIcon(alert.type)}</div>
                     <div className="flex-1 min-w-0">
@@ -777,7 +819,8 @@ export default function Cerebro() {
                 ))}
               </div>
             </>
-          )}
+            )
+          })()}
         </div>
       )}
 
