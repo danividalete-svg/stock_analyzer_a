@@ -1,151 +1,32 @@
 {
-  "generated_at": "2026-04-07",
-  "total": 18,
+  "generated_at": "2026-04-08",
+  "total": 27,
   "strong_buy": 0,
-  "buy": 5,
-  "monitor": 8,
-  "wait": 5,
+  "buy": 11,
+  "monitor": 13,
+  "wait": 3,
   "narrative": null,
   "signals": [
     {
-      "ticker": "EXPN.L",
-      "company_name": "EXPERIAN PLC ORD USD0.10",
-      "region": "EU",
-      "sector": "Industrials",
-      "value_score": 69.7,
-      "conviction_grade": "",
-      "current_price": 2778.0,
-      "analyst_upside_pct": 51.4,
-      "fcf_yield_pct": 5.2,
-      "risk_reward_ratio": 6.42,
-      "days_in_value": 6,
-      "streak_days": 1,
-      "entry_score": 68,
-      "signal": "BUY",
-      "signals_fired": [
-        "FCF yield \u22655%",
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Insider buying",
-        "Analyst revision \u2191",
-        "En VALUE \u22653 d\u00edas"
-      ],
-      "signals_pts": [
-        {
-          "name": "FCF yield \u22655%",
-          "pts": 10
-        },
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Insider buying",
-          "pts": 25
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        },
-        {
-          "name": "En VALUE \u22653 d\u00edas",
-          "pts": 10
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 82
-    },
-    {
-      "ticker": "SGE.L",
-      "company_name": "THE SAGE GROUP PLC ORD 1 4/77P",
-      "region": "EU",
+      "ticker": "CPAY",
+      "company_name": "Corpay, Inc.",
+      "region": "US",
       "sector": "Technology",
-      "value_score": 62.6,
+      "value_score": 71.7,
       "conviction_grade": "",
-      "current_price": 835.4,
-      "analyst_upside_pct": 53.6,
-      "fcf_yield_pct": 6.02,
-      "risk_reward_ratio": 6.7,
-      "days_in_value": 6,
-      "streak_days": 1,
-      "entry_score": 68,
-      "signal": "BUY",
-      "signals_fired": [
-        "FCF yield \u22655%",
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Insider buying",
-        "Analyst revision \u2191",
-        "En VALUE \u22653 d\u00edas"
-      ],
-      "signals_pts": [
-        {
-          "name": "FCF yield \u22655%",
-          "pts": 10
-        },
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Insider buying",
-          "pts": 25
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        },
-        {
-          "name": "En VALUE \u22653 d\u00edas",
-          "pts": 10
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 83
-    },
-    {
-      "ticker": "PRU.L",
-      "company_name": "PRUDENTIAL PLC ORD 5P",
-      "region": "EU",
-      "sector": "Financial Services",
-      "value_score": 71.0,
-      "conviction_grade": "",
-      "current_price": 1145.0,
-      "analyst_upside_pct": 19.2,
-      "fcf_yield_pct": 8.33,
-      "risk_reward_ratio": 2.4,
-      "days_in_value": 6,
-      "streak_days": 1,
-      "entry_score": 65,
+      "current_price": 296.35,
+      "analyst_upside_pct": 28.6,
+      "fcf_yield_pct": 9.11,
+      "risk_reward_ratio": 3.58,
+      "days_in_value": 3,
+      "streak_days": 3,
+      "entry_score": 73,
       "signal": "BUY",
       "signals_fired": [
         "Value score \u226570",
         "FCF yield \u22655%",
         "R:R \u22652",
+        "Upside \u226520%",
         "Insider buying",
         "Analyst revision \u2191",
         "En VALUE \u22653 d\u00edas"
@@ -164,6 +45,10 @@
           "pts": 10
         },
         {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
           "name": "Insider buying",
           "pts": 25
         },
@@ -178,7 +63,6 @@
       ],
       "signals_missing": [
         "Value score <80",
-        "Upside <20%",
         "Sin se\u00f1al MR oversold",
         "Sin opciones alcistas",
         "Sector no l\u00edder",
@@ -186,29 +70,95 @@
       ],
       "rsi": null,
       "earnings_warning": false,
-      "days_to_earnings": 19
+      "days_to_earnings": 28
     },
     {
-      "ticker": "CPAY",
-      "company_name": "Corpay, Inc.",
-      "region": "US",
-      "sector": "Technology",
-      "value_score": 64.82,
+      "ticker": "PRU.L",
+      "company_name": "PRUDENTIAL PLC ORD 5P",
+      "region": "EU",
+      "sector": "Financial Services",
+      "value_score": 74.4,
       "conviction_grade": "",
-      "current_price": 293.31,
-      "analyst_upside_pct": 31.5,
-      "fcf_yield_pct": 9.21,
-      "risk_reward_ratio": 3.94,
-      "days_in_value": 2,
-      "streak_days": 2,
-      "entry_score": 58,
+      "current_price": 1133.0,
+      "analyst_upside_pct": 21.2,
+      "fcf_yield_pct": 9.78,
+      "risk_reward_ratio": 2.65,
+      "days_in_value": 7,
+      "streak_days": 1,
+      "entry_score": 73,
+      "signal": "BUY",
+      "signals_fired": [
+        "Value score \u226570",
+        "FCF yield \u22655%",
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Insider buying",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "Value score \u226570",
+          "pts": 5
+        },
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 141
+    },
+    {
+      "ticker": "EXPN.L",
+      "company_name": "EXPERIAN PLC ORD USD0.10",
+      "region": "EU",
+      "sector": "Industrials",
+      "value_score": 69.7,
+      "conviction_grade": "",
+      "current_price": 2651.5,
+      "analyst_upside_pct": 57.1,
+      "fcf_yield_pct": 5.52,
+      "risk_reward_ratio": 7.14,
+      "days_in_value": 7,
+      "streak_days": 1,
+      "entry_score": 68,
       "signal": "BUY",
       "signals_fired": [
         "FCF yield \u22655%",
         "R:R \u22652",
         "Upside \u226520%",
         "Insider buying",
-        "Analyst revision \u2191"
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
       ],
       "signals_pts": [
         {
@@ -230,6 +180,10 @@
         {
           "name": "Analyst revision \u2191",
           "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
         }
       ],
       "signals_missing": [
@@ -237,25 +191,257 @@
         "Sin se\u00f1al MR oversold",
         "Sin opciones alcistas",
         "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 42
+    },
+    {
+      "ticker": "SGE.L",
+      "company_name": "THE SAGE GROUP PLC ORD 1 4/77P",
+      "region": "EU",
+      "sector": "Technology",
+      "value_score": 65.4,
+      "conviction_grade": "",
+      "current_price": 875.6,
+      "analyst_upside_pct": 31.7,
+      "fcf_yield_pct": 5.83,
+      "risk_reward_ratio": 3.96,
+      "days_in_value": 7,
+      "streak_days": 1,
+      "entry_score": 68,
+      "signal": "BUY",
+      "signals_fired": [
+        "FCF yield \u22655%",
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Insider buying",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
       ],
       "rsi": null,
       "earnings_warning": false,
       "days_to_earnings": 43
     },
     {
+      "ticker": "AON",
+      "company_name": "Aon plc",
+      "region": "US",
+      "sector": "Financial Services",
+      "value_score": 74.18,
+      "conviction_grade": "",
+      "current_price": 322.47,
+      "analyst_upside_pct": 22.1,
+      "fcf_yield_pct": 4.41,
+      "risk_reward_ratio": 2.76,
+      "days_in_value": 3,
+      "streak_days": 3,
+      "entry_score": 63,
+      "signal": "BUY",
+      "signals_fired": [
+        "Value score \u226570",
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Insider buying",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "Value score \u226570",
+          "pts": 5
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 23
+    },
+    {
+      "ticker": "ALLY",
+      "company_name": "Ally Financial Inc.",
+      "region": "US",
+      "sector": "Financial Services",
+      "value_score": 63.06,
+      "conviction_grade": "",
+      "current_price": 40.29,
+      "analyst_upside_pct": 28.3,
+      "fcf_yield_pct": null,
+      "risk_reward_ratio": 3.54,
+      "days_in_value": 1,
+      "streak_days": 4,
+      "entry_score": 63,
+      "signal": "BUY",
+      "signals_fired": [
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Insider buying",
+        "Options flow alcista",
+        "Analyst revision \u2191"
+      ],
+      "signals_pts": [
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Options flow alcista",
+          "pts": 15
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "Sin se\u00f1al MR oversold",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 9
+    },
+    {
+      "ticker": "AVGO",
+      "company_name": "Broadcom Inc.",
+      "region": "US",
+      "sector": "Technology",
+      "value_score": 66.44,
+      "conviction_grade": "",
+      "current_price": 333.97,
+      "analyst_upside_pct": 41.2,
+      "fcf_yield_pct": 1.61,
+      "risk_reward_ratio": 5.15,
+      "days_in_value": 3,
+      "streak_days": 3,
+      "entry_score": 58,
+      "signal": "BUY",
+      "signals_fired": [
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Insider buying",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 56
+    },
+    {
       "ticker": "SAP.DE",
       "company_name": "SAP SE                        I",
       "region": "EU",
       "sector": "Technology",
-      "value_score": 60.9,
+      "value_score": 64.1,
       "conviction_grade": "",
-      "current_price": 172.22,
-      "analyst_upside_pct": 46.4,
-      "fcf_yield_pct": 3.89,
-      "risk_reward_ratio": 5.8,
-      "days_in_value": 6,
+      "current_price": 153.18,
+      "analyst_upside_pct": 51.7,
+      "fcf_yield_pct": 4.74,
+      "risk_reward_ratio": 6.46,
+      "days_in_value": 7,
       "streak_days": 1,
       "entry_score": 58,
       "signal": "BUY",
@@ -298,134 +484,91 @@
       ],
       "rsi": null,
       "earnings_warning": false,
-      "days_to_earnings": 55
+      "days_to_earnings": 15
     },
     {
-      "ticker": "AVGO",
-      "company_name": "Broadcom Inc.",
+      "ticker": "FRE.DE",
+      "company_name": "Fresenius SE & Co. KGaA       I",
+      "region": "EU",
+      "sector": "Healthcare",
+      "value_score": 61.9,
+      "conviction_grade": "",
+      "current_price": 44.57,
+      "analyst_upside_pct": 25.4,
+      "fcf_yield_pct": 6.39,
+      "risk_reward_ratio": 3.18,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 58,
+      "signal": "BUY",
+      "signals_fired": [
+        "FCF yield \u22655%",
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Insider buying",
+        "Analyst revision \u2191"
+      ],
+      "signals_pts": [
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 28
+    },
+    {
+      "ticker": "IT",
+      "company_name": "Gartner, Inc.",
       "region": "US",
       "sector": "Technology",
-      "value_score": 66.4,
+      "value_score": 62.97,
       "conviction_grade": "",
-      "current_price": 322.51,
-      "analyst_upside_pct": 46.4,
-      "fcf_yield_pct": 1.67,
-      "risk_reward_ratio": 5.8,
-      "days_in_value": 2,
-      "streak_days": 2,
-      "entry_score": 48,
-      "signal": "MONITOR",
+      "current_price": 148.67,
+      "analyst_upside_pct": 26.9,
+      "fcf_yield_pct": 8.61,
+      "risk_reward_ratio": 3.36,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 53,
+      "signal": "BUY",
       "signals_fired": [
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Insider buying",
-        "Analyst revision \u2191"
-      ],
-      "signals_pts": [
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Insider buying",
-          "pts": 25
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "FCF yield <5%",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 71
-    },
-    {
-      "ticker": "AON",
-      "company_name": "Aon plc",
-      "region": "US",
-      "sector": "Financial Services",
-      "value_score": 66.38,
-      "conviction_grade": "",
-      "current_price": 325.97,
-      "analyst_upside_pct": 21.9,
-      "fcf_yield_pct": 4.37,
-      "risk_reward_ratio": 2.74,
-      "days_in_value": 2,
-      "streak_days": 2,
-      "entry_score": 48,
-      "signal": "MONITOR",
-      "signals_fired": [
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Insider buying",
-        "Analyst revision \u2191"
-      ],
-      "signals_pts": [
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Insider buying",
-          "pts": 25
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "FCF yield <5%",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 38
-    },
-    {
-      "ticker": "EXE",
-      "company_name": "Expand Energy Corporation",
-      "region": "US",
-      "sector": "Energy",
-      "value_score": 69.72,
-      "conviction_grade": "",
-      "current_price": 107.64,
-      "analyst_upside_pct": 21.5,
-      "fcf_yield_pct": 4.54,
-      "risk_reward_ratio": 2.69,
-      "days_in_value": 2,
-      "streak_days": 2,
-      "entry_score": 43,
-      "signal": "MONITOR",
-      "signals_fired": [
+        "FCF yield \u22655%",
         "R:R \u22652",
         "Upside \u226520%",
         "Insider buying"
       ],
       "signals_pts": [
         {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
           "name": "R:R \u22652",
           "pts": 10
         },
@@ -440,29 +583,253 @@
       ],
       "signals_missing": [
         "Value score <80",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 27
+    },
+    {
+      "ticker": "EXE",
+      "company_name": "Expand Energy Corporation",
+      "region": "US",
+      "sector": "Energy",
+      "value_score": 62.760000000000005,
+      "conviction_grade": "",
+      "current_price": 101.93,
+      "analyst_upside_pct": 30.5,
+      "fcf_yield_pct": 4.8,
+      "risk_reward_ratio": 3.81,
+      "days_in_value": 3,
+      "streak_days": 3,
+      "entry_score": 53,
+      "signal": "BUY",
+      "signals_fired": [
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Insider buying",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 20
+    },
+    {
+      "ticker": "DECK",
+      "company_name": "Deckers Outdoor Corporation",
+      "region": "US",
+      "sector": "Consumer Cyclical",
+      "value_score": 76.12,
+      "conviction_grade": "",
+      "current_price": 100.26,
+      "analyst_upside_pct": 28.2,
+      "fcf_yield_pct": 5.19,
+      "risk_reward_ratio": 3.52,
+      "days_in_value": 3,
+      "streak_days": 1,
+      "entry_score": 48,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "Value score \u226570",
+        "FCF yield \u22655%",
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "Value score \u226570",
+          "pts": 5
+        },
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "Sin insider buying (espera)",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 43
+    },
+    {
+      "ticker": "BR",
+      "company_name": "Broadridge Financial Solutions,",
+      "region": "US",
+      "sector": "Technology",
+      "value_score": 73.2,
+      "conviction_grade": "",
+      "current_price": 159.9,
+      "analyst_upside_pct": 53.8,
+      "fcf_yield_pct": 6.41,
+      "risk_reward_ratio": 6.72,
+      "days_in_value": 3,
+      "streak_days": 1,
+      "entry_score": 48,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "Value score \u226570",
+        "FCF yield \u22655%",
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "Value score \u226570",
+          "pts": 5
+        },
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "Sin insider buying (espera)",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 22
+    },
+    {
+      "ticker": "CDNS",
+      "company_name": "Cadence Design Systems, Inc.",
+      "region": "US",
+      "sector": "Technology",
+      "value_score": 61.48,
+      "conviction_grade": "",
+      "current_price": 279.48,
+      "analyst_upside_pct": 33.0,
+      "fcf_yield_pct": 1.96,
+      "risk_reward_ratio": 4.12,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 48,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Insider buying",
+        "Analyst revision \u2191"
+      ],
+      "signals_pts": [
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
         "FCF yield <5%",
         "Sin se\u00f1al MR oversold",
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
+        "Solo 1d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
-      "days_to_earnings": 35
+      "days_to_earnings": 19
     },
     {
-      "ticker": "LOGN.SW",
-      "company_name": "LOGITECH N",
-      "region": "EU",
+      "ticker": "ACN",
+      "company_name": "Accenture plc",
+      "region": "US",
       "sector": "Technology",
-      "value_score": 61.0,
+      "value_score": 64.84,
       "conviction_grade": "",
-      "current_price": 71.1,
-      "analyst_upside_pct": 26.4,
-      "fcf_yield_pct": 6.53,
-      "risk_reward_ratio": 3.3,
-      "days_in_value": 6,
+      "current_price": 197.3,
+      "analyst_upside_pct": 27.7,
+      "fcf_yield_pct": 10.02,
+      "risk_reward_ratio": 3.46,
+      "days_in_value": 3,
       "streak_days": 1,
       "entry_score": 43,
       "signal": "MONITOR",
@@ -505,21 +872,69 @@
       ],
       "rsi": null,
       "earnings_warning": false,
-      "days_to_earnings": 60
+      "days_to_earnings": 71
+    },
+    {
+      "ticker": "SGU",
+      "company_name": "Star Group L.P.",
+      "region": "US",
+      "sector": "Energy",
+      "value_score": 67.77199999999999,
+      "conviction_grade": "",
+      "current_price": 12.52,
+      "analyst_upside_pct": null,
+      "fcf_yield_pct": 9.79,
+      "risk_reward_ratio": null,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 40,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "FCF yield \u22655%",
+        "Insider buying",
+        "Analyst revision \u2191"
+      ],
+      "signals_pts": [
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "R:R <2",
+        "Upside <20%",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 28
     },
     {
       "ticker": "BUKS",
       "company_name": "Butler National Corp.",
       "region": "US",
       "sector": "Industrials",
-      "value_score": 60.12,
+      "value_score": 63.62199999999999,
       "conviction_grade": "",
-      "current_price": 4.04,
+      "current_price": 3.6,
       "analyst_upside_pct": null,
-      "fcf_yield_pct": 4.34,
+      "fcf_yield_pct": 4.87,
       "risk_reward_ratio": null,
-      "days_in_value": 6,
-      "streak_days": 3,
+      "days_in_value": 7,
+      "streak_days": 4,
       "entry_score": 40,
       "signal": "MONITOR",
       "signals_fired": [
@@ -556,328 +971,81 @@
       "days_to_earnings": null
     },
     {
-      "ticker": "BR",
-      "company_name": "Broadridge Financial Solutions,",
-      "region": "US",
+      "ticker": "NWG.L",
+      "company_name": "NATWEST GROUP PLC ORD 107.69P",
+      "region": "EU",
+      "sector": "Financial Services",
+      "value_score": 60.8,
+      "conviction_grade": "",
+      "current_price": 610.1,
+      "analyst_upside_pct": 19.9,
+      "fcf_yield_pct": null,
+      "risk_reward_ratio": 2.49,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 40,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "R:R \u22652",
+        "Insider buying",
+        "Analyst revision \u2191"
+      ],
+      "signals_pts": [
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "Upside <20%",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 23
+    },
+    {
+      "ticker": "LOGN.SW",
+      "company_name": "LOGITECH N",
+      "region": "EU",
       "sector": "Technology",
       "value_score": 66.0,
       "conviction_grade": "",
-      "current_price": 170.84,
-      "analyst_upside_pct": 43.9,
-      "fcf_yield_pct": 6.0,
-      "risk_reward_ratio": 5.49,
-      "days_in_value": 2,
+      "current_price": 76.36,
+      "analyst_upside_pct": 17.4,
+      "fcf_yield_pct": 6.08,
+      "risk_reward_ratio": 2.17,
+      "days_in_value": 7,
       "streak_days": 1,
-      "entry_score": 33,
+      "entry_score": 35,
       "signal": "MONITOR",
       "signals_fired": [
         "FCF yield \u22655%",
         "R:R \u22652",
-        "Upside \u226520%",
-        "Analyst revision \u2191"
-      ],
-      "signals_pts": [
-        {
-          "name": "FCF yield \u22655%",
-          "pts": 10
-        },
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "Sin insider buying (espera)",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 37
-    },
-    {
-      "ticker": "DECK",
-      "company_name": "Deckers Outdoor Corporation",
-      "region": "US",
-      "sector": "Consumer Cyclical",
-      "value_score": 65.52,
-      "conviction_grade": "",
-      "current_price": 102.45,
-      "analyst_upside_pct": 25.5,
-      "fcf_yield_pct": 5.08,
-      "risk_reward_ratio": 3.19,
-      "days_in_value": 2,
-      "streak_days": 1,
-      "entry_score": 33,
-      "signal": "MONITOR",
-      "signals_fired": [
-        "FCF yield \u22655%",
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Analyst revision \u2191"
-      ],
-      "signals_pts": [
-        {
-          "name": "FCF yield \u22655%",
-          "pts": 10
-        },
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "Sin insider buying (espera)",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 58
-    },
-    {
-      "ticker": "ACN",
-      "company_name": "Accenture plc",
-      "region": "US",
-      "sector": "Technology",
-      "value_score": 62.44,
-      "conviction_grade": "",
-      "current_price": 200.02,
-      "analyst_upside_pct": 26.9,
-      "fcf_yield_pct": 9.88,
-      "risk_reward_ratio": 3.36,
-      "days_in_value": 2,
-      "streak_days": 1,
-      "entry_score": 33,
-      "signal": "MONITOR",
-      "signals_fired": [
-        "FCF yield \u22655%",
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Analyst revision \u2191"
-      ],
-      "signals_pts": [
-        {
-          "name": "FCF yield \u22655%",
-          "pts": 10
-        },
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "Sin insider buying (espera)",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 86
-    },
-    {
-      "ticker": "ADP",
-      "company_name": "Automatic Data Processing, Inc.",
-      "region": "US",
-      "sector": "Technology",
-      "value_score": 63.55,
-      "conviction_grade": "",
-      "current_price": 209.71,
-      "analyst_upside_pct": 29.4,
-      "fcf_yield_pct": 4.08,
-      "risk_reward_ratio": 3.68,
-      "days_in_value": 2,
-      "streak_days": 1,
-      "entry_score": 23,
-      "signal": "WAIT",
-      "signals_fired": [
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Analyst revision \u2191"
-      ],
-      "signals_pts": [
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "FCF yield <5%",
-        "Sin insider buying (espera)",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 36
-    },
-    {
-      "ticker": "DPZ",
-      "company_name": "Domino's Pizza Inc",
-      "region": "US",
-      "sector": "Consumer Cyclical",
-      "value_score": 62.2,
-      "conviction_grade": "",
-      "current_price": 366.8,
-      "analyst_upside_pct": 30.5,
-      "fcf_yield_pct": 4.12,
-      "risk_reward_ratio": 3.81,
-      "days_in_value": 2,
-      "streak_days": 1,
-      "entry_score": 23,
-      "signal": "WAIT",
-      "signals_fired": [
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Analyst revision \u2191"
-      ],
-      "signals_pts": [
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "FCF yield <5%",
-        "Sin insider buying (espera)",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 34
-    },
-    {
-      "ticker": "DXCM",
-      "company_name": "DexCom, Inc.",
-      "region": "US",
-      "sector": "Healthcare",
-      "value_score": 61.52,
-      "conviction_grade": "",
-      "current_price": 65.94,
-      "analyst_upside_pct": 30.6,
-      "fcf_yield_pct": 2.8,
-      "risk_reward_ratio": 3.82,
-      "days_in_value": 2,
-      "streak_days": 1,
-      "entry_score": 23,
-      "signal": "WAIT",
-      "signals_fired": [
-        "R:R \u22652",
-        "Upside \u226520%",
-        "Analyst revision \u2191"
-      ],
-      "signals_pts": [
-        {
-          "name": "R:R \u22652",
-          "pts": 10
-        },
-        {
-          "name": "Upside \u226520%",
-          "pts": 8
-        },
-        {
-          "name": "Analyst revision \u2191",
-          "pts": 5
-        }
-      ],
-      "signals_missing": [
-        "Value score <80",
-        "FCF yield <5%",
-        "Sin insider buying (espera)",
-        "Sin se\u00f1al MR oversold",
-        "Sin opciones alcistas",
-        "Sector no l\u00edder",
-        "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
-      ],
-      "rsi": null,
-      "earnings_warning": false,
-      "days_to_earnings": 37
-    },
-    {
-      "ticker": "EXEL",
-      "company_name": "Exelixis, Inc.",
-      "region": "US",
-      "sector": "Healthcare",
-      "value_score": 67.91999999999999,
-      "conviction_grade": "",
-      "current_price": 41.41,
-      "analyst_upside_pct": 13.1,
-      "fcf_yield_pct": 5.68,
-      "risk_reward_ratio": 1.64,
-      "days_in_value": 6,
-      "streak_days": 1,
-      "entry_score": 20,
-      "signal": "WAIT",
-      "signals_fired": [
-        "FCF yield \u22655%",
         "Analyst revision \u2191",
         "En VALUE \u22653 d\u00edas"
       ],
       "signals_pts": [
         {
           "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
           "pts": 10
         },
         {
@@ -891,7 +1059,6 @@
       ],
       "signals_missing": [
         "Value score <80",
-        "R:R <2",
         "Upside <20%",
         "Sin insider buying (espera)",
         "Sin se\u00f1al MR oversold",
@@ -901,30 +1068,295 @@
       ],
       "rsi": null,
       "earnings_warning": false,
-      "days_to_earnings": 49
+      "days_to_earnings": 27
     },
     {
-      "ticker": "BMY",
-      "company_name": "Bristol-Myers Squibb Company",
+      "ticker": "DPZ",
+      "company_name": "Domino's Pizza Inc",
       "region": "US",
-      "sector": "Healthcare",
-      "value_score": 67.0,
+      "sector": "Consumer Cyclical",
+      "value_score": 68.4,
       "conviction_grade": "",
-      "current_price": 57.0,
-      "analyst_upside_pct": 10.0,
-      "fcf_yield_pct": 9.6,
-      "risk_reward_ratio": 1.25,
-      "days_in_value": 2,
+      "current_price": 368.15,
+      "analyst_upside_pct": 29.3,
+      "fcf_yield_pct": 4.11,
+      "risk_reward_ratio": 3.66,
+      "days_in_value": 3,
       "streak_days": 1,
-      "entry_score": 10,
-      "signal": "WAIT",
+      "entry_score": 33,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "Sin insider buying (espera)",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 19
+    },
+    {
+      "ticker": "ADP",
+      "company_name": "Automatic Data Processing, Inc.",
+      "region": "US",
+      "sector": "Technology",
+      "value_score": 65.95,
+      "conviction_grade": "",
+      "current_price": 203.61,
+      "analyst_upside_pct": 29.9,
+      "fcf_yield_pct": 4.2,
+      "risk_reward_ratio": 3.74,
+      "days_in_value": 3,
+      "streak_days": 1,
+      "entry_score": 33,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "Sin insider buying (espera)",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 21
+    },
+    {
+      "ticker": "ADSK",
+      "company_name": "Autodesk, Inc.",
+      "region": "US",
+      "sector": "Technology",
+      "value_score": 64.92,
+      "conviction_grade": "",
+      "current_price": 234.96,
+      "analyst_upside_pct": 41.1,
+      "fcf_yield_pct": 5.6,
+      "risk_reward_ratio": 5.14,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 33,
+      "signal": "MONITOR",
       "signals_fired": [
         "FCF yield \u22655%",
+        "R:R \u22652",
+        "Upside \u226520%",
         "Analyst revision \u2191"
       ],
       "signals_pts": [
         {
           "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "Sin insider buying (espera)",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 43
+    },
+    {
+      "ticker": "DXCM",
+      "company_name": "DexCom, Inc.",
+      "region": "US",
+      "sector": "Healthcare",
+      "value_score": 63.08,
+      "conviction_grade": "",
+      "current_price": 63.11,
+      "analyst_upside_pct": 38.1,
+      "fcf_yield_pct": 2.92,
+      "risk_reward_ratio": 4.76,
+      "days_in_value": 3,
+      "streak_days": 1,
+      "entry_score": 33,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Analyst revision \u2191",
+        "En VALUE \u22653 d\u00edas"
+      ],
+      "signals_pts": [
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        },
+        {
+          "name": "En VALUE \u22653 d\u00edas",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "Sin insider buying (espera)",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 22
+    },
+    {
+      "ticker": "IAG.MC",
+      "company_name": "INTL CONSOLIDATED AIRLINES GROU",
+      "region": "EU",
+      "sector": "Industrials",
+      "value_score": 61.2,
+      "conviction_grade": "",
+      "current_price": 4.486,
+      "analyst_upside_pct": 27.4,
+      "fcf_yield_pct": 10.89,
+      "risk_reward_ratio": 3.42,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 33,
+      "signal": "MONITOR",
+      "signals_fired": [
+        "FCF yield \u22655%",
+        "R:R \u22652",
+        "Upside \u226520%",
+        "Analyst revision \u2191"
+      ],
+      "signals_pts": [
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        },
+        {
+          "name": "Upside \u226520%",
+          "pts": 8
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "Sin insider buying (espera)",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 30
+    },
+    {
+      "ticker": "BBY",
+      "company_name": "Best Buy Co., Inc.",
+      "region": "US",
+      "sector": "Consumer Cyclical",
+      "value_score": 66.32,
+      "conviction_grade": "",
+      "current_price": 64.02,
+      "analyst_upside_pct": 16.1,
+      "fcf_yield_pct": 6.28,
+      "risk_reward_ratio": 2.01,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 25,
+      "signal": "WAIT",
+      "signals_fired": [
+        "FCF yield \u22655%",
+        "R:R \u22652",
+        "Analyst revision \u2191"
+      ],
+      "signals_pts": [
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
           "pts": 10
         },
         {
@@ -934,18 +1366,104 @@
       ],
       "signals_missing": [
         "Value score <80",
-        "R:R <2",
         "Upside <20%",
         "Sin insider buying (espera)",
         "Sin se\u00f1al MR oversold",
         "Sin opciones alcistas",
         "Sector no l\u00edder",
         "R\u00e9gimen no alcista",
-        "Solo 2d en VALUE"
+        "Solo 1d en VALUE"
       ],
       "rsi": null,
       "earnings_warning": false,
-      "days_to_earnings": 37
+      "days_to_earnings": 50
+    },
+    {
+      "ticker": "MWA",
+      "company_name": "MUELLER WATER PRODUCTS",
+      "region": "US",
+      "sector": "Industrials",
+      "value_score": 63.18,
+      "conviction_grade": "",
+      "current_price": 27.92,
+      "analyst_upside_pct": 12.5,
+      "fcf_yield_pct": 3.45,
+      "risk_reward_ratio": 1.56,
+      "days_in_value": 1,
+      "streak_days": 4,
+      "entry_score": 25,
+      "signal": "WAIT",
+      "signals_fired": [
+        "Insider buying",
+        "Analyst revision \u2191"
+      ],
+      "signals_pts": [
+        {
+          "name": "Insider buying",
+          "pts": 25
+        },
+        {
+          "name": "Analyst revision \u2191",
+          "pts": 5
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "FCF yield <5%",
+        "R:R <2",
+        "Upside <20%",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 26
+    },
+    {
+      "ticker": "DLTR",
+      "company_name": "Dollar Tree, Inc.",
+      "region": "US",
+      "sector": "Consumer Defensive",
+      "value_score": 67.2,
+      "conviction_grade": "",
+      "current_price": 106.42,
+      "analyst_upside_pct": 17.7,
+      "fcf_yield_pct": 6.07,
+      "risk_reward_ratio": 2.21,
+      "days_in_value": 1,
+      "streak_days": 1,
+      "entry_score": 20,
+      "signal": "WAIT",
+      "signals_fired": [
+        "FCF yield \u22655%",
+        "R:R \u22652"
+      ],
+      "signals_pts": [
+        {
+          "name": "FCF yield \u22655%",
+          "pts": 10
+        },
+        {
+          "name": "R:R \u22652",
+          "pts": 10
+        }
+      ],
+      "signals_missing": [
+        "Value score <80",
+        "Upside <20%",
+        "Sin insider buying (espera)",
+        "Sin se\u00f1al MR oversold",
+        "Sin opciones alcistas",
+        "Sector no l\u00edder",
+        "R\u00e9gimen no alcista",
+        "Solo 1d en VALUE"
+      ],
+      "rsi": null,
+      "earnings_warning": false,
+      "days_to_earnings": 56
     }
   ]
 }

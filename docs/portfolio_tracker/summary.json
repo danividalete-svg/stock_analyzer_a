@@ -1,142 +1,154 @@
 {
-  "total_signals": 1384,
-  "unique_tickers": 176,
-  "date_range": "2026-02-26 to 2026-03-24",
-  "active_signals": 1384,
-  "completed_signals": 0,
+  "total_signals": 1396,
+  "unique_tickers": 177,
+  "date_range": "2026-02-26 to 2026-04-08",
+  "active_signals": 811,
+  "completed_signals": 585,
   "overall": {
     "7d": {
-      "count": 1004,
-      "win_rate": 18.9,
+      "count": 1370,
+      "win_rate": 23.4,
       "avg_return": -4.61,
-      "median_return": -4.52,
+      "median_return": -4.07,
       "best": 35.4,
-      "worst": -21.2
+      "worst": -99.1
     },
     "14d": {
-      "count": 585,
-      "win_rate": 17.3,
-      "avg_return": -5.62,
-      "median_return": -5.48,
+      "count": 1370,
+      "win_rate": 27.2,
+      "avg_return": -5.21,
+      "median_return": -4.7,
       "best": 40.27,
-      "worst": -25.98
+      "worst": -99.1
     },
     "30d": {
-      "count": 0,
-      "win_rate": null,
-      "avg_return": null,
-      "median_return": null,
-      "best": null,
-      "worst": null
+      "count": 585,
+      "win_rate": 29.4,
+      "avg_return": -5.47,
+      "median_return": -4.7,
+      "best": 30.1,
+      "worst": -98.74
+    }
+  },
+  "conviction": {
+    "7d": {
+      "count": 460,
+      "win_rate": 29.3,
+      "avg_return": -2.41
     }
   },
   "value_strategy": {
-    "count": 681,
+    "count": 687,
     "7d": {
-      "count": 1004,
-      "win_rate": 18.9,
+      "count": 1370,
+      "win_rate": 23.4,
       "avg_return": -4.61,
-      "median_return": -4.52,
+      "median_return": -4.07,
       "best": 35.4,
-      "worst": -21.2
+      "worst": -99.1
     },
     "14d": {
-      "count": 585,
-      "win_rate": 17.3,
-      "avg_return": -5.62,
-      "median_return": -5.48,
+      "count": 1370,
+      "win_rate": 27.2,
+      "avg_return": -5.21,
+      "median_return": -4.7,
       "best": 40.27,
-      "worst": -25.98
+      "worst": -99.1
     },
     "30d": {
-      "count": 0,
-      "win_rate": null,
-      "avg_return": null,
-      "median_return": null,
-      "best": null,
-      "worst": null
+      "count": 585,
+      "win_rate": 29.4,
+      "avg_return": -5.47,
+      "median_return": -4.7,
+      "best": 30.1,
+      "worst": -98.74
     }
   },
   "momentum_strategy": {
-    "count": 1,
+    "count": 2,
     "7d": {
-      "count": 1004,
-      "win_rate": 18.9,
+      "count": 1370,
+      "win_rate": 23.4,
       "avg_return": -4.61,
-      "median_return": -4.52,
+      "median_return": -4.07,
       "best": 35.4,
-      "worst": -21.2
+      "worst": -99.1
     },
     "14d": {
-      "count": 585,
-      "win_rate": 17.3,
-      "avg_return": -5.62,
-      "median_return": -5.48,
+      "count": 1370,
+      "win_rate": 27.2,
+      "avg_return": -5.21,
+      "median_return": -4.7,
       "best": 40.27,
-      "worst": -25.98
+      "worst": -99.1
     },
     "30d": {
-      "count": 0,
-      "win_rate": null,
-      "avg_return": null,
-      "median_return": null,
-      "best": null,
-      "worst": null
+      "count": 585,
+      "win_rate": 29.4,
+      "avg_return": -5.47,
+      "median_return": -4.7,
+      "best": 30.1,
+      "worst": -98.74
     }
   },
   "sector_performance": {
     "Healthcare": {
-      "count": 26,
-      "avg_14d": -9.03,
-      "win_rate_14d": 7.7
+      "count": 71,
+      "avg_14d": -7.34,
+      "win_rate_14d": 18.3
     },
     "Industrials": {
-      "count": 72,
-      "avg_14d": -7.85,
-      "win_rate_14d": 15.3
+      "count": 176,
+      "avg_14d": -6.36,
+      "win_rate_14d": 22.2
     },
     "Financial Services": {
-      "count": 254,
-      "avg_14d": -4.61,
-      "win_rate_14d": 15.0
+      "count": 553,
+      "avg_14d": -3.09,
+      "win_rate_14d": 34.2
     },
     "Technology": {
-      "count": 58,
-      "avg_14d": -2.49,
-      "win_rate_14d": 36.2
+      "count": 136,
+      "avg_14d": -3.48,
+      "win_rate_14d": 29.4
     },
     "Communication Services": {
-      "count": 31,
-      "avg_14d": 1.36,
-      "win_rate_14d": 51.6
+      "count": 72,
+      "avg_14d": 0.58,
+      "win_rate_14d": 50.0
     },
     "Real Estate": {
-      "count": 14,
-      "avg_14d": -6.21,
-      "win_rate_14d": 14.3
+      "count": 36,
+      "avg_14d": -4.84,
+      "win_rate_14d": 19.4
     },
     "Energy": {
-      "count": 5,
-      "avg_14d": 4.23,
-      "win_rate_14d": 60.0
+      "count": 21,
+      "avg_14d": 3.39,
+      "win_rate_14d": 71.4
     },
     "Consumer Defensive": {
-      "count": 25,
-      "avg_14d": -4.32,
-      "win_rate_14d": 16.0
+      "count": 59,
+      "avg_14d": -4.67,
+      "win_rate_14d": 15.3
     },
     "Basic Materials": {
-      "count": 58,
-      "avg_14d": -10.56,
-      "win_rate_14d": 0.0
+      "count": 138,
+      "avg_14d": -7.73,
+      "win_rate_14d": 11.6
     },
     "Consumer Cyclical": {
-      "count": 42,
-      "avg_14d": -10.2,
-      "win_rate_14d": 9.5
+      "count": 105,
+      "avg_14d": -18.19,
+      "win_rate_14d": 6.7
+    },
+    "Utilities": {
+      "count": 3,
+      "avg_14d": 1.2,
+      "win_rate_14d": 66.7
     }
   },
-  "score_correlation": -0.091,
+  "score_correlation": 0.01,
   "top_performers": [
     {
       "ticker": "FIGR",
@@ -145,6 +157,14 @@
       "signal_date": "2026-03-02 00:00:00",
       "signal_price": 25.28,
       "return_14d": 40.27
+    },
+    {
+      "ticker": "LIFE",
+      "company_name": "Ethos Technologies Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-20 00:00:00",
+      "signal_price": 10.0,
+      "return_14d": 22.0
     },
     {
       "ticker": "FIGR",
@@ -169,146 +189,182 @@
       "signal_date": "2026-03-02 00:00:00",
       "signal_price": 3.9,
       "return_14d": 20.0
-    },
-    {
-      "ticker": "FIGR",
-      "company_name": "Figure Technology Solutions, In",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-04 00:00:00",
-      "signal_price": 28.47,
-      "return_14d": 18.3
     }
   ],
   "worst_performers": [
     {
-      "ticker": "LIFE",
-      "company_name": "Ethos Technologies Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-07 00:00:00",
-      "signal_price": 13.16,
-      "return_14d": -23.02
+      "ticker": "CPG.L",
+      "company_name": "COMPASS GROUP PLC ORD 11 1/20P",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-03-11 00:00:00",
+      "signal_price": 2253.0,
+      "return_14d": -99.04
     },
     {
-      "ticker": "THRY",
-      "company_name": "THRY",
-      "strategy": "VALUE",
-      "signal_date": "2026-02-26 00:00:00",
-      "signal_price": 3.88,
-      "return_14d": -23.45
+      "ticker": "CPG.L",
+      "company_name": "COMPASS GROUP PLC ORD 11 1/20P",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-03-12 00:00:00",
+      "signal_price": 2253.0,
+      "return_14d": -99.07
     },
     {
-      "ticker": "THRY",
-      "company_name": "THRY",
-      "strategy": "VALUE",
-      "signal_date": "2026-02-27 00:00:00",
-      "signal_price": 3.92,
-      "return_14d": -25.0
+      "ticker": "CPG.L",
+      "company_name": "COMPASS GROUP PLC ORD 11 1/20P",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-03-17 00:00:00",
+      "signal_price": 2253.0,
+      "return_14d": -99.07
     },
     {
-      "ticker": "ENR",
-      "company_name": "ENR",
-      "strategy": "VALUE",
-      "signal_date": "2026-02-26 00:00:00",
-      "signal_price": 22.025,
-      "return_14d": -25.22
+      "ticker": "CPG.L",
+      "company_name": "COMPASS GROUP PLC ORD 11 1/20P",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-03-16 00:00:00",
+      "signal_price": 2253.0,
+      "return_14d": -99.08
     },
     {
-      "ticker": "LIFE",
-      "company_name": "Ethos Technologies Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-05 00:00:00",
-      "signal_price": 13.51,
-      "return_14d": -25.98
+      "ticker": "CPG.L",
+      "company_name": "COMPASS GROUP PLC ORD 11 1/20P",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-03-13 00:00:00",
+      "signal_price": 2253.0,
+      "return_14d": -99.1
     }
   ],
   "recent_signals": [
     {
-      "ticker": "AGN.AS",
-      "company_name": "AEGON",
+      "ticker": "PRU.L",
+      "company_name": "PRUDENTIAL PLC ORD 5P",
       "strategy": "EU_VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 6.51,
+      "signal_date": "2026-04-08",
+      "signal_price": 1145.0,
       "sector": "Financial Services",
-      "value_score": 26.2,
+      "value_score": 71.0,
       "days_active": 0,
-      "first_result_date": "2026-03-31"
+      "first_result_date": "2026-04-15"
     },
     {
       "ticker": "EXPE",
       "company_name": "Expedia Group, Inc.",
       "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 236.65,
+      "signal_date": "2026-04-08",
+      "signal_price": 224.3,
       "sector": "Consumer Cyclical",
-      "value_score": 45.92,
+      "value_score": 55.36,
       "days_active": 0,
-      "first_result_date": "2026-03-31"
+      "first_result_date": "2026-04-15"
     },
     {
-      "ticker": "CHD",
-      "company_name": "Church & Dwight Company, Inc.",
+      "ticker": "ACN",
+      "company_name": "Accenture plc",
       "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 94.65,
-      "sector": "Consumer Defensive",
-      "value_score": 46.1,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "BUKS",
-      "company_name": "Butler National Corp.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 4.04,
-      "sector": "Industrials",
-      "value_score": 60.12,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "DPZ",
-      "company_name": "Domino's Pizza Inc",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 366.8,
-      "sector": "Consumer Cyclical",
-      "value_score": 62.2,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "ADP",
-      "company_name": "Automatic Data Processing, Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 209.71,
+      "signal_date": "2026-04-08",
+      "signal_price": 197.3,
       "sector": "Technology",
-      "value_score": 63.55,
+      "value_score": 64.84,
       "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "BMY",
-      "company_name": "Bristol-Myers Squibb Company",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 57.0,
-      "sector": "Healthcare",
-      "value_score": 67.0,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
+      "first_result_date": "2026-04-15"
     },
     {
       "ticker": "BR",
       "company_name": "Broadridge Financial Solutions,",
       "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 170.84,
+      "signal_date": "2026-04-08",
+      "signal_price": 159.9,
       "sector": "Technology",
-      "value_score": 66.0,
+      "value_score": 73.2,
       "days_active": 0,
-      "first_result_date": "2026-03-31"
+      "first_result_date": "2026-04-15"
+    },
+    {
+      "ticker": "BBY",
+      "company_name": "Best Buy Co., Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-04-08",
+      "signal_price": 64.02,
+      "sector": "Consumer Cyclical",
+      "value_score": 66.32,
+      "days_active": 0,
+      "first_result_date": "2026-04-15"
+    },
+    {
+      "ticker": "CPAY",
+      "company_name": "Corpay, Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-04-08",
+      "signal_price": 296.35,
+      "sector": "Technology",
+      "value_score": 71.7,
+      "days_active": 0,
+      "first_result_date": "2026-04-15"
+    },
+    {
+      "ticker": "DECK",
+      "company_name": "Deckers Outdoor Corporation",
+      "strategy": "VALUE",
+      "signal_date": "2026-04-08",
+      "signal_price": 100.26,
+      "sector": "Consumer Cyclical",
+      "value_score": 76.12,
+      "days_active": 0,
+      "first_result_date": "2026-04-15"
+    },
+    {
+      "ticker": "EME",
+      "company_name": "EMCOR Group, Inc.",
+      "strategy": "MOMENTUM",
+      "signal_date": "2026-04-08",
+      "signal_price": 750.42,
+      "sector": "Industrials",
+      "value_score": null,
+      "days_active": 0,
+      "first_result_date": "2026-04-15"
+    },
+    {
+      "ticker": "LOGN.SW",
+      "company_name": "LOGITECH N",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-04-08",
+      "signal_price": 71.1,
+      "sector": "Technology",
+      "value_score": 61.0,
+      "days_active": 0,
+      "first_result_date": "2026-04-15"
+    },
+    {
+      "ticker": "EXPN.L",
+      "company_name": "EXPERIAN PLC ORD USD0.10",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-04-08",
+      "signal_price": 2778.0,
+      "sector": "Industrials",
+      "value_score": 69.7,
+      "days_active": 0,
+      "first_result_date": "2026-04-15"
+    },
+    {
+      "ticker": "SGE.L",
+      "company_name": "THE SAGE GROUP PLC ORD 1 4/77P",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-04-08",
+      "signal_price": 835.4,
+      "sector": "Technology",
+      "value_score": 62.6,
+      "days_active": 0,
+      "first_result_date": "2026-04-15"
+    },
+    {
+      "ticker": "SAP.DE",
+      "company_name": "SAP SE                        I",
+      "strategy": "EU_VALUE",
+      "signal_date": "2026-04-08",
+      "signal_price": 172.22,
+      "sector": "Technology",
+      "value_score": 60.9,
+      "days_active": 0,
+      "first_result_date": "2026-04-15"
     },
     {
       "ticker": "AON",
@@ -318,51 +374,7 @@
       "signal_price": 325.97,
       "sector": "Financial Services",
       "value_score": 66.38,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "CMCSA",
-      "company_name": "Comcast Corporation",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 29.01,
-      "sector": "Communication Services",
-      "value_score": 57.92,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "EFX",
-      "company_name": "Equifax, Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 179.65,
-      "sector": "Industrials",
-      "value_score": 50.32,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "BFST",
-      "company_name": "Business First Bancshares, Inc.",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 26.81,
-      "sector": "Financial Services",
-      "value_score": 50.52,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "MCY",
-      "company_name": "Mercury General Corporation",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 87.54,
-      "sector": "Financial Services",
-      "value_score": 54.64,
-      "days_active": 0,
+      "days_active": 15,
       "first_result_date": "2026-03-31"
     },
     {
@@ -373,76 +385,76 @@
       "signal_price": 428.87,
       "sector": "Financial Services",
       "value_score": 56.2,
-      "days_active": 0,
+      "days_active": 15,
       "first_result_date": "2026-03-31"
     },
     {
-      "ticker": "TBBK",
-      "company_name": "The Bancorp, Inc.",
+      "ticker": "MCY",
+      "company_name": "Mercury General Corporation",
       "strategy": "VALUE",
       "signal_date": "2026-03-24",
-      "signal_price": 53.74,
+      "signal_price": 87.54,
       "sector": "Financial Services",
-      "value_score": 50.7,
-      "days_active": 0,
+      "value_score": 54.64,
+      "days_active": 15,
       "first_result_date": "2026-03-31"
     },
     {
-      "ticker": "RLI",
-      "company_name": "RLI Corp.",
+      "ticker": "BFST",
+      "company_name": "Business First Bancshares, Inc.",
       "strategy": "VALUE",
       "signal_date": "2026-03-24",
-      "signal_price": 57.65,
+      "signal_price": 26.81,
       "sector": "Financial Services",
-      "value_score": 52.6,
-      "days_active": 0,
+      "value_score": 50.52,
+      "days_active": 15,
       "first_result_date": "2026-03-31"
     },
     {
-      "ticker": "CPRT",
-      "company_name": "Copart, Inc.",
+      "ticker": "EFX",
+      "company_name": "Equifax, Inc.",
       "strategy": "VALUE",
       "signal_date": "2026-03-24",
-      "signal_price": 33.39,
+      "signal_price": 179.65,
       "sector": "Industrials",
-      "value_score": 46.02,
-      "days_active": 0,
+      "value_score": 50.32,
+      "days_active": 15,
       "first_result_date": "2026-03-31"
     },
     {
-      "ticker": "COST",
-      "company_name": "Costco Wholesale Corporation",
+      "ticker": "ENR",
+      "company_name": "Energizer Holdings, Inc.",
       "strategy": "VALUE",
       "signal_date": "2026-03-24",
-      "signal_price": 965.73,
+      "signal_price": 17.08,
+      "sector": "Industrials",
+      "value_score": 58.02,
+      "days_active": 15,
+      "first_result_date": "2026-03-31"
+    },
+    {
+      "ticker": "CMCSA",
+      "company_name": "Comcast Corporation",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-24",
+      "signal_price": 29.01,
+      "sector": "Communication Services",
+      "value_score": 57.92,
+      "days_active": 15,
+      "first_result_date": "2026-03-31"
+    },
+    {
+      "ticker": "CHD",
+      "company_name": "Church & Dwight Company, Inc.",
+      "strategy": "VALUE",
+      "signal_date": "2026-03-24",
+      "signal_price": 94.65,
       "sector": "Consumer Defensive",
-      "value_score": 42.8,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "PRIM",
-      "company_name": "Primoris Services Corporation",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 142.59,
-      "sector": "Industrials",
-      "value_score": 47.96,
-      "days_active": 0,
-      "first_result_date": "2026-03-31"
-    },
-    {
-      "ticker": "THFF",
-      "company_name": "First Financial Corporation",
-      "strategy": "VALUE",
-      "signal_date": "2026-03-24",
-      "signal_price": 62.61,
-      "sector": "Financial Services",
-      "value_score": 48.96,
-      "days_active": 0,
+      "value_score": 46.1,
+      "days_active": 15,
       "first_result_date": "2026-03-31"
     }
   ],
-  "avg_max_drawdown": -8.12,
-  "generated_at": "2026-03-24T08:34:08.374311"
+  "avg_max_drawdown": -8.43,
+  "generated_at": "2026-04-08T10:52:37.240771"
 }

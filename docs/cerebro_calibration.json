@@ -1,25 +1,19 @@
 {
-  "generated_at": "2026-04-07",
+  "generated_at": "2026-04-08",
   "recommendations": [
     {
       "type": "BOOST",
       "factor": "Score 60\u201370",
-      "insight": "WR 31.0% (+11.1pp sobre base). Priorizar este rango.",
-      "n": 147
-    },
-    {
-      "type": "BOOST",
-      "factor": "FCF Yield \u22655%",
-      "insight": "FCF alto mejora WR +6.4pp. Aumentar peso FCF.",
-      "n": 224
+      "insight": "WR 35.5% (+11.2pp sobre base). Priorizar este rango.",
+      "n": 222
     },
     {
       "type": "BOOST",
       "factor": "R:R \u22653",
-      "insight": "R:R alto mejora WR +14.6pp. Aumentar peso R:R.",
-      "n": 317
+      "insight": "R:R alto mejora WR +9.6pp. Aumentar peso R:R.",
+      "n": 459
     }
   ],
   "narrative": "El sistema contin\u00faa aprendiendo. Se necesitan m\u00e1s se\u00f1ales completadas para recomendaciones precisas.",
-  "total_recommendations": 3
+  "total_recommendations": 2
 }

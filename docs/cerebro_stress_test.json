@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-04-07",
-  "total_positions": 176,
+  "generated_at": "2026-04-08",
+  "total_positions": 177,
   "risks": [
     {
       "type": "GEO_CONCENTRATION",
       "severity": "LOW",
       "message": "100% en mercado US \u2014 poca diversificaci\u00f3n geogr\u00e1fica",
       "detail": {
-        "us": 176,
+        "us": 177,
         "eu": 0
       }
     }
@@ -16,18 +16,13 @@
   "sector_breakdown": [
     {
       "sector": "Financial Services",
-      "count": 47,
-      "pct": 27
+      "count": 45,
+      "pct": 25
     },
     {
       "sector": "Unknown",
-      "count": 32,
-      "pct": 18
-    },
-    {
-      "sector": "Technology",
-      "count": 20,
-      "pct": 11
+      "count": 36,
+      "pct": 20
     },
     {
       "sector": "Industrials",
@@ -35,14 +30,14 @@
       "pct": 11
     },
     {
-      "sector": "Consumer Cyclical",
-      "count": 14,
-      "pct": 8
+      "sector": "Technology",
+      "count": 19,
+      "pct": 11
     },
     {
-      "sector": "Healthcare",
-      "count": 10,
-      "pct": 6
+      "sector": "Consumer Cyclical",
+      "count": 15,
+      "pct": 8
     },
     {
       "sector": "Consumer Defensive",
@@ -53,9 +48,14 @@
       "sector": "Basic Materials",
       "count": 10,
       "pct": 6
+    },
+    {
+      "sector": "Healthcare",
+      "count": 9,
+      "pct": 5
     }
   ],
   "region_breakdown": {
-    "US": 176
+    "US": 177
   }
 }

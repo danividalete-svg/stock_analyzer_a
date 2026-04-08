@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-07",
-  "total": 8,
+  "generated_at": "2026-04-08",
+  "total": 9,
   "high_count": 1,
   "narrative": null,
   "setups": [
@@ -9,14 +9,14 @@
       "company_name": "Charter Communications, Inc.",
       "sector": "Communication Services",
       "severity": "HIGH",
-      "squeeze_score": 70,
-      "short_pct_float": 26.4,
+      "squeeze_score": 76,
+      "short_pct_float": 33.6,
       "piotroski": 7.0,
-      "value_score": 42.03,
+      "value_score": 58.35,
       "insider_buying": false,
       "hf_present": true,
       "flags": [
-        "Short muy alto (26.4% del float)",
+        "Short muy alto (33.6% del float)",
         "Piotroski 7/9 \u2014 calidad mejorando",
         "Hedge funds con posici\u00f3n larga"
       ]
@@ -26,65 +26,16 @@
       "company_name": "Gartner, Inc.",
       "sector": "Technology",
       "severity": "MEDIUM",
-      "squeeze_score": 45,
-      "short_pct_float": 12.5,
+      "squeeze_score": 51,
+      "short_pct_float": 12.7,
       "piotroski": 6.0,
-      "value_score": 49.73,
+      "value_score": 62.97,
       "insider_buying": true,
       "hf_present": false,
       "flags": [
-        "Short moderado (12.5% del float)",
+        "Short moderado (12.7% del float)",
         "Insiders comprando \u2014 contradice tesis bajista",
         "Piotroski 6/9 \u2014 calidad mejorando"
-      ]
-    },
-    {
-      "ticker": "CNK",
-      "company_name": "Cinemark Holdings Inc Cinemark ",
-      "sector": "Communication Services",
-      "severity": "MEDIUM",
-      "squeeze_score": 45,
-      "short_pct_float": 15.1,
-      "piotroski": 5.0,
-      "value_score": 41.42,
-      "insider_buying": true,
-      "hf_present": false,
-      "flags": [
-        "Short elevado (15.1% del float)",
-        "Insiders comprando \u2014 contradice tesis bajista"
-      ]
-    },
-    {
-      "ticker": "THRY",
-      "company_name": "Thryv Holdings, Inc.",
-      "sector": "Technology",
-      "severity": "MEDIUM",
-      "squeeze_score": 45,
-      "short_pct_float": 11.6,
-      "piotroski": 6.0,
-      "value_score": 36.8,
-      "insider_buying": true,
-      "hf_present": false,
-      "flags": [
-        "Short moderado (11.6% del float)",
-        "Insiders comprando \u2014 contradice tesis bajista",
-        "Piotroski 6/9 \u2014 calidad mejorando"
-      ]
-    },
-    {
-      "ticker": "NP",
-      "company_name": "Neptune Insurance Holdings Inc.",
-      "sector": "Financial Services",
-      "severity": "MEDIUM",
-      "squeeze_score": 45,
-      "short_pct_float": 15.3,
-      "piotroski": 4.0,
-      "value_score": 32.519999999999996,
-      "insider_buying": true,
-      "hf_present": false,
-      "flags": [
-        "Short elevado (15.3% del float)",
-        "Insiders comprando \u2014 contradice tesis bajista"
       ]
     },
     {
@@ -95,11 +46,43 @@
       "squeeze_score": 31,
       "short_pct_float": 14.2,
       "piotroski": 6.0,
-      "value_score": 67.91999999999999,
+      "value_score": 68.12,
       "insider_buying": false,
       "hf_present": false,
       "flags": [
         "Short moderado (14.2% del float)",
+        "Piotroski 6/9 \u2014 calidad mejorando"
+      ]
+    },
+    {
+      "ticker": "BBY",
+      "company_name": "Best Buy Co., Inc.",
+      "sector": "Consumer Cyclical",
+      "severity": "MEDIUM",
+      "squeeze_score": 31,
+      "short_pct_float": 14.2,
+      "piotroski": 7.0,
+      "value_score": 66.32,
+      "insider_buying": false,
+      "hf_present": false,
+      "flags": [
+        "Short moderado (14.2% del float)",
+        "Piotroski 7/9 \u2014 calidad mejorando"
+      ]
+    },
+    {
+      "ticker": "ENR",
+      "company_name": "Energizer Holdings, Inc.",
+      "sector": "Industrials",
+      "severity": "MEDIUM",
+      "squeeze_score": 31,
+      "short_pct_float": 10.4,
+      "piotroski": 6.0,
+      "value_score": 57.48,
+      "insider_buying": false,
+      "hf_present": false,
+      "flags": [
+        "Short moderado (10.4% del float)",
         "Piotroski 6/9 \u2014 calidad mejorando"
       ]
     },
@@ -109,14 +92,46 @@
       "sector": "Financial Services",
       "severity": "MEDIUM",
       "squeeze_score": 30,
-      "short_pct_float": 11.1,
+      "short_pct_float": 11.3,
       "piotroski": 5.0,
-      "value_score": 50.7,
+      "value_score": 50.4,
       "insider_buying": true,
       "hf_present": false,
       "flags": [
-        "Short moderado (11.1% del float)",
+        "Short moderado (11.3% del float)",
         "Insiders comprando \u2014 contradice tesis bajista"
+      ]
+    },
+    {
+      "ticker": "CNK",
+      "company_name": "Cinemark Holdings Inc Cinemark ",
+      "sector": "Communication Services",
+      "severity": "MEDIUM",
+      "squeeze_score": 30,
+      "short_pct_float": 13.6,
+      "piotroski": 5.0,
+      "value_score": 30.78,
+      "insider_buying": true,
+      "hf_present": false,
+      "flags": [
+        "Short moderado (13.6% del float)",
+        "Insiders comprando \u2014 contradice tesis bajista"
+      ]
+    },
+    {
+      "ticker": "DLX",
+      "company_name": "Deluxe Corporation",
+      "sector": "Industrials",
+      "severity": "MEDIUM",
+      "squeeze_score": 25,
+      "short_pct_float": 10.5,
+      "piotroski": 6.0,
+      "value_score": 52.099999999999994,
+      "insider_buying": false,
+      "hf_present": false,
+      "flags": [
+        "Short moderado (10.5% del float)",
+        "Piotroski 6/9 \u2014 calidad mejorando"
       ]
     },
     {
@@ -125,13 +140,13 @@
       "sector": "Financial Services",
       "severity": "MEDIUM",
       "squeeze_score": 25,
-      "short_pct_float": 11.2,
+      "short_pct_float": 10.4,
       "piotroski": 6.0,
-      "value_score": 45.650000000000006,
+      "value_score": 51.2,
       "insider_buying": false,
       "hf_present": false,
       "flags": [
-        "Short moderado (11.2% del float)",
+        "Short moderado (10.4% del float)",
         "Piotroski 6/9 \u2014 calidad mejorando"
       ]
     }

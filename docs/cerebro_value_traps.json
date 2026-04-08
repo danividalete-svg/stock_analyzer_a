@@ -1,169 +1,205 @@
 {
-  "generated_at": "2026-04-07",
-  "total": 12,
+  "generated_at": "2026-04-08",
+  "total": 15,
   "high_count": 0,
   "narrative": null,
   "traps": [
     {
-      "ticker": "DUK",
-      "company_name": "Duke Energy Corporation (Holdin",
+      "ticker": "SGU",
+      "company_name": "Star Group L.P.",
       "severity": "MEDIUM",
-      "trap_score": 5,
-      "value_score": 33.019999999999996,
+      "trap_score": 4,
+      "value_score": 67.77199999999999,
       "flags": [
-        "FCF negativo (-2.0%) \u2014 quema caja pese a valuaci\u00f3n barata",
-        "Fundamental score cerca de default (50) \u2014 datos poco fiables"
+        "Fundamental score cerca de default (50) \u2014 datos poco fiables",
+        "Sin cobertura de analistas \u2014 tesis sin verificar externamente"
       ],
       "piotroski": 8.0,
-      "fcf_yield_pct": -2.02,
-      "fundamental_score": 48.3
+      "fcf_yield_pct": 9.79,
+      "fundamental_score": 50.8
+    },
+    {
+      "ticker": "ADP",
+      "company_name": "Automatic Data Processing, Inc.",
+      "severity": "MEDIUM",
+      "trap_score": 4,
+      "value_score": 65.95,
+      "flags": [
+        "Fundamental score cerca de default (50) \u2014 datos poco fiables",
+        "Analistas recomiendan 'hold' pese a score alto"
+      ],
+      "piotroski": 8.0,
+      "fcf_yield_pct": 4.2,
+      "fundamental_score": 50.5
+    },
+    {
+      "ticker": "INGA.AS",
+      "company_name": "ING GROEP N.V.",
+      "severity": "MEDIUM",
+      "trap_score": 4,
+      "value_score": 48.4,
+      "flags": [
+        "Piotroski muy d\u00e9bil (2/9) \u2014 calidad financiera en deterioro"
+      ],
+      "piotroski": 2.0,
+      "fcf_yield_pct": null,
+      "fundamental_score": 58.5
+    },
+    {
+      "ticker": "ISP.MI",
+      "company_name": "INTESA SANPAOLO",
+      "severity": "MEDIUM",
+      "trap_score": 4,
+      "value_score": 39.3,
+      "flags": [
+        "Piotroski muy d\u00e9bil (1/9) \u2014 calidad financiera en deterioro"
+      ],
+      "piotroski": 1.0,
+      "fcf_yield_pct": null,
+      "fundamental_score": 65.8
+    },
+    {
+      "ticker": "ENEL.MI",
+      "company_name": "ENEL",
+      "severity": "MEDIUM",
+      "trap_score": 4,
+      "value_score": 25.8,
+      "flags": [
+        "Piotroski muy d\u00e9bil (2/9) \u2014 calidad financiera en deterioro"
+      ],
+      "piotroski": 2.0,
+      "fcf_yield_pct": 0.47,
+      "fundamental_score": 69.6
     },
     {
       "ticker": "AIR.PA",
       "company_name": "AIRBUS SE",
       "severity": "MEDIUM",
-      "trap_score": 5,
-      "value_score": 28.8,
-      "flags": [
-        "FCF negativo (-0.8%) \u2014 quema caja pese a valuaci\u00f3n barata",
-        "Fundamental score cerca de default (50) \u2014 datos poco fiables"
-      ],
-      "piotroski": null,
-      "fcf_yield_pct": -0.84,
-      "fundamental_score": 49.5
-    },
-    {
-      "ticker": "BRO",
-      "company_name": "Brown & Brown, Inc.",
-      "severity": "MEDIUM",
-      "trap_score": 4,
-      "value_score": 42.95,
-      "flags": [
-        "Piotroski d\u00e9bil (4/9)",
-        "Fundamental score cerca de default (50) \u2014 datos poco fiables"
-      ],
-      "piotroski": 4.0,
-      "fcf_yield_pct": 6.15,
-      "fundamental_score": 53.0
-    },
-    {
-      "ticker": "ELV",
-      "company_name": "Elevance Health, Inc.",
-      "severity": "MEDIUM",
-      "trap_score": 4,
-      "value_score": 42.88,
-      "flags": [
-        "Piotroski d\u00e9bil (4/9)",
-        "Fundamental score cerca de default (50) \u2014 datos poco fiables"
-      ],
-      "piotroski": 4.0,
-      "fcf_yield_pct": 5.33,
-      "fundamental_score": 52.2
-    },
-    {
-      "ticker": "AVB",
-      "company_name": "AvalonBay Communities, Inc.",
-      "severity": "MEDIUM",
-      "trap_score": 4,
-      "value_score": 30.0,
-      "flags": [
-        "Piotroski d\u00e9bil (4/9)",
-        "Fundamental score cerca de default (50) \u2014 datos poco fiables"
-      ],
-      "piotroski": 4.0,
-      "fcf_yield_pct": 5.8,
-      "fundamental_score": 52.5
-    },
-    {
-      "ticker": "MTX.DE",
-      "company_name": "MTU Aero Engines AG           N",
-      "severity": "MEDIUM",
       "trap_score": 3,
-      "value_score": 47.8,
+      "value_score": 43.8,
       "flags": [
-        "FCF negativo (-4.2%) \u2014 quema caja pese a valuaci\u00f3n barata"
+        "FCF negativo (-0.9%) \u2014 quema caja pese a valuaci\u00f3n barata"
       ],
-      "piotroski": null,
-      "fcf_yield_pct": -4.19,
-      "fundamental_score": 57.1
+      "piotroski": 8.0,
+      "fcf_yield_pct": -0.9,
+      "fundamental_score": 79.5
     },
     {
       "ticker": "FTAI",
       "company_name": "FTAI Aviation Ltd.",
       "severity": "MEDIUM",
       "trap_score": 3,
-      "value_score": 44.82,
+      "value_score": 40.5,
       "flags": [
         "FCF negativo (-3.1%) \u2014 quema caja pese a valuaci\u00f3n barata"
       ],
       "piotroski": 6.0,
       "fcf_yield_pct": -3.12,
-      "fundamental_score": 70.8
+      "fundamental_score": 80.0
+    },
+    {
+      "ticker": "NG.L",
+      "company_name": "NATIONAL GRID PLC ORD 12 204/47",
+      "severity": "MEDIUM",
+      "trap_score": 3,
+      "value_score": 37.4,
+      "flags": [
+        "FCF negativo (-5.5%) \u2014 quema caja pese a valuaci\u00f3n barata"
+      ],
+      "piotroski": 7.0,
+      "fcf_yield_pct": -5.45,
+      "fundamental_score": 58.6
+    },
+    {
+      "ticker": "AIR.DE",
+      "company_name": "Airbus SE                     A",
+      "severity": "MEDIUM",
+      "trap_score": 3,
+      "value_score": 34.2,
+      "flags": [
+        "FCF negativo (-0.9%) \u2014 quema caja pese a valuaci\u00f3n barata"
+      ],
+      "piotroski": 8.0,
+      "fcf_yield_pct": -0.9,
+      "fundamental_score": 78.0
     },
     {
       "ticker": "SAF.PA",
       "company_name": "SAFRAN",
       "severity": "MEDIUM",
       "trap_score": 3,
-      "value_score": 31.8,
+      "value_score": 33.6,
       "flags": [
-        "FCF negativo (-1.2%) \u2014 quema caja pese a valuaci\u00f3n barata"
+        "FCF negativo (-1.3%) \u2014 quema caja pese a valuaci\u00f3n barata"
       ],
-      "piotroski": null,
-      "fcf_yield_pct": -1.18,
-      "fundamental_score": 61.9
-    },
-    {
-      "ticker": "AWK",
-      "company_name": "American Water Works Company, I",
-      "severity": "MEDIUM",
-      "trap_score": 3,
-      "value_score": 30.019999999999996,
-      "flags": [
-        "FCF negativo (-8.8%) \u2014 quema caja pese a valuaci\u00f3n barata"
-      ],
-      "piotroski": 8.0,
-      "fcf_yield_pct": -8.84,
-      "fundamental_score": 56.3
-    },
-    {
-      "ticker": "LAND.L",
-      "company_name": "LAND SECURITIES GROUP PLC ORD 1",
-      "severity": "MEDIUM",
-      "trap_score": 3,
-      "value_score": 29.4,
-      "flags": [
-        "FCF negativo (-4.3%) \u2014 quema caja pese a valuaci\u00f3n barata"
-      ],
-      "piotroski": null,
-      "fcf_yield_pct": -4.34,
-      "fundamental_score": 58.5
+      "piotroski": 7.0,
+      "fcf_yield_pct": -1.31,
+      "fundamental_score": 59.1
     },
     {
       "ticker": "RWE.DE",
       "company_name": "RWE AG                        I",
       "severity": "MEDIUM",
       "trap_score": 3,
-      "value_score": 25.0,
+      "value_score": 33.5,
       "flags": [
-        "FCF negativo (-5.9%) \u2014 quema caja pese a valuaci\u00f3n barata"
+        "FCF negativo (-26.1%) \u2014 quema caja pese a valuaci\u00f3n barata"
       ],
-      "piotroski": null,
-      "fcf_yield_pct": -5.9,
-      "fundamental_score": 60.0
+      "piotroski": 6.0,
+      "fcf_yield_pct": -26.13,
+      "fundamental_score": 66.2
     },
     {
-      "ticker": "LONN.SW",
-      "company_name": "LONZA N",
+      "ticker": "LAND.L",
+      "company_name": "LAND SECURITIES GROUP PLC ORD 1",
       "severity": "MEDIUM",
       "trap_score": 3,
-      "value_score": 25.0,
+      "value_score": 32.6,
       "flags": [
-        "FCF negativo (-8.6%) \u2014 quema caja pese a valuaci\u00f3n barata"
+        "FCF negativo (-4.8%) \u2014 quema caja pese a valuaci\u00f3n barata"
       ],
-      "piotroski": null,
-      "fcf_yield_pct": -8.62,
-      "fundamental_score": 57.5
+      "piotroski": 6.0,
+      "fcf_yield_pct": -4.77,
+      "fundamental_score": 56.5
+    },
+    {
+      "ticker": "RED.MC",
+      "company_name": "REDEIA CORPORACION, S.A.",
+      "severity": "MEDIUM",
+      "trap_score": 3,
+      "value_score": 32.2,
+      "flags": [
+        "FCF negativo (-4.3%) \u2014 quema caja pese a valuaci\u00f3n barata"
+      ],
+      "piotroski": 8.0,
+      "fcf_yield_pct": -4.27,
+      "fundamental_score": 75.4
+    },
+    {
+      "ticker": "REP.MC",
+      "company_name": "REPSOL,  S.A.",
+      "severity": "MEDIUM",
+      "trap_score": 3,
+      "value_score": 30.4,
+      "flags": [
+        "FCF negativo (-1.0%) \u2014 quema caja pese a valuaci\u00f3n barata"
+      ],
+      "piotroski": 7.0,
+      "fcf_yield_pct": -1.0,
+      "fundamental_score": 76.0
+    },
+    {
+      "ticker": "PAH3.DE",
+      "company_name": "Porsche Automobil Holding SE  I",
+      "severity": "MEDIUM",
+      "trap_score": 3,
+      "value_score": 26.6,
+      "flags": [
+        "FCF negativo (-5.5%) \u2014 quema caja pese a valuaci\u00f3n barata"
+      ],
+      "piotroski": 6.0,
+      "fcf_yield_pct": -5.51,
+      "fundamental_score": 58.9
     }
   ]
 }

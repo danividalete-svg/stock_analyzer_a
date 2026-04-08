@@ -1,9 +1,19 @@
 {
-  "generated_at": "2026-04-07",
-  "total": 66,
-  "high_count": 32,
+  "generated_at": "2026-04-08",
+  "total": 67,
+  "high_count": 42,
   "narrative": null,
   "exits": [
+    {
+      "ticker": "INDV",
+      "severity": "HIGH",
+      "entry_score": 76.32,
+      "current_score": 50.32,
+      "signal_date": "2026-03-13",
+      "reasons": [
+        "Score cay\u00f3 26pts (76 \u2192 50)"
+      ]
+    },
     {
       "ticker": "LIFE",
       "severity": "HIGH",
@@ -12,6 +22,17 @@
       "signal_date": "2026-03-20",
       "reasons": [
         "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+      ]
+    },
+    {
+      "ticker": "FTAI",
+      "severity": "HIGH",
+      "entry_score": 69.0,
+      "current_score": 40.5,
+      "signal_date": "2026-03-03",
+      "reasons": [
+        "Score cay\u00f3 28pts (69 \u2192 40)",
+        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
       ]
     },
     {
@@ -32,6 +53,28 @@
       "signal_date": "2026-03-05",
       "reasons": [
         "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+      ]
+    },
+    {
+      "ticker": "EXP",
+      "severity": "HIGH",
+      "entry_score": 65.52,
+      "current_score": 36.42,
+      "signal_date": "2026-03-20",
+      "reasons": [
+        "Score cay\u00f3 29pts (66 \u2192 36)",
+        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
+      ]
+    },
+    {
+      "ticker": "ACNB",
+      "severity": "HIGH",
+      "entry_score": 65.12,
+      "current_score": 36.92,
+      "signal_date": "2026-03-19",
+      "reasons": [
+        "Score cay\u00f3 28pts (65 \u2192 37)",
+        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
       ]
     },
     {
@@ -65,6 +108,16 @@
       ]
     },
     {
+      "ticker": "MSGM",
+      "severity": "HIGH",
+      "entry_score": 60.214,
+      "current_score": 30.174,
+      "signal_date": "2026-03-19",
+      "reasons": [
+        "Score cay\u00f3 30pts (60 \u2192 30)"
+      ]
+    },
+    {
       "ticker": "NEWT",
       "severity": "HIGH",
       "entry_score": 59.72,
@@ -95,6 +148,16 @@
       ]
     },
     {
+      "ticker": "CNK",
+      "severity": "HIGH",
+      "entry_score": 57.31999999999999,
+      "current_score": 30.78,
+      "signal_date": "2026-03-16",
+      "reasons": [
+        "Score cay\u00f3 27pts (57 \u2192 31)"
+      ]
+    },
+    {
       "ticker": "CCNE",
       "severity": "HIGH",
       "entry_score": 57.24,
@@ -120,6 +183,16 @@
       "entry_score": 56.52,
       "current_score": null,
       "signal_date": "2026-03-16",
+      "reasons": [
+        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+      ]
+    },
+    {
+      "ticker": "FIGR",
+      "severity": "HIGH",
+      "entry_score": 56.4,
+      "current_score": null,
+      "signal_date": "2026-03-20",
       "reasons": [
         "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
       ]
@@ -325,274 +398,221 @@
       ]
     },
     {
-      "ticker": "INDV",
-      "severity": "MEDIUM",
-      "entry_score": 76.32,
-      "current_score": 58.06999999999999,
-      "signal_date": "2026-03-13",
+      "ticker": "AGN.AS",
+      "severity": "HIGH",
+      "entry_score": 26.2,
+      "current_score": null,
+      "signal_date": "2026-03-02",
       "reasons": [
-        "Score cay\u00f3 18pts (76 \u2192 58)"
+        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+      ]
+    },
+    {
+      "ticker": "LONN.SW",
+      "severity": "HIGH",
+      "entry_score": 25.0,
+      "current_score": null,
+      "signal_date": "2026-03-19",
+      "reasons": [
+        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+      ]
+    },
+    {
+      "ticker": "DELL",
+      "severity": "HIGH",
+      "entry_score": 0,
+      "current_score": null,
+      "signal_date": "2026-03-24",
+      "reasons": [
+        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
       ]
     },
     {
       "ticker": "LPG",
       "severity": "MEDIUM",
       "entry_score": 72.76,
-      "current_score": 50.16,
+      "current_score": 52.239999999999995,
       "signal_date": "2026-03-07",
       "reasons": [
-        "Score cay\u00f3 23pts (73 \u2192 50)"
+        "Score cay\u00f3 21pts (73 \u2192 52)"
       ]
     },
     {
-      "ticker": "FTAI",
+      "ticker": "MSFT",
       "severity": "MEDIUM",
-      "entry_score": 69.0,
-      "current_score": 44.82,
-      "signal_date": "2026-03-03",
+      "entry_score": 72.32,
+      "current_score": 53.12,
+      "signal_date": "2026-03-11",
       "reasons": [
-        "Score cay\u00f3 24pts (69 \u2192 45)",
-        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
-      ]
-    },
-    {
-      "ticker": "EXP",
-      "severity": "MEDIUM",
-      "entry_score": 65.52,
-      "current_score": 41.48,
-      "signal_date": "2026-03-20",
-      "reasons": [
-        "Score cay\u00f3 24pts (66 \u2192 41)",
-        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
-      ]
-    },
-    {
-      "ticker": "ACNB",
-      "severity": "MEDIUM",
-      "entry_score": 65.12,
-      "current_score": 43.92,
-      "signal_date": "2026-03-19",
-      "reasons": [
-        "Score cay\u00f3 21pts (65 \u2192 44)",
-        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
+        "Score cay\u00f3 19pts (72 \u2192 53)"
       ]
     },
     {
       "ticker": "AMRZ",
       "severity": "MEDIUM",
       "entry_score": 65.03999999999999,
-      "current_score": 41.2,
+      "current_score": 45.36,
       "signal_date": "2026-03-20",
       "reasons": [
-        "Score cay\u00f3 24pts (65 \u2192 41)"
+        "Score cay\u00f3 20pts (65 \u2192 45)"
       ]
     },
     {
       "ticker": "THFF",
       "severity": "MEDIUM",
       "entry_score": 64.12,
-      "current_score": 48.96,
+      "current_score": 45.60000000000001,
       "signal_date": "2026-03-12",
       "reasons": [
-        "Score cay\u00f3 15pts (64 \u2192 49)"
+        "Score cay\u00f3 19pts (64 \u2192 46)"
       ]
     },
     {
       "ticker": "AROW",
       "severity": "MEDIUM",
       "entry_score": 63.96,
-      "current_score": 43.96,
+      "current_score": 41.96,
       "signal_date": "2026-03-13",
       "reasons": [
-        "Score cay\u00f3 20pts (64 \u2192 44)"
+        "Score cay\u00f3 22pts (64 \u2192 42)"
       ]
     },
     {
       "ticker": "ITW",
       "severity": "MEDIUM",
       "entry_score": 62.32,
-      "current_score": 44.92,
+      "current_score": 39.12,
       "signal_date": "2026-03-16",
       "reasons": [
-        "Score cay\u00f3 17pts (62 \u2192 45)"
+        "Score cay\u00f3 23pts (62 \u2192 39)"
       ]
     },
     {
-      "ticker": "MSGM",
+      "ticker": "NIC",
       "severity": "MEDIUM",
-      "entry_score": 60.214,
-      "current_score": 43.214,
+      "entry_score": 60.12,
+      "current_score": 49.54,
       "signal_date": "2026-03-19",
       "reasons": [
-        "Score cay\u00f3 17pts (60 \u2192 43)"
+        "Earnings en 6d \u2014 alta incertidumbre, considera reducir"
       ]
     },
     {
       "ticker": "FCCO",
       "severity": "MEDIUM",
       "entry_score": 59.92,
-      "current_score": 42.92,
+      "current_score": 38.8,
       "signal_date": "2026-03-16",
       "reasons": [
-        "Score cay\u00f3 17pts (60 \u2192 43)"
+        "Score cay\u00f3 21pts (60 \u2192 39)"
       ]
     },
     {
       "ticker": "BWFG",
       "severity": "MEDIUM",
       "entry_score": 59.56,
-      "current_score": 43.56,
+      "current_score": 38.08,
       "signal_date": "2026-03-03",
       "reasons": [
-        "Score cay\u00f3 16pts (60 \u2192 44)"
+        "Score cay\u00f3 21pts (60 \u2192 38)"
       ]
     },
     {
-      "ticker": "CTAS",
+      "ticker": "NSC",
       "severity": "MEDIUM",
-      "entry_score": 57.38000000000001,
-      "current_score": 57.38000000000001,
-      "signal_date": "2026-03-24",
-      "reasons": [
-        "Earnings en 1d \u2014 alta incertidumbre, considera reducir"
-      ]
-    },
-    {
-      "ticker": "CNK",
-      "severity": "MEDIUM",
-      "entry_score": 57.31999999999999,
-      "current_score": 41.42,
+      "entry_score": 55.64,
+      "current_score": 38.87,
       "signal_date": "2026-03-16",
       "reasons": [
-        "Score cay\u00f3 16pts (57 \u2192 41)"
-      ]
-    },
-    {
-      "ticker": "FIGR",
-      "severity": "MEDIUM",
-      "entry_score": 56.4,
-      "current_score": 38.2,
-      "signal_date": "2026-03-20",
-      "reasons": [
-        "Score cay\u00f3 18pts (56 \u2192 38)"
+        "Score cay\u00f3 17pts (56 \u2192 39)"
       ]
     },
     {
       "ticker": "FRST",
       "severity": "MEDIUM",
       "entry_score": 55.16,
-      "current_score": 38.44,
+      "current_score": 32.14,
       "signal_date": "2026-03-13",
       "reasons": [
-        "Score cay\u00f3 17pts (55 \u2192 38)"
+        "Score cay\u00f3 23pts (55 \u2192 32)"
       ]
     },
     {
       "ticker": "BFC",
       "severity": "MEDIUM",
       "entry_score": 52.12,
-      "current_score": 37.12,
+      "current_score": 30.64,
       "signal_date": "2026-03-19",
       "reasons": [
-        "Score cay\u00f3 15pts (52 \u2192 37)"
+        "Score cay\u00f3 21pts (52 \u2192 31)"
       ]
     },
     {
       "ticker": "SIE.DE",
       "severity": "MEDIUM",
       "entry_score": 51.4,
-      "current_score": 36.4,
+      "current_score": 33.4,
       "signal_date": "2026-03-02",
       "reasons": [
-        "Score cay\u00f3 15pts (51 \u2192 36)"
+        "Score cay\u00f3 18pts (51 \u2192 33)"
+      ]
+    },
+    {
+      "ticker": "ASML.AS",
+      "severity": "MEDIUM",
+      "entry_score": 51.1,
+      "current_score": 51.5,
+      "signal_date": "2026-03-02",
+      "reasons": [
+        "Earnings en 7d \u2014 alta incertidumbre, considera reducir"
       ]
     },
     {
       "ticker": "HOLN.SW",
       "severity": "MEDIUM",
       "entry_score": 50.9,
-      "current_score": 50.9,
+      "current_score": 31.0,
       "signal_date": "2026-03-02",
       "reasons": [
-        "Earnings en 0d \u2014 alta incertidumbre, considera reducir"
+        "Score cay\u00f3 20pts (51 \u2192 31)"
       ]
     },
     {
-      "ticker": "AMS.MC",
+      "ticker": "STZ",
       "severity": "MEDIUM",
-      "entry_score": 48.4,
-      "current_score": 48.4,
-      "signal_date": "2026-03-02",
-      "reasons": [
-        "Earnings en 0d \u2014 alta incertidumbre, considera reducir"
-      ]
-    },
-    {
-      "ticker": "LTC",
-      "severity": "MEDIUM",
-      "entry_score": 47.6,
-      "current_score": 31.350000000000005,
-      "signal_date": "2026-03-19",
-      "reasons": [
-        "Score cay\u00f3 16pts (48 \u2192 31)"
-      ]
-    },
-    {
-      "ticker": "FDS",
-      "severity": "MEDIUM",
-      "entry_score": 45.650000000000006,
-      "current_score": 45.650000000000006,
+      "entry_score": 38.88,
+      "current_score": 41.04,
       "signal_date": "2026-03-24",
       "reasons": [
-        "Earnings en 7d \u2014 alta incertidumbre, considera reducir"
-      ]
-    },
-    {
-      "ticker": "PSON.L",
-      "severity": "MEDIUM",
-      "entry_score": 41.0,
-      "current_score": 41.0,
-      "signal_date": "2026-03-02",
-      "reasons": [
         "Earnings en 0d \u2014 alta incertidumbre, considera reducir"
-      ]
-    },
-    {
-      "ticker": "MRK.DE",
-      "severity": "MEDIUM",
-      "entry_score": 34.8,
-      "current_score": 34.8,
-      "signal_date": "2026-03-02",
-      "reasons": [
-        "Earnings en 6d \u2014 alta incertidumbre, considera reducir"
-      ]
-    },
-    {
-      "ticker": "ADS.DE",
-      "severity": "MEDIUM",
-      "entry_score": 34.6,
-      "current_score": 34.6,
-      "signal_date": "2026-03-02",
-      "reasons": [
-        "Earnings en 5d \u2014 alta incertidumbre, considera reducir"
-      ]
-    },
-    {
-      "ticker": "SY1.DE",
-      "severity": "MEDIUM",
-      "entry_score": 33.8,
-      "current_score": 33.8,
-      "signal_date": "2026-03-02",
-      "reasons": [
-        "Earnings en 5d \u2014 alta incertidumbre, considera reducir"
       ]
     },
     {
       "ticker": "EXEL",
       "severity": "LOW",
       "entry_score": 80.32,
-      "current_score": 67.91999999999999,
+      "current_score": 68.12,
       "signal_date": "2026-03-12",
+      "reasons": [
+        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
+      ]
+    },
+    {
+      "ticker": "DECK",
+      "severity": "LOW",
+      "entry_score": 76.12,
+      "current_score": 76.12,
+      "signal_date": "2026-04-08",
+      "reasons": [
+        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
+      ]
+    },
+    {
+      "ticker": "BR",
+      "severity": "LOW",
+      "entry_score": 73.2,
+      "current_score": 73.2,
+      "signal_date": "2026-04-08",
       "reasons": [
         "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
       ]
@@ -601,7 +621,7 @@
       "ticker": "PRU.L",
       "severity": "LOW",
       "entry_score": 71.0,
-      "current_score": 71.0,
+      "current_score": 74.4,
       "signal_date": "2026-03-02",
       "reasons": [
         "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
@@ -621,7 +641,7 @@
       "ticker": "ENR",
       "severity": "LOW",
       "entry_score": 67.24000000000001,
-      "current_score": 58.02,
+      "current_score": 57.48,
       "signal_date": "2026-03-03",
       "reasons": [
         "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
@@ -631,28 +651,18 @@
       "ticker": "BMY",
       "severity": "LOW",
       "entry_score": 67.0,
-      "current_score": 67.0,
+      "current_score": 66.68,
       "signal_date": "2026-03-24",
       "reasons": [
         "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
       ]
     },
     {
-      "ticker": "BR",
+      "ticker": "BBY",
       "severity": "LOW",
-      "entry_score": 66.0,
-      "current_score": 66.0,
-      "signal_date": "2026-03-24",
-      "reasons": [
-        "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
-      ]
-    },
-    {
-      "ticker": "DECK",
-      "severity": "LOW",
-      "entry_score": 65.52,
-      "current_score": 65.52,
-      "signal_date": "2026-03-24",
+      "entry_score": 66.32,
+      "current_score": 66.32,
+      "signal_date": "2026-04-08",
       "reasons": [
         "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"
       ]
@@ -661,7 +671,7 @@
       "ticker": "MCY",
       "severity": "LOW",
       "entry_score": 65.44,
-      "current_score": 54.64,
+      "current_score": 54.32,
       "signal_date": "2026-03-12",
       "reasons": [
         "Sin insider buying activo \u2014 se\u00f1al de convicci\u00f3n perdida"

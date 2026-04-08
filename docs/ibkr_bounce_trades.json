@@ -1,0 +1,14 @@
+[
+  {
+    "ticker": "AAPL",
+    "entry": 185.5,
+    "stop": 182.0,
+    "target": 193.0,
+    "timestamp": "2026-03-24T08:09:31.686866-04:00",
+    "status": "OPEN",
+    "shares": 26,
+    "order_id": 12,
+    "dry_run": false,
+    "account": "DUP343922"
+  }
+]

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-07",
-  "total": 7,
+  "generated_at": "2026-04-08",
+  "total": 9,
   "narrative": null,
   "clusters": [
     {
@@ -28,7 +28,6 @@
         "CSBB",
         "NBBK",
         "OVLY",
-        "NP",
         "FCCO",
         "BFC",
         "UBSI",
@@ -39,55 +38,72 @@
         "BX",
         "BARC.L",
         "LLOY.L",
+        "HSBA.L",
         "MUV2.DE",
         "PRU.L",
         "NWG.L",
         "STAN.L"
       ],
-      "total_purchases": 293,
-      "total_insiders": 83,
+      "total_purchases": 300,
+      "total_insiders": 90,
       "cluster_score": 100,
       "signal": "STRONG"
     },
     {
       "sector": "Industrials",
-      "ticker_count": 13,
+      "ticker_count": 14,
       "tickers": [
         "BUKS",
         "CHRW",
-        "FAST",
         "MWA",
         "NVT",
         "PRIM",
         "APG",
+        "GPN",
         "EFX",
         "ESOA",
         "BA.L",
         "EXPN.L",
         "MTX.DE",
-        "RHM.DE"
+        "RHM.DE",
+        "RR.L"
       ],
-      "total_purchases": 111,
-      "total_insiders": 36,
+      "total_purchases": 122,
+      "total_insiders": 41,
       "cluster_score": 100,
       "signal": "STRONG"
     },
     {
       "sector": "Real Estate",
-      "ticker_count": 7,
+      "ticker_count": 8,
       "tickers": [
         "AMH",
         "HHH",
         "LTC",
         "STRW",
+        "CSGP",
         "AMT",
         "GOOD",
         "LAND.L"
       ],
-      "total_purchases": 36,
-      "total_insiders": 10,
+      "total_purchases": 38,
+      "total_insiders": 12,
       "cluster_score": 100,
       "signal": "STRONG"
+    },
+    {
+      "sector": "Healthcare",
+      "ticker_count": 4,
+      "tickers": [
+        "INDV",
+        "FRE.DE",
+        "SRT3.DE",
+        "SHL.DE"
+      ],
+      "total_purchases": 17,
+      "total_insiders": 6,
+      "cluster_score": 100,
+      "signal": "MODERATE"
     },
     {
       "sector": "Basic Materials",
@@ -104,9 +120,10 @@
     },
     {
       "sector": "Technology",
-      "ticker_count": 8,
+      "ticker_count": 9,
       "tickers": [
         "THRY",
+        "FIS",
         "CPAY",
         "MSFT",
         "IT",
@@ -115,8 +132,8 @@
         "SGE.L",
         "SAP.DE"
       ],
-      "total_purchases": 39,
-      "total_insiders": 23,
+      "total_purchases": 44,
+      "total_insiders": 25,
       "cluster_score": 100,
       "signal": "STRONG"
     },
@@ -147,6 +164,20 @@
       ],
       "total_purchases": 10,
       "total_insiders": 5,
+      "cluster_score": 100,
+      "signal": "MODERATE"
+    },
+    {
+      "sector": "Consumer Defensive",
+      "ticker_count": 4,
+      "tickers": [
+        "BATS.L",
+        "DGE.L",
+        "TSCO.L",
+        "IMB.L"
+      ],
+      "total_purchases": 91,
+      "total_insiders": 33,
       "cluster_score": 100,
       "signal": "MODERATE"
     }

@@ -1,26 +1,144 @@
 {
-  "generated_at": "2026-04-07",
-  "total": 2,
-  "high_count": 0,
+  "generated_at": "2026-04-08",
+  "total": 9,
+  "high_count": 1,
   "narrative": null,
   "decays": [
+    {
+      "ticker": "BDL",
+      "company_name": "Flanigan's Enterprises, Inc.",
+      "severity": "HIGH",
+      "decay_score": 6,
+      "value_score": 42.714,
+      "snapshot_date": "2026-03-23",
+      "piotr_prev": 9.0,
+      "piotr_curr": 9.0,
+      "fcf_prev": 2998.02,
+      "fcf_curr": 1.12,
+      "health_prev": 80.0,
+      "health_curr": 70.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "FCF yield cay\u00f3 2996.9pp (2998.0% \u2192 1.1%)",
+        "Salud financiera cay\u00f3 10pts (80 \u2192 70/100)"
+      ]
+    },
     {
       "ticker": "STRW",
       "company_name": "Strawberry Fields REIT, Inc.",
       "severity": "MEDIUM",
-      "decay_score": 3,
-      "value_score": 52.72,
+      "decay_score": 5,
+      "value_score": 52.14,
       "snapshot_date": "2026-03-23",
       "piotr_prev": 7.0,
-      "piotr_curr": 7.0,
+      "piotr_curr": 6.0,
       "fcf_prev": null,
-      "fcf_curr": 11.07,
+      "fcf_curr": 10.38,
       "health_prev": 65.0,
       "health_curr": 50.0,
       "margin_prev": null,
       "margin_curr": null,
       "flags": [
+        "Piotroski baj\u00f3 1pt (7 \u2192 6/9)",
         "Salud financiera cay\u00f3 15pts (65 \u2192 50/100)"
+      ]
+    },
+    {
+      "ticker": "CBK",
+      "company_name": "Commercial Bancgroup, Inc.",
+      "severity": "MEDIUM",
+      "decay_score": 4,
+      "value_score": 48.53,
+      "snapshot_date": "2026-03-23",
+      "piotr_prev": 6.0,
+      "piotr_curr": 4.0,
+      "fcf_prev": null,
+      "fcf_curr": null,
+      "health_prev": 65.0,
+      "health_curr": 65.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "Piotroski cay\u00f3 2pts (6 \u2192 4/9)"
+      ]
+    },
+    {
+      "ticker": "RWE.DE",
+      "company_name": "RWE AG                        I",
+      "severity": "MEDIUM",
+      "decay_score": 4,
+      "value_score": 33.5,
+      "snapshot_date": "2026-03-23",
+      "piotr_prev": null,
+      "piotr_curr": 6.0,
+      "fcf_prev": -5.9,
+      "fcf_curr": -26.13,
+      "health_prev": 70.0,
+      "health_curr": 65.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "FCF yield cay\u00f3 20.2pp (-5.9% \u2192 -26.1%)",
+        "Salud financiera cay\u00f3 5pts (70 \u2192 65/100)"
+      ]
+    },
+    {
+      "ticker": "HOLN.SW",
+      "company_name": "HOLCIM N",
+      "severity": "MEDIUM",
+      "decay_score": 4,
+      "value_score": 31.0,
+      "snapshot_date": "2026-03-23",
+      "piotr_prev": null,
+      "piotr_curr": 6.0,
+      "fcf_prev": 10.32,
+      "fcf_curr": 4.78,
+      "health_prev": 70.0,
+      "health_curr": 65.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "FCF yield cay\u00f3 5.5pp (10.3% \u2192 4.8%)",
+        "Salud financiera cay\u00f3 5pts (70 \u2192 65/100)"
+      ]
+    },
+    {
+      "ticker": "DTE.DE",
+      "company_name": "DEUTSCHE TELEKOM AG           N",
+      "severity": "MEDIUM",
+      "decay_score": 3,
+      "value_score": 46.8,
+      "snapshot_date": "2026-03-23",
+      "piotr_prev": null,
+      "piotr_curr": 6.0,
+      "fcf_prev": 8.25,
+      "fcf_curr": 10.04,
+      "health_prev": 75.0,
+      "health_curr": 65.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "Salud financiera cay\u00f3 10pts (75 \u2192 65/100)"
+      ]
+    },
+    {
+      "ticker": "BMW.DE",
+      "company_name": "BAYERISCHE MOTOREN WERKE AG   S",
+      "severity": "MEDIUM",
+      "decay_score": 3,
+      "value_score": 39.5,
+      "snapshot_date": "2026-03-23",
+      "piotr_prev": null,
+      "piotr_curr": 6.0,
+      "fcf_prev": 64.09,
+      "fcf_curr": 5.22,
+      "health_prev": 55.0,
+      "health_curr": 55.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "FCF yield cay\u00f3 58.9pp (64.1% \u2192 5.2%)"
       ]
     },
     {
@@ -28,18 +146,37 @@
       "company_name": "Thryv Holdings, Inc.",
       "severity": "MEDIUM",
       "decay_score": 3,
-      "value_score": 36.8,
+      "value_score": 35.55,
       "snapshot_date": "2026-03-23",
       "piotr_prev": 6.0,
       "piotr_curr": 6.0,
       "fcf_prev": 55.86,
-      "fcf_curr": 51.73,
+      "fcf_curr": 51.9,
       "health_prev": 40.0,
       "health_curr": 40.0,
       "margin_prev": null,
       "margin_curr": null,
       "flags": [
-        "FCF yield cay\u00f3 4.1pp (55.9% \u2192 51.7%)"
+        "FCF yield cay\u00f3 4.0pp (55.9% \u2192 51.9%)"
+      ]
+    },
+    {
+      "ticker": "MRK.DE",
+      "company_name": "MERCK KGAA                    I",
+      "severity": "MEDIUM",
+      "decay_score": 3,
+      "value_score": 34.8,
+      "snapshot_date": "2026-03-23",
+      "piotr_prev": null,
+      "piotr_curr": 5.0,
+      "fcf_prev": 4.57,
+      "fcf_curr": 5.37,
+      "health_prev": 80.0,
+      "health_curr": 70.0,
+      "margin_prev": null,
+      "margin_curr": null,
+      "flags": [
+        "Salud financiera cay\u00f3 10pts (80 \u2192 70/100)"
       ]
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "timestamp": "20260324_074458",
+  "timestamp": "20260408_095801",
   "results": [
     {
       "sector": "Technology",
@@ -7,12 +7,12 @@
       "status": "LEADING",
       "signal": "BUY",
       "strength": "STRONG",
-      "velocity": 4.28,
+      "velocity": 6.74,
       "relative_strength": 100,
       "momentum_change": "stable",
-      "recent_return_30d": -4.46,
-      "current_price": 136.95,
-      "timestamp": "2026-03-24T07:44:54.662569"
+      "recent_return_30d": -1.94,
+      "current_price": 137.43,
+      "timestamp": "2026-04-08T09:57:58.446484"
     },
     {
       "sector": "Financials",
@@ -20,25 +20,25 @@
       "status": "LEADING",
       "signal": "BUY",
       "strength": "STRONG",
-      "velocity": 10.01,
+      "velocity": 7.35,
       "relative_strength": 100,
-      "momentum_change": "accelerating",
-      "recent_return_30d": -8.66,
-      "current_price": 49.27,
-      "timestamp": "2026-03-24T07:44:55.081497"
+      "momentum_change": "decelerating",
+      "recent_return_30d": -1.65,
+      "current_price": 49.88,
+      "timestamp": "2026-04-08T09:57:58.757670"
     },
     {
       "sector": "Healthcare",
       "dj_ticker": "XLV",
-      "status": "IMPROVING",
-      "signal": "ACCUMULATE",
-      "strength": "MODERATE",
-      "velocity": 2.5,
+      "status": "LEADING",
+      "signal": "BUY",
+      "strength": "STRONG",
+      "velocity": 8.14,
       "relative_strength": 100,
       "momentum_change": "accelerating",
-      "recent_return_30d": -7.39,
-      "current_price": 144.77,
-      "timestamp": "2026-03-24T07:44:55.513448"
+      "recent_return_30d": -6.78,
+      "current_price": 146.57,
+      "timestamp": "2026-04-08T09:57:59.066220"
     },
     {
       "sector": "Consumer Discretionary",
@@ -46,25 +46,25 @@
       "status": "LEADING",
       "signal": "BUY",
       "strength": "STRONG",
-      "velocity": 7.71,
+      "velocity": 9.98,
       "relative_strength": 100,
-      "momentum_change": "accelerating",
-      "recent_return_30d": -6.32,
-      "current_price": 110.12,
-      "timestamp": "2026-03-24T07:44:55.827742"
+      "momentum_change": "stable",
+      "recent_return_30d": -7.5,
+      "current_price": 107.77,
+      "timestamp": "2026-04-08T09:57:59.378741"
     },
     {
       "sector": "Industrials",
       "dj_ticker": "XLI",
-      "status": "LAGGING",
-      "signal": "AVOID",
-      "strength": "WEAK",
-      "velocity": -4.79,
+      "status": "WEAKENING",
+      "signal": "REDUCE",
+      "strength": "MODERATE",
+      "velocity": -0.05,
       "relative_strength": 0,
-      "momentum_change": "accelerating",
-      "recent_return_30d": -6.13,
-      "current_price": 163.05,
-      "timestamp": "2026-03-24T07:44:56.197096"
+      "momentum_change": "stable",
+      "recent_return_30d": -6.92,
+      "current_price": 164.28,
+      "timestamp": "2026-04-08T09:57:59.602764"
     },
     {
       "sector": "Energy",
@@ -72,38 +72,38 @@
       "status": "LAGGING",
       "signal": "AVOID",
       "strength": "WEAK",
-      "velocity": -20.52,
+      "velocity": -24.14,
       "relative_strength": 0,
-      "momentum_change": "accelerating",
-      "recent_return_30d": 11.17,
-      "current_price": 59.63,
-      "timestamp": "2026-03-24T07:44:56.496658"
+      "momentum_change": "decelerating",
+      "recent_return_30d": 9.9,
+      "current_price": 60.16,
+      "timestamp": "2026-04-08T09:57:59.802910"
     },
     {
       "sector": "Materials",
       "dj_ticker": "XLB",
-      "status": "LAGGING",
-      "signal": "AVOID",
-      "strength": "WEAK",
-      "velocity": -3.2,
+      "status": "NEUTRAL",
+      "signal": "HOLD",
+      "strength": "NEUTRAL",
+      "velocity": 2.82,
       "relative_strength": 0,
       "momentum_change": "accelerating",
-      "recent_return_30d": -8.87,
-      "current_price": 47.55,
-      "timestamp": "2026-03-24T07:44:56.907995"
+      "recent_return_30d": -5.73,
+      "current_price": 50.08,
+      "timestamp": "2026-04-08T09:58:00.017408"
     },
     {
       "sector": "Real Estate",
       "dj_ticker": "XLRE",
-      "status": "WEAKENING",
-      "signal": "REDUCE",
-      "strength": "MODERATE",
-      "velocity": -5.66,
-      "relative_strength": 44.1,
-      "momentum_change": "stable",
-      "recent_return_30d": -3.86,
-      "current_price": 40.62,
-      "timestamp": "2026-03-24T07:44:57.311001"
+      "status": "NEUTRAL",
+      "signal": "HOLD",
+      "strength": "NEUTRAL",
+      "velocity": 1.66,
+      "relative_strength": 6.8,
+      "momentum_change": "accelerating",
+      "recent_return_30d": -3.96,
+      "current_price": 41.72,
+      "timestamp": "2026-04-08T09:58:00.190205"
     },
     {
       "sector": "Utilities",
@@ -111,67 +111,80 @@
       "status": "LAGGING",
       "signal": "AVOID",
       "strength": "WEAK",
-      "velocity": -9.16,
+      "velocity": -6.07,
       "relative_strength": 0,
-      "momentum_change": "stable",
-      "recent_return_30d": 2.99,
-      "current_price": 44.78,
-      "timestamp": "2026-03-24T07:44:57.665636"
+      "momentum_change": "accelerating",
+      "recent_return_30d": -1.28,
+      "current_price": 46.27,
+      "timestamp": "2026-04-08T09:58:00.494782"
     },
     {
       "sector": "Communication Services",
       "dj_ticker": "XLC",
-      "status": "IMPROVING",
-      "signal": "ACCUMULATE",
-      "strength": "MODERATE",
-      "velocity": 0.43,
-      "relative_strength": 97.2,
-      "momentum_change": "stable",
-      "recent_return_30d": -3.57,
-      "current_price": 112.71,
-      "timestamp": "2026-03-24T07:44:57.936448"
+      "status": "LEADING",
+      "signal": "BUY",
+      "strength": "STRONG",
+      "velocity": 5.37,
+      "relative_strength": 100,
+      "momentum_change": "accelerating",
+      "recent_return_30d": -3.43,
+      "current_price": 111.82,
+      "timestamp": "2026-04-08T09:58:00.792923"
     },
     {
       "sector": "Consumer Staples",
       "dj_ticker": "XLP",
-      "status": "LAGGING",
-      "signal": "AVOID",
-      "strength": "WEAK",
-      "velocity": -7.73,
-      "relative_strength": 6.7,
+      "status": "NEUTRAL",
+      "signal": "HOLD",
+      "strength": "NEUTRAL",
+      "velocity": 1.47,
+      "relative_strength": 0,
       "momentum_change": "accelerating",
-      "recent_return_30d": -7.15,
-      "current_price": 81.18,
-      "timestamp": "2026-03-24T07:44:58.261076"
+      "recent_return_30d": -8.94,
+      "current_price": 81.26,
+      "timestamp": "2026-04-08T09:58:01.041009"
     }
   ],
   "opportunities": {
     "leaders": [
-      {
-        "sector": "Financials",
-        "dj_ticker": "XLF",
-        "status": "LEADING",
-        "signal": "BUY",
-        "strength": "STRONG",
-        "velocity": 10.01,
-        "relative_strength": 100,
-        "momentum_change": "accelerating",
-        "recent_return_30d": -8.66,
-        "current_price": 49.27,
-        "timestamp": "2026-03-24T07:44:55.081497"
-      },
       {
         "sector": "Consumer Discretionary",
         "dj_ticker": "XLY",
         "status": "LEADING",
         "signal": "BUY",
         "strength": "STRONG",
-        "velocity": 7.71,
+        "velocity": 9.98,
+        "relative_strength": 100,
+        "momentum_change": "stable",
+        "recent_return_30d": -7.5,
+        "current_price": 107.77,
+        "timestamp": "2026-04-08T09:57:59.378741"
+      },
+      {
+        "sector": "Healthcare",
+        "dj_ticker": "XLV",
+        "status": "LEADING",
+        "signal": "BUY",
+        "strength": "STRONG",
+        "velocity": 8.14,
         "relative_strength": 100,
         "momentum_change": "accelerating",
-        "recent_return_30d": -6.32,
-        "current_price": 110.12,
-        "timestamp": "2026-03-24T07:44:55.827742"
+        "recent_return_30d": -6.78,
+        "current_price": 146.57,
+        "timestamp": "2026-04-08T09:57:59.066220"
+      },
+      {
+        "sector": "Financials",
+        "dj_ticker": "XLF",
+        "status": "LEADING",
+        "signal": "BUY",
+        "strength": "STRONG",
+        "velocity": 7.35,
+        "relative_strength": 100,
+        "momentum_change": "decelerating",
+        "recent_return_30d": -1.65,
+        "current_price": 49.88,
+        "timestamp": "2026-04-08T09:57:58.757670"
       },
       {
         "sector": "Technology",
@@ -179,55 +192,41 @@
         "status": "LEADING",
         "signal": "BUY",
         "strength": "STRONG",
-        "velocity": 4.28,
+        "velocity": 6.74,
         "relative_strength": 100,
         "momentum_change": "stable",
-        "recent_return_30d": -4.46,
-        "current_price": 136.95,
-        "timestamp": "2026-03-24T07:44:54.662569"
-      }
-    ],
-    "emerging": [
-      {
-        "sector": "Healthcare",
-        "dj_ticker": "XLV",
-        "status": "IMPROVING",
-        "signal": "ACCUMULATE",
-        "strength": "MODERATE",
-        "velocity": 2.5,
-        "relative_strength": 100,
-        "momentum_change": "accelerating",
-        "recent_return_30d": -7.39,
-        "current_price": 144.77,
-        "timestamp": "2026-03-24T07:44:55.513448"
+        "recent_return_30d": -1.94,
+        "current_price": 137.43,
+        "timestamp": "2026-04-08T09:57:58.446484"
       },
       {
         "sector": "Communication Services",
         "dj_ticker": "XLC",
-        "status": "IMPROVING",
-        "signal": "ACCUMULATE",
-        "strength": "MODERATE",
-        "velocity": 0.43,
-        "relative_strength": 97.2,
-        "momentum_change": "stable",
-        "recent_return_30d": -3.57,
-        "current_price": 112.71,
-        "timestamp": "2026-03-24T07:44:57.936448"
+        "status": "LEADING",
+        "signal": "BUY",
+        "strength": "STRONG",
+        "velocity": 5.37,
+        "relative_strength": 100,
+        "momentum_change": "accelerating",
+        "recent_return_30d": -3.43,
+        "current_price": 111.82,
+        "timestamp": "2026-04-08T09:58:00.792923"
       }
     ],
+    "emerging": [],
     "weakening": [
       {
-        "sector": "Real Estate",
-        "dj_ticker": "XLRE",
+        "sector": "Industrials",
+        "dj_ticker": "XLI",
         "status": "WEAKENING",
         "signal": "REDUCE",
         "strength": "MODERATE",
-        "velocity": -5.66,
-        "relative_strength": 44.1,
+        "velocity": -0.05,
+        "relative_strength": 0,
         "momentum_change": "stable",
-        "recent_return_30d": -3.86,
-        "current_price": 40.62,
-        "timestamp": "2026-03-24T07:44:57.311001"
+        "recent_return_30d": -6.92,
+        "current_price": 164.28,
+        "timestamp": "2026-04-08T09:57:59.602764"
       }
     ],
     "laggards": [
@@ -237,12 +236,12 @@
         "status": "LAGGING",
         "signal": "AVOID",
         "strength": "WEAK",
-        "velocity": -20.52,
+        "velocity": -24.14,
         "relative_strength": 0,
-        "momentum_change": "accelerating",
-        "recent_return_30d": 11.17,
-        "current_price": 59.63,
-        "timestamp": "2026-03-24T07:44:56.496658"
+        "momentum_change": "decelerating",
+        "recent_return_30d": 9.9,
+        "current_price": 60.16,
+        "timestamp": "2026-04-08T09:57:59.802910"
       },
       {
         "sector": "Utilities",
@@ -250,51 +249,12 @@
         "status": "LAGGING",
         "signal": "AVOID",
         "strength": "WEAK",
-        "velocity": -9.16,
-        "relative_strength": 0,
-        "momentum_change": "stable",
-        "recent_return_30d": 2.99,
-        "current_price": 44.78,
-        "timestamp": "2026-03-24T07:44:57.665636"
-      },
-      {
-        "sector": "Consumer Staples",
-        "dj_ticker": "XLP",
-        "status": "LAGGING",
-        "signal": "AVOID",
-        "strength": "WEAK",
-        "velocity": -7.73,
-        "relative_strength": 6.7,
-        "momentum_change": "accelerating",
-        "recent_return_30d": -7.15,
-        "current_price": 81.18,
-        "timestamp": "2026-03-24T07:44:58.261076"
-      },
-      {
-        "sector": "Industrials",
-        "dj_ticker": "XLI",
-        "status": "LAGGING",
-        "signal": "AVOID",
-        "strength": "WEAK",
-        "velocity": -4.79,
+        "velocity": -6.07,
         "relative_strength": 0,
         "momentum_change": "accelerating",
-        "recent_return_30d": -6.13,
-        "current_price": 163.05,
-        "timestamp": "2026-03-24T07:44:56.197096"
-      },
-      {
-        "sector": "Materials",
-        "dj_ticker": "XLB",
-        "status": "LAGGING",
-        "signal": "AVOID",
-        "strength": "WEAK",
-        "velocity": -3.2,
-        "relative_strength": 0,
-        "momentum_change": "accelerating",
-        "recent_return_30d": -8.87,
-        "current_price": 47.55,
-        "timestamp": "2026-03-24T07:44:56.907995"
+        "recent_return_30d": -1.28,
+        "current_price": 46.27,
+        "timestamp": "2026-04-08T09:58:00.494782"
       }
     ]
   },
@@ -302,26 +262,26 @@
     {
       "type": "ROTATION_IN",
       "severity": "HIGH",
-      "sector": "Financials",
-      "message": "\ud83d\udc9a Financials acelerando fuerte (velocity: 10.01)",
+      "sector": "Healthcare",
+      "message": "\ud83d\udc9a Healthcare acelerando fuerte (velocity: 8.14)",
       "action": "CONSIDERAR ENTRADA en tickers de este sector",
-      "timestamp": "2026-03-24T07:44:55.081497"
+      "timestamp": "2026-04-08T09:57:59.066220"
     },
     {
-      "type": "EARLY_ROTATION",
+      "type": "ROTATION_OUT",
       "severity": "MEDIUM",
-      "sector": "Healthcare",
-      "message": "\u26a1 Healthcare emergiendo (RS: 100)",
-      "action": "EARLY ENTRY OPPORTUNITY - sector saliendo de debilidad",
-      "timestamp": "2026-03-24T07:44:55.513448"
+      "sector": "Energy",
+      "message": "\ud83d\udd34 Energy perdiendo momentum (velocity: -24.14)",
+      "action": "CONSIDERAR SALIDA de posiciones en este sector",
+      "timestamp": "2026-04-08T09:57:59.802910"
     },
     {
       "type": "ROTATION_IN",
       "severity": "HIGH",
-      "sector": "Consumer Discretionary",
-      "message": "\ud83d\udc9a Consumer Discretionary acelerando fuerte (velocity: 7.71)",
+      "sector": "Communication Services",
+      "message": "\ud83d\udc9a Communication Services acelerando fuerte (velocity: 5.37)",
       "action": "CONSIDERAR ENTRADA en tickers de este sector",
-      "timestamp": "2026-03-24T07:44:55.827742"
+      "timestamp": "2026-04-08T09:58:00.792923"
     }
   ]
 }

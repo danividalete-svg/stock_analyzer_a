@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-07",
+  "generated_at": "2026-04-08",
   "total": 11,
   "narrative": null,
   "signals": [
@@ -7,28 +7,28 @@
       "ticker": "ALLY",
       "company_name": "Ally Financial Inc.",
       "sector": "Financial Services",
-      "value_score": 53.22,
+      "value_score": 63.06,
       "n_hedge_funds": 1,
       "hedge_funds": [
         "Berkshire Hathaway (Buffett)"
       ],
       "n_insiders": 2,
       "insider_purchases": 8,
-      "convergence_score": 51,
+      "convergence_score": 54,
       "in_value": true
     },
     {
       "ticker": "HHH",
       "company_name": "Howard Hughes Holdings Inc.",
       "sector": "Real Estate",
-      "value_score": 44.58,
+      "value_score": 41.48,
       "n_hedge_funds": 1,
       "hedge_funds": [
         "Pershing Square (Ackman)"
       ],
       "n_insiders": 2,
       "insider_purchases": 5,
-      "convergence_score": 48,
+      "convergence_score": 47,
       "in_value": true
     },
     {
@@ -38,8 +38,8 @@
       "value_score": null,
       "n_hedge_funds": 2,
       "hedge_funds": [
-        "Appaloosa (Tepper)",
-        "Berkshire Hathaway (Buffett)"
+        "Berkshire Hathaway (Buffett)",
+        "Appaloosa (Tepper)"
       ],
       "n_insiders": 1,
       "insider_purchases": 2,
@@ -89,20 +89,6 @@
       "in_value": false
     },
     {
-      "ticker": "LPX",
-      "company_name": "LPX",
-      "sector": "",
-      "value_score": null,
-      "n_hedge_funds": 1,
-      "hedge_funds": [
-        "Berkshire Hathaway (Buffett)"
-      ],
-      "n_insiders": 1,
-      "insider_purchases": 3,
-      "convergence_score": 25,
-      "in_value": false
-    },
-    {
       "ticker": "BATRK",
       "company_name": "BATRK",
       "sector": "",
@@ -117,8 +103,36 @@
       "in_value": false
     },
     {
+      "ticker": "LPX",
+      "company_name": "LPX",
+      "sector": "",
+      "value_score": null,
+      "n_hedge_funds": 1,
+      "hedge_funds": [
+        "Berkshire Hathaway (Buffett)"
+      ],
+      "n_insiders": 1,
+      "insider_purchases": 3,
+      "convergence_score": 25,
+      "in_value": false
+    },
+    {
       "ticker": "VTRS",
       "company_name": "VTRS",
+      "sector": "",
+      "value_score": null,
+      "n_hedge_funds": 1,
+      "hedge_funds": [
+        "Appaloosa (Tepper)"
+      ],
+      "n_insiders": 1,
+      "insider_purchases": 2,
+      "convergence_score": 25,
+      "in_value": false
+    },
+    {
+      "ticker": "FCNCA",
+      "company_name": "FCNCA",
       "sector": "",
       "value_score": null,
       "n_hedge_funds": 1,
@@ -141,20 +155,6 @@
       ],
       "n_insiders": 1,
       "insider_purchases": 3,
-      "convergence_score": 25,
-      "in_value": false
-    },
-    {
-      "ticker": "FCNCA",
-      "company_name": "FCNCA",
-      "sector": "",
-      "value_score": null,
-      "n_hedge_funds": 1,
-      "hedge_funds": [
-        "Appaloosa (Tepper)"
-      ],
-      "n_insiders": 1,
-      "insider_purchases": 2,
       "convergence_score": 25,
       "in_value": false
     }

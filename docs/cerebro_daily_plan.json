@@ -1,52 +1,88 @@
 {
-  "generated_at": "2026-04-07",
+  "generated_at": "2026-04-08",
   "macro_regime": "STRESS",
   "composite_score": -2.5,
   "sesgo": "NEUTRO",
-  "confianza": 56,
-  "situacion": "R\u00e9gimen STRESS, composite -2.0/30. 1 plays macro identificadas.",
-  "narrativa": "El mercado se encuentra en r\u00e9gimen STRESS con score -2.0. Contexto permite selecci\u00f3n VALUE disciplinada. Cerebro detecta 0 tickers a evitar y 1 potenciales short squeezes.",
+  "confianza": 57,
+  "situacion": "R\u00e9gimen STRESS, composite -2.5/30. 3 plays macro identificadas.",
+  "narrativa": "El mercado se encuentra en r\u00e9gimen STRESS con score -2.5. Contexto permite selecci\u00f3n VALUE disciplinada. Cerebro detecta 0 tickers a evitar y 1 potenciales short squeezes.",
   "acciones_inmediatas": [
     {
       "prioridad": 1,
       "accion": "COMPRAR",
+      "instrumento": "TLT/VGLT",
+      "razon": "Yield 30yr en 4.92% \u2014 zona hist\u00f3ricamente atractiva para bonos largos",
+      "catalizador": "2018-19: TLT +18% cuando yields revertieron desde 3.25%",
+      "size_hint": "peque\u00f1a (1-2%)",
+      "invalidacion": "La Fed puede mantener tipos altos m\u00e1s tiempo \u2014 size peque\u00f1o"
+    },
+    {
+      "prioridad": 2,
+      "accion": "COMPRAR",
       "instrumento": "XLP/XLV/XLU",
-      "razon": "Copper/Gold en percentil 18% \u2014 se\u00f1al de desaceleraci\u00f3n, rotar a defensivos",
+      "razon": "Copper/Gold en percentil 16% \u2014 se\u00f1al de desaceleraci\u00f3n, rotar a defensivos",
       "catalizador": "2015-16: XLU +20% mientras IWM -20% en ciclo de subidas Fed",
       "size_hint": "peque\u00f1a (1-2%)",
       "invalidacion": "Recuperaci\u00f3n econ\u00f3mica inesperada revertir\u00eda la rotaci\u00f3n"
+    },
+    {
+      "prioridad": 3,
+      "accion": "COMPRAR",
+      "instrumento": "UVXY",
+      "razon": "VVIX en percentil 86% con VIX a\u00fan bajo \u2014 spike de volatilidad inminente",
+      "catalizador": "2018 VIXplosion: UVXY +200% en 2 d\u00edas",
+      "size_hint": "peque\u00f1a (1-2%)",
+      "invalidacion": "El tiempo trabaja en contra de VIX products \u2014 size m\u00e1ximo 1%"
     }
   ],
   "macro_plays": [
     {
-      "instrument": "GLD / GDX",
+      "instrument": "TLT/VGLT",
       "direction": "LONG",
-      "thesis": "Oro superando al mercado (p86) con VIX elevado \u2014 refugio activo",
-      "historical": "GLD +15% promedio en entornos VIX>25 sostenido",
-      "risk": "Subida de tipos reales puede frenar el oro",
-      "timeframe": "1-3 meses",
-      "score": 80
+      "thesis": "Yield 30yr en 4.92% \u2014 zona hist\u00f3ricamente atractiva para bonos largos",
+      "historical": "2018-19: TLT +18% cuando yields revertieron desde 3.25%",
+      "risk": "La Fed puede mantener tipos altos m\u00e1s tiempo \u2014 size peque\u00f1o",
+      "timeframe": "3-6 meses",
+      "score": 91,
+      "eu_alternative": {
+        "ticker": "DTLA",
+        "name": "Xtrackers US Treasuries 20yr+ UCITS ETF",
+        "exchange": "Xetra",
+        "available": "DEGIRO/IB"
+      }
     },
     {
-      "instrument": "XLP / XLV / XLU",
+      "instrument": "XLP/XLV/XLU",
       "direction": "LONG",
-      "thesis": "Cobre/Oro en p16 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
-      "historical": "XLP supera S&P +12% en los 6m siguientes a Copper/Gold < p20",
-      "risk": "Rebote econ\u00f3mico revertir\u00eda rotaci\u00f3n",
+      "thesis": "Copper/Gold en percentil 16% \u2014 se\u00f1al de desaceleraci\u00f3n, rotar a defensivos",
+      "historical": "2015-16: XLU +20% mientras IWM -20% en ciclo de subidas Fed",
+      "risk": "Recuperaci\u00f3n econ\u00f3mica inesperada revertir\u00eda la rotaci\u00f3n",
       "timeframe": "2-4 meses",
-      "score": 75
+      "score": 75,
+      "eu_alternative": {
+        "ticker": "WCOS/WHCS/WUTS",
+        "name": "iShares MSCI World Consumer Staples / Health Care / Utilities UCITS ETF",
+        "exchange": "LSE",
+        "available": "DEGIRO/IB"
+      }
     },
     {
-      "instrument": "UVXY (small)",
-      "direction": "LONG",
-      "thesis": "VVIX en p86 con VIX moderado \u2014 spike de volatilidad inminente",
-      "historical": "VIX sube >30% en las 2 semanas siguientes al 80% de las veces con VVIX >p85",
-      "risk": "Theta decay si spike no materializa en <2 semanas",
-      "timeframe": "1-2 semanas",
-      "score": 65
+      "instrument": "UVXY",
+      "direction": "LONG (peque\u00f1o)",
+      "thesis": "VVIX en percentil 86% con VIX a\u00fan bajo \u2014 spike de volatilidad inminente",
+      "historical": "2018 VIXplosion: UVXY +200% en 2 d\u00edas",
+      "risk": "El tiempo trabaja en contra de VIX products \u2014 size m\u00e1ximo 1%",
+      "timeframe": "1-4 semanas",
+      "score": 65,
+      "eu_alternative": {
+        "ticker": null,
+        "name": "Sin equivalente UCITS directo (productos VIX restringidos por MiFID II)",
+        "exchange": null,
+        "available": "IB: opciones sobre VIX \u00b7 DEGIRO: no disponible"
+      }
     }
   ],
-  "macro_plays_commentary": "1 plays macro rule-based generadas sin IA.",
+  "macro_plays_commentary": "3 plays macro rule-based generadas sin IA.",
   "value_en_entorno": [],
   "value_en_entorno_razon": "Tickers VALUE seleccionados para r\u00e9gimen STRESS.",
   "evitar": [],
@@ -65,7 +101,6 @@
     }
   ],
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
-  "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-04-07 | STRESS (-2.0) | NEUTRO | VALUE:  | Evitar: ",
-  "ai_powered": false,
-  "intraday_refresh": "2026-04-07T21:35:59.257329"
+  "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-04-08 | STRESS (-2.5) | NEUTRO | VALUE:  | Evitar: ",
+  "ai_powered": false
 }

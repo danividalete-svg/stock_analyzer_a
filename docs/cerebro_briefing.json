@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-07",
+  "generated_at": "2026-04-08",
   "regime": "NEUTRAL",
   "narrative": "R\u00e9gimen NEUTRAL. 3 oportunidades de entrada, 3 se\u00f1ales de salida HIGH. Sin trampas de valor relevantes.",
   "sections": {
@@ -8,30 +8,30 @@
     "buy_count": 3,
     "top_entries": [
       [
-        "EXPN.L",
-        68
-      ],
-      [
-        "SGE.L",
-        68
+        "CPAY",
+        73
       ],
       [
         "PRU.L",
-        65
+        73
+      ],
+      [
+        "EXPN.L",
+        68
       ]
     ],
     "top_convergences": [
       [
-        "EXE",
+        "CSGP",
         100
       ],
       [
         "ALLY",
-        90
+        92
       ],
       [
-        "THRY",
-        87
+        "EXE",
+        92
       ]
     ],
     "high_alerts": [
@@ -51,16 +51,16 @@
     "traps_warning": [],
     "exit_warnings": [
       [
+        "INDV",
+        "Score cay\u00f3 26pts (76 \u2192 50)"
+      ],
+      [
         "LIFE",
         "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
       ],
       [
-        "TPC",
-        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
-      ],
-      [
-        "NRIM",
-        "Ya no aparece en VALUE \u2014 tesis posiblemente rota"
+        "FTAI",
+        "Score cay\u00f3 28pts (69 \u2192 40)"
       ]
     ],
     "smart_money": [
