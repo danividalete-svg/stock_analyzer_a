@@ -19,8 +19,38 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import json
 import time
+import random
 import argparse
 from typing import Dict, List, Optional
+
+
+def _yf_ticker_with_retry(ticker: str, max_retries: int = 4) -> yf.Ticker:
+    """Return a yf.Ticker object, with a small initial delay to reduce 429s."""
+    return yf.Ticker(ticker)
+
+
+def _yf_info_with_retry(stock: yf.Ticker, max_retries: int = 4) -> dict:
+    """Fetch .info with exponential backoff on 429 / rate-limit errors."""
+    delay = 3.0
+    for attempt in range(max_retries):
+        try:
+            info = stock.info
+            # yfinance returns {} or {'trailingPegRatio': None, ...} on soft failures
+            if info and len(info) > 5:
+                return info
+            # Short sleep and retry if response looks empty
+            time.sleep(delay)
+            delay = min(delay * 2, 30)
+        except Exception as e:
+            msg = str(e).lower()
+            if '429' in msg or 'too many' in msg or 'rate' in msg:
+                jitter = random.uniform(0, delay * 0.3)
+                print(f"   ⏳ Rate limited — waiting {delay:.0f}s (attempt {attempt+1}/{max_retries})")
+                time.sleep(delay + jitter)
+                delay = min(delay * 2, 60)
+            else:
+                raise
+    return {}
 
 class FundamentalScorer:
     """Sistema de scoring fundamental completo"""
@@ -61,8 +91,11 @@ class FundamentalScorer:
         print(f"📊 Scoring fundamentales: {ticker}")
 
         try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
+            stock = _yf_ticker_with_retry(ticker)
+            info = _yf_info_with_retry(stock)
+            if not info:
+                print(f"   ❌ Error: sin datos de yfinance (rate limit persistente)")
+                return self._get_empty_result(ticker)
 
             # Obtener datos necesarios
             quarterly_earnings = self._get_quarterly_earnings(stock)
@@ -179,26 +212,38 @@ class FundamentalScorer:
             return self._get_empty_result(ticker)
 
     def _get_quarterly_earnings(self, stock) -> pd.DataFrame:
-        """Obtiene earnings trimestrales
+        """Obtiene earnings trimestrales (Net Income por quarter).
 
-        Returns:
-            DataFrame with quarterly earnings reported before as_of_date (if specified)
+        Usa quarterly_income_stmt (API actual) para construir un DataFrame
+        con columna 'Earnings' compatible con el resto del código.
+        quarterly_earnings está deprecated en yfinance reciente y devuelve None.
         """
         try:
-            earnings = stock.quarterly_earnings
-            if earnings is not None and not earnings.empty:
-                # 🔴 FIX LOOK-AHEAD BIAS: Filter earnings by date
-                if self.as_of_date:
-                    # Filter to only include earnings with dates <= as_of_date
-                    # Earnings index is typically datetime, so filter by index
-                    if isinstance(earnings.index, pd.DatetimeIndex):
-                        earnings = earnings[earnings.index <= self.as_of_date_dt]
-                    # Some earnings might have a date column instead
-                    elif 'date' in earnings.columns:
-                        earnings['date'] = pd.to_datetime(earnings['date'])
-                        earnings = earnings[earnings['date'] <= self.as_of_date_dt]
+            qi = stock.quarterly_income_stmt
+            if qi is None or qi.empty:
+                return pd.DataFrame()
 
-                return earnings
+            # Buscar fila de Net Income
+            ni_row = None
+            for candidate in ['Net Income From Continuing Operation Net Minority Interest',
+                               'Net Income Common Stockholders',
+                               'Net Income From Continuing And Discontinued Operation',
+                               'Net Income']:
+                if candidate in qi.index:
+                    ni_row = candidate
+                    break
+
+            if ni_row is None:
+                return pd.DataFrame()
+
+            series = qi.loc[ni_row].sort_index(ascending=False)
+            earnings = pd.DataFrame({'Earnings': series.values}, index=series.index)
+
+            # FIX LOOK-AHEAD BIAS: solo datos hasta as_of_date
+            if self.as_of_date and isinstance(earnings.index, pd.DatetimeIndex):
+                earnings = earnings[earnings.index <= self.as_of_date_dt]
+
+            return earnings
         except:
             pass
         return pd.DataFrame()
@@ -1376,7 +1421,7 @@ class FundamentalScorer:
     def score_batch(
         self,
         tickers: List[str],
-        delay: float = 0.5
+        delay: float = 1.5
     ) -> pd.DataFrame:
         """
         Score múltiples tickers en batch
@@ -1392,7 +1437,12 @@ class FundamentalScorer:
         print(f"Scoring {len(tickers)} tickers...")
         print("=" * 80)
 
+        # Initial pause so GitHub Actions runner IP isn't immediately blocked
+        print("⏳ Pausa inicial de 10s para evitar rate limit en batch...")
+        time.sleep(10)
+
         results = []
+        consecutive_failures = 0
 
         for i, ticker in enumerate(tickers, 1):
             print(f"[{i}/{len(tickers)}] {ticker}")
@@ -1400,9 +1450,20 @@ class FundamentalScorer:
             result = self.score_ticker(ticker)
             results.append(result)
 
-            # Delay
-            if i < len(tickers):
-                time.sleep(delay)
+            # Track consecutive failures — if all data is missing, back off harder
+            is_empty = result.get('fundamental_score', 50.0) == 50.0
+            if is_empty:
+                consecutive_failures += 1
+            else:
+                consecutive_failures = 0
+
+            if consecutive_failures >= 5:
+                print(f"   ⏳ 5 fallos consecutivos — pausa larga de 30s para recuperar rate limit")
+                time.sleep(30)
+                consecutive_failures = 0
+            elif i < len(tickers):
+                jitter = random.uniform(0, 0.5)
+                time.sleep(delay + jitter)
 
         # Convertir a DataFrame
         df = pd.DataFrame(results)

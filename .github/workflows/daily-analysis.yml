@@ -42,10 +42,6 @@ jobs:
         continue-on-error: true
         run: python3 sector_rotation_detector.py || echo "Sector rotation failed"
 
-      - name: Run 5D Super Analyzer [CRITICAL]
-        continue-on-error: true
-        run: python3 run_super_analyzer_4d.py || echo "5D analyzer failed — pipeline continues"
-
       - name: Fundamental Scoring [CRITICAL - before integrator]
         run: python3 fundamental_scorer.py --vcp --5d --value --top 100
 
