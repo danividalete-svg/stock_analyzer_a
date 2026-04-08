@@ -32,53 +32,53 @@ DOCS = Path('docs')
 MACRO_DATA = {
     'US': {
         'name': 'United States',   'flag': '🇺🇸', 'region': 'Americas',
-        'gdp_growth': 2.7,         # % real GDP growth 2025e
-        'inflation':  3.0,         # CPI % 2025e
-        'unemployment': 4.4,       # % 2025e
-        'current_account': -3.3,   # % of GDP 2024
-        'rate_direction': 'HOLDING', # Fed: 4.25-4.50%, paused after 3 cuts
-        'policy_rate': 4.375,      # midpoint
-        'macro_notes': 'Economía resiliente, mercado laboral sólido. Fed en pausa.',
+        'gdp_growth': 2.4,         # IMF WEO Jan-2026 Update (2026e)
+        'inflation':  2.9,         # CPI % 2026e
+        'unemployment': 4.4,
+        'current_account': -3.3,
+        'rate_direction': 'HOLDING', # Fed: 4.25-4.50%, paused
+        'policy_rate': 4.375,
+        'macro_notes': 'Economía resiliente pero aranceles añaden presión. Fed en pausa hasta ver inflación.',
     },
     'DE': {
         'name': 'Germany',         'flag': '🇩🇪', 'region': 'Europe',
-        'gdp_growth': 0.3,
-        'inflation':  2.3,
+        'gdp_growth': 1.1,         # IMF Jan-2026 (mejora vs Oct-2025)
+        'inflation':  1.9,
         'unemployment': 3.4,
         'current_account': 4.3,
         'rate_direction': 'CUTTING', # ECB: 2.25%
         'policy_rate': 2.25,
-        'macro_notes': 'Recesión industrial, débil demanda interna. ECB recortando.',
+        'macro_notes': 'Recuperación gradual. Nuevo gobierno con mayor gasto fiscal. ECB recortando.',
     },
     'FR': {
         'name': 'France',          'flag': '🇫🇷', 'region': 'Europe',
-        'gdp_growth': 1.1,
+        'gdp_growth': 1.0,
         'inflation':  1.5,
         'unemployment': 7.3,
         'current_account': -0.9,
         'rate_direction': 'CUTTING',
         'policy_rate': 2.25,
-        'macro_notes': 'Crecimiento moderado. Incertidumbre política fiscal.',
+        'macro_notes': 'Crecimiento moderado. Consolidación fiscal en curso.',
     },
     'GB': {
         'name': 'United Kingdom',  'flag': '🇬🇧', 'region': 'Europe',
-        'gdp_growth': 1.1,
-        'inflation':  2.6,
+        'gdp_growth': 1.3,
+        'inflation':  2.5,
         'unemployment': 4.4,
         'current_account': -3.3,
         'rate_direction': 'CUTTING', # BOE: 4.25%
         'policy_rate': 4.25,
-        'macro_notes': 'BOE recortando. Inflación de servicios persistente.',
+        'macro_notes': 'BOE recortando con cautela. Inflación de servicios aún elevada.',
     },
     'JP': {
         'name': 'Japan',           'flag': '🇯🇵', 'region': 'Asia-Pacific',
-        'gdp_growth': 1.1,
-        'inflation':  3.7,
+        'gdp_growth': 0.6,         # IMF Jan-2026 revisado a la baja
+        'inflation':  2.1,
         'unemployment': 2.5,
         'current_account': 3.8,
-        'rate_direction': 'HIKING', # BOJ: 0.5%, normalizando
+        'rate_direction': 'HIKING', # BOJ: 0.5%
         'policy_rate': 0.5,
-        'macro_notes': 'BOJ normalizando tras décadas de ZIRP. Yen muy débil.',
+        'macro_notes': 'BOJ normalizando muy lentamente. Crecimiento débil por yen fuerte.',
     },
     'CN': {
         'name': 'China',           'flag': '🇨🇳', 'region': 'Asia-Pacific',
@@ -88,17 +88,17 @@ MACRO_DATA = {
         'current_account': 1.5,
         'rate_direction': 'CUTTING', # PBoC: 1.5% MLF
         'policy_rate': 1.5,
-        'macro_notes': 'Deflación, deuda inmobiliaria. PBoC estimulando. Tregua aranceles.',
+        'macro_notes': 'Tregua aranceles 90 días (145%→30%). PBoC estimulando. Deuda inmobiliaria aún lastran.',
     },
     'IN': {
         'name': 'India',           'flag': '🇮🇳', 'region': 'Asia-Pacific',
         'gdp_growth': 6.5,
         'inflation':  4.2,
-        'unemployment': 8.0,   # urban unemployment estimate
+        'unemployment': 8.0,
         'current_account': -1.2,
         'rate_direction': 'CUTTING', # RBI: 6.0%
         'policy_rate': 6.0,
-        'macro_notes': 'Motor de crecimiento global. RBI iniciando ciclo bajista.',
+        'macro_notes': 'Motor de crecimiento global. RBI iniciando ciclo bajista de tipos.',
     },
     'KR': {
         'name': 'South Korea',     'flag': '🇰🇷', 'region': 'Asia-Pacific',
@@ -108,17 +108,17 @@ MACRO_DATA = {
         'current_account': 3.4,
         'rate_direction': 'CUTTING', # BOK: 2.75%
         'policy_rate': 2.75,
-        'macro_notes': 'Exportaciones tech fuertes. BOK recortando.',
+        'macro_notes': 'Exportaciones semiconductores fuertes. BOK recortando. Impacto aranceles EE.UU. moderado.',
     },
     'BR': {
         'name': 'Brazil',          'flag': '🇧🇷', 'region': 'Americas',
-        'gdp_growth': 2.2,
-        'inflation':  6.1,
+        'gdp_growth': 1.9,         # IMF Jan-2026 revisado a la baja
+        'inflation':  4.0,
         'unemployment': 7.0,
         'current_account': -2.4,
-        'rate_direction': 'HIKING', # BCB: 13.25%, combatiendo inflación
+        'rate_direction': 'HIKING', # BCB: 13.25%
         'policy_rate': 13.25,
-        'macro_notes': 'Inflación persistente, BCB subiendo tipos. Real bajo presión.',
+        'macro_notes': 'Inflación persistente fuerza tipos altos. Real bajo presión. Riesgo fiscal elevado.',
     },
     'AU': {
         'name': 'Australia',       'flag': '🇦🇺', 'region': 'Asia-Pacific',
@@ -126,9 +126,9 @@ MACRO_DATA = {
         'inflation':  2.8,
         'unemployment': 4.0,
         'current_account': -1.8,
-        'rate_direction': 'HOLDING', # RBA: 4.10%
-        'policy_rate': 4.10,
-        'macro_notes': 'RBA en pausa. Commodities sostenidos. China es clave.',
+        'rate_direction': 'CUTTING', # RBA empezó ciclo bajista en Feb-2026
+        'policy_rate': 3.85,
+        'macro_notes': 'RBA inició recortes en Feb-2026. Muy expuesta a China vía commodities.',
     },
     'CA': {
         'name': 'Canada',          'flag': '🇨🇦', 'region': 'Americas',
@@ -451,6 +451,90 @@ def _determine_signal(macro_score: float, market_score: float, macro: dict, mkt:
     }
 
 
+def _ai_analyze_country(country: dict) -> dict:
+    """
+    Use Groq (llama-3.3-70b) to generate a rich macro narrative + validate the signal.
+    Returns: {ai_narrative, ai_risks, ai_opportunities, ai_verdict, ai_confidence}
+    """
+    import os
+    try:
+        from groq import Groq
+    except ImportError:
+        return {}
+
+    api_key = os.getenv('GROQ_API_KEY')
+    if not api_key:
+        return {}
+
+    mkt = country.get('etf_data') or country.get('index_data') or {}
+    code = country['code']
+    name = country['name']
+
+    prompt = f"""You are a global macro analyst at a hedge fund. Analyze the macroeconomic and market situation for {name} ({code}) as of April 2026.
+
+MACRO FUNDAMENTALS (IMF Jan-2026 Update):
+- GDP growth 2026e: {country['gdp_growth']:+.1f}%
+- Inflation (CPI): {country['inflation']:.1f}%
+- Unemployment: {country['unemployment']:.1f}%
+- Current account: {country['current_account']:+.1f}% of GDP
+- Central bank policy rate: {country['policy_rate']:.2f}%
+- Rate direction: {country['rate_direction']}
+- Context: {country['macro_notes']}
+
+MARKET DATA (real-time ETF: {country['etf']}):
+- Price vs 200-day MA: {mkt.get('pct_from_200', 'N/A'):+.1f}% {'(IN CORRECTION ZONE — potential entry)' if isinstance(mkt.get('pct_from_200'), float) and -20 < mkt.get('pct_from_200', 0) < -3 else ''}
+- Position in 52-week range: {mkt.get('position_in_range', 'N/A'):.0f}% (0=52wLow, 100=52wHigh)
+- YTD return: {mkt.get('ytd_return', 'N/A'):+.1f}%
+- 1-month return: {mkt.get('m1_return', 'N/A'):+.1f}%
+- 200MA slope: {mkt.get('ma200_slope', 'N/A'):+.2f}% (positive = uptrend)
+- Currency vs USD YTD: {country.get('currency_ytd', 'N/A')}%
+
+QUANTITATIVE SIGNAL:
+- Macro score: {country['macro_score']:.0f}/100
+- Market opportunity score: {country['market_score']:.0f}/100
+- Combined signal: {country['signal']} ({country['combined_score']:.0f}/100)
+- Contrarian flag: {country.get('contrarian', False)} (cheap market but weak macro)
+- Wait-for-pullback flag: {country.get('wait_pullback', False)} (good macro but extended market)
+
+GLOBAL CONTEXT (April 2026):
+- US-China trade truce announced (90 days): tariffs 145%→30% US, 125%→10% China
+- Global market in recovery/rally mode after Liberation Day selloff
+- Fed on hold at 4.25-4.50%, ECB cutting at 2.25%, BOJ normalizing slowly
+- VIX at ~20 (elevated but falling)
+
+YOUR TASK:
+1. Write a concise macro narrative (3-4 sentences) explaining the CURRENT situation for this country's economy and stock market
+2. Identify 2-3 specific RISKS for equity investors
+3. Identify 2-3 specific OPPORTUNITIES for equity investors
+4. Validate or challenge the quantitative signal ({country['signal']}) — do you agree? Why?
+5. Give ONE actionable insight an investor should know
+
+Respond ONLY with valid JSON (no markdown, no code blocks):
+{{"ai_narrative": "3-4 sentence macro narrative", "ai_risks": ["risk1", "risk2", "risk3"], "ai_opportunities": ["opp1", "opp2", "opp3"], "ai_verdict": "STRONG_BUY|BUY|NEUTRAL|SHORT|STRONG_SHORT", "ai_confidence": 0-100, "ai_insight": "one actionable insight"}}"""
+
+    try:
+        client = Groq(api_key=api_key)
+        resp = client.chat.completions.create(
+            model='llama-3.3-70b-versatile',
+            messages=[{'role': 'user', 'content': prompt}],
+            temperature=0.3,
+            max_tokens=600,
+            response_format={'type': 'json_object'},
+        )
+        result = json.loads(resp.choices[0].message.content)
+        return {
+            'ai_narrative':     result.get('ai_narrative', ''),
+            'ai_risks':         result.get('ai_risks', []),
+            'ai_opportunities': result.get('ai_opportunities', []),
+            'ai_verdict':       result.get('ai_verdict', country['signal']),
+            'ai_confidence':    result.get('ai_confidence', 50),
+            'ai_insight':       result.get('ai_insight', ''),
+        }
+    except Exception as e:
+        print(f"   ⚠ AI error for {code}: {e}")
+        return {}
+
+
 def run():
     print("\n" + "=" * 70)
     print("🌍 MACRO COUNTRY SCANNER")
@@ -482,7 +566,7 @@ def run():
 
         print(f"   Macro: {macro_score:.0f}/100 | Market: {market_score:.0f}/100 | Signal: {sig['signal']} ({sig['combined_score']:.0f})")
 
-        results.append({
+        country_entry = {
             'code': code,
             'name': macro['name'],
             'flag': macro['flag'],
@@ -508,7 +592,17 @@ def run():
             'market_breakdown': market_parts,
             # signal
             **sig,
-        })
+        }
+
+        # --- AI narrative (optional, needs GROQ_API_KEY) ---
+        ai = _ai_analyze_country({**country_entry, **sig})
+        if ai:
+            country_entry.update(ai)
+            verdict = ai.get('ai_verdict', sig['signal'])
+            conf = ai.get('ai_confidence', 0)
+            print(f"   🤖 AI: {verdict} (conf {conf})")
+
+        results.append(country_entry)
 
     # Sort by combined_score desc
     results.sort(key=lambda x: x['combined_score'], reverse=True)
@@ -516,7 +610,7 @@ def run():
     output = {
         'generated_at': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
         'generated_ts': datetime.datetime.utcnow().isoformat(),
-        'macro_source': 'IMF WEO Oct-2025 projections',
+        'macro_source': 'IMF WEO Jan-2026 Update (WEO Apr-2026 sale el 14-Apr)',
         'market_source': 'yfinance real-time',
         'countries': results,
         'summary': {
