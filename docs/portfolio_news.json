@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-08",
-  "scan_time": "07:08",
+  "scan_time": "13:02",
   "tickers": [
     "UNH",
     "PRU",
@@ -8,9 +8,9 @@
     "WYY"
   ],
   "count": 13,
-  "alta_count": 8,
-  "media_count": 2,
-  "new_alerts": 0,
+  "alta_count": 7,
+  "media_count": 3,
+  "new_alerts": 1,
   "items": [
     {
       "id": "0028b429-267e-3d78-a923-3408689feee6",
@@ -28,18 +28,8 @@
       "title": "UnitedHealth and other insurer stocks jump after Medicare agrees to lift payments next year",
       "source": "Yahoo Finance",
       "pub_date": "2026-04-07T15:15:43Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 21h",
       "url": "https://finance.yahoo.com/news/unitedhealth-and-other-insurer-stocks-jump-after-medicare-agrees-to-lift-payments-next-year-151543851.html",
-      "importance": "ALTA"
-    },
-    {
-      "id": "66d84a47-e0b6-3c41-9069-c63aa2dafce6",
-      "ticker": "UNH",
-      "title": "Health Insurers Rally After CMS Rate Surprise",
-      "source": "GuruFocus.com",
-      "pub_date": "2026-04-07T22:03:09Z",
-      "time_ago": "hace 9h",
-      "url": "https://finance.yahoo.com/sectors/healthcare/articles/health-insurers-rally-cms-rate-220309149.html",
       "importance": "ALTA"
     },
     {
@@ -48,7 +38,7 @@
       "title": "Medicare Finalizes 2.48% Rate Increase, Lifting Health Insurer Outlook",
       "source": "GuruFocus.com",
       "pub_date": "2026-04-07T22:13:41Z",
-      "time_ago": "hace 8h",
+      "time_ago": "hace 14h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/medicare-finalizes-2-48-rate-221341983.html",
       "importance": "ALTA"
     },
@@ -58,7 +48,7 @@
       "title": "Buy UnitedHealth or Humana Stock as Medicare Advantage Rates Increase?",
       "source": "Zacks",
       "pub_date": "2026-04-07T23:44:00Z",
-      "time_ago": "hace 7h",
+      "time_ago": "hace 13h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/buy-unitedhealth-humana-stock-medicare-234400124.html",
       "importance": "ALTA"
     },
@@ -68,7 +58,7 @@
       "title": "UnitedHealth (UNH) Soars 9.37% on Medicare Reimbursement Rate Jump",
       "source": "Insider Monkey",
       "pub_date": "2026-04-08T00:45:51Z",
-      "time_ago": "hace 6h",
+      "time_ago": "hace 12h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-unh-soars-9-37-004551048.html",
       "importance": "ALTA"
     },
@@ -78,7 +68,7 @@
       "title": "Alignment Healthcare (ALHC) Soars 16% on Medicare Reimbursement Hike",
       "source": "Insider Monkey",
       "pub_date": "2026-04-08T00:57:11Z",
-      "time_ago": "hace 6h",
+      "time_ago": "hace 12h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/alignment-healthcare-alhc-soars-16-005711107.html",
       "importance": "ALTA"
     },
@@ -88,7 +78,7 @@
       "title": "UnitedHealth Group (UNH) Upgraded Over Potential Upside to Earnings Estimates",
       "source": "Insider Monkey",
       "pub_date": "2026-04-08T06:21:24Z",
-      "time_ago": "hace 47min",
+      "time_ago": "hace 6h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-group-unh-upgraded-over-070224075.html",
       "importance": "ALTA"
     },
@@ -113,33 +103,43 @@
       "importance": "MEDIA"
     },
     {
-      "id": "74536421-73d6-3adf-993c-3cae1adadc67",
+      "id": "e5012409-4be5-31d1-886d-4f2663a35575",
       "ticker": "UNH",
-      "title": "Stock Market Today: Dow, S&P 500 Close Mixed As Critical Iran Deadline Nears (Live Coverage)",
-      "source": "Investor's Business Daily",
-      "pub_date": "2026-04-07T21:08:23Z",
-      "time_ago": "hace 10h",
-      "url": "https://www.investors.com/market-trend/stock-market-today/dow-jones-sp500-nasdaq-iran-war-strait-of-hormuz-unitedhealth-unh-stock/?src=A00220&yptr=yahoo",
+      "title": "UnitedHealth price target raised to $337 from $315 at BofA",
+      "source": "TipRanks",
+      "pub_date": "2026-04-08T12:01:22Z",
+      "time_ago": "hace 1h",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-price-target-raised-337-120122751.html",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "8bbbcf29-efcd-393d-9032-7d85cb248175",
+      "ticker": "UNH",
+      "title": "UnitedHealth (UNH) Soars 9.4%: Is Further Upside Left in the Stock?",
+      "source": "Zacks",
+      "pub_date": "2026-04-08T08:59:00Z",
+      "time_ago": "hace 4h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/unitedhealth-unh-soars-9-4-085900764.html",
       "importance": "BAJA"
     },
     {
-      "id": "19aca48f-cf58-3f8f-9bd6-2d32fb6df23b",
+      "id": "be50b9e2-88e1-3494-88a8-0f9fa5d2d9c4",
       "ticker": "UNH",
-      "title": "Stock Market Today, April 7: Apple Slides Against Muted Market Backdrop",
-      "source": "Motley Fool",
-      "pub_date": "2026-04-07T21:37:16Z",
-      "time_ago": "hace 9h",
-      "url": "https://www.fool.com/coverage/stock-market-today/2026/04/07/stock-market-today-april-7-apple-slides-against-muted-market-backdrop/",
+      "title": "US Stock Market Today S&P 500 Futures Rally On Easing Yields And CPI Focus",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-08T10:11:48Z",
+      "time_ago": "hace 2h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/us-stock-market-today-p-101148991.html",
       "importance": "BAJA"
     },
     {
-      "id": "bea069d2-018b-30ef-927d-880d9c19c0ef",
+      "id": "3bdc45e7-7564-320a-9777-a359fefd43b8",
       "ticker": "UNH",
-      "title": "US Equity Indexes Mixed, Crude Oil Drops as Investors Weigh Pakistan's Ceasefire Plan for Iran",
-      "source": "MT Newswires",
-      "pub_date": "2026-04-07T21:45:23Z",
-      "time_ago": "hace 9h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-mixed-crude-214523942.html",
+      "title": "Did Oscar Health’s CEO Just Cast a $12 Million Vote of Confidence?",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-08T12:10:01Z",
+      "time_ago": "hace 52min",
+      "url": "https://247wallst.com/investing/2026/04/08/did-oscar-healths-ceo-just-cast-a-12-million-vote-of-confidence/",
       "importance": "BAJA"
     }
   ]
