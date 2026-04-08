@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-04-08",
   "macro_regime": "WATCH",
-  "composite_score": 2.0,
+  "composite_score": 1.0,
   "sesgo": "NEUTRO",
   "confianza": 57,
   "situacion": "R\u00e9gimen STRESS, composite -2.5/30. 3 plays macro identificadas.",
@@ -57,5 +57,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-04-08 | STRESS (-2.5) | NEUTRO | VALUE:  | Evitar: ",
   "ai_powered": false,
-  "intraday_refresh": "2026-04-08T18:45:05.019205"
+  "intraday_refresh": "2026-04-08T19:50:43.902341"
 }
