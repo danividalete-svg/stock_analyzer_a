@@ -2,8 +2,8 @@ name: Daily Market Analysis - Full Pipeline
 
 on:
   schedule:
-    # Run Monday-Friday at 07:00 UTC (08:00-09:00 Spain time, before US market open)
-    - cron: '0 7 * * 1-5'
+    # Run Monday-Friday at 06:00 UTC (08:00 Spain CEST / 07:00 Spain CET, before US pre-market)
+    - cron: '0 6 * * 1-5'
   workflow_dispatch:  # Manual trigger
 
 jobs:
