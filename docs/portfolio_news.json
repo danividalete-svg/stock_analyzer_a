@@ -1,6 +1,6 @@
 {
-  "scan_date": "2026-04-07",
-  "scan_time": "18:52",
+  "scan_date": "2026-04-08",
+  "scan_time": "01:29",
   "tickers": [
     "UNH",
     "PRU",
@@ -8,9 +8,9 @@
     "WYY"
   ],
   "count": 13,
-  "alta_count": 6,
+  "alta_count": 7,
   "media_count": 2,
-  "new_alerts": 4,
+  "new_alerts": 5,
   "items": [
     {
       "id": "0028b429-267e-3d78-a923-3408689feee6",
@@ -28,48 +28,58 @@
       "title": "UnitedHealth and other insurer stocks jump after Medicare agrees to lift payments next year",
       "source": "Yahoo Finance",
       "pub_date": "2026-04-07T15:15:43Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/news/unitedhealth-and-other-insurer-stocks-jump-after-medicare-agrees-to-lift-payments-next-year-151543851.html",
       "importance": "ALTA"
     },
     {
-      "id": "bf21ff5e-3a67-338e-96d2-58eafd2132dc",
+      "id": "66d84a47-e0b6-3c41-9069-c63aa2dafce6",
       "ticker": "UNH",
-      "title": "Top Midday Stories: Stocks Fall as US-Iran Ceasefire Hopes Fade; Health Insurance Stocks Rise After Big Medicare Advantage Payment Rate Bump",
-      "source": "MT Newswires",
-      "pub_date": "2026-04-07T16:05:02Z",
-      "time_ago": "hace 2h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/top-midday-stories-stocks-fall-160502770.html",
+      "title": "Health Insurers Rally After CMS Rate Surprise",
+      "source": "GuruFocus.com",
+      "pub_date": "2026-04-07T22:03:09Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/health-insurers-rally-cms-rate-220309149.html",
       "importance": "ALTA"
     },
     {
-      "id": "d0f5ad5a-608c-33d8-bb93-a15fecf7ab93",
+      "id": "743b1111-45b4-3961-8e88-d19f8bd1ed37",
       "ticker": "UNH",
-      "title": "US Equity Indexes Decline as Investors Weigh Iran Deal Likelihood",
-      "source": "MT Newswires",
-      "pub_date": "2026-04-07T17:27:51Z",
+      "title": "Medicare Finalizes 2.48% Rate Increase, Lifting Health Insurer Outlook",
+      "source": "GuruFocus.com",
+      "pub_date": "2026-04-07T22:13:41Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/medicare-finalizes-2-48-rate-221341983.html",
+      "importance": "ALTA"
+    },
+    {
+      "id": "ac6006b9-806f-30a3-ac64-ce60980341c4",
+      "ticker": "UNH",
+      "title": "Buy UnitedHealth or Humana Stock as Medicare Advantage Rates Increase?",
+      "source": "Zacks",
+      "pub_date": "2026-04-07T23:44:00Z",
       "time_ago": "hace 1h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-decline-investors-172751964.html",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/buy-unitedhealth-humana-stock-medicare-234400124.html",
       "importance": "ALTA"
     },
     {
-      "id": "579539f8-2d92-3e4a-8b0f-813897c88fe2",
+      "id": "15c362ed-1030-3345-921e-1b97484e917b",
       "ticker": "UNH",
-      "title": "UnitedHealth Rockets 11%, Humana Climbs 9% as Medicare Advantage Rate Decision Crushes Regulatory Fears",
-      "source": "24/7 Wall St.",
-      "pub_date": "2026-04-07T18:16:24Z",
-      "time_ago": "hace 35min",
-      "url": "https://247wallst.com/investing/2026/04/07/unitedhealth-rockets-11-humana-climbs-9-as-medicare-advantage-rate-decision-crushes-regulatory-fears/",
+      "title": "UnitedHealth (UNH) Soars 9.37% on Medicare Reimbursement Rate Jump",
+      "source": "Insider Monkey",
+      "pub_date": "2026-04-08T00:45:51Z",
+      "time_ago": "hace 43min",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-unh-soars-9-37-004551048.html",
       "importance": "ALTA"
     },
     {
-      "id": "ed55cd1b-7ac3-3b0c-9cba-11b71b72f03b",
+      "id": "7577412f-2bc7-3322-bcdc-be08c2057766",
       "ticker": "UNH",
-      "title": "New Medicare Payment Rate Released. Why UnitedHealth, Humana Are Popping.",
-      "source": "Barrons.com",
-      "pub_date": "2026-04-07T18:17:00Z",
-      "time_ago": "hace 34min",
-      "url": "https://www.barrons.com/articles/medicare-payment-rate-insurance-healthcare-unitedhealth-stock-humana-7fb6d92c?siteid=yhoof2&yptr=yahoo",
+      "title": "Alignment Healthcare (ALHC) Soars 16% on Medicare Reimbursement Hike",
+      "source": "Insider Monkey",
+      "pub_date": "2026-04-08T00:57:11Z",
+      "time_ago": "hace 32min",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/alignment-healthcare-alhc-soars-16-005711107.html",
       "importance": "ALTA"
     },
     {
@@ -88,58 +98,48 @@
       "title": "How The Prudential (LSE:PRU) Investment Story Is Shifting With New Targets And Capital Returns",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-06T20:07:32Z",
-      "time_ago": "hace 22h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/prudential-lse-pru-investment-story-200732089.html",
       "importance": "MEDIA"
-    },
-    {
-      "id": "8bc6c3e5-9e56-3344-9435-58f8de5f7680",
-      "ticker": "UNH",
-      "title": "Washington Blinked and Health Insurers Made $13 Billion",
-      "source": "Moby",
-      "pub_date": "2026-04-07T16:17:22Z",
-      "time_ago": "hace 2h",
-      "url": "https://app.moby.co/home/news/news-washington-blinked-and-health-insurers-made-13-billion?utm_source=yahoo_finance&utm_medium=rss",
-      "importance": "BAJA"
-    },
-    {
-      "id": "b37c55d9-be1a-3dc8-bc3c-6f0bc4134dd3",
-      "ticker": "UNH",
-      "title": "Equities Drop Intraday, Oil Rises as Trump's Iran Deadline Looms",
-      "source": "MT Newswires",
-      "pub_date": "2026-04-07T18:07:13Z",
-      "time_ago": "hace 44min",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/equities-drop-intraday-oil-rises-180713447.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "a6518487-985a-3364-9b91-4efce34b2f88",
-      "ticker": "UNH",
-      "title": "AI is making insurance decisions. Patients are pushing back",
-      "source": "USA TODAY",
-      "pub_date": "2026-04-07T18:11:44Z",
-      "time_ago": "hace 40min",
-      "url": "https://www.usatoday.com/story/money/2026/04/07/insurance-companies-ai-claims-coverage/89499813007/",
-      "importance": "BAJA"
-    },
-    {
-      "id": "74536421-73d6-3adf-993c-3cae1adadc67",
-      "ticker": "UNH",
-      "title": "Stock Market Today: Dow Improves As Hormuz Deadline Nears; Financial Name Breaks Out (Live Coverage)",
-      "source": "Investor's Business Daily",
-      "pub_date": "2026-04-07T18:12:37Z",
-      "time_ago": "hace 39min",
-      "url": "https://www.investors.com/market-trend/stock-market-today/dow-jones-sp500-nasdaq-iran-war-strait-of-hormuz-unitedhealth-unh-stock/?src=A00220&yptr=yahoo",
-      "importance": "BAJA"
     },
     {
       "id": "f69ad38f-30b0-3131-8fe5-cfa119da89c9",
       "ticker": "UNH",
       "title": "These Stocks Are Today’s Movers: Apple, UnitedHealth, Broadcom, Arm, Delta, Intel, Arista, and More",
       "source": "Barrons.com",
-      "pub_date": "2026-04-07T18:18:00Z",
-      "time_ago": "hace 33min",
+      "pub_date": "2026-04-07T20:54:00Z",
+      "time_ago": "hace 4h",
       "url": "https://www.barrons.com/articles/stock-movers-79f1d6cd?siteid=yhoof2&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "0df73d47-3fdf-36da-94ba-8cafb94c78a3",
+      "ticker": "UNH",
+      "title": "Astrana Health, Evolent Health, Neogen, agilon health, and Fortrea Shares Are Soaring, What You Need To Know",
+      "source": "StockStory",
+      "pub_date": "2026-04-07T21:01:50Z",
+      "time_ago": "hace 4h",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/astrana-health-evolent-health-neogen-210150191.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "74536421-73d6-3adf-993c-3cae1adadc67",
+      "ticker": "UNH",
+      "title": "Stock Market Today: Dow, S&P 500 Close Mixed As Critical Iran Deadline Nears (Live Coverage)",
+      "source": "Investor's Business Daily",
+      "pub_date": "2026-04-07T21:08:23Z",
+      "time_ago": "hace 4h",
+      "url": "https://www.investors.com/market-trend/stock-market-today/dow-jones-sp500-nasdaq-iran-war-strait-of-hormuz-unitedhealth-unh-stock/?src=A00220&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "bea069d2-018b-30ef-927d-880d9c19c0ef",
+      "ticker": "UNH",
+      "title": "US Equity Indexes Mixed, Crude Oil Drops as Investors Weigh Pakistan's Ceasefire Plan for Iran",
+      "source": "MT Newswires",
+      "pub_date": "2026-04-07T21:45:23Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/us-equity-indexes-mixed-crude-214523942.html",
       "importance": "BAJA"
     }
   ]
