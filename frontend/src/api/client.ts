@@ -749,6 +749,9 @@ export const fetchMarketRegime = () =>
 export const fetchMacroRadar = () =>
   api.get('/api/macro-radar')
 
+export const fetchMacroCountries = () =>
+  api.get('/api/macro-countries')
+
 export const fetchMacroRadarHistory = () =>
   api.get<{ history: Array<{ date: string; composite_score: number; composite_pct: number; regime: string; regime_color: string }> }>('/api/macro-radar/history')
 

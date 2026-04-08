@@ -30,6 +30,7 @@ import IndustryGroups from './pages/IndustryGroups'
 import Watchlist from './pages/Watchlist'
 import GlobalValue from './pages/GlobalValue'
 import MacroRadar from './pages/MacroRadar'
+import MacroCountries from './pages/MacroCountries'
 import EarningsCalendar from './pages/EarningsCalendar'
 import DividendTraps from './pages/DividendTraps'
 import SmartPortfolio from './pages/SmartPortfolio'
@@ -237,7 +238,8 @@ export default function App() {
               <Route path="/position-sizing" element={<PositionSizing />} />
               <Route path="/watchlist"      element={<Watchlist />} />
               <Route path="/search"         element={<TickerSearch />} />
-              <Route path="/macro-radar"    element={<MacroRadar />} />
+              <Route path="/macro-radar"       element={<MacroRadar />} />
+              <Route path="/macro-countries"  element={<MacroCountries />} />
               <Route path="/earnings"       element={<EarningsCalendar />} />
               <Route path="/dividend-traps"   element={<DividendTraps />} />
               <Route path="/smart-portfolio" element={<SmartPortfolio />} />

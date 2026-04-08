@@ -1,0 +1,548 @@
+"""
+Macro Country Scanner
+=====================
+Analyzes macroeconomic conditions + stock market opportunity for 15 key countries.
+
+Data sources:
+  - Market/Technical: yfinance (index prices, ETFs, 200MA, 52w range, YTD)
+  - Macro fundamentals: IMF WEO projections (hardcoded, updated quarterly)
+  - Rates: central bank rates (known) + 10Y bond yields from yfinance
+  - Currency: yfinance FX pairs vs USD
+
+Output: docs/macro_country_analysis.json
+"""
+
+import json
+import time
+import random
+import datetime
+from pathlib import Path
+from typing import Optional
+
+import yfinance as yf
+import numpy as np
+import pandas as pd
+
+DOCS = Path('docs')
+
+# ---------------------------------------------------------------------------
+# Static macro data — IMF WEO October 2025 / latest available estimates
+# Updated: 2025-10. Source: IMF World Economic Outlook
+# ---------------------------------------------------------------------------
+MACRO_DATA = {
+    'US': {
+        'name': 'United States',   'flag': '🇺🇸', 'region': 'Americas',
+        'gdp_growth': 2.7,         # % real GDP growth 2025e
+        'inflation':  3.0,         # CPI % 2025e
+        'unemployment': 4.4,       # % 2025e
+        'current_account': -3.3,   # % of GDP 2024
+        'rate_direction': 'HOLDING', # Fed: 4.25-4.50%, paused after 3 cuts
+        'policy_rate': 4.375,      # midpoint
+        'macro_notes': 'Economía resiliente, mercado laboral sólido. Fed en pausa.',
+    },
+    'DE': {
+        'name': 'Germany',         'flag': '🇩🇪', 'region': 'Europe',
+        'gdp_growth': 0.3,
+        'inflation':  2.3,
+        'unemployment': 3.4,
+        'current_account': 4.3,
+        'rate_direction': 'CUTTING', # ECB: 2.25%
+        'policy_rate': 2.25,
+        'macro_notes': 'Recesión industrial, débil demanda interna. ECB recortando.',
+    },
+    'FR': {
+        'name': 'France',          'flag': '🇫🇷', 'region': 'Europe',
+        'gdp_growth': 1.1,
+        'inflation':  1.5,
+        'unemployment': 7.3,
+        'current_account': -0.9,
+        'rate_direction': 'CUTTING',
+        'policy_rate': 2.25,
+        'macro_notes': 'Crecimiento moderado. Incertidumbre política fiscal.',
+    },
+    'GB': {
+        'name': 'United Kingdom',  'flag': '🇬🇧', 'region': 'Europe',
+        'gdp_growth': 1.1,
+        'inflation':  2.6,
+        'unemployment': 4.4,
+        'current_account': -3.3,
+        'rate_direction': 'CUTTING', # BOE: 4.25%
+        'policy_rate': 4.25,
+        'macro_notes': 'BOE recortando. Inflación de servicios persistente.',
+    },
+    'JP': {
+        'name': 'Japan',           'flag': '🇯🇵', 'region': 'Asia-Pacific',
+        'gdp_growth': 1.1,
+        'inflation':  3.7,
+        'unemployment': 2.5,
+        'current_account': 3.8,
+        'rate_direction': 'HIKING', # BOJ: 0.5%, normalizando
+        'policy_rate': 0.5,
+        'macro_notes': 'BOJ normalizando tras décadas de ZIRP. Yen muy débil.',
+    },
+    'CN': {
+        'name': 'China',           'flag': '🇨🇳', 'region': 'Asia-Pacific',
+        'gdp_growth': 4.5,
+        'inflation':  0.5,
+        'unemployment': 4.0,
+        'current_account': 1.5,
+        'rate_direction': 'CUTTING', # PBoC: 1.5% MLF
+        'policy_rate': 1.5,
+        'macro_notes': 'Deflación, deuda inmobiliaria. PBoC estimulando. Tregua aranceles.',
+    },
+    'IN': {
+        'name': 'India',           'flag': '🇮🇳', 'region': 'Asia-Pacific',
+        'gdp_growth': 6.5,
+        'inflation':  4.2,
+        'unemployment': 8.0,   # urban unemployment estimate
+        'current_account': -1.2,
+        'rate_direction': 'CUTTING', # RBI: 6.0%
+        'policy_rate': 6.0,
+        'macro_notes': 'Motor de crecimiento global. RBI iniciando ciclo bajista.',
+    },
+    'KR': {
+        'name': 'South Korea',     'flag': '🇰🇷', 'region': 'Asia-Pacific',
+        'gdp_growth': 2.3,
+        'inflation':  2.0,
+        'unemployment': 2.8,
+        'current_account': 3.4,
+        'rate_direction': 'CUTTING', # BOK: 2.75%
+        'policy_rate': 2.75,
+        'macro_notes': 'Exportaciones tech fuertes. BOK recortando.',
+    },
+    'BR': {
+        'name': 'Brazil',          'flag': '🇧🇷', 'region': 'Americas',
+        'gdp_growth': 2.2,
+        'inflation':  6.1,
+        'unemployment': 7.0,
+        'current_account': -2.4,
+        'rate_direction': 'HIKING', # BCB: 13.25%, combatiendo inflación
+        'policy_rate': 13.25,
+        'macro_notes': 'Inflación persistente, BCB subiendo tipos. Real bajo presión.',
+    },
+    'AU': {
+        'name': 'Australia',       'flag': '🇦🇺', 'region': 'Asia-Pacific',
+        'gdp_growth': 1.7,
+        'inflation':  2.8,
+        'unemployment': 4.0,
+        'current_account': -1.8,
+        'rate_direction': 'HOLDING', # RBA: 4.10%
+        'policy_rate': 4.10,
+        'macro_notes': 'RBA en pausa. Commodities sostenidos. China es clave.',
+    },
+    'CA': {
+        'name': 'Canada',          'flag': '🇨🇦', 'region': 'Americas',
+        'gdp_growth': 1.4,
+        'inflation':  2.5,
+        'unemployment': 6.3,
+        'current_account': -1.2,
+        'rate_direction': 'CUTTING', # BOC: 2.75%
+        'policy_rate': 2.75,
+        'macro_notes': 'BOC recortando agresivamente. Impacto aranceles EE.UU.',
+    },
+    'ES': {
+        'name': 'Spain',           'flag': '🇪🇸', 'region': 'Europe',
+        'gdp_growth': 2.4,
+        'inflation':  2.6,
+        'unemployment': 11.5,
+        'current_account': 2.8,
+        'rate_direction': 'CUTTING',
+        'policy_rate': 2.25,
+        'macro_notes': 'Mejor crecimiento de la eurozona. Turismo récord.',
+    },
+    'IT': {
+        'name': 'Italy',           'flag': '🇮🇹', 'region': 'Europe',
+        'gdp_growth': 0.7,
+        'inflation':  1.7,
+        'unemployment': 6.1,
+        'current_account': 1.3,
+        'rate_direction': 'CUTTING',
+        'policy_rate': 2.25,
+        'macro_notes': 'Crecimiento lento. Deuda pública alta. ECB da soporte.',
+    },
+    'CH': {
+        'name': 'Switzerland',     'flag': '🇨🇭', 'region': 'Europe',
+        'gdp_growth': 1.5,
+        'inflation':  0.9,
+        'unemployment': 2.5,
+        'current_account': 10.2,
+        'rate_direction': 'HOLDING', # SNB: 0.25%
+        'policy_rate': 0.25,
+        'macro_notes': 'Franco fuerte, inflación baja. Refugio defensivo.',
+    },
+    'MX': {
+        'name': 'Mexico',          'flag': '🇲🇽', 'region': 'Americas',
+        'gdp_growth': 1.3,
+        'inflation':  4.0,
+        'unemployment': 2.9,
+        'current_account': -0.1,
+        'rate_direction': 'CUTTING', # Banxico: ~8.5%
+        'policy_rate': 8.5,
+        'macro_notes': 'Nearshoring beneficia al sector industrial. Peso volátil.',
+    },
+}
+
+# Country market instruments (index + USD ETF for comparison)
+MARKET_CONFIG = {
+    'US': {'index': '^GSPC', 'etf': 'SPY',  'currency_pair': None,       'bond_yield': '^TNX'},
+    'DE': {'index': '^GDAXI','etf': 'EWG',  'currency_pair': 'EURUSD=X', 'bond_yield': None},
+    'FR': {'index': '^FCHI', 'etf': 'EWQ',  'currency_pair': 'EURUSD=X', 'bond_yield': None},
+    'GB': {'index': '^FTSE', 'etf': 'EWU',  'currency_pair': 'GBPUSD=X', 'bond_yield': None},
+    'JP': {'index': '^N225', 'etf': 'EWJ',  'currency_pair': 'JPYUSD=X', 'bond_yield': None},
+    'CN': {'index': '000001.SS','etf':'FXI', 'currency_pair': 'CNYUSD=X', 'bond_yield': None},
+    'IN': {'index': '^BSESN','etf': 'INDA', 'currency_pair': 'INRUSD=X', 'bond_yield': None},
+    'KR': {'index': '^KS11', 'etf': 'EWY',  'currency_pair': 'KRWUSD=X', 'bond_yield': None},
+    'BR': {'index': '^BVSP', 'etf': 'EWZ',  'currency_pair': 'BRLUSD=X', 'bond_yield': None},
+    'AU': {'index': '^AXJO', 'etf': 'EWA',  'currency_pair': 'AUDUSD=X', 'bond_yield': None},
+    'CA': {'index': '^GSPTSE','etf':'EWC',  'currency_pair': 'CADUSD=X', 'bond_yield': None},
+    'ES': {'index': '^IBEX', 'etf': 'EWP',  'currency_pair': 'EURUSD=X', 'bond_yield': None},
+    'IT': {'index': 'FTSEMIB.MI','etf':'EWI', 'currency_pair': 'EURUSD=X', 'bond_yield': None},
+    'CH': {'index': '^SSMI', 'etf': 'EWL',  'currency_pair': 'CHFUSD=X', 'bond_yield': None},
+    'MX': {'index': '^MXX',  'etf': 'EWW',  'currency_pair': 'MXNUSD=X', 'bond_yield': None},
+}
+
+
+def _fetch_market_data(ticker: str, period: str = '1y') -> dict:
+    """Fetch price data, 200MA, 52w range, YTD return."""
+    try:
+        time.sleep(random.uniform(0.3, 0.8))
+        hist = yf.download(ticker, period=period, interval='1d',
+                           auto_adjust=True, progress=False, timeout=15)
+        if hist is None or len(hist) < 20:
+            return {}
+
+        closes = hist['Close'].dropna()
+        if isinstance(closes, pd.DataFrame):
+            closes = closes.iloc[:, 0]
+        closes = closes.astype(float)
+
+        if len(closes) < 20:
+            return {}
+
+        current = float(closes.iloc[-1])
+        ma200 = float(closes.tail(200).mean()) if len(closes) >= 200 else float(closes.mean())
+        ma50  = float(closes.tail(50).mean())  if len(closes) >= 50  else float(closes.mean())
+
+        w52_high = float(closes.max())
+        w52_low  = float(closes.min())
+        pct_from_200 = (current / ma200 - 1) * 100
+        pct_from_52h = (current / w52_high - 1) * 100
+        position_in_range = (current - w52_low) / (w52_high - w52_low) * 100 if w52_high != w52_low else 50
+
+        # YTD return
+        today = datetime.date.today()
+        ytd_start = datetime.date(today.year, 1, 1)
+        ytd_idx = closes.index[closes.index >= pd.Timestamp(ytd_start)]
+        if len(ytd_idx) >= 2:
+            ytd_return = (current / float(closes[ytd_idx[0]]) - 1) * 100
+        else:
+            ytd_return = 0.0
+
+        # 1M return
+        m1_closes = closes.tail(21)
+        m1_return = (current / float(m1_closes.iloc[0]) - 1) * 100 if len(m1_closes) > 1 else 0.0
+
+        # MA trend (slope)
+        if len(closes) >= 10:
+            ma200_now = float(closes.tail(200).mean()) if len(closes) >= 200 else float(closes.mean())
+            ma200_20d = float(closes.tail(220).head(20).mean()) if len(closes) >= 220 else ma200_now
+            ma200_slope = (ma200_now / ma200_20d - 1) * 100 if ma200_20d else 0
+        else:
+            ma200_slope = 0.0
+
+        return {
+            'current': round(current, 2),
+            'ma200': round(ma200, 2),
+            'ma50': round(ma50, 2),
+            'pct_from_200': round(pct_from_200, 1),
+            'pct_from_52h': round(pct_from_52h, 1),
+            'position_in_range': round(position_in_range, 1),  # 0=52wLow, 100=52wHigh
+            'ytd_return': round(ytd_return, 1),
+            'm1_return': round(m1_return, 1),
+            'ma200_slope': round(ma200_slope, 2),
+            'w52_high': round(w52_high, 2),
+            'w52_low': round(w52_low, 2),
+        }
+    except Exception as e:
+        print(f"   ⚠ market data error for {ticker}: {e}")
+        return {}
+
+
+def _fetch_currency_ytd(pair: str) -> Optional[float]:
+    """Return YTD % change for a currency pair."""
+    if not pair:
+        return None
+    try:
+        time.sleep(random.uniform(0.2, 0.5))
+        hist = yf.download(pair, period='1y', interval='1d',
+                           auto_adjust=True, progress=False, timeout=10)
+        if hist is None or len(hist) < 5:
+            return None
+        closes = hist['Close'].dropna()
+        if isinstance(closes, pd.DataFrame):
+            closes = closes.iloc[:, 0]
+        closes = closes.astype(float)
+        today = datetime.date.today()
+        ytd_start = datetime.date(today.year, 1, 1)
+        ytd_idx = closes.index[closes.index >= pd.Timestamp(ytd_start)]
+        if len(ytd_idx) >= 2:
+            return round((float(closes.iloc[-1]) / float(closes[ytd_idx[0]]) - 1) * 100, 1)
+        return round((float(closes.iloc[-1]) / float(closes.iloc[0]) - 1) * 100, 1)
+    except:
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Scoring
+# ---------------------------------------------------------------------------
+
+def _score_macro(m: dict) -> tuple[float, list]:
+    """Return (score 0-100, breakdown list)."""
+    score = 0.0
+    parts = []
+
+    # 1. GDP growth (0-30)
+    gdp = m['gdp_growth']
+    if gdp >= 5:    g = 30
+    elif gdp >= 4:  g = 25
+    elif gdp >= 3:  g = 20
+    elif gdp >= 2:  g = 15
+    elif gdp >= 1:  g = 9
+    elif gdp >= 0:  g = 4
+    else:           g = 0
+    score += g
+    parts.append(f"GDP {gdp:+.1f}% → {g}/30")
+
+    # 2. Inflation control (0-25) — optimal 1.5-3%
+    inf = m['inflation']
+    if 1.5 <= inf <= 3.0:    i = 25
+    elif 1.0 <= inf < 1.5:   i = 20
+    elif 3.0 < inf <= 4.0:   i = 18
+    elif 0.5 <= inf < 1.0:   i = 15
+    elif 4.0 < inf <= 5.5:   i = 10
+    elif 5.5 < inf <= 7.0:   i = 5
+    elif inf < 0.5:           i = 12  # deflation risk but not as bad as high inflation
+    else:                      i = 0   # >7%
+    score += i
+    parts.append(f"Inflación {inf:.1f}% → {i}/25")
+
+    # 3. Unemployment (0-20)
+    unemp = m['unemployment']
+    if unemp < 3.0:    u = 20
+    elif unemp < 4.5:  u = 17
+    elif unemp < 6.0:  u = 13
+    elif unemp < 8.0:  u = 9
+    elif unemp < 10.0: u = 5
+    else:              u = 1
+    score += u
+    parts.append(f"Desempleo {unemp:.1f}% → {u}/20")
+
+    # 4. Rate direction (0-15)
+    rd = m['rate_direction']
+    r = {'CUTTING': 15, 'HOLDING': 10, 'HOLDING_LOW': 12, 'HIKING': 4}.get(rd, 8)
+    score += r
+    parts.append(f"Tipos {rd} → {r}/15")
+
+    # 5. Current account (0-10)
+    ca = m['current_account']
+    if ca > 3:     c = 10
+    elif ca > 1:   c = 8
+    elif ca > -1:  c = 6
+    elif ca > -3:  c = 4
+    else:          c = 2
+    score += c
+    parts.append(f"C/A {ca:+.1f}% GDP → {c}/10")
+
+    return round(score, 1), parts
+
+
+def _score_market(mkt: dict, macro: dict) -> tuple[float, list]:
+    """Return (score 0-100, breakdown). Higher = better entry opportunity."""
+    if not mkt:
+        return 50.0, ['No hay datos de mercado']
+
+    score = 0.0
+    parts = []
+
+    # 1. Position vs 200MA (0-35)
+    p200 = mkt['pct_from_200']
+    if -15 <= p200 <= -3:    m = 35   # correction zone — best entry
+    elif -3 < p200 <= 5:     m = 28   # near MA — healthy
+    elif 5 < p200 <= 15:     m = 18   # somewhat extended
+    elif p200 > 15:          m = 8    # very extended, risky entry
+    elif p200 < -15:         m = 20   # below but possibly distressed/recovering
+    else:                    m = 15
+    score += m
+    parts.append(f"vs 200MA {p200:+.1f}% → {m}/35")
+
+    # 2. Position in 52w range (0-30) — contrarian: low = cheap
+    pos = mkt['position_in_range']  # 0=52wLow, 100=52wHigh
+    if pos < 20:    p = 30   # near lows — oversold
+    elif pos < 35:  p = 25
+    elif pos < 50:  p = 20
+    elif pos < 65:  p = 14
+    elif pos < 80:  p = 8
+    else:           p = 3    # near highs — stretched
+    score += p
+    parts.append(f"Rango 52s: {pos:.0f}% → {p}/30")
+
+    # 3. YTD performance context (0-20) — lower = more attractive entry
+    ytd = mkt['ytd_return']
+    if ytd < -20:   y = 20
+    elif ytd < -10: y = 17
+    elif ytd < -5:  y = 14
+    elif ytd < 0:   y = 11
+    elif ytd < 5:   y = 8
+    elif ytd < 15:  y = 5
+    else:           y = 2
+    score += y
+    parts.append(f"YTD {ytd:+.1f}% → {y}/20")
+
+    # 4. MA slope (0-15) — uptrend is good, but entry when it's correcting within uptrend
+    slope = mkt.get('ma200_slope', 0)
+    if slope > 0.5:    s = 15   # strong uptrend
+    elif slope > 0.1:  s = 12
+    elif slope > -0.1: s = 9    # flat — unclear
+    elif slope > -0.5: s = 5    # mild downtrend
+    else:              s = 2    # strong downtrend
+    score += s
+    parts.append(f"Tendencia 200MA {slope:+.2f}% → {s}/15")
+
+    return round(score, 1), parts
+
+
+def _determine_signal(macro_score: float, market_score: float, macro: dict, mkt: dict) -> dict:
+    """
+    Combine macro + market to produce signal.
+
+    Logic:
+    - Good macro + cheap market = STRONG_BUY
+    - Good macro + fairly priced = BUY
+    - Good macro + expensive = NEUTRAL (wait)
+    - Weak macro + cheap market = WATCH (contrarian risk)
+    - Weak macro + expensive = SHORT
+    """
+    combined = macro_score * 0.45 + market_score * 0.55
+
+    # Hard overrides
+    if macro['gdp_growth'] < 0:
+        combined = min(combined, 48)  # cap at NEUTRAL if in recession
+    if macro['inflation'] > 8:
+        combined = min(combined, 52)  # cap if inflation very high
+
+    # Determine signal
+    if combined >= 72:    signal, color = 'STRONG_BUY', '#10b981'
+    elif combined >= 58:  signal, color = 'BUY',         '#22d3ee'
+    elif combined >= 44:  signal, color = 'NEUTRAL',     '#94a3b8'
+    elif combined >= 32:  signal, color = 'SHORT',        '#f97316'
+    else:                  signal, color = 'STRONG_SHORT','#ef4444'
+
+    # Special case: cheap market but bad macro → flag as contrarian
+    contrarian = (market_score >= 65 and macro_score < 45)
+    # Special case: good macro but very extended market
+    wait_pullback = (macro_score >= 65 and mkt.get('pct_from_200', 0) > 15)
+
+    return {
+        'signal': signal,
+        'color': color,
+        'combined_score': round(combined, 1),
+        'contrarian': contrarian,
+        'wait_pullback': wait_pullback,
+    }
+
+
+def run():
+    print("\n" + "=" * 70)
+    print("🌍 MACRO COUNTRY SCANNER")
+    print("=" * 70)
+
+    results = []
+
+    for code, macro in MACRO_DATA.items():
+        mc = MARKET_CONFIG[code]
+        print(f"\n[{code}] {macro['flag']} {macro['name']}")
+
+        # --- market data ---
+        print(f"   Fetching index: {mc['index']}...")
+        idx_data = _fetch_market_data(mc['index'])
+
+        print(f"   Fetching ETF:   {mc['etf']}...")
+        etf_data = _fetch_market_data(mc['etf'])
+
+        # --- currency ---
+        fx_ytd = None
+        if mc['currency_pair']:
+            fx_ytd = _fetch_currency_ytd(mc['currency_pair'])
+            print(f"   Currency {mc['currency_pair']}: {fx_ytd:+.1f}%" if fx_ytd is not None else f"   Currency: n/a")
+
+        # --- scoring ---
+        macro_score, macro_parts = _score_macro(macro)
+        market_score, market_parts = _score_market(etf_data if etf_data else idx_data, macro)
+        sig = _determine_signal(macro_score, market_score, macro, etf_data if etf_data else idx_data)
+
+        print(f"   Macro: {macro_score:.0f}/100 | Market: {market_score:.0f}/100 | Signal: {sig['signal']} ({sig['combined_score']:.0f})")
+
+        results.append({
+            'code': code,
+            'name': macro['name'],
+            'flag': macro['flag'],
+            'region': macro['region'],
+            # macro fundamentals
+            'gdp_growth': macro['gdp_growth'],
+            'inflation': macro['inflation'],
+            'unemployment': macro['unemployment'],
+            'current_account': macro['current_account'],
+            'rate_direction': macro['rate_direction'],
+            'policy_rate': macro['policy_rate'],
+            'macro_notes': macro['macro_notes'],
+            # market data (ETF = USD view; index = local)
+            'etf': mc['etf'],
+            'index': mc['index'],
+            'etf_data': etf_data,
+            'index_data': idx_data,
+            'currency_ytd': fx_ytd,
+            # scores
+            'macro_score': macro_score,
+            'market_score': market_score,
+            'macro_breakdown': macro_parts,
+            'market_breakdown': market_parts,
+            # signal
+            **sig,
+        })
+
+    # Sort by combined_score desc
+    results.sort(key=lambda x: x['combined_score'], reverse=True)
+
+    output = {
+        'generated_at': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
+        'generated_ts': datetime.datetime.utcnow().isoformat(),
+        'macro_source': 'IMF WEO Oct-2025 projections',
+        'market_source': 'yfinance real-time',
+        'countries': results,
+        'summary': {
+            'strong_buy': [r['code'] for r in results if r['signal'] == 'STRONG_BUY'],
+            'buy':         [r['code'] for r in results if r['signal'] == 'BUY'],
+            'neutral':     [r['code'] for r in results if r['signal'] == 'NEUTRAL'],
+            'short':       [r['code'] for r in results if r['signal'] == 'SHORT'],
+            'strong_short':[r['code'] for r in results if r['signal'] == 'STRONG_SHORT'],
+        },
+    }
+
+    out_path = DOCS / 'macro_country_analysis.json'
+    with open(out_path, 'w') as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+
+    print(f"\n{'=' * 70}")
+    print(f"✅ Guardado: {out_path} ({len(results)} países)")
+    print(f"\n📊 RESUMEN:")
+    for sig_label in ['STRONG_BUY','BUY','NEUTRAL','SHORT','STRONG_SHORT']:
+        items = [r for r in results if r['signal'] == sig_label]
+        if items:
+            flags = ' '.join(r['flag'] for r in items)
+            codes = ', '.join(r['code'] for r in items)
+            print(f"   {sig_label:12s}: {flags}  ({codes})")
+    print()
+
+
+if __name__ == '__main__':
+    run()

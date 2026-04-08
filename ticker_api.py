@@ -1962,6 +1962,14 @@ def macro_radar():
     return jsonify(data)
 
 
+@app.route('/api/macro-countries')
+def macro_countries():
+    data = _load_json(DOCS / 'macro_country_analysis.json')
+    if not data:
+        return jsonify({"error": "No macro country data available"}), 404
+    return jsonify(data)
+
+
 @app.route('/api/macro-radar/history')
 def macro_radar_history():
     """Return 60-day time series of composite_score + regime for charting."""

@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import TickerLogo from '../components/TickerLogo'
 import {
   Brain, Crosshair, Bell, SlidersHorizontal, TrendingUp, TrendingDown, Minus, ChevronRight,
-  Zap, CheckCircle2, XCircle, Newspaper, Bot, AlertOctagon, ShieldAlert,
+  Zap, CheckCircle2, Newspaper, Bot, AlertOctagon, ShieldAlert,
   Building2, Users, Wallet, BarChart2, Activity, Repeat2,
 } from 'lucide-react'
 

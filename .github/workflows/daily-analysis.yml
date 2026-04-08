@@ -179,6 +179,10 @@ jobs:
         continue-on-error: true
         run: python3 micro_cap_scanner.py || echo "Micro-cap scanner failed"
 
+      - name: Macro Country Scanner
+        continue-on-error: true
+        run: python3 macro_country_scanner.py || echo "Macro country scanner failed"
+
       - name: Short Scanner
         continue-on-error: true
         run: python3 short_scanner.py || echo "Short scanner failed"
