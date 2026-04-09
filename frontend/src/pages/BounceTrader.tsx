@@ -290,7 +290,7 @@ export default function BounceTrader() {
     return ops.filter(s => {
       if (s.strategy !== 'Oversold Bounce') return false
       if (s.rsi == null || s.rsi >= 30 || s.rsi === 0) return false
-      if (s.distance_to_support_pct != null && s.distance_to_support_pct < -10) return false
+      if (s.distance_to_support_pct != null && s.distance_to_support_pct < -5) return false
       if (s.current_price < 1.0) return false  // penny stocks
       // Confianza mínima para ser accionable
       if ((s.bounce_confidence ?? 0) < 40) return false

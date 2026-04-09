@@ -176,13 +176,15 @@ class MeanReversionDetector:
             weekly = hist['Close'].resample('W').last().dropna()
             rsi_weekly_series = self.calculate_rsi(weekly, period=14)
             rsi_weekly = round(float(rsi_weekly_series.iloc[-1]), 1) if len(rsi_weekly_series) >= 14 else None
-            weekly_oversold = rsi_weekly is not None and rsi_weekly < 40
+            # < 35 = confirmación doble timeframe más robusta (Connors research)
+            weekly_oversold = rsi_weekly is not None and rsi_weekly < 35
 
             # ── RSI(2) Acumulado — Connors, 83% win rate documentado ──────────────
             # Señal: CumRSI(2) de los últimos 2 días < 10
             rsi2_series = self.calculate_rsi(hist['Close'], period=2)
             cum_rsi2 = round(float(rsi2_series.iloc[-1] + rsi2_series.iloc[-2]), 1) if len(rsi2_series) >= 2 else None
-            connors_signal = cum_rsi2 is not None and cum_rsi2 < 10
+            # < 35 = 88% win rate documentado en Connors (< 10 es demasiado selectivo)
+            connors_signal = cum_rsi2 is not None and cum_rsi2 < 35
 
             # ── ATR(14) — para stop más preciso según volatilidad real ───────────
             high_low = hist['High'] - hist['Low']
@@ -241,9 +243,9 @@ class MeanReversionDetector:
             except Exception:
                 pass
 
-            # Rechazo duro: si el precio ya rompió el soporte por más del 10%,
-            # el setup es inválido — entry zone y stop quedarían por encima del precio
-            if distance_to_support < -10:
+            # Rechazo duro: si el precio ya rompió el soporte por más del 5%,
+            # el soporte pasó a ser resistencia — no hay base técnica para el rebote
+            if distance_to_support < -5:
                 return None
 
             # Criterios de oversold bounce
@@ -283,6 +285,27 @@ class MeanReversionDetector:
             ])
             if tech_confirmations < 2:
                 return None  # setup demasiado débil — solo RSI bajo no es suficiente
+
+            # Rechazo duro: mínimo 52 semanas — en nuevos mínimos anuales no hay compradores
+            high_52w = float(hist['Close'].tail(252).max())
+            low_52w  = float(hist['Close'].tail(252).min())
+            near_52w_low = current_price <= low_52w * 1.03  # dentro del 3% del mínimo anual
+            if near_52w_low:
+                return None  # no hay soporte histórico, setup de cuchillo cayendo
+
+            # Rechazo duro: earnings en ≤7 días = veto total (no penalty, veto)
+            # En 1-3 días no puedes aguantar hasta earnings — la caída puede ser anticipatoria
+            if earnings_warning:
+                return None
+
+            # VIX: si está disponible, matar setups en pánico extremo (VIX > 35)
+            try:
+                vix_hist = yf.Ticker('^VIX').history(period='2d')
+                vix_now  = float(vix_hist['Close'].iloc[-1]) if not vix_hist.empty else 0
+                if vix_now > 35:
+                    return None  # pánico extremo: oversold se resetea a más oversold
+            except Exception:
+                vix_now = 0
 
             # Bounce confidence score — señales adicionales de alta probabilidad
             # Basado en backtests: RSI(2) acumulado 83% win rate, RSI semanal +15-20%
@@ -357,9 +380,10 @@ class MeanReversionDetector:
             elif market_ok is True:
                 bounce_signals.append('✓ Mercado favorable')
 
-            # Penalización hard por earnings inminentes
-            if earnings_warning:
-                bounce_confidence = int(bounce_confidence * 0.6)
+            # VIX elevado (25-35): penalizar confianza — no es el momento óptimo
+            if 25 < vix_now <= 35:
+                bounce_confidence = int(bounce_confidence * 0.75)
+                bounce_signals.append(f'⚠ VIX {vix_now:.0f}')
 
             bounce_confidence = min(100, bounce_confidence)
 
@@ -429,6 +453,7 @@ class MeanReversionDetector:
                 'obv_divergence': obv_divergence,
                 'market_regime': regime.get('regime_label', 'DESCONOCIDO'),
                 'market_ok': market_ok,
+                'vix': round(vix_now, 1) if vix_now else None,
                 # Earnings
                 'days_to_earnings': days_to_earnings,
                 'earnings_warning': earnings_warning,
