@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-09",
-  "scan_time": "07:12",
+  "scan_time": "13:03",
   "tickers": [
     "UNH",
     "PRU",
@@ -10,25 +10,15 @@
   "count": 14,
   "alta_count": 4,
   "media_count": 4,
-  "new_alerts": 2,
+  "new_alerts": 1,
   "items": [
-    {
-      "id": "ab1d1787-34ae-3a82-a8ac-0c6f76bf2061",
-      "ticker": "UNH",
-      "title": "UnitedHealth Group (UNH) Upgraded Over Potential Upside to Earnings Estimates",
-      "source": "Insider Monkey",
-      "pub_date": "2026-04-08T06:21:24Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-group-unh-upgraded-over-070224075.html",
-      "importance": "ALTA"
-    },
     {
       "id": "47753f16-eb10-3b06-90de-04a764544519",
       "ticker": "UNH",
       "title": "Elevance Health Reinstated at Inline by Evercore ISI: Is the Medicare Advantage Bounce Already Priced In?",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-08T13:23:37Z",
-      "time_ago": "hace 17h",
+      "time_ago": "hace 23h",
       "url": "https://247wallst.com/investing/2026/04/08/elevance-health-reinstated-at-inline-by-evercore-isi-is-the-medicare-advantage-bounce-already-priced-in/",
       "importance": "ALTA"
     },
@@ -38,7 +28,7 @@
       "title": "UnitedHealth Stock Jumps on Better-Than-Expected Medicare Advantage Rates. Here's Why the Rally Might Be Short-Lived",
       "source": "Motley Fool",
       "pub_date": "2026-04-08T14:20:00Z",
-      "time_ago": "hace 16h",
+      "time_ago": "hace 22h",
       "url": "https://www.fool.com/investing/2026/04/08/unitedhealth-stock-jumps-on-better-than-expected-m/",
       "importance": "ALTA"
     },
@@ -48,8 +38,18 @@
       "title": "International Paper's Q1 2026 Earnings: What to Expect",
       "source": "Barchart",
       "pub_date": "2026-04-08T15:15:36Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 21h",
       "url": "https://www.barchart.com/story/news/1200916/international-paper-s-q1-2026-earnings-what-to-expect",
+      "importance": "ALTA"
+    },
+    {
+      "id": "c6208d12-dd55-32e4-8231-799dff5d5165",
+      "ticker": "UNH",
+      "title": "Warren Buffett bought 5M UnitedHealth shares as it tanked. A $13B Medicare boosted it. Was he right?",
+      "source": "Moneywise",
+      "pub_date": "2026-04-09T11:05:00Z",
+      "time_ago": "hace 1h",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/warren-buffett-bought-5m-unitedhealth-110500600.html",
       "importance": "ALTA"
     },
     {
@@ -58,7 +58,7 @@
       "title": "UnitedHealth price target raised to $337 from $315 at BofA",
       "source": "TipRanks",
       "pub_date": "2026-04-08T12:01:22Z",
-      "time_ago": "hace 19h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-price-target-raised-337-120122751.html",
       "importance": "MEDIA"
     },
@@ -68,7 +68,7 @@
       "title": "Analysts Remain Confident in UnitedHealth (UNH)’s Growth Initiatives Outside of Its Main Insurance Operations",
       "source": "Insider Monkey",
       "pub_date": "2026-04-08T14:23:48Z",
-      "time_ago": "hace 16h",
+      "time_ago": "hace 22h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/analysts-remain-confident-unitedhealth-unh-142348704.html",
       "importance": "MEDIA"
     },
@@ -78,7 +78,7 @@
       "title": "Bank of America Cuts International Paper (IP) Target, JPMorgan Also Trims Estimates",
       "source": "Insider Monkey",
       "pub_date": "2026-04-09T03:23:57Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 9h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/bank-america-cuts-international-paper-032357644.html",
       "importance": "MEDIA"
     },
@@ -88,7 +88,7 @@
       "title": "Barclays Cuts Prudential (PRU) Target, Flags Sluggish Premium Growth",
       "source": "Insider Monkey",
       "pub_date": "2026-04-09T03:33:38Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 9h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/barclays-cuts-prudential-pru-target-033338338.html",
       "importance": "MEDIA"
     },
@@ -98,7 +98,7 @@
       "title": "UnitedHealth (UNH) Soars 9.4%: Is Further Upside Left in the Stock?",
       "source": "Zacks",
       "pub_date": "2026-04-08T08:59:00Z",
-      "time_ago": "hace 22h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/unitedhealth-unh-soars-9-4-085900764.html",
       "importance": "BAJA"
     },
@@ -108,7 +108,7 @@
       "title": "US Stock Market Today S&P 500 Futures Rally On Easing Yields And CPI Focus",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-08T10:11:48Z",
-      "time_ago": "hace 21h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/us-stock-market-today-p-101148991.html",
       "importance": "BAJA"
     },
@@ -118,7 +118,7 @@
       "title": "Did Oscar Health’s CEO Just Cast a $12 Million Vote of Confidence?",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-08T12:10:01Z",
-      "time_ago": "hace 19h",
+      "time_ago": "hace 1d",
       "url": "https://247wallst.com/investing/2026/04/08/did-oscar-healths-ceo-just-cast-a-12-million-vote-of-confidence/",
       "importance": "BAJA"
     },
@@ -128,7 +128,7 @@
       "title": "Company News for Apr 8, 2026",
       "source": "Zacks",
       "pub_date": "2026-04-08T13:52:00Z",
-      "time_ago": "hace 17h",
+      "time_ago": "hace 23h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/company-news-apr-8-2026-135200301.html",
       "importance": "BAJA"
     },
@@ -138,7 +138,7 @@
       "title": "RDN Stock Near 52-Week High: Time to Add it for Better Returns?",
       "source": "Zacks",
       "pub_date": "2026-04-08T14:21:00Z",
-      "time_ago": "hace 16h",
+      "time_ago": "hace 22h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/rdn-stock-near-52-week-142100505.html",
       "importance": "BAJA"
     },
@@ -148,7 +148,7 @@
       "title": "Top Stock Reports for Procter & Gamble, Toyota & UnitedHealth",
       "source": "Zacks",
       "pub_date": "2026-04-08T20:48:00Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 16h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/top-stock-reports-procter-gamble-204800072.html",
       "importance": "BAJA"
     }
