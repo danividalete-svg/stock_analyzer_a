@@ -170,6 +170,60 @@ class MeanReversionDetector:
             vols = hist['Volume'].tail(4)
             volume_drying = bool(vols.iloc[-1] < vols.iloc[-2] < vols.iloc[-3]) if len(vols) >= 3 else False
 
+            # ── RSI Semanal (Connors: daily < 30 + weekly < 35 = +15-20% win rate) ──
+            weekly = hist['Close'].resample('W').last().dropna()
+            rsi_weekly_series = self.calculate_rsi(weekly, period=14)
+            rsi_weekly = round(float(rsi_weekly_series.iloc[-1]), 1) if len(rsi_weekly_series) >= 14 else None
+            weekly_oversold = rsi_weekly is not None and rsi_weekly < 40
+
+            # ── RSI(2) Acumulado — Connors, 83% win rate documentado ──────────────
+            # Señal: CumRSI(2) de los últimos 2 días < 10
+            rsi2_series = self.calculate_rsi(hist['Close'], period=2)
+            cum_rsi2 = round(float(rsi2_series.iloc[-1] + rsi2_series.iloc[-2]), 1) if len(rsi2_series) >= 2 else None
+            connors_signal = cum_rsi2 is not None and cum_rsi2 < 10
+
+            # ── ATR(14) — para stop más preciso según volatilidad real ───────────
+            high_low = hist['High'] - hist['Low']
+            high_close = (hist['High'] - hist['Close'].shift()).abs()
+            low_close  = (hist['Low']  - hist['Close'].shift()).abs()
+            true_range = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+            atr14 = round(float(true_range.tail(14).mean()), 4)
+
+            # ── Vela de capitulación (hammer/pin bar) ────────────────────────────
+            # Mecha inferior > 60% del rango total + cierre en tercio superior
+            last = hist.tail(1).iloc[0]
+            candle_range = last['High'] - last['Low']
+            lower_wick   = last['Close'] - last['Low'] if last['Close'] > last['Open'] else last['Open'] - last['Low']
+            upper_body   = last['High'] - max(last['Open'], last['Close'])
+            hammer_candle = (
+                candle_range > 0 and
+                lower_wick / candle_range >= 0.55 and
+                upper_body / candle_range <= 0.25
+            )
+
+            # Bullish engulfing: cuerpo actual engloba cuerpo anterior, cierra al alza
+            prev = hist.tail(2).iloc[0]
+            engulfing_candle = (
+                last['Close'] > last['Open'] and              # hoy alcista
+                prev['Close'] < prev['Open'] and              # ayer bajista
+                last['Open'] <= prev['Close'] and             # abre bajo el cierre de ayer
+                last['Close'] >= prev['Open']                 # cierra sobre la apertura de ayer
+            )
+
+            # ── Divergencia OBV (institucionales comprando mientras precio baja) ─
+            obv = (hist['Volume'] * (2 * (hist['Close'] > hist['Close'].shift()).astype(int) - 1)).cumsum()
+            obv5 = obv.tail(5)
+            price5 = hist['Close'].tail(5)
+            # OBV subiendo mientras precio bajando = divergencia alcista
+            obv_divergence = (
+                float(obv5.iloc[-1]) > float(obv5.iloc[0]) and   # OBV sube
+                float(price5.iloc[-1]) < float(price5.iloc[0])   # precio baja
+            )
+
+            # ── Régimen de mercado ───────────────────────────────────────────────
+            regime = self.get_market_regime()
+            market_ok = regime.get('bounce_ok')  # True si SPY > MA50
+
             # Earnings próximos (desde fundamental_scores.csv si está disponible)
             days_to_earnings: int | None = None
             earnings_warning = False
@@ -211,29 +265,83 @@ class MeanReversionDetector:
             if score < 50:
                 return None
 
-            # Bounce confidence score (señales adicionales de alta probabilidad)
+            # Bounce confidence score — señales adicionales de alta probabilidad
+            # Basado en backtests: RSI(2) acumulado 83% win rate, RSI semanal +15-20%
             bounce_signals: list[str] = []
             bounce_confidence = 0
+
+            # RSI diario (base)
             if current_rsi < 20:
-                bounce_confidence += 30
-                bounce_signals.append('RSI extremo')
-            elif current_rsi < 25:
-                bounce_confidence += 20
-                bounce_signals.append('RSI muy bajo')
-            if below_bb:
                 bounce_confidence += 25
-                bounce_signals.append('Bajo BB inferior')
-            if stoch_k < 20:
+                bounce_signals.append('RSI extremo <20')
+            elif current_rsi < 25:
+                bounce_confidence += 18
+                bounce_signals.append('RSI muy bajo')
+            else:
+                bounce_confidence += 8
+
+            # RSI semanal — confirmación de timeframe superior (+15-20% win rate)
+            if weekly_oversold:
                 bounce_confidence += 20
-                bounce_signals.append('Stoch oversold')
-            if consecutive_down >= 3:
+                bounce_signals.append(f'RSI semanal {rsi_weekly}')
+
+            # Connors CumRSI(2) < 10 — 83% win rate documentado
+            if connors_signal:
+                bounce_confidence += 20
+                bounce_signals.append(f'CumRSI2={cum_rsi2:.0f}')
+
+            # Bollinger Band inferior
+            if below_bb:
                 bounce_confidence += 15
-                bounce_signals.append(f'{consecutive_down}d bajistas')
-            if volume_drying:
+                bounce_signals.append('Bajo BB inferior')
+
+            # Stochastic oversold
+            if stoch_k < 20:
                 bounce_confidence += 10
+                bounce_signals.append('Stoch oversold')
+
+            # Vela de capitulación
+            if hammer_candle:
+                bounce_confidence += 12
+                bounce_signals.append('Hammer')
+            elif engulfing_candle:
+                bounce_confidence += 10
+                bounce_signals.append('Engulfing alcista')
+
+            # Divergencia OBV (institucionales comprando)
+            if obv_divergence:
+                bounce_confidence += 12
+                bounce_signals.append('Div. OBV alcista')
+
+            # Días bajistas consecutivos
+            if consecutive_down >= 3:
+                bounce_confidence += 8
+                bounce_signals.append(f'{consecutive_down}d bajistas')
+
+            # Volumen secándose
+            if volume_drying:
+                bounce_confidence += 6
                 bounce_signals.append('Vol secándose')
 
-            stop_loss = round(support * 0.95, 2)
+            # Régimen de mercado — no añade puntos pero penaliza si mercado bajista
+            if market_ok is False:
+                bounce_confidence = int(bounce_confidence * 0.7)  # -30% si SPY bajo MA50
+                bounce_signals.append('⚠ Mercado bajista')
+            elif market_ok is True:
+                bounce_signals.append('✓ Mercado favorable')
+
+            # Penalización hard por earnings inminentes
+            if earnings_warning:
+                bounce_confidence = int(bounce_confidence * 0.6)
+
+            bounce_confidence = min(100, bounce_confidence)
+
+            # Stop basado en ATR: más preciso que % fijo (adapta a la volatilidad real)
+            # Estructura: soporte - 1.5x ATR (academia y LuxAlgo)
+            atr_stop = round(support - 1.5 * atr14, 2)
+            pct_stop  = round(support * 0.95, 2)
+            # Usar el más conservador de los dos (el más cercano al precio)
+            stop_loss = max(atr_stop, pct_stop)
             stop_pct = round((stop_loss / current_price - 1) * 100, 1)
 
             # Target largo (técnico a resistencia)
@@ -283,6 +391,18 @@ class MeanReversionDetector:
                 'below_bb': below_bb,
                 'stoch_k': stoch_k,
                 'volume_drying': volume_drying,
+                # Nuevas señales avanzadas
+                'rsi_weekly': rsi_weekly,
+                'weekly_oversold': weekly_oversold,
+                'cum_rsi2': cum_rsi2,
+                'connors_signal': connors_signal,
+                'atr14': round(atr14, 2),
+                'hammer_candle': hammer_candle,
+                'engulfing_candle': engulfing_candle,
+                'obv_divergence': obv_divergence,
+                'market_regime': regime.get('regime_label', 'DESCONOCIDO'),
+                'market_ok': market_ok,
+                # Earnings
                 'days_to_earnings': days_to_earnings,
                 'earnings_warning': earnings_warning,
                 'detected_date': datetime.now().strftime('%Y-%m-%d')

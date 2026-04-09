@@ -33,6 +33,17 @@ interface BounceSetup {
   below_bb?: boolean
   stoch_k?: number
   volume_drying?: boolean
+  // Advanced signals
+  rsi_weekly?: number | null
+  weekly_oversold?: boolean
+  cum_rsi2?: number | null
+  connors_signal?: boolean
+  atr14?: number
+  hammer_candle?: boolean
+  engulfing_candle?: boolean
+  obv_divergence?: boolean
+  market_regime?: string
+  market_ok?: boolean | null
   days_to_earnings?: number | null
   earnings_warning?: boolean
   detected_date: string
@@ -143,26 +154,46 @@ function BounceCard({ s }: { s: BounceSetup }) {
       </div>
 
       {/* Indicators row */}
-      <div className="grid grid-cols-3 gap-2 text-[0.6rem] text-center">
+      <div className="grid grid-cols-4 gap-1.5 text-[0.58rem] text-center">
         {s.stoch_k != null && (
-          <div className={`rounded-lg px-2 py-1 border ${s.stoch_k < 20 ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400' : 'bg-muted/10 border-border/20 text-muted-foreground/50'}`}>
+          <div className={`rounded-lg px-1.5 py-1 border ${s.stoch_k < 20 ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400' : 'bg-muted/10 border-border/20 text-muted-foreground/50'}`}>
             <div className="font-bold uppercase tracking-wider mb-0.5">Stoch</div>
             <div className="font-extrabold">{s.stoch_k.toFixed(0)}</div>
           </div>
         )}
         {s.bb_pct_b != null && (
-          <div className={`rounded-lg px-2 py-1 border ${s.below_bb ? 'bg-purple-500/8 border-purple-500/20 text-purple-400' : 'bg-muted/10 border-border/20 text-muted-foreground/50'}`}>
+          <div className={`rounded-lg px-1.5 py-1 border ${s.below_bb ? 'bg-purple-500/8 border-purple-500/20 text-purple-400' : 'bg-muted/10 border-border/20 text-muted-foreground/50'}`}>
             <div className="font-bold uppercase tracking-wider mb-0.5">BB%</div>
             <div className="font-extrabold">{s.bb_pct_b.toFixed(0)}</div>
           </div>
         )}
-        {s.distance_to_support_pct != null && (
-          <div className={`rounded-lg px-2 py-1 border ${Math.abs(s.distance_to_support_pct) <= 3 ? 'bg-cyan-500/8 border-cyan-500/20 text-cyan-400' : 'bg-muted/10 border-border/20 text-muted-foreground/50'}`}>
-            <div className="font-bold uppercase tracking-wider mb-0.5">Sop.</div>
-            <div className="font-extrabold">{s.distance_to_support_pct.toFixed(1)}%</div>
+        {s.rsi_weekly != null && (
+          <div className={`rounded-lg px-1.5 py-1 border ${s.weekly_oversold ? 'bg-orange-500/8 border-orange-500/20 text-orange-400' : 'bg-muted/10 border-border/20 text-muted-foreground/50'}`}>
+            <div className="font-bold uppercase tracking-wider mb-0.5">RSI W</div>
+            <div className="font-extrabold">{s.rsi_weekly.toFixed(0)}</div>
+          </div>
+        )}
+        {s.cum_rsi2 != null && (
+          <div className={`rounded-lg px-1.5 py-1 border ${s.connors_signal ? 'bg-cyan-500/8 border-cyan-500/20 text-cyan-400' : 'bg-muted/10 border-border/20 text-muted-foreground/50'}`}>
+            <div className="font-bold uppercase tracking-wider mb-0.5">CRsi2</div>
+            <div className="font-extrabold">{s.cum_rsi2.toFixed(0)}</div>
           </div>
         )}
       </div>
+
+      {/* Market regime + candle pattern */}
+      {(s.market_regime || s.hammer_candle || s.engulfing_candle || s.obv_divergence) && (
+        <div className="flex flex-wrap gap-1">
+          {s.market_regime && (
+            <span className={`text-[0.58rem] px-1.5 py-0.5 rounded border font-medium ${s.market_ok ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400/80' : s.market_ok === false ? 'bg-red-500/8 border-red-500/20 text-red-400/80' : 'bg-muted/10 border-border/20 text-muted-foreground/50'}`}>
+              {s.market_ok ? '✓' : '⚠'} {s.market_regime}
+            </span>
+          )}
+          {s.hammer_candle && <span className="text-[0.58rem] px-1.5 py-0.5 rounded border bg-amber-500/8 border-amber-500/20 text-amber-400">🔨 Hammer</span>}
+          {s.engulfing_candle && <span className="text-[0.58rem] px-1.5 py-0.5 rounded border bg-emerald-500/8 border-emerald-500/20 text-emerald-400">📈 Engulfing</span>}
+          {s.obv_divergence && <span className="text-[0.58rem] px-1.5 py-0.5 rounded border bg-blue-500/8 border-blue-500/20 text-blue-400">↗ OBV div.</span>}
+        </div>
+      )}
     </div>
   )
 }
