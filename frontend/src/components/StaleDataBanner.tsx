@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle, AlertTriangle } from 'lucide-react'
+import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { fetchPipelineStatus, fetchPipelineHealth } from '../api/client'
 import type { PipelineStatus, PipelineHealth } from '../api/client'
 
@@ -28,6 +28,12 @@ function formatDate(isoDate: string): string {
     weekday: 'short', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit', timeZone: 'UTC',
   }) + ' UTC'
+}
+
+function formatDateShort(isoDate: string): string {
+  return new Date(isoDate + 'T12:00:00Z').toLocaleDateString('es-ES', {
+    weekday: 'short', day: 'numeric', month: 'short',
+  })
 }
 
 // ── Module-level caches ───────────────────────────────────────────────────────
@@ -73,11 +79,32 @@ export default function StaleDataBanner({ module, dataDate, className = '' }: St
   // ── Case 1: module-aware mode ────────────────────────────────────────────
   if (module && health) {
     const mod = health.modules[module]
-    const pipelineRanToday = health.pipeline_date === new Date().toISOString().slice(0, 10)
+    const today = new Date().toISOString().slice(0, 10)
+    const pipelineRanToday = health.pipeline_date === today
     const pipelineRanRecently = !isPipelineStale(health.generated_at)
 
-    // Module is fresh → no banner
-    if (mod?.status === 'ok') return null
+    // Module is fresh → compact green badge (always visible so user can trust the data)
+    if (mod?.status === 'ok') {
+      const isToday = mod.date === today
+      const dateLabel = isToday ? 'hoy' : `hace ${mod.days_ago}d`
+      const dateFormatted = mod.date ? formatDateShort(mod.date) : ''
+      return (
+        <div className={`inline-flex items-center gap-2 text-[0.7rem] font-medium mb-4 px-3 py-1.5 rounded-lg border bg-emerald-500/8 border-emerald-500/20 text-emerald-400/80 ${className}`}>
+          <span className="relative flex shrink-0 items-center">
+            <CheckCircle2 size={13} className="text-emerald-400" />
+          </span>
+          <span className="font-semibold text-emerald-400">Datos en vivo</span>
+          <span className="text-emerald-400/30">·</span>
+          <span className="text-emerald-300/80">Actualizado {dateLabel}</span>
+          {dateFormatted && (
+            <>
+              <span className="text-emerald-400/30">·</span>
+              <span className="text-muted-foreground/50">{dateFormatted}</span>
+            </>
+          )}
+        </div>
+      )
+    }
 
     // Pipeline never ran recently → red global warning (not module-specific)
     if (!pipelineRanRecently) {

@@ -5,6 +5,7 @@ import Loading, { ErrorState } from '../components/Loading'
 import TickerLogo from '../components/TickerLogo'
 import { fetchTechnicalSignals, type TechnicalSignal, type TechnicalSummary } from '../api/client'
 import { Card, CardContent } from '@/components/ui/card'
+import StaleDataBanner from '../components/StaleDataBanner'
 
 const SOURCE_LABELS: Record<string, string> = {
   portfolio: 'Cartera',
@@ -223,6 +224,7 @@ export default function TechnicalSignals() {
 
   return (
     <div className="space-y-5 max-w-4xl">
+      <StaleDataBanner module="technical" />
       {/* Header */}
       <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
         <div>

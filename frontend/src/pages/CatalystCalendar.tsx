@@ -4,6 +4,7 @@ import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
 import PageHeader from '../components/PageHeader'
 import EmptyState from '../components/EmptyState'
+import StaleDataBanner from '../components/StaleDataBanner'
 import { Card } from '@/components/ui/card'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
@@ -248,6 +249,7 @@ export default function CatalystCalendar() {
 
   return (
     <>
+      <StaleDataBanner module="catalysts" />
       <PageHeader
         title="Catalyst Calendar"
         subtitle={`Próximos ${data?.horizon_days ?? 90} días · Earnings, Macro, FDA, OpEx y Dividendos`}
