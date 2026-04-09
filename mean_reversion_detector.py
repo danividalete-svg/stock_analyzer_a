@@ -263,15 +263,26 @@ class MeanReversionDetector:
             if volume_spike:
                 score += 20
 
+            # ── FILTROS DUROS DE RECHAZO ─────────────────────────────────────────
             # Solo retornar si hay potencial real
-            # RSI < 30 es REQUERIDO para Oversold Bounce (no solo bonus)
-            # RSI = 0 indica error de datos; precio < $0.50 = penny stock sin liquidez
             if score < 50 or not is_oversold:
                 return None
             if current_rsi == 0.0:
                 return None  # error de datos yfinance
-            if current_price < 0.50:
-                return None  # penny stock sin liquidez
+            if current_price < 1.00:
+                return None  # penny stock sin liquidez real (subimos a $1 mínimo)
+            if current_price < 5.00 and avg_volume_20d < 500_000:
+                return None  # micro-cap con volumen insuficiente para ejecutar
+            # Mínimo de confirmaciones técnicas: al menos 2 de los 4 pilares deben cumplirse
+            # (near_support, significant_dip, stoch<30, below_bb ó connors)
+            tech_confirmations = sum([
+                near_support,
+                significant_dip,
+                stoch_k < 30,
+                below_bb or connors_signal,
+            ])
+            if tech_confirmations < 2:
+                return None  # setup demasiado débil — solo RSI bajo no es suficiente
 
             # Bounce confidence score — señales adicionales de alta probabilidad
             # Basado en backtests: RSI(2) acumulado 83% win rate, RSI semanal +15-20%
@@ -332,10 +343,17 @@ class MeanReversionDetector:
                 bounce_confidence += 6
                 bounce_signals.append('Vol secándose')
 
-            # Régimen de mercado — no añade puntos pero penaliza si mercado bajista
+            # Régimen de mercado
+            spy_above_ma200 = regime.get('spy_above_ma200', True)
             if market_ok is False:
-                bounce_confidence = int(bounce_confidence * 0.7)  # -30% si SPY bajo MA50
-                bounce_signals.append('⚠ Mercado bajista')
+                if not spy_above_ma200:
+                    # SPY bajo MA50 Y MA200 = bear market real — penalización severa
+                    bounce_confidence = int(bounce_confidence * 0.5)
+                    bounce_signals.append('⚠ Bear market')
+                else:
+                    # Solo bajo MA50 (corrección) — penalización moderada
+                    bounce_confidence = int(bounce_confidence * 0.7)
+                    bounce_signals.append('⚠ Mercado bajista')
             elif market_ok is True:
                 bounce_signals.append('✓ Mercado favorable')
 

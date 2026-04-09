@@ -287,11 +287,19 @@ export default function BounceTrader() {
 
   const allSetups: BounceSetup[] = useMemo(() => {
     const ops: BounceSetup[] = Array.isArray(raw?.opportunities) ? raw.opportunities : []
-    return ops.filter(s =>
-      s.strategy === 'Oversold Bounce' &&
-      s.rsi != null && s.rsi < 30 &&
-      (s.distance_to_support_pct == null || s.distance_to_support_pct >= -10)
-    )
+    return ops.filter(s => {
+      if (s.strategy !== 'Oversold Bounce') return false
+      if (s.rsi == null || s.rsi >= 30 || s.rsi === 0) return false
+      if (s.distance_to_support_pct != null && s.distance_to_support_pct < -10) return false
+      if (s.current_price < 1.0) return false  // penny stocks
+      // Confianza mínima para ser accionable
+      if ((s.bounce_confidence ?? 0) < 40) return false
+      // Dark pool distribución fuerte + confianza baja = trampa
+      if (s.dark_pool_signal === 'DISTRIBUTION' && (s.bounce_confidence ?? 0) < 60) return false
+      // R:R mínimo 1:1
+      if (s.risk_reward != null && s.risk_reward < 1.0) return false
+      return true
+    })
   }, [raw])
 
   const filtered = useMemo(() => {
@@ -301,8 +309,15 @@ export default function BounceTrader() {
     return [...s].sort((a, b) => (a.rsi ?? 99) - (b.rsi ?? 99))
   }, [allSetups, tierFilter, hideEarnings])
 
+  // Raw count before quality filters (for "X filtered out" message)
+  const rawBounceCount = useMemo(() => {
+    const ops: BounceSetup[] = Array.isArray(raw?.opportunities) ? raw.opportunities : []
+    return ops.filter(s => s.strategy === 'Oversold Bounce' && s.rsi != null && s.rsi < 30 && s.rsi !== 0).length
+  }, [raw])
+
   const conviction = useMemo(() => filtered.filter(s => s.conviction_tier === 2), [filtered])
   const technical  = useMemo(() => filtered.filter(s => s.conviction_tier !== 2), [filtered])
+  const filteredOutCount = rawBounceCount - allSetups.length
 
   if (loading) return <Loading />
   if (error)   return <ErrorState message={error} />
@@ -382,11 +397,24 @@ export default function BounceTrader() {
         </div>
       </div>
 
+      {/* Filtered out notice */}
+      {filteredOutCount > 0 && (
+        <div className="flex items-center gap-2 text-[0.68rem] text-muted-foreground/50 mb-4 px-1">
+          <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+          {filteredOutCount} setup{filteredOutCount > 1 ? 's' : ''} descartado{filteredOutCount > 1 ? 's' : ''} por baja fiabilidad (confianza &lt;40%, DP distribución, R:R &lt;1 o penny stock)
+        </div>
+      )}
+
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground/50">
-          <div className="text-4xl mb-3 opacity-20">📊</div>
-          <div className="text-sm">No hay setups de rebote válidos hoy</div>
-          <div className="text-xs mt-1 opacity-60">Espera a que el mercado genere nuevas oportunidades oversold</div>
+          <div className="text-4xl mb-3 opacity-20">🎯</div>
+          <div className="text-sm font-medium">No hay setups de alta fiabilidad hoy</div>
+          <div className="text-xs mt-1 opacity-60">
+            {rawBounceCount > 0
+              ? `${rawBounceCount} tickers oversold pero ninguno pasa los filtros de calidad`
+              : 'El mercado no ha generado oportunidades oversold válidas'
+            }
+          </div>
         </div>
       ) : (
         <div className="space-y-8">
