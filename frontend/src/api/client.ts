@@ -402,8 +402,10 @@ export const fetchMeanReversion = async () => {
   const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
   if (csvBase) {
     // Production: read JSON directly from GitHub Pages (always up-to-date)
-    const res = await fetch(`${csvBase}/mean_reversion_opportunities.json`, { cache: 'no-store' })
-    if (!res.ok) throw new Error(`Mean reversion fetch failed: ${res.status}`)
+    // Use timestamp query param for cache-busting (avoids Safari cache:no-store DOMException)
+    const url = `${csvBase}/mean_reversion_opportunities.json?t=${Date.now()}`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Mean reversion: HTTP ${res.status}`)
     const data = await res.json()
     return { data }
   }
