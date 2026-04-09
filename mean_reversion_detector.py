@@ -943,12 +943,6 @@ def main():
     # Cargar tickers
     tickers, company_names = load_5d_opportunities()
 
-    # Limitar a primeros 100 para velocidad (puedes cambiar esto)
-    if len(tickers) > 100:
-        print(f"⚠️  Limitando scan a 100 tickers para velocidad")
-        print(f"   (Puedes cambiar esto en el código)")
-        tickers = tickers[:100]
-
     # Ejecutar detector
     detector = MeanReversionDetector()
     opportunities = detector.scan_tickers(tickers, company_names)
