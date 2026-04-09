@@ -142,10 +142,15 @@ class MeanReversionDetector:
             current_volume = hist['Volume'].iloc[-1]
             volume_ratio = current_volume / avg_volume_20d if avg_volume_20d > 0 else 0
 
+            # Rechazo duro: si el precio ya rompió el soporte por más del 10%,
+            # el setup es inválido — entry zone y stop quedarían por encima del precio
+            if distance_to_support < -10:
+                return None
+
             # Criterios de oversold bounce
             is_oversold = current_rsi < 30
             significant_dip = drawdown_pct < -20
-            near_support = distance_to_support < 5  # Dentro del 5% del soporte
+            near_support = -5 <= distance_to_support <= 5  # Dentro del 5% del soporte (arriba O abajo)
             volume_spike = volume_ratio > 1.2  # Volumen 20% mayor
 
             # Score de oportunidad (0-100)

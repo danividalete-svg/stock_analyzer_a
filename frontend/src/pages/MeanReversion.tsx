@@ -102,9 +102,15 @@ export default function MeanReversion() {
   if (Array.isArray(raw?.opportunities)) items = raw.opportunities as MRItem[]
   else if (Array.isArray(raw?.data)) items = raw.data as MRItem[]
 
+  // Filtro de seguridad: ocultar setups donde el precio ya rompió el soporte por >10%
+  // (entry zone y stop quedarían por encima del precio actual → setup inválido)
+  const validItems = items.filter(i =>
+    i.distance_to_support_pct == null || i.distance_to_support_pct >= -10
+  )
+
   const filtered = filterQuality === ''
-    ? items
-    : items.filter(i => qualMatch(i.quality, filterQuality))
+    ? validItems
+    : validItems.filter(i => qualMatch(i.quality, filterQuality))
 
   const sorted = [...filtered].sort((a, b) => {
     const av = (a[sortKey] as number) ?? 0
@@ -136,7 +142,7 @@ export default function MeanReversion() {
 
   const qualCounts = QUALITY_LEVELS.map(ql => ({
     ...ql,
-    count: items.filter(i => qualMatch(i.quality, ql.match)).length,
+    count: validItems.filter(i => qualMatch(i.quality, ql.match)).length,
   }))
   const bestScore = filtered.length ? Math.max(...filtered.map(i => i.reversion_score || 0)) : 0
   const bestTicker = filtered.find(i => i.reversion_score === bestScore)?.ticker
@@ -170,7 +176,7 @@ export default function MeanReversion() {
 
       {/* ── Top Rebotes Panel ──────────────────────────────────────────────── */}
       {(() => {
-        const top = items
+        const top = validItems
           .filter(i => qualMatch(i.quality, 'EXCELENTE') || qualMatch(i.quality, 'MUY BUENA'))
           .sort((a, b) => (b.reversion_score ?? 0) - (a.reversion_score ?? 0))
           .slice(0, 5)
@@ -264,7 +270,7 @@ export default function MeanReversion() {
       <div className="flex items-center gap-2 mb-5 flex-wrap">
         <span className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground mr-1">Calidad</span>
         {[{ label: 'TODAS', value: '' }, ...QUALITY_LEVELS.map(q => ({ label: q.label, value: q.match }))].map(opt => {
-          const count = opt.value === '' ? items.length : (qualCounts.find(q => q.match === opt.value)?.count ?? 0)
+          const count = opt.value === '' ? validItems.length : (qualCounts.find(q => q.match === opt.value)?.count ?? 0)
           const active = filterQuality === opt.value
           return (
             <button
