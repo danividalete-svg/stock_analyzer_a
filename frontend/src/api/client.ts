@@ -402,10 +402,9 @@ export const fetchMeanReversion = async () => {
   const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
   if (csvBase) {
     // Production: read JSON directly from GitHub Pages (always up-to-date)
-    // Use axios (not native fetch) to avoid Safari DOMException
-    // Axios ignores instance baseURL when given an absolute URL
+    // GitHub Pages serves .json as text/plain — force JSON parsing
     const url = `${csvBase}/mean_reversion_opportunities.json`
-    const res = await api.get(url)
+    const res = await api.get(url, { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] })
     return { data: res.data }
   }
   // Development: use local API
