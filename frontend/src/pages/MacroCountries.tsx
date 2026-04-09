@@ -33,7 +33,16 @@ interface CountryData {
   current_account: number
   rate_direction: string
   policy_rate: number
+  debt_to_gdp: number | null
+  currency_sovereign: boolean
   macro_notes: string
+  // AI
+  ai_narrative?: string
+  ai_risks?: string[]
+  ai_opportunities?: string[]
+  ai_verdict?: string
+  ai_confidence?: number
+  ai_insight?: string
   // market
   etf: string
   index: string
@@ -181,6 +190,12 @@ function CountryCard({ c }: { c: CountryData }) {
           {mkt && mkt.ytd_return < -10 && (
             <span className="text-[0.55rem] px-1 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">📉 YTD {mkt.ytd_return.toFixed(0)}%</span>
           )}
+          {c.debt_to_gdp != null && !c.currency_sovereign && c.debt_to_gdp >= 100 && (
+            <span title="Deuda elevada sin soberanía monetaria — riesgo real de mercado" className="text-[0.55rem] px-1 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">⚠ Deuda {c.debt_to_gdp.toFixed(0)}% GDP</span>
+          )}
+          {c.debt_to_gdp != null && c.currency_sovereign && c.debt_to_gdp >= 180 && (
+            <span title="Deuda muy alta — monetizable pero riesgo latente" className="text-[0.55rem] px-1 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">⚠ Deuda {c.debt_to_gdp.toFixed(0)}% GDP</span>
+          )}
         </div>
       </div>
 
@@ -216,9 +231,49 @@ function CountryCard({ c }: { c: CountryData }) {
                 <span className="text-slate-400">Dirección tipos</span>
                 <span className={`font-semibold ${rl.cls}`}>{rl.text}</span>
               </div>
+              {c.debt_to_gdp != null && (
+                <div className="flex justify-between col-span-2">
+                  <span className="text-slate-400">
+                    Deuda pública / GDP
+                    <span className={`ml-1 text-[0.6rem] ${c.currency_sovereign ? 'text-slate-500' : 'text-amber-500'}`}>
+                      {c.currency_sovereign ? '(moneda propia)' : '(sin soberanía monetaria ⚠)'}
+                    </span>
+                  </span>
+                  <span className={`font-mono font-semibold ${
+                    !c.currency_sovereign && c.debt_to_gdp >= 100 ? 'text-red-400' :
+                    c.debt_to_gdp >= 120 ? 'text-amber-400' : 'text-slate-300'
+                  }`}>{c.debt_to_gdp.toFixed(0)}%</span>
+                </div>
+              )}
             </div>
             <p className="mt-2 text-slate-400 leading-snug">{c.macro_notes}</p>
           </div>
+
+          {/* AI Analysis */}
+          {c.ai_narrative && (
+            <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-3 space-y-2">
+              <div className="text-[0.6rem] font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-1">
+                🤖 Análisis IA — {c.ai_verdict ?? c.signal}
+                {c.ai_confidence != null && <span className="text-purple-500 font-normal">· confianza {c.ai_confidence}%</span>}
+              </div>
+              <p className="text-[0.7rem] text-slate-300 leading-relaxed">{c.ai_narrative}</p>
+              {c.ai_insight && (
+                <p className="text-[0.68rem] text-cyan-400 italic">💡 {c.ai_insight}</p>
+              )}
+              {(c.ai_risks?.length ?? 0) > 0 && (
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <div>
+                    <div className="text-[0.55rem] text-red-400 font-semibold mb-1">RIESGOS</div>
+                    {c.ai_risks!.map((r, i) => <div key={i} className="text-[0.62rem] text-slate-400">• {r}</div>)}
+                  </div>
+                  <div>
+                    <div className="text-[0.55rem] text-emerald-400 font-semibold mb-1">OPORTUNIDADES</div>
+                    {c.ai_opportunities!.map((o, i) => <div key={i} className="text-[0.62rem] text-slate-400">• {o}</div>)}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Market data */}
           {mkt && (

@@ -38,6 +38,8 @@ MACRO_DATA = {
         'current_account': -3.3,
         'rate_direction': 'HOLDING', # Fed: 4.25-4.50%, paused
         'policy_rate': 4.375,
+        'debt_to_gdp': 123.0,      # IMF 2025. USD = reserva mundial → riesgo bajo
+        'currency_sovereign': True, # emite su propia moneda
         'macro_notes': 'Economía resiliente pero aranceles añaden presión. Fed en pausa hasta ver inflación.',
     },
     'DE': {
@@ -48,6 +50,8 @@ MACRO_DATA = {
         'current_account': 4.3,
         'rate_direction': 'CUTTING', # ECB: 2.25%
         'policy_rate': 2.25,
+        'debt_to_gdp': 64.0,       # bajo para eurozona
+        'currency_sovereign': False, # usa EUR, no controla su política monetaria
         'macro_notes': 'Recuperación gradual. Nuevo gobierno con mayor gasto fiscal. ECB recortando.',
     },
     'FR': {
@@ -58,7 +62,9 @@ MACRO_DATA = {
         'current_account': -0.9,
         'rate_direction': 'CUTTING',
         'policy_rate': 2.25,
-        'macro_notes': 'Crecimiento moderado. Consolidación fiscal en curso.',
+        'debt_to_gdp': 112.0,      # elevado, sin moneda propia = riesgo real
+        'currency_sovereign': False,
+        'macro_notes': 'Crecimiento moderado. Deuda elevada sin soberanía monetaria. Consolidación fiscal en curso.',
     },
     'GB': {
         'name': 'United Kingdom',  'flag': '🇬🇧', 'region': 'Europe',
@@ -68,6 +74,8 @@ MACRO_DATA = {
         'current_account': -3.3,
         'rate_direction': 'CUTTING', # BOE: 4.25%
         'policy_rate': 4.25,
+        'debt_to_gdp': 100.0,
+        'currency_sovereign': True,  # emite GBP
         'macro_notes': 'BOE recortando con cautela. Inflación de servicios aún elevada.',
     },
     'JP': {
@@ -78,7 +86,9 @@ MACRO_DATA = {
         'current_account': 3.8,
         'rate_direction': 'HIKING', # BOJ: 0.5%
         'policy_rate': 0.5,
-        'macro_notes': 'BOJ normalizando muy lentamente. Crecimiento débil por yen fuerte.',
+        'debt_to_gdp': 255.0,      # altísimo pero BOJ monetiza → riesgo latente no inmediato
+        'currency_sovereign': True,  # emite JPY, BOJ compra deuda masivamente
+        'macro_notes': 'BOJ normalizando muy lentamente. Deuda 255% GDP pero monetizada por BOJ. Crecimiento débil.',
     },
     'CN': {
         'name': 'China',           'flag': '🇨🇳', 'region': 'Asia-Pacific',
@@ -88,7 +98,9 @@ MACRO_DATA = {
         'current_account': 1.5,
         'rate_direction': 'CUTTING', # PBoC: 1.5% MLF
         'policy_rate': 1.5,
-        'macro_notes': 'Tregua aranceles 90 días (145%→30%). PBoC estimulando. Deuda inmobiliaria aún lastran.',
+        'debt_to_gdp': 83.0,       # deuda pública oficial; deuda corporativa es otro problema
+        'currency_sovereign': True,
+        'macro_notes': 'Tregua aranceles 90 días (145%→30%). PBoC estimulando. Deuda inmobiliaria sector privado es el riesgo real.',
     },
     'IN': {
         'name': 'India',           'flag': '🇮🇳', 'region': 'Asia-Pacific',
@@ -98,6 +110,8 @@ MACRO_DATA = {
         'current_account': -1.2,
         'rate_direction': 'CUTTING', # RBI: 6.0%
         'policy_rate': 6.0,
+        'debt_to_gdp': 82.0,
+        'currency_sovereign': True,
         'macro_notes': 'Motor de crecimiento global. RBI iniciando ciclo bajista de tipos.',
     },
     'KR': {
@@ -108,6 +122,8 @@ MACRO_DATA = {
         'current_account': 3.4,
         'rate_direction': 'CUTTING', # BOK: 2.75%
         'policy_rate': 2.75,
+        'debt_to_gdp': 54.0,
+        'currency_sovereign': True,
         'macro_notes': 'Exportaciones semiconductores fuertes. BOK recortando. Impacto aranceles EE.UU. moderado.',
     },
     'BR': {
@@ -118,7 +134,9 @@ MACRO_DATA = {
         'current_account': -2.4,
         'rate_direction': 'HIKING', # BCB: 13.25%
         'policy_rate': 13.25,
-        'macro_notes': 'Inflación persistente fuerza tipos altos. Real bajo presión. Riesgo fiscal elevado.',
+        'debt_to_gdp': 92.0,       # alto + se financia parcialmente en USD = riesgo real
+        'currency_sovereign': False, # emite BRL pero mercados no confían, depende de USD
+        'macro_notes': 'Inflación persistente fuerza tipos altos. Deuda elevada con dependencia exterior. Real bajo presión.',
     },
     'AU': {
         'name': 'Australia',       'flag': '🇦🇺', 'region': 'Asia-Pacific',
@@ -128,6 +146,8 @@ MACRO_DATA = {
         'current_account': -1.8,
         'rate_direction': 'CUTTING', # RBA empezó ciclo bajista en Feb-2026
         'policy_rate': 3.85,
+        'debt_to_gdp': 50.0,
+        'currency_sovereign': True,
         'macro_notes': 'RBA inició recortes en Feb-2026. Muy expuesta a China vía commodities.',
     },
     'CA': {
@@ -138,6 +158,8 @@ MACRO_DATA = {
         'current_account': -1.2,
         'rate_direction': 'CUTTING', # BOC: 2.75%
         'policy_rate': 2.75,
+        'debt_to_gdp': 107.0,
+        'currency_sovereign': True,
         'macro_notes': 'BOC recortando agresivamente. Impacto aranceles EE.UU.',
     },
     'ES': {
@@ -148,7 +170,9 @@ MACRO_DATA = {
         'current_account': 2.8,
         'rate_direction': 'CUTTING',
         'policy_rate': 2.25,
-        'macro_notes': 'Mejor crecimiento de la eurozona. Turismo récord.',
+        'debt_to_gdp': 108.0,      # elevado sin moneda propia = vulnerabilidad real
+        'currency_sovereign': False,
+        'macro_notes': 'Mejor crecimiento de la eurozona pero deuda 108% GDP sin soberanía monetaria. Turismo récord.',
     },
     'IT': {
         'name': 'Italy',           'flag': '🇮🇹', 'region': 'Europe',
@@ -158,7 +182,9 @@ MACRO_DATA = {
         'current_account': 1.3,
         'rate_direction': 'CUTTING',
         'policy_rate': 2.25,
-        'macro_notes': 'Crecimiento lento. Deuda pública alta. ECB da soporte.',
+        'debt_to_gdp': 138.0,      # el mayor riesgo sistémico de la eurozona
+        'currency_sovereign': False,
+        'macro_notes': 'Deuda 138% GDP sin moneda propia = riesgo sistémico eurozona. Crecimiento anémico. ECB TPI da soporte.',
     },
     'CH': {
         'name': 'Switzerland',     'flag': '🇨🇭', 'region': 'Europe',
@@ -168,7 +194,9 @@ MACRO_DATA = {
         'current_account': 10.2,
         'rate_direction': 'HOLDING', # SNB: 0.25%
         'policy_rate': 0.25,
-        'macro_notes': 'Franco fuerte, inflación baja. Refugio defensivo.',
+        'debt_to_gdp': 40.0,       # deuda bajísima
+        'currency_sovereign': True,  # emite CHF
+        'macro_notes': 'Franco fuerte, deuda baja, inflación mínima. Refugio defensivo por excelencia.',
     },
     'MX': {
         'name': 'Mexico',          'flag': '🇲🇽', 'region': 'Americas',
@@ -178,7 +206,9 @@ MACRO_DATA = {
         'current_account': -0.1,
         'rate_direction': 'CUTTING', # Banxico: ~8.5%
         'policy_rate': 8.5,
-        'macro_notes': 'Nearshoring beneficia al sector industrial. Peso volátil.',
+        'debt_to_gdp': 50.0,
+        'currency_sovereign': True,  # emite MXN
+        'macro_notes': 'Nearshoring beneficia al sector industrial. Peso volátil. Dependencia económica de EE.UU. alta.',
     },
 }
 
@@ -352,6 +382,28 @@ def _score_macro(m: dict) -> tuple[float, list]:
     else:          c = 2
     score += c
     parts.append(f"C/A {ca:+.1f}% GDP → {c}/10")
+
+    # 6. Debt sustainability — penaliza solo si NO hay soberanía monetaria
+    # Países que emiten su propia moneda: deuda alta es latente, no urgente
+    # Países sin moneda propia (eurozona, Brasil-like): deuda alta = riesgo real de mercado
+    debt = m.get('debt_to_gdp', 60.0)
+    sovereign = m.get('currency_sovereign', True)
+    if not sovereign:
+        # Sin soberanía monetaria: la deuda importa aquí y ahora
+        if debt < 60:       d = 0
+        elif debt < 80:     d = -2
+        elif debt < 100:    d = -5
+        elif debt < 120:    d = -9
+        else:               d = -13  # IT 138% sin EUR propio = máxima penalización
+    else:
+        # Con soberanía: penalización mucho menor (riesgo latente, no urgente)
+        if debt < 80:       d = 0
+        elif debt < 120:    d = -1
+        elif debt < 180:    d = -3
+        else:               d = -5  # JP 255% aún monetizable pero no trivial
+    score += d
+    debt_note = '' if sovereign else ' (sin moneda propia)'
+    parts.append(f"Deuda {debt:.0f}% GDP{debt_note} → {d}/0")
 
     return round(score, 1), parts
 
@@ -579,6 +631,8 @@ def run():
             'rate_direction': macro['rate_direction'],
             'policy_rate': macro['policy_rate'],
             'macro_notes': macro['macro_notes'],
+            'debt_to_gdp': macro.get('debt_to_gdp', None),
+            'currency_sovereign': macro.get('currency_sovereign', True),
             # market data (ETF = USD view; index = local)
             'etf': mc['etf'],
             'index': mc['index'],
