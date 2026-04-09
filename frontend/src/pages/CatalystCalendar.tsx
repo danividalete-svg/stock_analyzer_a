@@ -227,9 +227,6 @@ export default function CatalystCalendar() {
   const [filterCategory, setFilterCategory] = useState<string>('ALL')
   const [filterImpact, setFilterImpact] = useState<string>('ALL')
 
-  if (loading) return <Loading />
-  if (error)   return <ErrorState message={error} />
-
   const events = data?.events ?? []
   const byCategory = data?.by_category ?? {}
 
@@ -240,6 +237,9 @@ export default function CatalystCalendar() {
   }), [events, filterCategory, filterImpact])
 
   const grouped = useMemo(() => groupByWeek(filtered), [filtered])
+
+  if (loading) return <Loading />
+  if (error)   return <ErrorState message={error} />
 
   const totalEvents = events.length
   const highImpact = events.filter(e => e.impact === 'HIGH').length
