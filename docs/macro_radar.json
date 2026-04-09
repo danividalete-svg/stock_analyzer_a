@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-09T21:32:12.924705",
+  "timestamp": "2026-04-09T21:39:46.282246",
   "date": "2026-04-09",
   "intraday_update": true,
   "regime": {
@@ -79,7 +79,7 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 98.81,
+      "current": 98.82,
       "percentile": 49.1,
       "score": 1,
       "change_5d": -0.84,
