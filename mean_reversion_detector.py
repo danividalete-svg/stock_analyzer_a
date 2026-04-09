@@ -264,8 +264,13 @@ class MeanReversionDetector:
 
             # Solo retornar si hay potencial real
             # RSI < 30 es REQUERIDO para Oversold Bounce (no solo bonus)
+            # RSI = 0 indica error de datos; precio < $0.50 = penny stock sin liquidez
             if score < 50 or not is_oversold:
                 return None
+            if current_rsi == 0.0:
+                return None  # error de datos yfinance
+            if current_price < 0.50:
+                return None  # penny stock sin liquidez
 
             # Bounce confidence score — señales adicionales de alta probabilidad
             # Basado en backtests: RSI(2) acumulado 83% win rate, RSI semanal +15-20%
