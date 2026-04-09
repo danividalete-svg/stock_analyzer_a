@@ -1,5 +1,5 @@
 {
-  "scan_date": "2026-04-09 13:39:51",
+  "scan_date": "2026-04-09 13:46:24",
   "total_opportunities": 7,
   "strategies": {
     "oversold_bounce": 1,
@@ -29,7 +29,7 @@
       "stop_loss": 31.52,
       "stop_pct": -3.2,
       "risk_reward": 2.19,
-      "bounce_confidence": 30,
+      "bounce_confidence": 47,
       "bounce_signals": [
         "Stoch oversold",
         "Hammer",

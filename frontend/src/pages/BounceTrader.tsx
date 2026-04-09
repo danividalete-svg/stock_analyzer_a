@@ -68,8 +68,9 @@ function tierColor(tier?: string) {
 
 function confidenceBar(score?: number) {
   const pct = Math.min(100, score ?? 0)
-  const color = pct >= 60 ? 'bg-emerald-400' : pct >= 35 ? 'bg-amber-400' : 'bg-red-400'
-  const label = pct >= 60 ? 'Alta' : pct >= 35 ? 'Media' : 'Baja'
+  // ≥65 = Alta (múltiples indicadores confirman), 40-64 = Media, <40 = Baja
+  const color = pct >= 65 ? 'bg-emerald-400' : pct >= 40 ? 'bg-amber-400' : 'bg-orange-400'
+  const label = pct >= 65 ? 'Alta' : pct >= 40 ? 'Media' : 'Baja'
   return { pct, color, label }
 }
 

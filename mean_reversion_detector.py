@@ -270,17 +270,18 @@ class MeanReversionDetector:
             # Bounce confidence score — señales adicionales de alta probabilidad
             # Basado en backtests: RSI(2) acumulado 83% win rate, RSI semanal +15-20%
             bounce_signals: list[str] = []
-            bounce_confidence = 0
+            # Base: cualquier setup que pase RSI<30 + score≥50 ya tiene valor
+            bounce_confidence = 20
 
-            # RSI diario (base)
+            # RSI diario (bonus encima de la base)
             if current_rsi < 20:
                 bounce_confidence += 25
                 bounce_signals.append('RSI extremo <20')
             elif current_rsi < 25:
-                bounce_confidence += 18
+                bounce_confidence += 15
                 bounce_signals.append('RSI muy bajo')
             else:
-                bounce_confidence += 8
+                bounce_confidence += 5
 
             # RSI semanal — confirmación de timeframe superior (+15-20% win rate)
             if weekly_oversold:
