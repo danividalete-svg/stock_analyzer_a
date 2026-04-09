@@ -3,7 +3,7 @@ import {
   ArrowLeftRight, PieChart, BarChart2, FlaskConical, Search, LayoutDashboard, Database,
   Ruler, Layers, Star, Radar, CalendarDays, AlertTriangle, Sparkles, Building2, Zap,
   DollarSign, Euro, Wallet, GitCompare, Bell, SlidersHorizontal, CalendarCheck, CandlestickChart, Brain,
-  Gem, Flame,
+  Gem, Flame, Crosshair,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -31,6 +31,7 @@ export const NAV_SECONDARY: NavLinkItem[] = [
   { path: '/micro-cap',       icon: Gem,              label: 'Micro-Cap',          color: '#f59e0b', keywords: ['micro cap', 'small cap', 'micro', 'gemas'] },
   { path: '/technical',       icon: CandlestickChart, label: 'Señales Técnicas',   color: '#f97316', keywords: ['tecnico', 'señales', 'rsi', 'macd', 'golden cross'] },
   { path: '/options',         icon: Activity,         label: 'Options Flow',       color: '#ec4899', keywords: ['options', 'opciones', 'flujo', 'institucional'] },
+  { path: '/bounce',          icon: Crosshair,        label: 'Bounce Trader',      color: '#f97316', tag: '⚡', keywords: ['bounce', 'rebote', 'corto plazo', 'oversold', 'rsi extremo'] },
   { path: '/mean-reversion',  icon: ArrowLeftRight,   label: 'Mean Reversion',     color: '#14b8a6', keywords: ['mean reversion', 'rebote', 'soporte', 'oversold'] },
   { path: '/sectors',         icon: PieChart,         label: 'Rotación Sectorial', color: '#6366f1', keywords: ['sector', 'rotacion', 'sectorial'] },
   { path: '/hedge-funds',     icon: Building2,        label: 'Hedge Funds 13F',    color: '#f59e0b', keywords: ['hedge fund', '13f', 'buffett', 'sec', 'whales'] },

@@ -142,6 +142,49 @@ class MeanReversionDetector:
             current_volume = hist['Volume'].iloc[-1]
             volume_ratio = current_volume / avg_volume_20d if avg_volume_20d > 0 else 0
 
+            # ── Indicadores adicionales para bounce confidence ─────────────────
+
+            # Días bajistas consecutivos (agotamiento vendedor)
+            closes = hist['Close'].tail(10)
+            consecutive_down = 0
+            for i in range(len(closes) - 1, 0, -1):
+                if closes.iloc[i] < closes.iloc[i - 1]:
+                    consecutive_down += 1
+                else:
+                    break
+
+            # Bollinger Bands (20 días, 2 desv)
+            sma20 = hist['Close'].tail(20).mean()
+            std20 = hist['Close'].tail(20).std()
+            bb_lower = sma20 - 2 * std20
+            bb_upper = sma20 + 2 * std20
+            bb_pct_b = round((current_price - bb_lower) / (bb_upper - bb_lower) * 100, 1) if (bb_upper - bb_lower) > 0 else 50
+            below_bb = current_price <= bb_lower
+
+            # Stochastic %K (14 días)
+            low14  = hist['Low'].tail(14).min()
+            high14 = hist['High'].tail(14).max()
+            stoch_k = round((current_price - low14) / (high14 - low14) * 100, 1) if (high14 - low14) > 0 else 50
+
+            # Volumen decreciente en últimos 3 días (señal de agotamiento)
+            vols = hist['Volume'].tail(4)
+            volume_drying = bool(vols.iloc[-1] < vols.iloc[-2] < vols.iloc[-3]) if len(vols) >= 3 else False
+
+            # Earnings próximos (desde fundamental_scores.csv si está disponible)
+            days_to_earnings: int | None = None
+            earnings_warning = False
+            try:
+                cal = stock.calendar
+                if cal is not None and not cal.empty:
+                    earn_date = pd.Timestamp(cal.columns[0]) if hasattr(cal, 'columns') else None
+                    if earn_date is None and 'Earnings Date' in cal.index:
+                        earn_date = pd.Timestamp(cal.loc['Earnings Date'].iloc[0])
+                    if earn_date is not None:
+                        days_to_earnings = max(0, (earn_date.date() - datetime.now().date()).days)
+                        earnings_warning = days_to_earnings <= 7
+            except Exception:
+                pass
+
             # Rechazo duro: si el precio ya rompió el soporte por más del 10%,
             # el setup es inválido — entry zone y stop quedarían por encima del precio
             if distance_to_support < -10:
@@ -168,12 +211,55 @@ class MeanReversionDetector:
             if score < 50:
                 return None
 
+            # Bounce confidence score (señales adicionales de alta probabilidad)
+            bounce_signals: list[str] = []
+            bounce_confidence = 0
+            if current_rsi < 20:
+                bounce_confidence += 30
+                bounce_signals.append('RSI extremo')
+            elif current_rsi < 25:
+                bounce_confidence += 20
+                bounce_signals.append('RSI muy bajo')
+            if below_bb:
+                bounce_confidence += 25
+                bounce_signals.append('Bajo BB inferior')
+            if stoch_k < 20:
+                bounce_confidence += 20
+                bounce_signals.append('Stoch oversold')
+            if consecutive_down >= 3:
+                bounce_confidence += 15
+                bounce_signals.append(f'{consecutive_down}d bajistas')
+            if volume_drying:
+                bounce_confidence += 10
+                bounce_signals.append('Vol secándose')
+
+            stop_loss = round(support * 0.95, 2)
+            stop_pct = round((stop_loss / current_price - 1) * 100, 1)
+
+            # Target largo (técnico a resistencia)
+            full_target = round(resistance, 2)
+
+            # Target corto: rebote realista 1-3 días (+7% o resistencia, lo menor)
+            bounce_target = round(min(current_price * 1.07, resistance), 2)
+            bounce_usd = round(bounce_target - current_price, 2)
+            bounce_pct = round((bounce_target / current_price - 1) * 100, 1)
+            bounce_rr = round(bounce_usd / (current_price - stop_loss), 2) if (current_price - stop_loss) > 0 else 0
+
+            # Confianza del rebote según RSI
+            if current_rsi < 20:
+                rsi_tier = 'EXTREMO'
+            elif current_rsi < 25:
+                rsi_tier = 'ALTO'
+            else:
+                rsi_tier = 'MEDIO'
+
             return {
                 'ticker': ticker,
                 'company_name': company_name or ticker,
                 'strategy': 'Oversold Bounce',
                 'current_price': round(current_price, 2),
                 'rsi': round(current_rsi, 1),
+                'rsi_tier': rsi_tier,
                 'drawdown_pct': round(drawdown_pct, 1),
                 'support_level': round(support, 2),
                 'resistance_level': round(resistance, 2),
@@ -182,9 +268,23 @@ class MeanReversionDetector:
                 'reversion_score': round(score, 1),
                 'quality': self._get_quality_label(score),
                 'entry_zone': f"${round(support * 0.98, 2)} - ${round(support * 1.02, 2)}",
-                'target': round(resistance, 2),
-                'stop_loss': round(support * 0.95, 2),
-                'risk_reward': round((resistance - current_price) / (current_price - support * 0.95), 2) if (current_price - support * 0.95) > 0 else 0,
+                'target': full_target,
+                'bounce_target': bounce_target,
+                'bounce_usd': bounce_usd,
+                'bounce_pct': bounce_pct,
+                'stop_loss': stop_loss,
+                'stop_pct': stop_pct,
+                'risk_reward': bounce_rr,
+                # Bounce confidence
+                'bounce_confidence': bounce_confidence,
+                'bounce_signals': bounce_signals,
+                'consecutive_down_days': consecutive_down,
+                'bb_pct_b': bb_pct_b,
+                'below_bb': below_bb,
+                'stoch_k': stoch_k,
+                'volume_drying': volume_drying,
+                'days_to_earnings': days_to_earnings,
+                'earnings_warning': earnings_warning,
                 'detected_date': datetime.now().strftime('%Y-%m-%d')
             }
 
@@ -250,11 +350,21 @@ class MeanReversionDetector:
             if score < 60:  # Más estricto para bull flags
                 return None
 
+            stop_loss_bf = round(sma_50 * 0.97, 2)
+            stop_pct_bf = round((stop_loss_bf / current_price - 1) * 100, 1)
+            full_target_bf = round(high_60d, 2)
+            bounce_target_bf = round(min(current_price * 1.07, high_60d), 2)
+            bounce_usd_bf = round(bounce_target_bf - current_price, 2)
+            bounce_pct_bf = round((bounce_target_bf / current_price - 1) * 100, 1)
+            bounce_rr_bf = round(bounce_usd_bf / (current_price - stop_loss_bf), 2) if (current_price - stop_loss_bf) > 0 else 0
+
             return {
                 'ticker': ticker,
                 'company_name': company_name or ticker,
                 'strategy': 'Bull Flag Pullback',
                 'current_price': round(current_price, 2),
+                'rsi': None,
+                'rsi_tier': None,
                 'rally_pct': round(rally_pct, 1),
                 'pullback_pct': round(pullback_pct, 1),
                 'sma_50': round(sma_50, 2),
@@ -264,9 +374,13 @@ class MeanReversionDetector:
                 'reversion_score': round(score, 1),
                 'quality': self._get_quality_label(score),
                 'entry_zone': f"${round(current_price * 0.98, 2)} - ${round(current_price * 1.02, 2)}",
-                'target': round(high_60d, 2),
-                'stop_loss': round(sma_50 * 0.97, 2),
-                'risk_reward': round((high_60d - current_price) / (current_price - sma_50 * 0.97), 2) if (current_price - sma_50 * 0.97) > 0 else 0,
+                'target': full_target_bf,
+                'bounce_target': bounce_target_bf,
+                'bounce_usd': bounce_usd_bf,
+                'bounce_pct': bounce_pct_bf,
+                'stop_loss': stop_loss_bf,
+                'stop_pct': stop_pct_bf,
+                'risk_reward': bounce_rr_bf,
                 'detected_date': datetime.now().strftime('%Y-%m-%d')
             }
 
