@@ -859,13 +859,25 @@ ESTRUCTURA (usa **negrita** para cada sección):
 
         strong = score >= 60 and (roe_pct or 0) > 12 and insiders_score >= 50
         decent = score >= 45 and ((roe_pct or 0) > 10 or insiders_score >= 60)
+        ai_verdict = str(row.get('ai_verdict', '') or '').upper()
+        entry_timing = str(row.get('entry_timing', '') or '').upper()
+        buy_now = 'BUY NOW' in entry_timing
+        buy_pullback = 'PULLBACK' in entry_timing or 'DIP' in entry_timing
 
         if strong and is_recent:
             parts.append(f"\n**Conclusión:** ✅ COMPRAR — alta convicción. Fundamentales sólidos con compras recientes de insiders.{rr_str}{entry_suggestion}{earnings_caveat}")
         elif strong:
             parts.append(f"\n**Conclusión:** ✅ COMPRAR — convicción alta. Fundamentales y valoración favorables.{rr_str}{entry_suggestion}{earnings_caveat}")
+        elif decent and ai_verdict == 'BUY' and buy_now:
+            parts.append(f"\n**Conclusión:** ✅ COMPRAR — IA confirma señal. Precio en zona de entrada.{rr_str}{entry_suggestion}{earnings_caveat}")
+        elif decent and ai_verdict == 'BUY' and buy_pullback:
+            parts.append(f"\n**Conclusión:** ✅ COMPRAR EN PULLBACK — candidata sólida. Esperar caída del 2-5% para mejorar ratio R:R.{rr_str}{entry_suggestion}{earnings_caveat}")
+        elif decent and ai_verdict == 'BUY':
+            parts.append(f"\n**Conclusión:** ✅ COMPRAR — IA confirma. Esperar confirmación técnica (señal MR o ruptura de resistencia).{rr_str}{entry_suggestion}{earnings_caveat}")
         elif decent and best_target:
             parts.append(f"\n**Conclusión:** 👀 VIGILAR — candidata válida, esperar confirmación técnica (señal MR o ruptura de resistencia).{rr_str}{entry_suggestion}{earnings_caveat}")
+        elif ai_verdict == 'BUY' and score >= 40:
+            parts.append(f"\n**Conclusión:** 👀 VIGILAR — calidad moderada pese a señal BUY. Confirmar con señal técnica antes de entrar.{rr_str}{earnings_caveat}")
         elif score >= 40:
             if best_target:
                 parts.append(f"\n**Conclusión:** ⏸ BAJA PRIORIDAD — perfil incompleto o calidad moderada. Solo considerar si se confirma señal técnica adicional.{rr_str}{earnings_caveat}")
