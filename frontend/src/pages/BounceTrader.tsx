@@ -4,7 +4,7 @@ import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
 import StaleDataBanner from '../components/StaleDataBanner'
 import TickerLogo from '../components/TickerLogo'
-import { AlertTriangle, TrendingDown, Zap } from 'lucide-react'
+import { AlertTriangle, TrendingDown, Zap, Star, Target } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,12 +33,10 @@ interface BounceSetup {
   below_bb?: boolean
   stoch_k?: number
   volume_drying?: boolean
-  // Advanced signals
   rsi_weekly?: number | null
   weekly_oversold?: boolean
   cum_rsi2?: number | null
   connors_signal?: boolean
-  atr14?: number
   hammer_candle?: boolean
   engulfing_candle?: boolean
   obv_divergence?: boolean
@@ -47,15 +45,17 @@ interface BounceSetup {
   days_to_earnings?: number | null
   earnings_warning?: boolean
   detected_date: string
-  // Enrichment signals
+  // Enrichment
   pcr?: number | null
   pcr_signal?: string | null
-  short_interest_shares?: number | null
   short_days_to_cover?: number | null
-  short_pct_float?: number | null
   squeeze_potential?: boolean
   finra_short_vol_pct?: number | null
   dark_pool_signal?: string | null
+  // Conviction tier
+  conviction_tier?: 1 | 2
+  value_score?: number | null
+  value_grade?: string | null
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -68,7 +68,6 @@ function tierColor(tier?: string) {
 
 function confidenceBar(score?: number) {
   const pct = Math.min(100, score ?? 0)
-  // ≥65 = Alta (múltiples indicadores confirman), 40-64 = Media, <40 = Baja
   const color = pct >= 65 ? 'bg-emerald-400' : pct >= 40 ? 'bg-amber-400' : 'bg-orange-400'
   const label = pct >= 65 ? 'Alta' : pct >= 40 ? 'Media' : 'Baja'
   return { pct, color, label }
@@ -76,7 +75,7 @@ function confidenceBar(score?: number) {
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
-function BounceCard({ s }: { s: BounceSetup }) {
+function BounceCard({ s, isConviction }: { s: BounceSetup; isConviction: boolean }) {
   const tc = tierColor(s.rsi_tier)
   const conf = confidenceBar(s.bounce_confidence)
   const bounceUsd = s.bounce_usd ?? (s.bounce_target ? s.bounce_target - s.current_price : null)
@@ -84,8 +83,12 @@ function BounceCard({ s }: { s: BounceSetup }) {
   const stopPct   = s.stop_pct ?? ((s.stop_loss / s.current_price - 1) * 100)
   const rr        = s.risk_reward > 0 ? s.risk_reward : null
 
+  const cardBorder = isConviction
+    ? 'border-amber-400/40 hover:border-amber-400/70 shadow-[0_0_20px_rgba(251,191,36,0.08)]'
+    : 'border-border/20 hover:border-primary/30'
+
   return (
-    <div className="glass rounded-2xl border border-border/20 hover:border-primary/30 transition-all p-4 flex flex-col gap-3">
+    <div className={`glass rounded-2xl border transition-all p-4 flex flex-col gap-3 ${cardBorder}`}>
 
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
@@ -101,6 +104,15 @@ function BounceCard({ s }: { s: BounceSetup }) {
           <span className={tc.text}>RSI {s.rsi?.toFixed(1)} · {s.rsi_tier ?? 'MEDIO'}</span>
         </div>
       </div>
+
+      {/* Conviction value score badge */}
+      {isConviction && s.value_score != null && (
+        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-amber-400/8 border border-amber-400/25 text-[0.65rem]">
+          <Star size={11} className="text-amber-400 shrink-0" />
+          <span className="text-amber-300/80">VALUE score <strong className="text-amber-300">{s.value_score.toFixed(0)}pts</strong></span>
+          {s.value_grade && <span className="ml-auto font-bold text-amber-400">{s.value_grade}</span>}
+        </div>
+      )}
 
       {/* Earnings warning */}
       {s.earnings_warning && (
@@ -140,7 +152,7 @@ function BounceCard({ s }: { s: BounceSetup }) {
         {s.consecutive_down_days != null && s.consecutive_down_days >= 2 && (
           <span className="flex items-center gap-0.5 text-red-400/70">
             <TrendingDown size={10} />
-            {s.consecutive_down_days}d seguidos
+            {s.consecutive_down_days}d
           </span>
         )}
       </div>
@@ -243,6 +255,27 @@ function BounceCard({ s }: { s: BounceSetup }) {
   )
 }
 
+// ─── Section header ────────────────────────────────────────────────────────────
+
+function SectionHeader({ icon, title, subtitle, count, accent }: {
+  icon: React.ReactNode
+  title: string
+  subtitle: string
+  count: number
+  accent: string
+}) {
+  return (
+    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border mb-4 ${accent}`}>
+      <div className="shrink-0">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <div className="font-extrabold text-sm leading-tight">{title}</div>
+        <div className="text-[0.65rem] opacity-70 mt-0.5">{subtitle}</div>
+      </div>
+      <div className="text-2xl font-black tabular-nums shrink-0">{count}</div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type TierFilter = 'ALL' | 'EXTREMO' | 'ALTO' | 'MEDIO'
@@ -261,12 +294,15 @@ export default function BounceTrader() {
     )
   }, [raw])
 
-  const setups = useMemo(() => {
+  const filtered = useMemo(() => {
     let s = allSetups
     if (tierFilter !== 'ALL') s = s.filter(x => x.rsi_tier === tierFilter)
     if (hideEarnings) s = s.filter(x => !x.earnings_warning)
     return [...s].sort((a, b) => (a.rsi ?? 99) - (b.rsi ?? 99))
   }, [allSetups, tierFilter, hideEarnings])
+
+  const conviction = useMemo(() => filtered.filter(s => s.conviction_tier === 2), [filtered])
+  const technical  = useMemo(() => filtered.filter(s => s.conviction_tier !== 2), [filtered])
 
   if (loading) return <Loading />
   if (error)   return <ErrorState message={error} />
@@ -315,7 +351,7 @@ export default function BounceTrader() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2 mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-6">
         {(['ALL', 'EXTREMO', 'ALTO', 'MEDIO'] as TierFilter[]).map(t => {
           const count = t === 'ALL' ? allSetups.length : allSetups.filter(s => s.rsi_tier === t).length
           return (
@@ -346,16 +382,47 @@ export default function BounceTrader() {
         </div>
       </div>
 
-      {/* Cards grid */}
-      {setups.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground/50">
           <div className="text-4xl mb-3 opacity-20">📊</div>
           <div className="text-sm">No hay setups de rebote válidos hoy</div>
           <div className="text-xs mt-1 opacity-60">Espera a que el mercado genere nuevas oportunidades oversold</div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {setups.map(s => <BounceCard key={s.ticker} s={s} />)}
+        <div className="space-y-8">
+
+          {/* ── TIER 2: CONVICCIÓN ─────────────────────────────────────────── */}
+          {conviction.length > 0 && (
+            <section>
+              <SectionHeader
+                icon={<Star size={18} className="text-amber-400" />}
+                title="Rebote con Convicción"
+                subtitle="Caída técnica en empresa fundamentalmente sólida · Tamaño normal · Puede convertirse en posición"
+                count={conviction.length}
+                accent="bg-amber-400/5 border-amber-400/25 text-amber-300"
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {conviction.map(s => <BounceCard key={s.ticker} s={s} isConviction={true} />)}
+              </div>
+            </section>
+          )}
+
+          {/* ── TIER 1: TÉCNICO PURO ───────────────────────────────────────── */}
+          {technical.length > 0 && (
+            <section>
+              <SectionHeader
+                icon={<Target size={18} className="text-cyan-400" />}
+                title="Rebote Técnico Puro"
+                subtitle="Solo señales técnicas · Tamaño pequeño · Objetivo +5–7% · Stop ajustado"
+                count={technical.length}
+                accent="bg-cyan-500/5 border-cyan-500/20 text-cyan-300"
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {technical.map(s => <BounceCard key={s.ticker} s={s} isConviction={false} />)}
+              </div>
+            </section>
+          )}
+
         </div>
       )}
     </>

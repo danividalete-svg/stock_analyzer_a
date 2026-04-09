@@ -589,6 +589,7 @@ class MeanReversionDetector:
         if bounce_opps:
             print(f"🔍 Enriqueciendo {len(bounce_opps)} setups con PCR, short interest y dark pool...")
             self._enrich_bounce_signals(bounce_opps)
+            self._tag_conviction_tier(bounce_opps)
 
         self.results = opportunities
         return opportunities
@@ -813,6 +814,40 @@ Reglas:
                 opp["dark_pool_signal"] = None
 
             print(f"   ✅ {ticker}: PCR={opp.get('pcr')} | Short%={opp.get('short_pct_float')} | DP={opp.get('finra_short_vol_pct')} | conf={opp.get('bounce_confidence')}")
+
+    def _tag_conviction_tier(self, bounce_opps: list) -> None:
+        """
+        Tier 2 = rebote técnico + empresa fundamentalmente sólida (también en VALUE ≥60).
+        Tier 1 = rebote puramente técnico (puede ser empresa débil, pero el setup es válido).
+        Cross-referencia con value_opportunities.csv sin llamadas externas.
+        """
+        value_scores: Dict[str, Dict] = {}
+        for csv_path in ["docs/value_opportunities.csv", "docs/european_value_opportunities.csv"]:
+            try:
+                df = pd.read_csv(csv_path)
+                for _, row in df.iterrows():
+                    ticker = str(row.get("ticker", "")).strip()
+                    score = row.get("value_score") or row.get("score")
+                    grade = row.get("grade", "")
+                    if ticker and score:
+                        value_scores[ticker] = {"value_score": float(score), "value_grade": str(grade)}
+            except Exception:
+                pass
+
+        for opp in bounce_opps:
+            ticker = opp.get("ticker", "")
+            v = value_scores.get(ticker)
+            if v and v["value_score"] >= 60:
+                opp["conviction_tier"] = 2
+                opp["value_score"] = v["value_score"]
+                opp["value_grade"] = v["value_grade"]
+                # Boost confianza: empresa buena + caída técnica = alta convicción
+                opp["bounce_confidence"] = min(100, opp.get("bounce_confidence", 0) + 15)
+                print(f"   ⭐ {ticker}: Tier 2 — VALUE score {v['value_score']:.0f} ({v['value_grade']})")
+            else:
+                opp["conviction_tier"] = 1
+                opp["value_score"] = None
+                opp["value_grade"] = None
 
     def save_results(self, output_path: str = "docs/mean_reversion_opportunities.csv"):
         """Guarda resultados en CSV"""
