@@ -47,6 +47,15 @@ interface BounceSetup {
   days_to_earnings?: number | null
   earnings_warning?: boolean
   detected_date: string
+  // Enrichment signals
+  pcr?: number | null
+  pcr_signal?: string | null
+  short_interest_shares?: number | null
+  short_days_to_cover?: number | null
+  short_pct_float?: number | null
+  squeeze_potential?: boolean
+  finra_short_vol_pct?: number | null
+  dark_pool_signal?: string | null
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -192,6 +201,41 @@ function BounceCard({ s }: { s: BounceSetup }) {
           {s.hammer_candle && <span className="text-[0.58rem] px-1.5 py-0.5 rounded border bg-amber-500/8 border-amber-500/20 text-amber-400">🔨 Hammer</span>}
           {s.engulfing_candle && <span className="text-[0.58rem] px-1.5 py-0.5 rounded border bg-emerald-500/8 border-emerald-500/20 text-emerald-400">📈 Engulfing</span>}
           {s.obv_divergence && <span className="text-[0.58rem] px-1.5 py-0.5 rounded border bg-blue-500/8 border-blue-500/20 text-blue-400">↗ OBV div.</span>}
+        </div>
+      )}
+
+      {/* Enrichment: PCR · Dark Pool · Short Interest */}
+      {(s.pcr != null || s.finra_short_vol_pct != null || s.short_days_to_cover != null) && (
+        <div className="flex flex-wrap gap-1 pt-1 border-t border-border/10">
+          {s.pcr != null && (
+            <span className={`text-[0.58rem] px-1.5 py-0.5 rounded border font-medium ${
+              s.pcr_signal === 'CONTRARIAN_BULLISH'
+                ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400'
+                : 'bg-muted/10 border-border/20 text-muted-foreground/50'
+            }`}>
+              PCR {s.pcr.toFixed(2)}{s.pcr_signal === 'CONTRARIAN_BULLISH' ? ' ↑' : ''}
+            </span>
+          )}
+          {s.finra_short_vol_pct != null && (
+            <span className={`text-[0.58rem] px-1.5 py-0.5 rounded border font-medium ${
+              s.dark_pool_signal === 'ACCUMULATION'
+                ? 'bg-cyan-500/8 border-cyan-500/20 text-cyan-400'
+                : s.dark_pool_signal === 'DISTRIBUTION'
+                  ? 'bg-red-500/8 border-red-500/20 text-red-400/70'
+                  : 'bg-muted/10 border-border/20 text-muted-foreground/50'
+            }`}>
+              DP {s.finra_short_vol_pct.toFixed(0)}%{s.dark_pool_signal === 'ACCUMULATION' ? ' acum.' : s.dark_pool_signal === 'DISTRIBUTION' ? ' dist.' : ''}
+            </span>
+          )}
+          {s.short_days_to_cover != null && (
+            <span className={`text-[0.58rem] px-1.5 py-0.5 rounded border font-medium ${
+              s.squeeze_potential
+                ? 'bg-purple-500/8 border-purple-500/20 text-purple-400'
+                : 'bg-muted/10 border-border/20 text-muted-foreground/50'
+            }`}>
+              DTC {s.short_days_to_cover.toFixed(1)}d{s.squeeze_potential ? ' 🔥' : ''}
+            </span>
+          )}
         </div>
       )}
     </div>

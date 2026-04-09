@@ -12,9 +12,10 @@ Estrategias detectadas:
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import requests
 from pathlib import Path
-from datetime import datetime, timedelta
-from typing import List, Dict, Tuple
+from datetime import datetime, timedelta, date
+from typing import List, Dict, Tuple, Optional
 import json
 
 
@@ -577,6 +578,12 @@ class MeanReversionDetector:
         self._add_win_rates(opportunities)
         self._ai_filter_batch(opportunities)
 
+        # Enrich bounce setups with PCR, short interest, dark pool proxy
+        bounce_opps = [o for o in opportunities if o.get('strategy') == 'Oversold Bounce']
+        if bounce_opps:
+            print(f"🔍 Enriqueciendo {len(bounce_opps)} setups con PCR, short interest y dark pool...")
+            self._enrich_bounce_signals(bounce_opps)
+
         self.results = opportunities
         return opportunities
 
@@ -678,6 +685,128 @@ Reglas:
             opp.setdefault('ai_confirmation', None)
             opp.setdefault('ai_confidence', None)
             opp.setdefault('ai_reason', None)
+
+    def _enrich_bounce_signals(self, opportunities: list) -> None:
+        """
+        Enriquece oportunidades de rebote con señales externas gratuitas:
+        - PCR (Put/Call Ratio) desde CBOE CDN — JSON, sin auth, 15min delay
+        - Short interest desde Nasdaq API — JSON, sin auth, bi-semanal
+        - Dark pool proxy (off-exchange %) desde FINRA CDN — pipe-delimited, diario
+
+        Fuentes verificadas sin API key ni pago.
+        """
+        HEADERS = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+            "Accept": "application/json, text/plain, */*",
+        }
+
+        # ── Cargar FINRA dark pool (un solo fichero para todo el batch) ─────────
+        finra_dark: Dict[str, float] = {}  # ticker → short_pct_of_volume hoy
+        try:
+            today_str = date.today().strftime("%Y%m%d")
+            # Probar hoy y los 3 días previos (puede no estar publicado aún hoy)
+            for delta in range(4):
+                dt = date.today() - timedelta(days=delta)
+                if dt.weekday() >= 5:
+                    continue
+                fname = dt.strftime("%Y%m%d")
+                url = f"https://cdn.finra.org/equity/regsho/daily/CNMSshvol{fname}.txt"
+                r = requests.get(url, headers=HEADERS, timeout=10)
+                if r.status_code == 200:
+                    from io import StringIO
+                    df_finra = pd.read_csv(StringIO(r.text), sep="|", skipfooter=1, engine="python")
+                    df_finra.columns = df_finra.columns.str.strip()
+                    for _, row in df_finra.iterrows():
+                        sym = str(row.get("Symbol", "")).strip()
+                        short_vol = row.get("ShortVolume", 0) or 0
+                        total_vol = row.get("TotalVolume", 1) or 1
+                        if sym:
+                            finra_dark[sym] = round(float(short_vol) / float(total_vol) * 100, 1)
+                    print(f"   📊 FINRA dark pool: {fname} ({len(finra_dark)} tickers)")
+                    break
+        except Exception as e:
+            print(f"   ⚠️  FINRA dark pool fallido: {e}")
+
+        # ── Por ticker: PCR (CBOE) + short interest (Nasdaq) ────────────────────
+        for opp in opportunities:
+            ticker = opp.get("ticker", "")
+
+            # ── PCR desde CBOE CDN ───────────────────────────────────────────
+            try:
+                url = f"https://cdn.cboe.com/api/global/delayed_quotes/options/{ticker}.json"
+                r = requests.get(url, headers=HEADERS, timeout=8)
+                if r.status_code == 200:
+                    opts = r.json().get("data", {}).get("options", [])
+                    # Option symbol format: TICKER+YYMMDD+[C/P]+PRICE8 — type at 9th char from right
+                    def _opt_type(o):
+                        sym = o.get("option", "")
+                        return sym[-9] if len(sym) >= 9 else ""
+                    put_vol  = sum(o.get("volume", 0) or 0 for o in opts if _opt_type(o) == "P")
+                    call_vol = sum(o.get("volume", 0) or 0 for o in opts if _opt_type(o) == "C")
+                    pcr = round(put_vol / call_vol, 2) if call_vol > 0 else None
+                    opp["pcr"] = pcr
+                    # PCR > 1.5 = puts muy elevadas = contrarian bullish (hedging exagerado)
+                    opp["pcr_signal"] = "CONTRARIAN_BULLISH" if pcr and pcr > 1.5 else \
+                                        "NEUTRAL" if pcr else None
+                    if pcr and pcr > 1.5:
+                        opp["bounce_signals"] = opp.get("bounce_signals", []) + [f"PCR {pcr:.1f}↑"]
+                        opp["bounce_confidence"] = min(100, opp.get("bounce_confidence", 0) + 10)
+            except Exception:
+                opp["pcr"] = None
+                opp["pcr_signal"] = None
+
+            # ── Short interest desde Nasdaq API ──────────────────────────────
+            try:
+                url = (
+                    f"https://api.nasdaq.com/api/quote/{ticker.lower()}/short-interest"
+                    "?type=SHORT_INTEREST&assetClass=stocks"
+                )
+                headers_nasdaq = {**HEADERS, "Referer": f"https://www.nasdaq.com/market-activity/stocks/{ticker.lower()}/short-interest"}
+                r = requests.get(url, headers=headers_nasdaq, timeout=8)
+                if r.status_code == 200:
+                    rows = r.json().get("data", {}).get("shortInterestTable", {}).get("rows", [])
+                    if rows:
+                        latest = rows[0]
+                        # Nasdaq field names: "interest" (shares), "daysToCover", "avgDailyShareVolume"
+                        short_int = str(latest.get("interest", "") or "").replace(",", "")
+                        dtc_raw = latest.get("daysToCover")
+                        avg_vol_raw = str(latest.get("avgDailyShareVolume", "") or "").replace(",", "")
+                        dtc = float(dtc_raw) if dtc_raw else None
+                        si_shares = int(float(short_int)) if short_int and short_int.replace('.','').isdigit() else None
+                        avg_vol = int(float(avg_vol_raw)) if avg_vol_raw and avg_vol_raw.replace('.','').isdigit() else None
+                        # Approximate % float: not available directly — use DTC as squeeze proxy
+                        opp["short_interest_shares"] = si_shares
+                        opp["short_days_to_cover"] = dtc
+                        opp["short_pct_float"] = None  # Nasdaq doesn't provide this field
+                        # Short squeeze potential: DTC > 5 days
+                        squeeze = bool(dtc and dtc > 5)
+                        opp["squeeze_potential"] = bool(squeeze)
+                        if squeeze:
+                            opp["bounce_signals"] = opp.get("bounce_signals", []) + [f"DTC {dtc:.1f}d" if dtc else "Short squeeze"]
+                            opp["bounce_confidence"] = min(100, opp.get("bounce_confidence", 0) + 8)
+            except Exception:
+                opp["short_interest_shares"] = None
+                opp["short_days_to_cover"] = None
+                opp["short_pct_float"] = None
+                opp["squeeze_potential"] = False
+
+            # ── Dark pool proxy desde FINRA ──────────────────────────────────
+            finra_pct = finra_dark.get(ticker)
+            opp["finra_short_vol_pct"] = finra_pct
+            # > 60% = volumen bajista dominante en dark pool; < 40% = compradores dominan
+            if finra_pct is not None:
+                if finra_pct < 40:
+                    opp["dark_pool_signal"] = "ACCUMULATION"
+                    opp["bounce_signals"] = opp.get("bounce_signals", []) + [f"DP acumulación ({finra_pct:.0f}%)"]
+                    opp["bounce_confidence"] = min(100, opp.get("bounce_confidence", 0) + 8)
+                elif finra_pct > 60:
+                    opp["dark_pool_signal"] = "DISTRIBUTION"
+                else:
+                    opp["dark_pool_signal"] = "NEUTRAL"
+            else:
+                opp["dark_pool_signal"] = None
+
+            print(f"   ✅ {ticker}: PCR={opp.get('pcr')} | Short%={opp.get('short_pct_float')} | DP={opp.get('finra_short_vol_pct')} | conf={opp.get('bounce_confidence')}")
 
     def save_results(self, output_path: str = "docs/mean_reversion_opportunities.csv"):
         """Guarda resultados en CSV"""
