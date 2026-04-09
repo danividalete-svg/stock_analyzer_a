@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { fetchMeanReversion } from '../api/client'
 import StaleDataBanner from '../components/StaleDataBanner'
 import AiNarrativeCard from '../components/AiNarrativeCard'
@@ -410,9 +410,8 @@ export default function MeanReversion() {
             </TableHeader>
             <TableBody>
               {sorted.map((d, i) => (
-                <>
+                <React.Fragment key={d.ticker + i}>
                   <TableRow
-                    key={d.ticker + i}
                     data-row-idx={i}
                     className={`cursor-pointer transition-colors ${i === focusedIdx ? 'ring-1 ring-inset ring-primary/40 bg-primary/5' : ''}`}
                     onClick={() => { setFocusedIdx(i); setExpanded(expanded === d.ticker ? null : d.ticker) }}
@@ -510,7 +509,7 @@ export default function MeanReversion() {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </TableBody>
           </Table>
