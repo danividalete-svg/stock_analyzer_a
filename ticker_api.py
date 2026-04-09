@@ -2634,11 +2634,9 @@ Para options_strategy: sé específico — si recomiendas COVERED_CALL indica el
             messages=[{'role': 'user', 'content': prompt}],
             max_tokens=4096,
             temperature=0.25,
+            response_format={"type": "json_object"},
         )
         ai_text = resp.choices[0].message.content.strip()
-        m = _re.search(r'```(?:json)?\s*([\s\S]+?)\s*```', ai_text)
-        if m:
-            ai_text = m.group(1)
         ai_result = _json.loads(ai_text)
     except Exception:
         ai_result = None
@@ -2934,11 +2932,9 @@ RESPONDE EN JSON VÁLIDO (sin markdown, sin texto extra). Incluye instrucciones 
                     messages=[{'role': 'user', 'content': prompt}],
                     max_tokens=800,
                     temperature=0.2,
+                    response_format={"type": "json_object"},
                 )
                 ai_text = resp.choices[0].message.content.strip()
-                m = _re.search(r'```(?:json)?\s*([\s\S]+?)\s*```', ai_text)
-                if m:
-                    ai_text = m.group(1)
                 ai_recommendation = _json.loads(ai_text)
             except Exception:
                 ai_recommendation = None

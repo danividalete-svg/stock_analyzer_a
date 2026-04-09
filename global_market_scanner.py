@@ -468,6 +468,7 @@ Respond ONLY with valid JSON, no extra text:
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
             max_tokens=200,
+            response_format={"type": "json_object"},
         )
         raw = response.choices[0].message.content.strip()
         # Extract JSON even if wrapped in ```

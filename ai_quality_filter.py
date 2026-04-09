@@ -174,7 +174,8 @@ Respond ONLY with JSON:
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,
-            max_tokens=150
+            max_tokens=150,
+            response_format={"type": "json_object"},
         )
 
         result_text = response.choices[0].message.content.strip()

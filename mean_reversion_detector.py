@@ -398,8 +398,8 @@ Régimen de mercado actual: {regime_str}
 Setups a validar:
 {setups_text}
 
-Responde ÚNICAMENTE con un JSON array (sin texto adicional, sin markdown):
-[{{"ticker":"X","confirmation":"YES","confidence":85,"reason":"RSI extremo + soporte claro"}}, ...]
+Responde ÚNICAMENTE con JSON válido con esta estructura:
+{{"results": [{{"ticker":"X","confirmation":"YES","confidence":85,"reason":"RSI extremo + soporte claro"}}, ...]}}
 
 Reglas:
 - confirmation: "YES" si el setup es válido, "CAUTION" si hay dudas, "NO" si hay razones para evitarlo
@@ -415,23 +415,21 @@ Reglas:
                 messages=[{'role': 'user', 'content': prompt}],
                 max_tokens=600,
                 temperature=0.15,
+                response_format={"type": "json_object"},
             )
             raw = resp.choices[0].message.content.strip()
-            # Extract JSON array from response
-            start = raw.find('[')
-            end   = raw.rfind(']') + 1
-            if start >= 0 and end > start:
-                ai_results = json.loads(raw[start:end])
-                ai_map = {r['ticker']: r for r in ai_results if isinstance(r, dict)}
-                for opp in opportunities:
-                    ai = ai_map.get(opp['ticker'], {})
-                    opp['ai_confirmation'] = ai.get('confirmation', None)
-                    opp['ai_confidence']   = ai.get('confidence', None)
-                    opp['ai_reason']       = ai.get('reason', None)
-                print(f"  🤖 AI validó {len(ai_map)} setups ({sum(1 for o in batch if o.get('ai_confirmation')=='YES')} YES / "
-                      f"{sum(1 for o in batch if o.get('ai_confirmation')=='CAUTION')} CAUTION / "
-                      f"{sum(1 for o in batch if o.get('ai_confirmation')=='NO')} NO)")
-                return
+            parsed = json.loads(raw)
+            ai_results = parsed.get('results', [])
+            ai_map = {r['ticker']: r for r in ai_results if isinstance(r, dict)}
+            for opp in opportunities:
+                ai = ai_map.get(opp['ticker'], {})
+                opp['ai_confirmation'] = ai.get('confirmation', None)
+                opp['ai_confidence']   = ai.get('confidence', None)
+                opp['ai_reason']       = ai.get('reason', None)
+            print(f"  🤖 AI validó {len(ai_map)} setups ({sum(1 for o in batch if o.get('ai_confirmation')=='YES')} YES / "
+                  f"{sum(1 for o in batch if o.get('ai_confirmation')=='CAUTION')} CAUTION / "
+                  f"{sum(1 for o in batch if o.get('ai_confirmation')=='NO')} NO)")
+            return
         except Exception as e:
             print(f"  ⚠️  AI filter skipped: {e}")
 
