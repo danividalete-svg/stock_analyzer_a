@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom'
+import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
 import { LayoutDashboard, X, LogOut, ChevronDown } from 'lucide-react'
 import { ThemeProvider } from './context/ThemeContext'
 import { useAuth } from './context/AuthContext'
@@ -133,6 +133,7 @@ function SidebarContent({ onClose, onSignOut }: Readonly<{ onClose: () => void; 
 
 export default function App() {
   const { user, signOut } = useAuth()
+  const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [cmdOpen, setCmdOpen]         = useState(false)
   const close = () => setSidebarOpen(false)
@@ -215,7 +216,7 @@ export default function App() {
         {user && <TopBar onMenuClick={() => setSidebarOpen(o => !o)} onOpenCmd={openCmd} />}
         <ScrollToTop />
         <main className="flex-1 p-5 md:p-8 min-w-0" style={{ overflowX: 'clip' }}>
-          <ErrorBoundary>
+          <ErrorBoundary resetKey={location.pathname}>
           <Routes>
             {/* Public route */}
             <Route path="/login" element={<Login />} />

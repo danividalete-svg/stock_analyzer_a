@@ -1,13 +1,22 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react'
 
-interface Props { children: ReactNode }
-interface State { error: Error | null }
+interface Props { children: ReactNode; resetKey?: string }
+interface State { error: Error | null; resetKey: string }
 
 export default class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null }
+  state: State = { error: null, resetKey: '' }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { error }
+  }
+
+  // Auto-reset when user navigates to a different route
+  static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    const key = props.resetKey ?? ''
+    if (key !== state.resetKey) {
+      return { error: null, resetKey: key }
+    }
+    return null
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
