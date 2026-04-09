@@ -17,6 +17,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, date
 from typing import List, Dict, Tuple, Optional
 import json
+import math
 
 
 class MeanReversionDetector:
@@ -888,7 +889,10 @@ Reglas:
             json_safe = {}
             for k, v in r.items():
                 if isinstance(v, (np.integer, np.floating)):
-                    json_safe[k] = float(v)
+                    fv = float(v)
+                    json_safe[k] = None if math.isnan(fv) or math.isinf(fv) else fv
+                elif isinstance(v, float):
+                    json_safe[k] = None if math.isnan(v) or math.isinf(v) else v
                 elif isinstance(v, np.bool_):
                     json_safe[k] = bool(v)
                 else:
