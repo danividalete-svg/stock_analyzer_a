@@ -262,7 +262,8 @@ class MeanReversionDetector:
                 score += 20
 
             # Solo retornar si hay potencial real
-            if score < 50:
+            # RSI < 30 es REQUERIDO para Oversold Bounce (no solo bonus)
+            if score < 50 or not is_oversold:
                 return None
 
             # Bounce confidence score — señales adicionales de alta probabilidad
