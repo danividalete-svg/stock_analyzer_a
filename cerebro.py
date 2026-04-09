@@ -2078,6 +2078,30 @@ def generate_ticker_signals_csv(
 # DAILY ACTION PLAN — plan accionable del día con macro + VALUE + Groq AI
 # ══════════════════════════════════════════════════════════════════════════════
 
+_QUOTES = [
+    "El precio es lo que pagas. El valor es lo que obtienes. — Warren Buffett",
+    "El riesgo viene de no saber lo que estás haciendo. — Warren Buffett",
+    "En el corto plazo, el mercado es una máquina de votar. En el largo, una báscula. — Benjamin Graham",
+    "La bolsa es un mecanismo para transferir dinero de los impacientes a los pacientes. — Warren Buffett",
+    "Compra cuando haya sangre en las calles, aunque la sangre sea la tuya. — Nathan Rothschild",
+    "Los mercados pueden permanecer irracionales más tiempo del que tú puedes permanecer solvente. — Keynes",
+    "No busques la aguja. Compra el pajar. — John Bogle",
+    "El mayor riesgo es no tomar ninguno. — Peter Lynch",
+    "Es sencillo ser un inversor disciplinado, solo que no es fácil. — Charlie Munger",
+    "Invierte en lo que conoces. — Peter Lynch",
+    "El tiempo en el mercado supera al timing del mercado. — Ken Fisher",
+    "La volatilidad es el precio de la rentabilidad a largo plazo. — Howard Marks",
+    "Primero no pierdas. Segundo, no olvides la primera regla. — Warren Buffett",
+    "El mercado es el único negocio donde se vende más cuando sube el precio. — Warren Buffett",
+    "El éxito en inversión no lo logra el más listo, sino el más disciplinado. — Benjamin Graham",
+]
+
+def _pick_daily_quote() -> str:
+    import hashlib
+    day_hash = int(hashlib.md5(TODAY.encode()).hexdigest(), 16)
+    return _QUOTES[day_hash % len(_QUOTES)]
+
+
 def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squeeze: dict) -> dict:
     """
     Generates an actionable daily plan combining macro signals, VALUE picks,
@@ -2410,6 +2434,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=1200,
                 temperature=0.15,
+                response_format={"type": "json_object"},
             )
             raw_text = r.choices[0].message.content.strip()
 
@@ -2495,7 +2520,7 @@ def scan_daily_plan(exit_sigs: dict, value_traps: dict, smart_money: dict, squee
             value_en_entorno_razon=f"Tickers VALUE seleccionados para régimen {regime_name}.",
             evitar=[{"ticker": a["ticker"], "razon": a["razon"][:80]} for a in avoid_list[:5]],
             agenda_semana=agenda,
-            frase_del_dia="El precio es lo que pagas. El valor es lo que obtienes. — Warren Buffett",
+            frase_del_dia=_pick_daily_quote(),
             mensaje_telegram=(
                 f"🧠 CEREBRO {TODAY} | {regime_name} ({composite:+.1f}) | {sesgo} | "
                 f"VALUE: {top_tickers} | Evitar: {avoid_tickers}"
