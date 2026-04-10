@@ -398,6 +398,16 @@ export const fetchSectorRotation = () =>
 export const fetchOptionsFlow = () =>
   api.get('/api/options-flow')
 
+export const fetchUnusualFlow = async () => {
+  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
+  if (csvBase) {
+    const url = `${csvBase}/unusual_flow.json`
+    const res = await api.get(url, { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] })
+    return { data: res.data }
+  }
+  return api.get('/api/unusual-flow')
+}
+
 export const fetchMeanReversion = async () => {
   const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
   if (csvBase) {

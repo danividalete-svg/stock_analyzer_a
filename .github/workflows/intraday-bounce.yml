@@ -36,15 +36,22 @@ jobs:
           python3 intraday_bounce_scanner.py
           echo "exit_code=$?" >> $GITHUB_OUTPUT
 
-      - name: Commit alert log
-        if: steps.bounce.outputs.exit_code == '0'
+      - name: Run Unusual Flow Scanner
+        id: flow
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 unusual_flow_scanner.py --quick
+
+      - name: Commit results
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name  "GitHub Actions Bot"
-          git add docs/intraday_bounce_alerts.json 2>/dev/null || true
+          git add docs/intraday_bounce_alerts.json docs/unusual_flow.json docs/unusual_flow.csv 2>/dev/null || true
           git diff --cached --quiet && echo "Sin cambios" && exit 0
           TIMESTAMP=$(date -u +"%H:%M UTC")
-          git commit -m "chore: Bounce alert log — ${TIMESTAMP}"
+          git commit -m "chore: intraday scan — ${TIMESTAMP}"
           git fetch origin main && git rebase origin/main && git push || \
           (git rebase --abort 2>/dev/null || true; git fetch origin main && git rebase origin/main && git push) || \
           echo "Push failed after retry (concurrent update)"
