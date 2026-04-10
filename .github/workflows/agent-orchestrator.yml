@@ -1,0 +1,56 @@
+name: Agent Orchestrator
+
+on:
+  schedule:
+    # Corre a las 8, 14, 20, 2 UTC (cada 6h)
+    - cron: '0 8,14,20,2 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Forzar análisis aunque no haya issue'
+        required: false
+        default: 'false'
+      status_only:
+        description: 'Solo métricas, sin propuesta'
+        required: false
+        default: 'false'
+
+jobs:
+  orchestrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Agent Orchestrator
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO:        ${{ github.repository }}
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            FLAGS="$FLAGS --force"
+          fi
+          if [ "${{ github.event.inputs.status_only }}" = "true" ]; then
+            FLAGS="$FLAGS --status"
+          fi
+          python3 agent_orchestrator.py $FLAGS
+
+      - name: Save log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-log-${{ github.run_id }}
+          path: docs/agent_orchestrator_log.json
+          if-no-files-found: ignore
