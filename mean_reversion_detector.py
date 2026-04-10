@@ -245,13 +245,13 @@ class MeanReversionDetector:
 
             # Rechazo duro: si el precio ya rompió el soporte por más del 5%,
             # el soporte pasó a ser resistencia — no hay base técnica para el rebote
-            if distance_to_support < -5:
-                return None
+            if distance_to_support < -3:
+                return None  # soporte ya roto más del 3% — no hay suelo claro
 
             # Criterios de oversold bounce
             is_oversold = current_rsi < 30
             significant_dip = drawdown_pct < -20
-            near_support = -5 <= distance_to_support <= 5  # Dentro del 5% del soporte (arriba O abajo)
+            near_support = -3 <= distance_to_support <= 5  # precio puede estar hasta 3% bajo soporte
             volume_spike = volume_ratio > 1.2  # Volumen 20% mayor
 
             # Score de oportunidad (0-100)
@@ -271,10 +271,11 @@ class MeanReversionDetector:
                 return None
             if current_rsi == 0.0:
                 return None  # error de datos yfinance
-            if current_price < 1.00:
-                return None  # penny stock sin liquidez real (subimos a $1 mínimo)
-            if current_price < 5.00 and avg_volume_20d < 500_000:
-                return None  # micro-cap con volumen insuficiente para ejecutar
+            if current_price < 2.00:
+                return None  # demasiado cerca del umbral de delisting ($1) para bounce seguro
+            avg_dollar_volume = avg_volume_20d * current_price
+            if avg_dollar_volume < 1_000_000:
+                return None  # volumen en dólares insuficiente (<$1M/día) — spread y slippage inasumibles
             # Mínimo de confirmaciones técnicas: al menos 2 de los 4 pilares deben cumplirse
             # (near_support, significant_dip, stoch<30, below_bb ó connors)
             tech_confirmations = sum([
