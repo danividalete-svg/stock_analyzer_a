@@ -73,6 +73,9 @@ VIX_CRISIS            = 35.0    # VIX > 35 = deterioro macro serio
 SPY_SYSTEMIC_PCT      = -1.5    # SPY < -1.5% = caída sistémica
 MIN_HELD_HOURS        = 3.0     # no alertar < 3h desde apertura (trade necesita tiempo)
 COOLDOWN_HOURS        = 4       # misma posición no se alerta dos veces en 4h
+STALL_SESSIONS        = 5       # sesiones sin progreso → alerta de trade estancado
+STALL_MIN_PROGRESS    = 2.0     # % mínimo de avance para no considerar "estancado"
+SESSION_HOURS         = 6.5     # horas de mercado por sesión (aprox.)
 LOW_VOL_RATIO         = 0.70    # pullback con vol < 70% media = shakeout, no breakdown
 EXHAUSTION_WICK_MULT  = 2.5     # mecha inferior > 2.5× cuerpo = vela de exhaustion
 OPEX_NEAR_STRIKE_PCT  = 1.5     # precio dentro del 1.5% de un strike alto OI = pinning
@@ -680,6 +683,16 @@ def _assess_risk(
         context.append(f"Abierta hace {hours:.1f}h — demasiado pronto para evaluar")
         if risk_level == 'WATCH':
             risk_level = 'OK'
+
+    # Trade estancado: sin progreso en ≥5 sesiones = setup fallido, capital inmovilizado
+    # Solo aplica si está en ganancia leve o plano (no si ya está en pérdida — eso es otra amenaza)
+    sessions_held = hours / SESSION_HOURS
+    if sessions_held >= STALL_SESSIONS and 0 <= pct_entry < STALL_MIN_PROGRESS:
+        reasons.append(
+            f"Trade estancado: {sessions_held:.0f} sesiones sin avanzar ({pct_entry:+.1f}%) "
+            f"— setup fallido, considerar liberar capital"
+        )
+        risk_level = _level_up(risk_level, 'WATCH')
 
     return {
         'risk_level':    risk_level,

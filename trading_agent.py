@@ -394,6 +394,14 @@ def run_agent(port: int, dry_run: bool):
         print('  Mercados cerrados — nada que hacer.')
         return
 
+    # Filtro de ventana: primeros 30 min (9:30-10:00) y últimos 30 min (15:30-16:00) ET
+    # En esas franjas el spread bid/ask es 2-3x más ancho — entradas de baja calidad
+    if not dry_run:
+        et_frac = bt._now_et().hour + bt._now_et().minute / 60
+        if 9.5 <= et_frac < 10.0 or 15.5 <= et_frac <= 16.0:
+            print('  ⏸ Ventana apertura/cierre (spread elevado) — sin nuevas entradas.')
+            return
+
     # ── Load all signal sources ──────────────────────────────────────────────
     print('\n  Cargando señales multi-fuente...')
     flow_signals  = _load_flow_signals()

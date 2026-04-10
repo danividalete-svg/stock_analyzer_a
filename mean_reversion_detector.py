@@ -225,6 +225,16 @@ class MeanReversionDetector:
                 float(price5.iloc[-1]) < float(price5.iloc[0])   # precio baja
             )
 
+            # ── Divergencia alcista RSI: precio baja pero RSI sube ───────────────
+            # Significa que los vendedores pierden fuerza — 30% más fiable que RSI solo
+            rsi5_prev    = float(rsi.iloc[-6])         if len(rsi)  >= 6 else None
+            price5_prev  = float(hist['Close'].iloc[-6]) if len(hist) >= 6 else None
+            rsi_divergence = (
+                rsi5_prev is not None and price5_prev is not None
+                and current_price < price5_prev   # precio bajó en los últimos 5 días
+                and current_rsi   > rsi5_prev     # RSI subió (presión vendedora decrece)
+            )
+
             # ── Régimen de mercado ───────────────────────────────────────────────
             regime = self.get_market_regime()
             market_ok = regime.get('bounce_ok')  # True si SPY > MA50
@@ -277,6 +287,13 @@ class MeanReversionDetector:
             avg_dollar_volume = avg_volume_20d * current_price
             if avg_dollar_volume < 1_000_000:
                 return None  # volumen en dólares insuficiente (<$1M/día) — spread y slippage inasumibles
+            # Market cap mínimo $300M: micro-caps son manipulables y tienen spreads elevados
+            try:
+                market_cap = float(stock.fast_info.get('marketCap') or 0)
+                if 0 < market_cap < 300_000_000:
+                    return None
+            except Exception:
+                pass
             # Mínimo de confirmaciones técnicas: al menos 2 de los 4 pilares deben cumplirse
             # (near_support, significant_dip, stoch<30, below_bb ó connors)
             tech_confirmations = sum([
@@ -321,6 +338,15 @@ class MeanReversionDetector:
                     return None  # pánico extremo: oversold se resetea a más oversold
             except Exception:
                 vix_now = 0
+
+            # Rechazo duro: caída de noticias (>8% en un solo día en los últimos 5 días)
+            # Earnings miss, guidance cut, fraud — no es sobrevendido técnico, es cuchillo en caída
+            recent_daily_rets = [
+                (float(hist['Close'].iloc[i]) / float(hist['Close'].iloc[i - 1]) - 1) * 100
+                for i in range(-5, 0)
+            ]
+            if recent_daily_rets and min(recent_daily_rets) < -8.0:
+                return None  # evento de noticias reciente — no rebote técnico fiable
 
             # Bounce confidence score — señales adicionales de alta probabilidad
             # Basado en backtests: RSI(2) acumulado 83% win rate, RSI semanal +15-20%
@@ -378,6 +404,11 @@ class MeanReversionDetector:
                 bounce_confidence += 12
                 bounce_signals.append('Div. OBV alcista')
 
+            # Divergencia alcista RSI (vendedores perdiendo fuerza)
+            if rsi_divergence:
+                bounce_confidence += 10
+                bounce_signals.append('Div. RSI alcista')
+
             # Días bajistas consecutivos — cap en 10: más de 10 = tendencia bajista, no agotamiento
             if 3 <= consecutive_down <= 10:
                 bounce_confidence += 8
@@ -411,6 +442,10 @@ class MeanReversionDetector:
                 bounce_signals.append(f'⚠ VIX {vix_now:.0f}')
 
             bounce_confidence = min(100, bounce_confidence)
+
+            # Piso de confianza: setup demasiado débil tras penalizaciones → no mostrar
+            if bounce_confidence < 40:
+                return None
 
             # Stop basado en ATR: más preciso que % fijo (adapta a la volatilidad real)
             # Estructura: soporte - 1.5x ATR (academia y LuxAlgo)
@@ -472,6 +507,7 @@ class MeanReversionDetector:
                 'weekly_oversold': weekly_oversold,
                 'cum_rsi2': cum_rsi2,
                 'connors_signal': connors_signal,
+                'rsi_divergence': rsi_divergence,
                 'atr14': round(atr14, 2),
                 'hammer_candle': hammer_candle,
                 'engulfing_candle': engulfing_candle,
