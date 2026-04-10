@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, type ValueOpportunity } from '../api/client'
 import StaleDataBanner from '../components/StaleDataBanner'
@@ -200,9 +200,11 @@ export default function ValueUS() {
   const gradeB = filtered.filter(r => r.conviction_grade === 'B').length
   const bestUpside = Math.max(...filtered.map(r => r.analyst_upside_pct || 0), 0)
 
-  const sectorCounts: Record<string, number> = {}
-  sorted.forEach(d => { const s = d.sector || 'Unknown'; sectorCounts[s] = (sectorCounts[s] || 0) + 1 })
-  const concentrated = Object.entries(sectorCounts).filter(([, c]) => c >= 3)
+  const concentrated = useMemo(() => {
+    const counts: Record<string, number> = {}
+    sorted.forEach(d => { const s = d.sector || 'Unknown'; counts[s] = (counts[s] || 0) + 1 })
+    return Object.entries(counts).filter(([, c]) => c >= 3)
+  }, [sorted])
 
   const hiddenByTraps = hideTraps ? Object.values(cerebro.trapMap).filter(t => t.severity === 'HIGH').length : 0
   const hiddenByExits = hideExits ? rows.filter(r => cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT').length : 0

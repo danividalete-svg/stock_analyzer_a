@@ -273,7 +273,7 @@ export const fetchGlobalValueOpportunities = async (): Promise<{
     const data = rawRows.map(row => {
       const obj: Record<string, unknown> = {}
       for (const [k, v] of Object.entries(row)) {
-        if (GLOBAL_NUMERIC.has(k)) obj[k] = v === '' ? null : Number(v)
+        if (GLOBAL_NUMERIC.has(k)) { const n = v === '' ? null : Number(v); obj[k] = (n !== null && isNaN(n)) ? null : n }
         else if (k === 'buyback_active') obj[k] = v.toLowerCase() === 'true'
         else obj[k] = v === '' ? undefined : v
       }

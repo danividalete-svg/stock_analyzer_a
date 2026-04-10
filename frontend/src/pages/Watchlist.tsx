@@ -122,8 +122,10 @@ export default function Watchlist() {
   const watchlistTickers = new Set(entries.map(e => e.ticker.toUpperCase()))
 
   useEffect(() => {
+    let cancelled = false
     Promise.all([fetchValueOpportunities(), fetchEUValueOpportunities()])
       .then(([us, eu]) => {
+        if (cancelled) return
         const map: Record<string, LiveEntry> = {}
         for (const item of [...(us.data.data ?? []), ...(eu.data.data ?? [])]) {
           map[item.ticker] = { value_score: item.value_score, conviction_grade: item.conviction_grade }
@@ -131,6 +133,7 @@ export default function Watchlist() {
         setLiveMap(map)
       })
       .catch(() => {})
+    return () => { cancelled = true }
   }, [])
 
   const onSort = (key: keyof WatchlistEntry) => {
