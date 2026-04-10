@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-04-08",
   "macro_regime": "CALM",
-  "composite_score": 3.0,
+  "composite_score": 4.0,
   "sesgo": "NEUTRO",
   "confianza": 57,
   "situacion": "R\u00e9gimen STRESS, composite -2.5/30. 3 plays macro identificadas.",
@@ -35,17 +35,7 @@
       "invalidacion": "El tiempo trabaja en contra de VIX products \u2014 size m\u00e1ximo 1%"
     }
   ],
-  "macro_plays": [
-    {
-      "instrument": "XLP / XLV / XLU",
-      "direction": "LONG",
-      "thesis": "Cobre/Oro en p19 \u2014 mercado descontando desaceleraci\u00f3n, defensivos favorecidos",
-      "historical": "XLP supera S&P +12% en los 6m siguientes a Copper/Gold < p20",
-      "risk": "Rebote econ\u00f3mico revertir\u00eda rotaci\u00f3n",
-      "timeframe": "2-4 meses",
-      "score": 75
-    }
-  ],
+  "macro_plays": [],
   "macro_plays_commentary": "3 plays macro rule-based generadas sin IA.",
   "value_en_entorno": [],
   "value_en_entorno_razon": "Tickers VALUE seleccionados para r\u00e9gimen STRESS.",
@@ -67,5 +57,5 @@
   "frase_del_dia": "El precio es lo que pagas. El valor es lo que obtienes. \u2014 Warren Buffett",
   "mensaje_telegram": "\ud83e\udde0 CEREBRO 2026-04-08 | STRESS (-2.5) | NEUTRO | VALUE:  | Evitar: ",
   "ai_powered": false,
-  "intraday_refresh": "2026-04-09T21:39:46.470986"
+  "intraday_refresh": "2026-04-10T14:17:51.179699"
 }
