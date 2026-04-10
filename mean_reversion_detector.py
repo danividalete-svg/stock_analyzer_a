@@ -183,8 +183,9 @@ class MeanReversionDetector:
             # Señal: CumRSI(2) de los últimos 2 días < 10
             rsi2_series = self.calculate_rsi(hist['Close'], period=2)
             cum_rsi2 = round(float(rsi2_series.iloc[-1] + rsi2_series.iloc[-2]), 1) if len(rsi2_series) >= 2 else None
-            # < 35 = 88% win rate documentado en Connors (< 10 es demasiado selectivo)
-            connors_signal = cum_rsi2 is not None and cum_rsi2 < 35
+            # Connors Research: <10 = 83% win rate; <35 es demasiado amplio (~65%)
+            connors_signal = cum_rsi2 is not None and cum_rsi2 < 10
+            connors_weak   = cum_rsi2 is not None and 10 <= cum_rsi2 < 35
 
             # ── ATR(14) — para stop más preciso según volatilidad real ───────────
             high_low = hist['High'] - hist['Low']
@@ -287,12 +288,25 @@ class MeanReversionDetector:
             if tech_confirmations < 2:
                 return None  # setup demasiado débil — solo RSI bajo no es suficiente
 
-            # Rechazo duro: mínimo 52 semanas — en nuevos mínimos anuales no hay compradores
-            high_52w = float(hist['Close'].tail(252).max())
-            low_52w  = float(hist['Close'].tail(252).min())
+            # Rechazo duro: mínimo y máximo 52 semanas
+            # Usar fast_info para datos reales de 52 semanas (más fiable que tail(252) con solo 180d de hist)
+            try:
+                fi_52 = stock.fast_info
+                high_52w = float(fi_52.get('yearHigh') or hist['Close'].tail(252).max())
+                low_52w  = float(fi_52.get('yearLow')  or hist['Close'].tail(252).min())
+            except Exception:
+                high_52w = float(hist['Close'].tail(252).max())
+                low_52w  = float(hist['Close'].tail(252).min())
+
             near_52w_low = current_price <= low_52w * 1.03  # dentro del 3% del mínimo anual
             if near_52w_low:
                 return None  # no hay soporte histórico, setup de cuchillo cayendo
+
+            # Rechazo duro: caída >45% desde máximo anual = deterioro estructural
+            # (corrección técnica válida ≤ -40%; -45%+ = empresa con problemas reales)
+            drawdown_from_52w = (current_price - high_52w) / high_52w * 100
+            if drawdown_from_52w < -45:
+                return None  # declive estructural — no hay compradores naturales para rebote
 
             # Rechazo duro: earnings en ≤7 días = veto total (no penalty, veto)
             # En 1-3 días no puedes aguantar hasta earnings — la caída puede ser anticipatoria
@@ -328,11 +342,18 @@ class MeanReversionDetector:
             if weekly_oversold:
                 bounce_confidence += 20
                 bounce_signals.append(f'RSI semanal {rsi_weekly}')
+            elif rsi_tier == 'MEDIO' and rsi_weekly is not None and rsi_weekly >= 45:
+                # RSI diario 25-30 (señal débil) sin confirmación semanal = setup frágil
+                bounce_confidence -= 10
+                bounce_signals.append(f'⚠ RSI sem {rsi_weekly} (sin conf.)')
 
-            # Connors CumRSI(2) < 10 — 83% win rate documentado
-            if connors_signal:
+            # Connors CumRSI(2) — tiered (Connors Research)
+            if connors_signal:  # <10 = 83% win rate documentado
                 bounce_confidence += 20
                 bounce_signals.append(f'CumRSI2={cum_rsi2:.0f}')
+            elif connors_weak:  # 10-35 = señal moderada, sin el edge documentado
+                bounce_confidence += 8
+                bounce_signals.append(f'CumRSI2={cum_rsi2:.0f} (mod)')
 
             # Bollinger Band inferior
             if below_bb:
@@ -357,10 +378,13 @@ class MeanReversionDetector:
                 bounce_confidence += 12
                 bounce_signals.append('Div. OBV alcista')
 
-            # Días bajistas consecutivos
-            if consecutive_down >= 3:
+            # Días bajistas consecutivos — cap en 10: más de 10 = tendencia bajista, no agotamiento
+            if 3 <= consecutive_down <= 10:
                 bounce_confidence += 8
                 bounce_signals.append(f'{consecutive_down}d bajistas')
+            elif consecutive_down > 10:
+                bounce_confidence -= 5  # tendencia, no agotamiento
+                bounce_signals.append(f'⚠ {consecutive_down}d bajistas (tendencia)')
 
             # Volumen secándose
             if volume_drying:
@@ -487,6 +511,13 @@ class MeanReversionDetector:
                 return None
 
             current_price = hist['Close'].iloc[-1]
+
+            # Filtros básicos de liquidez — igual que oversold bounce
+            if current_price < 2.00:
+                return None
+            avg_dollar_volume_bf = hist['Volume'].tail(20).mean() * current_price
+            if avg_dollar_volume_bf < 1_000_000:
+                return None
 
             # Calcular medias móviles
             sma_50 = hist['Close'].rolling(window=50).mean().iloc[-1]
