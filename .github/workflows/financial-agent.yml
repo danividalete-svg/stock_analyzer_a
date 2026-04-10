@@ -1,0 +1,47 @@
+name: Financial Expert Agent
+
+on:
+  schedule:
+    # Briefing matutino: 8:30 AM ET (12:30 UTC) Lun-Vie
+    - cron: '30 12 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      flow_only:
+        description: 'Solo alertas de conflicto (sin briefing completo)'
+        required: false
+        default: 'false'
+      no_groq:
+        description: 'Sin análisis IA (más rápido)'
+        required: false
+        default: 'false'
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install pandas numpy yfinance requests
+
+      - name: Run Financial Agent
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.flow_only }}" = "true" ]; then
+            FLAGS="$FLAGS --flow-only"
+          fi
+          if [ "${{ github.event.inputs.no_groq }}" = "true" ]; then
+            FLAGS="$FLAGS --no-groq"
+          fi
+          python3 financial_agent.py $FLAGS

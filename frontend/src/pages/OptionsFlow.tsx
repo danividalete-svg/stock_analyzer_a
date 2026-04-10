@@ -15,6 +15,7 @@ interface TopContract {
   open_interest?: number
   vol_oi_ratio?: number
   last_price: number
+  last_trade_date?: string | null
   premium_usd: number
   iv?: number
   itm: boolean
@@ -102,6 +103,11 @@ function ContractRow({ c }: { c: TopContract }) {
       {c.iv != null && <span className="text-muted-foreground">IV {fmtIV(c.iv)}</span>}
       {c.speculative && <span className="text-yellow-400/80 font-semibold">⚡SWEEP</span>}
       {c.itm && <span className="text-muted-foreground/60">[ITM]</span>}
+      {c.last_trade_date && (
+        <span className="text-muted-foreground/50 ml-1">
+          {c.last_trade_date.includes('T') ? c.last_trade_date.slice(0, 16).replace('T', ' ') : c.last_trade_date}
+        </span>
+      )}
     </div>
   )
 }

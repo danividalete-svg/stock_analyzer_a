@@ -44,6 +44,15 @@ jobs:
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python3 unusual_flow_scanner.py --quick
 
+      - name: Financial Agent — conflict alerts
+        if: steps.flow.outcome == 'success'
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+        run: python3 financial_agent.py --flow-only
+
       - name: Commit results
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"

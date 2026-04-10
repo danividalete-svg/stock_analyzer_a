@@ -221,19 +221,26 @@ def analyze_ticker_options(ticker: str) -> Optional[dict]:
                         oi_yf  = int(row.get('openInterest', 0) or 0)
                         oi     = barchart_oi.get(sym, oi_yf) or oi_yf
                         vol_oi = round(vol / oi, 2) if oi > 0 else None
+                        # Last trade date — key to know if trade is fresh (today) vs old
+                        ltd_raw = row.get('lastTradeDate')
+                        try:
+                            ltd = pd.Timestamp(ltd_raw).strftime('%Y-%m-%d %H:%M') if ltd_raw else None
+                        except Exception:
+                            ltd = None
                         unusual_contracts.append({
-                            'side':        side,
-                            'strike':      _safe_float(row.get('strike')),
-                            'expiry':      exp_str,
-                            'dte':         dte,
-                            'volume':      vol,
-                            'open_interest': oi,
-                            'vol_oi_ratio': vol_oi,
-                            'last_price':  _safe_float(row.get('lastPrice')),
-                            'premium_usd': round(prem, 0),
-                            'iv':          round(iv, 3) if iv else None,
-                            'itm':         itm,
-                            'speculative': dte <= SPECULATIVE_DTE,
+                            'side':           side,
+                            'strike':         _safe_float(row.get('strike')),
+                            'expiry':         exp_str,
+                            'dte':            dte,
+                            'volume':         vol,
+                            'open_interest':  oi,
+                            'vol_oi_ratio':   vol_oi,
+                            'last_price':     _safe_float(row.get('lastPrice')),
+                            'last_trade_date': ltd,
+                            'premium_usd':    round(prem, 0),
+                            'iv':             round(iv, 3) if iv else None,
+                            'itm':            itm,
+                            'speculative':    dte <= SPECULATIVE_DTE,
                         })
 
             except Exception:
