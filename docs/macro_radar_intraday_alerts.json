@@ -232,5 +232,14 @@
     "delta": 0.5,
     "vix_spike": false,
     "oil_surge": false
+  },
+  {
+    "ts": "2026-04-10T18:00:43.574625",
+    "regime": "WATCH",
+    "prev_regime": "CALM",
+    "composite": 2.5,
+    "delta": 1.0,
+    "vix_spike": false,
+    "oil_surge": false
   }
 ]
