@@ -252,13 +252,18 @@ def analyze_ticker_options(ticker: str) -> Optional[dict]:
         # ── Precio actual y contexto de mercado (para interpretación) ─────────
         current_price  = None
         high_52w       = None
+        low_52w        = None
         drawdown_pct   = None
+        gain_from_low  = None
         try:
             fi = t.fast_info
             current_price = _safe_float(fi.get('lastPrice'))
             high_52w      = _safe_float(fi.get('yearHigh'))
+            low_52w       = _safe_float(fi.get('yearLow'))
             if current_price and high_52w and high_52w > 0:
                 drawdown_pct = round((current_price - high_52w) / high_52w * 100, 1)
+            if current_price and low_52w and low_52w > 0:
+                gain_from_low = round((current_price - low_52w) / low_52w * 100, 1)
         except Exception:
             pass
 
@@ -304,7 +309,7 @@ def analyze_ticker_options(ticker: str) -> Optional[dict]:
                     # Puts OTM = apuesta a caída desde nivel actual
                     flow_interpretation = 'FRESH_BEARISH'
                     interpretation_reason = (
-                        f"Puts OTM ({put_itm_pct:.0f}% bajo precio). "
+                        f"Puts OTM ({abs(put_itm_pct):.0f}% bajo precio). "
                         f"Apuesta nueva a caída desde nivel actual."
                     )
                 elif put_itm_pct > 3 and (drawdown_pct is None or drawdown_pct > -10):
@@ -315,16 +320,16 @@ def analyze_ticker_options(ticker: str) -> Optional[dict]:
                         f"{drawdown_pct:.0f}% desde máximos. Posición bajista activa."
                     )
 
-            elif raw_signal == 'BULLISH' and call_contracts and drawdown_pct is not None:
+            elif raw_signal == 'BULLISH' and call_contracts and current_price:
                 avg_call_strike = sum(c['strike'] for c in call_contracts) / len(call_contracts)
                 call_itm_pct    = (current_price - avg_call_strike) / current_price * 100
 
-                if call_itm_pct > 10 and drawdown_pct is not None and drawdown_pct > 20:
-                    # Calls profundamente ITM + acción muy subida = recogida de beneficios
+                if call_itm_pct > 10 and gain_from_low is not None and gain_from_low > 20:
+                    # Calls profundamente ITM + acción ya subida 20%+ desde mínimos = recogida de beneficios
                     flow_interpretation = 'CALL_COVERING'
                     interpretation_reason = (
                         f"Calls {call_itm_pct:.0f}% ITM con acción +"
-                        f"{drawdown_pct:.0f}% en el año. "
+                        f"{gain_from_low:.0f}% desde mínimos anuales. "
                         f"Posible recogida de beneficios en calls largas."
                     )
                 elif call_itm_pct < 0:

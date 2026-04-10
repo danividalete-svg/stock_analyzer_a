@@ -687,7 +687,7 @@ def _assess_risk(
     # Trade estancado: sin progreso en ≥5 sesiones = setup fallido, capital inmovilizado
     # Solo aplica si está en ganancia leve o plano (no si ya está en pérdida — eso es otra amenaza)
     sessions_held = hours / SESSION_HOURS
-    if sessions_held >= STALL_SESSIONS and 0 <= pct_entry < STALL_MIN_PROGRESS:
+    if hours < 999.0 and sessions_held >= STALL_SESSIONS and 0 <= pct_entry < STALL_MIN_PROGRESS:
         reasons.append(
             f"Trade estancado: {sessions_held:.0f} sesiones sin avanzar ({pct_entry:+.1f}%) "
             f"— setup fallido, considerar liberar capital"

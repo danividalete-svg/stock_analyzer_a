@@ -254,7 +254,7 @@ def detect_crosssignals(signals: dict) -> dict:
         in_bounce = ticker in bounce_tickers
         in_value  = ticker in value_tickers
 
-        interp = flow.get('signal_interpretation', flow.get('flow_interpretation', ''))
+        interp = flow.get('flow_interpretation', '')
         drawdown = flow.get('drawdown_from_high_pct')
 
         if sig == 'BEARISH' and call_pct < 30:

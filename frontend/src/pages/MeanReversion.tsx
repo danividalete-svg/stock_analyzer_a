@@ -102,10 +102,10 @@ export default function MeanReversion() {
   if (Array.isArray(raw?.opportunities)) items = raw.opportunities as MRItem[]
   else if (Array.isArray(raw?.data)) items = raw.data as MRItem[]
 
-  // Filtro de seguridad: ocultar setups donde el precio ya rompió el soporte por >10%
-  // (entry zone y stop quedarían por encima del precio actual → setup inválido)
+  // Filtro de seguridad: ocultar setups donde el precio ya rompió el soporte (>3% bajo)
+  // El scanner ya filtra en backend, pero como segunda línea de defensa en el frontend
   const validItems = items.filter(i =>
-    i.distance_to_support_pct == null || i.distance_to_support_pct >= -10
+    i.distance_to_support_pct == null || i.distance_to_support_pct >= -3
   )
 
   const filtered = filterQuality === ''
@@ -145,7 +145,7 @@ export default function MeanReversion() {
     count: validItems.filter(i => qualMatch(i.quality, ql.match)).length,
   }))
   const bestScore = filtered.length ? Math.max(...filtered.map(i => i.reversion_score || 0)) : 0
-  const bestTicker = filtered.find(i => i.reversion_score === bestScore)?.ticker
+  const bestTicker = filtered.find(i => (i.reversion_score || 0) >= bestScore - 0.001)?.ticker
 
   return (
     <>
