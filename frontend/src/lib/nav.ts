@@ -19,6 +19,7 @@ export const NAV_PRIMARY: NavLinkItem[] = [
   { path: '/macro-radar',    icon: Radar,           label: 'Macro Radar',    color: '#e11d48', keywords: ['macro', 'radar', 'economía'] },
   { path: '/macro-countries', icon: Globe,          label: 'Macro Países',   color: '#06b6d4', keywords: ['macro', 'países', 'pib', 'global', 'economía', 'country'] },
   { path: '/insiders',       icon: Users,           label: 'Insiders',       color: '#8b5cf6', keywords: ['insiders', 'directivos', 'compras'] },
+  { path: '/confluencia',    icon: GitCompare,      label: 'Confluencia',    color: '#22c55e', tag: '🎯', keywords: ['confluencia', 'convergencia', 'señales', 'alineado', 'conviction'] },
   { path: '/bounce',         icon: Crosshair,       label: 'Bounce Trader',  color: '#f97316', tag: '⚡', keywords: ['bounce', 'rebote', 'corto plazo', 'oversold', 'rsi extremo'] },
   { path: '/my-portfolio',   icon: Wallet,          label: 'Mi Cartera',     color: '#10b981', keywords: ['mis posiciones', 'personal', 'posiciones', 'mi cartera'] },
   { path: '/search',         icon: Search,          label: 'Buscar Ticker',  color: '#94a3b8', keywords: ['buscar', 'ticker', 'search', 'analisis'] },

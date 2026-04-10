@@ -47,6 +47,7 @@ import MacroCalendar from './pages/MacroCalendar'
 import TechnicalSignals from './pages/TechnicalSignals'
 import CatalystCalendar from './pages/CatalystCalendar'
 import BounceTrader from './pages/BounceTrader'
+import Confluencia from './pages/Confluencia'
 
 function NavItem({ item, onClose }: { item: (typeof NAV_PRIMARY)[0]; onClose: () => void }) {
   return (
@@ -232,6 +233,7 @@ export default function App() {
               <Route path="/momentum"       element={<Momentum />} />
               <Route path="/insiders"       element={<Insiders />} />
               <Route path="/options"        element={<OptionsFlow />} />
+              <Route path="/confluencia"   element={<Confluencia />} />
               <Route path="/mean-reversion" element={<MeanReversion />} />
               <Route path="/sectors"        element={<SectorRotation />} />
               <Route path="/portfolio"      element={<Portfolio />} />
