@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-10T20:37:32.868012",
+  "timestamp": "2026-04-10T21:19:46.018979",
   "date": "2026-04-10",
   "intraday_update": true,
   "regime": {
@@ -40,11 +40,11 @@
     },
     "copper_gold": {
       "current": 0.0134,
-      "percentile": 29.7,
+      "percentile": 30.4,
       "score": -1,
-      "change_5d": 3.5,
-      "change_20d": 7.5,
-      "interpretation": "Cobre/Oro en p30, subiendo (+3.5% 5d)",
+      "change_5d": 3.6,
+      "change_20d": 7.6,
+      "interpretation": "Cobre/Oro en p30, subiendo (+3.6% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
     },
@@ -79,22 +79,22 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 98.68,
-      "percentile": 43.7,
+      "current": 98.7,
+      "percentile": 44.8,
       "score": 1,
-      "change_5d": -1.35,
-      "change_20d": -1.07,
+      "change_5d": -1.33,
+      "change_20d": -1.04,
       "interpretation": "DXY 98.7 (rango neutro)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 159.3,
+      "current": 159.24,
       "percentile": 96.5,
       "score": 1,
-      "change_5d": -0.12,
-      "change_20d": 0.06,
-      "interpretation": "USD/JPY 159.3 (yen debil (risk-on))",
+      "change_5d": -0.15,
+      "change_20d": 0.02,
+      "interpretation": "USD/JPY 159.2 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
     },
@@ -111,11 +111,11 @@
       "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
     },
     "skew": {
-      "current": 143.27,
-      "percentile": 40.7,
+      "current": 144.18,
+      "percentile": 47.5,
       "score": -1.5,
-      "change_5d": -0.3,
-      "interpretation": "SKEW 143 (alta demanda put OTM)",
+      "change_5d": -1.9,
+      "interpretation": "SKEW 144 (alta demanda put OTM)",
       "label": "SKEW Index (Tail Risk)",
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
