@@ -219,12 +219,16 @@ def load_all_signals() -> dict:
                 if age_h > 4:
                     continue
             signals['unusual_flow'].append({
-                'ticker':  r['ticker'],
-                'signal':  r['signal'],
-                'call_pct': r.get('call_pct', 50),
-                'premium': r.get('total_premium', 0),
-                'score':   r.get('unusual_score', 0),
-                'sweeps':  [c for c in r.get('top_contracts', []) if c.get('speculative')],
+                'ticker':               r['ticker'],
+                'signal':               r['signal'],
+                'flow_interpretation':  r.get('flow_interpretation', 'STANDARD'),
+                'interpretation_reason': r.get('interpretation_reason', ''),
+                'drawdown_from_high_pct': r.get('drawdown_from_high_pct'),
+                'current_price':        r.get('current_price'),
+                'call_pct':             r.get('call_pct', 50),
+                'premium':              r.get('total_premium', 0),
+                'score':                r.get('unusual_score', 0),
+                'sweeps':               [c for c in r.get('top_contracts', []) if c.get('speculative')],
             })
 
     return signals
@@ -250,12 +254,23 @@ def detect_crosssignals(signals: dict) -> dict:
         in_bounce = ticker in bounce_tickers
         in_value  = ticker in value_tickers
 
+        interp = flow.get('signal_interpretation', flow.get('flow_interpretation', ''))
+        drawdown = flow.get('drawdown_from_high_pct')
+
         if sig == 'BEARISH' and call_pct < 30:
-            if in_bounce or in_value:
+            # PUT_COVERING no es conflicto real — es recogida de beneficios
+            if interp == 'PUT_COVERING':
+                confirmations.append({
+                    'ticker':  ticker,
+                    'reason':  f'Puts recogiendo beneficios ({drawdown:.0f}% desde máx) — posible suelo',
+                    'premium': prem,
+                    'call_pct': call_pct,
+                })
+            elif in_bounce or in_value:
                 reason = 'bounce' if in_bounce else 'value pick'
                 conflicts.append({
                     'ticker':  ticker,
-                    'reason':  f'{reason} con PUT sweep (${prem/1e6:.1f}M)',
+                    'reason':  f'{reason} con PUT sweep nuevo (${prem/1e6:.1f}M)',
                     'premium': prem,
                     'call_pct': call_pct,
                     'severity': 'HIGH' if prem > 100_000 else 'MEDIUM',
@@ -339,7 +354,12 @@ def groq_briefing(signals: dict, cross: dict, news: dict[str, list]) -> Optional
         *[f"  {s['ticker']}: score={s['score']}, {s['grade']}, {s['sector']}" for s in signals['value_us'][:5]],
         "",
         f"UNUSUAL FLOW ({len(signals['unusual_flow'])} tickers activos):",
-        *[f"  {f['ticker']}: {f['signal']} ${f['premium']/1e3:.0f}K calls={f['call_pct']:.0f}%" for f in signals['unusual_flow'][:8]],
+        *[
+            f"  {f['ticker']}: {f['signal']} ${f['premium']/1e3:.0f}K calls={f['call_pct']:.0f}%"
+            f"{' [PUT_COVERING -' + str(abs(round(f.get('drawdown_from_high_pct',0)))) + '%máx]' if f.get('flow_interpretation') == 'PUT_COVERING' else ''}"
+            f"{' [FRESH_BEARISH]' if f.get('flow_interpretation') == 'FRESH_BEARISH' else ''}"
+            for f in signals['unusual_flow'][:8]
+        ],
     ]
 
     if cross['conflicts']:

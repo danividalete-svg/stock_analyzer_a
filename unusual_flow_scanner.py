@@ -249,20 +249,92 @@ def analyze_ticker_options(ticker: str) -> Optional[dict]:
         if total_call_premium == 0 and total_put_premium == 0:
             return None
 
+        # ── Precio actual y contexto de mercado (para interpretación) ─────────
+        current_price  = None
+        high_52w       = None
+        drawdown_pct   = None
+        try:
+            fi = t.fast_info
+            current_price = _safe_float(fi.get('lastPrice'))
+            high_52w      = _safe_float(fi.get('yearHigh'))
+            if current_price and high_52w and high_52w > 0:
+                drawdown_pct = round((current_price - high_52w) / high_52w * 100, 1)
+        except Exception:
+            pass
+
         # Top contratos por premium
         top_contracts = sorted(unusual_contracts, key=lambda x: x['premium_usd'], reverse=True)[:TOP_N_PER_TICKER]
 
-        # Señal direccional
+        # Señal direccional bruta
         net = total_call_premium - total_put_premium
         total_premium = total_call_premium + total_put_premium
         call_pct = total_call_premium / total_premium * 100 if total_premium > 0 else 50
 
         if call_pct >= 65:
-            signal = 'BULLISH'
+            raw_signal = 'BULLISH'
         elif call_pct <= 35:
-            signal = 'BEARISH'
+            raw_signal = 'BEARISH'
         else:
-            signal = 'MIXED'
+            raw_signal = 'MIXED'
+
+        # ── Interpretación contextual ─────────────────────────────────────────
+        # Puts muy ITM + acción ya caída mucho = probable profit-taking, no apuesta nueva
+        # Calls muy ITM + acción ya subida mucho = probable cierre de calls largas
+        flow_interpretation = 'STANDARD'
+        interpretation_reason = ''
+
+        if current_price and top_contracts:
+            put_contracts  = [c for c in top_contracts if c['side'] == 'PUT']
+            call_contracts = [c for c in top_contracts if c['side'] == 'CALL']
+
+            if raw_signal == 'BEARISH' and put_contracts and drawdown_pct is not None:
+                avg_put_strike = sum(c['strike'] for c in put_contracts) / len(put_contracts)
+                put_itm_pct    = (avg_put_strike - current_price) / current_price * 100
+
+                if put_itm_pct > 10 and drawdown_pct < -15:
+                    # Puts profundamente ITM + acción ya cayó mucho = recogida de beneficios
+                    flow_interpretation = 'PUT_COVERING'
+                    interpretation_reason = (
+                        f"Puts {put_itm_pct:.0f}% ITM con acción ya -"
+                        f"{abs(drawdown_pct):.0f}% desde máximos. "
+                        f"Probable recogida de beneficios, no apuesta bajista nueva. "
+                        f"Posible zona de suelo."
+                    )
+                elif put_itm_pct < 0:
+                    # Puts OTM = apuesta a caída desde nivel actual
+                    flow_interpretation = 'FRESH_BEARISH'
+                    interpretation_reason = (
+                        f"Puts OTM ({put_itm_pct:.0f}% bajo precio). "
+                        f"Apuesta nueva a caída desde nivel actual."
+                    )
+                elif put_itm_pct > 3 and (drawdown_pct is None or drawdown_pct > -10):
+                    # Puts ITM pero acción no ha caído mucho = hedging o bajista
+                    flow_interpretation = 'FRESH_BEARISH'
+                    interpretation_reason = (
+                        f"Puts {put_itm_pct:.0f}% ITM pero acción solo "
+                        f"{drawdown_pct:.0f}% desde máximos. Posición bajista activa."
+                    )
+
+            elif raw_signal == 'BULLISH' and call_contracts and drawdown_pct is not None:
+                avg_call_strike = sum(c['strike'] for c in call_contracts) / len(call_contracts)
+                call_itm_pct    = (current_price - avg_call_strike) / current_price * 100
+
+                if call_itm_pct > 10 and drawdown_pct is not None and drawdown_pct > 20:
+                    # Calls profundamente ITM + acción muy subida = recogida de beneficios
+                    flow_interpretation = 'CALL_COVERING'
+                    interpretation_reason = (
+                        f"Calls {call_itm_pct:.0f}% ITM con acción +"
+                        f"{drawdown_pct:.0f}% en el año. "
+                        f"Posible recogida de beneficios en calls largas."
+                    )
+                elif call_itm_pct < 0:
+                    flow_interpretation = 'FRESH_BULLISH'
+                    interpretation_reason = (
+                        f"Calls OTM ({abs(call_itm_pct):.0f}% sobre precio). "
+                        f"Apuesta nueva alcista desde nivel actual."
+                    )
+
+        signal = raw_signal  # La señal bruta no cambia, la interpretación es el contexto
 
         # IV media
         avg_iv = float(np.mean(iv_samples)) if iv_samples else None
@@ -278,21 +350,25 @@ def analyze_ticker_options(ticker: str) -> Optional[dict]:
             )))
 
         return {
-            'ticker':               ticker,
-            'signal':               signal,
-            'call_pct':             round(call_pct, 1),
-            'total_call_premium':   round(total_call_premium, 0),
-            'total_put_premium':    round(total_put_premium, 0),
-            'total_premium':        round(total_premium, 0),
-            'net_premium':          round(net, 0),
-            'total_call_volume':    total_call_volume,
-            'total_put_volume':     total_put_volume,
-            'avg_iv':               round(avg_iv, 3) if avg_iv else None,
-            'unusual_score':        unusual_score,
-            'top_contracts':        top_contracts,
-            'has_large_premium':    max_single >= LARGE_PREMIUM_USD,
-            'max_single_premium':   round(max_single, 0),
-            'detected_at':          datetime.now(timezone.utc).isoformat(),
+            'ticker':                ticker,
+            'signal':                signal,
+            'flow_interpretation':   flow_interpretation,
+            'interpretation_reason': interpretation_reason,
+            'current_price':         current_price,
+            'drawdown_from_high_pct': drawdown_pct,
+            'call_pct':              round(call_pct, 1),
+            'total_call_premium':    round(total_call_premium, 0),
+            'total_put_premium':     round(total_put_premium, 0),
+            'total_premium':         round(total_premium, 0),
+            'net_premium':           round(net, 0),
+            'total_call_volume':     total_call_volume,
+            'total_put_volume':      total_put_volume,
+            'avg_iv':                round(avg_iv, 3) if avg_iv else None,
+            'unusual_score':         unusual_score,
+            'top_contracts':         top_contracts,
+            'has_large_premium':     max_single >= LARGE_PREMIUM_USD,
+            'max_single_premium':    round(max_single, 0),
+            'detected_at':           datetime.now(timezone.utc).isoformat(),
         }
 
     except Exception:

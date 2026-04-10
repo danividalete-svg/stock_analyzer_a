@@ -25,6 +25,10 @@ interface TopContract {
 interface FlowResult {
   ticker: string
   signal: 'BULLISH' | 'BEARISH' | 'MIXED'
+  flow_interpretation?: string
+  interpretation_reason?: string
+  current_price?: number
+  drawdown_from_high_pct?: number
   call_pct: number
   total_call_premium: number
   total_put_premium: number
@@ -84,6 +88,38 @@ function CallPutBar({ callPct }: { callPct: number }) {
         {' / '}
         <span className="text-red-400/80">{putPct.toFixed(0)}P</span>
       </span>
+    </div>
+  )
+}
+
+function InterpretationBadge({ interp, reason, drawdown }: {
+  interp?: string
+  reason?: string
+  drawdown?: number
+}) {
+  if (!interp || interp === 'STANDARD') return null
+
+  const cfg: Record<string, { label: string; cls: string; icon: string }> = {
+    PUT_COVERING:  { label: 'Recogida Puts',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', icon: '🔄' },
+    CALL_COVERING: { label: 'Recogida Calls', cls: 'bg-orange-500/15 text-orange-300 border-orange-500/30',   icon: '🔄' },
+    FRESH_BEARISH: { label: 'Bajista Nuevo',  cls: 'bg-red-500/15 text-red-300 border-red-500/30',            icon: '🆕' },
+    FRESH_BULLISH: { label: 'Alcista Nuevo',  cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30', icon: '🆕' },
+  }
+  const c = cfg[interp]
+  if (!c) return null
+
+  const drawdownStr = drawdown != null ? ` · ${drawdown.toFixed(0)}% vs máx` : ''
+
+  return (
+    <div className="group relative inline-flex">
+      <span className={`inline-flex items-center gap-1 text-[0.62rem] font-bold px-1.5 py-0.5 rounded border cursor-help ${c.cls}`}>
+        {c.icon} {c.label}{drawdownStr}
+      </span>
+      {reason && (
+        <div className="absolute bottom-full left-0 mb-1.5 z-50 w-64 p-2.5 rounded-lg bg-popover border border-border/60 shadow-xl text-[0.65rem] text-muted-foreground leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          {reason}
+        </div>
+      )}
     </div>
   )
 }
@@ -224,7 +260,14 @@ export default function OptionsFlow() {
                 <TickerLogo ticker={r.ticker} size="xs" />
                 <span className="font-mono font-bold text-sm text-primary">{r.ticker}</span>
               </div>
-              <SignalBadge signal={r.signal} />
+              <div className="flex flex-col items-end gap-1">
+                <SignalBadge signal={r.signal} />
+                <InterpretationBadge
+                  interp={r.flow_interpretation}
+                  reason={r.interpretation_reason}
+                  drawdown={r.drawdown_from_high_pct}
+                />
+              </div>
             </div>
             <div className="flex items-center justify-between mb-2">
               <CallPutBar callPct={r.call_pct} />
@@ -267,7 +310,16 @@ export default function OptionsFlow() {
                         {r.has_large_premium && <span className="text-yellow-400 text-[0.6rem]">⚡</span>}
                       </div>
                     </TableCell>
-                    <TableCell><SignalBadge signal={r.signal} /></TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <SignalBadge signal={r.signal} />
+                        <InterpretationBadge
+                          interp={r.flow_interpretation}
+                          reason={r.interpretation_reason}
+                          drawdown={r.drawdown_from_high_pct}
+                        />
+                      </div>
+                    </TableCell>
                     <TableCell><CallPutBar callPct={r.call_pct} /></TableCell>
                     <TableCell className="tabular-nums font-semibold">{fmtPremium(r.total_premium)}</TableCell>
                     <TableCell className="tabular-nums text-muted-foreground">{fmtPremium(r.max_single_premium)}</TableCell>
