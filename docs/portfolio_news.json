@@ -1,37 +1,17 @@
 {
   "scan_date": "2026-04-10",
-  "scan_time": "12:50",
+  "scan_time": "18:40",
   "tickers": [
     "UNH",
     "PRU",
     "IP",
     "WYY"
   ],
-  "count": 16,
+  "count": 15,
   "alta_count": 6,
-  "media_count": 5,
-  "new_alerts": 0,
+  "media_count": 4,
+  "new_alerts": 3,
   "items": [
-    {
-      "id": "81f4fd81-9e68-3f8d-9e69-23171551c392",
-      "ticker": "IP",
-      "title": "International Paper's Q1 2026 Earnings: What to Expect",
-      "source": "Barchart",
-      "pub_date": "2026-04-08T15:15:36Z",
-      "time_ago": "hace 1d",
-      "url": "https://www.barchart.com/story/news/1200916/international-paper-s-q1-2026-earnings-what-to-expect",
-      "importance": "ALTA"
-    },
-    {
-      "id": "c6208d12-dd55-32e4-8231-799dff5d5165",
-      "ticker": "UNH",
-      "title": "Warren Buffett bought 5M UnitedHealth shares as it tanked. A $13B Medicare boosted it. Was he right?",
-      "source": "Moneywise",
-      "pub_date": "2026-04-09T11:05:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/sectors/healthcare/articles/warren-buffett-bought-5m-unitedhealth-110500600.html",
-      "importance": "ALTA"
-    },
     {
       "id": "c4a1f303-a743-33dc-b91b-f9bb4c902039",
       "ticker": "PRU",
@@ -48,7 +28,7 @@
       "title": "These 2 Medical Stocks Could Beat Earnings: Why They Should Be on Your Radar",
       "source": "Zacks",
       "pub_date": "2026-04-09T13:00:04Z",
-      "time_ago": "hace 23h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/2-medical-stocks-could-beat-130004677.html",
       "importance": "ALTA"
     },
@@ -58,7 +38,7 @@
       "title": "Trump Administration Finalizes 2.48% Medicare Advantage Payment Hike For 2027, Sending Insurer Stocks Surging",
       "source": "Benzinga",
       "pub_date": "2026-04-09T21:31:32Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 21h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/trump-administration-finalizes-2-48-213132360.html",
       "importance": "ALTA"
     },
@@ -68,19 +48,29 @@
       "title": "A Look At UnitedHealth Group (UNH) Valuation After The Medicare Advantage Payment Increase",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-09T22:14:54Z",
-      "time_ago": "hace 14h",
+      "time_ago": "hace 20h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/look-unitedhealth-group-unh-valuation-221454367.html",
       "importance": "ALTA"
     },
     {
-      "id": "b36be5d5-0cec-3ca2-ac3f-ea47efe6d012",
+      "id": "2f21028d-a7ed-3b33-93fc-9d462af10aad",
       "ticker": "UNH",
-      "title": "Analysts Remain Confident in UnitedHealth (UNH)’s Growth Initiatives Outside of Its Main Insurance Operations",
-      "source": "Insider Monkey",
-      "pub_date": "2026-04-08T14:23:48Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/sectors/healthcare/articles/analysts-remain-confident-unitedhealth-unh-142348704.html",
-      "importance": "MEDIA"
+      "title": "Can UnitedHealth Ease Margin Pressure on CMS Tailwinds?",
+      "source": "Zacks",
+      "pub_date": "2026-04-10T15:10:00Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-ease-margin-pressure-cms-151000973.html",
+      "importance": "ALTA"
+    },
+    {
+      "id": "01ea58cf-1512-3829-823d-bfb5ec6100f1",
+      "ticker": "UNH",
+      "title": "UnitedHealth Jumps 10% As 2.48% Medicare Rate Increase Lifts Outlook",
+      "source": "GuruFocus.com",
+      "pub_date": "2026-04-10T18:32:27Z",
+      "time_ago": "hace 8min",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-jumps-10-2-48-183227011.html",
+      "importance": "ALTA"
     },
     {
       "id": "cd622a0a-c799-3b68-b149-d92840d91c96",
@@ -103,44 +93,24 @@
       "importance": "MEDIA"
     },
     {
-      "id": "c5a3a93c-c61b-3b46-8092-a29a8c6e50fb",
-      "ticker": "UNH",
-      "title": "The Zacks Analyst Blog Highlights Procter & Gamble, Toyota Motor, UnitedHealth, Community Bancorp and Bank of the James Financial",
-      "source": "Zacks",
-      "pub_date": "2026-04-09T12:28:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/zacks-analyst-blog-highlights-procter-122800042.html",
-      "importance": "MEDIA"
-    },
-    {
       "id": "542dc828-16a5-36c0-a24a-e8857f225e84",
       "ticker": "UNH",
       "title": "Top Analyst Resets UnitedHealth Stock Price Target",
       "source": "GuruFocus.com",
       "pub_date": "2026-04-09T13:36:09Z",
-      "time_ago": "hace 23h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/top-analyst-resets-unitedhealth-stock-133609418.html",
       "importance": "MEDIA"
     },
     {
-      "id": "857bfc73-96d2-32c9-afe3-289725fd5405",
+      "id": "8de0eed4-30f5-3a8c-8cbc-67b6207b208c",
       "ticker": "PRU",
-      "title": "RDN Stock Near 52-Week High: Time to Add it for Better Returns?",
-      "source": "Zacks",
-      "pub_date": "2026-04-08T14:21:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/rdn-stock-near-52-week-142100505.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "d9e39f01-dcd0-3877-adaf-93b915fe7590",
-      "ticker": "UNH",
-      "title": "Top Stock Reports for Procter & Gamble, Toyota & UnitedHealth",
-      "source": "Zacks",
-      "pub_date": "2026-04-08T20:48:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/top-stock-reports-procter-gamble-204800072.html",
-      "importance": "BAJA"
+      "title": "Japan Scrutiny Tests Prudential Financial’s Governance And Japan Profit Engine",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-10T16:10:17Z",
+      "time_ago": "hace 2h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/japan-scrutiny-tests-prudential-financial-161017339.html",
+      "importance": "MEDIA"
     },
     {
       "id": "373de930-606a-3a7a-b487-78cabba6ce16",
@@ -148,7 +118,7 @@
       "title": "UnitedHealth Group Incorporated (UNH) is Attracting Investor Attention: Here is What You Should Know",
       "source": "Zacks",
       "pub_date": "2026-04-09T13:00:03Z",
-      "time_ago": "hace 23h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/unitedhealth-group-incorporated-unh-attracting-130003986.html",
       "importance": "BAJA"
     },
@@ -158,7 +128,7 @@
       "title": "3 Mid-Cap Stocks We’re Skeptical Of",
       "source": "StockStory",
       "pub_date": "2026-04-09T13:57:47Z",
-      "time_ago": "hace 22h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/3-mid-cap-stocks-skeptical-135747486.html",
       "importance": "BAJA"
     },
@@ -168,8 +138,28 @@
       "title": "Dear UnitedHealth Stock Fans, Mark Your Calendars for April 21",
       "source": "Barchart",
       "pub_date": "2026-04-09T18:03:30Z",
-      "time_ago": "hace 18h",
+      "time_ago": "hace 1d",
       "url": "https://www.barchart.com/story/news/1227275/dear-unitedhealth-stock-fans-mark-your-calendars-for-april-21",
+      "importance": "BAJA"
+    },
+    {
+      "id": "73cd7fb7-3a83-3249-8260-5b861ed3f2da",
+      "ticker": "UNH",
+      "title": "Stock Market Rally Revs Higher On Iran Ceasefire; Amazon, AI Names In Focus: Weekly Review",
+      "source": "Investor's Business Daily",
+      "pub_date": "2026-04-10T15:54:54Z",
+      "time_ago": "hace 2h",
+      "url": "https://www.investors.com/news/stock-market-rally-iran-ceasefire-amazon-ai-names/?src=A00220&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "a46d679b-31bb-3ea8-8c73-ca5d338edeb1",
+      "ticker": "UNH",
+      "title": "2 Hedge‑Fund Favorites That Just Got Too Cheap to Ignore",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-10T16:14:06Z",
+      "time_ago": "hace 2h",
+      "url": "https://247wallst.com/investing/2026/04/10/2-hedge%e2%80%91fund-favorites-that-just-got-too-cheap-to-ignore/",
       "importance": "BAJA"
     }
   ]
