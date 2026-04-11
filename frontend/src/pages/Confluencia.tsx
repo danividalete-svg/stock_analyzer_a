@@ -213,9 +213,14 @@ export default function Confluencia() {
       .sort((a, b) => b.score - a.score)
   }, [mrRaw, flowRaw, valueUsRows, valueEuRows])
 
-  const tier3  = confluence.filter(t => t.score >= 7)
-  const tier2  = confluence.filter(t => t.score >= 4 && t.score < 7)
-  const tier1  = confluence.filter(t => t.score < 4)
+  // Only show tickers with ≥2 systems aligned, max 10 (highest conviction first)
+  const highConviction = confluence.filter(t => t.score >= 4).slice(0, 10)
+  const midConviction  = confluence.filter(t => t.score >= 2 && t.score < 4).slice(0, 10)
+
+  // Count how many distinct systems are present
+  const bounceCount = confluence.filter(t => t.bounce).length
+  const valueCount  = confluence.filter(t => t.value_us || t.value_eu).length
+  const flowCount   = confluence.filter(t => t.flow).length
 
   if (loading) return <Loading />
 
@@ -224,16 +229,16 @@ export default function Confluencia() {
       <div className="mb-6 animate-fade-in-up">
         <h2 className="text-2xl font-extrabold tracking-tight mb-1 gradient-title">Signal Confluence</h2>
         <p className="text-sm text-muted-foreground">
-          Tickers donde Bounce + Value + Flow coinciden — la mayor convicción del sistema
+          Tickers donde Bounce + Value + Flow coinciden — top 10 por convicción
         </p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { label: 'Alta convicción', value: tier3.length, sub: '≥3 sistemas alineados', color: 'text-emerald-400', idx: 1 },
-          { label: 'Media convicción', value: tier2.length, sub: '2 sistemas alineados', color: 'text-cyan-400', idx: 2 },
-          { label: 'Signal único', value: tier1.length, sub: '1 sistema detectado', color: 'text-muted-foreground', idx: 3 },
+          { label: 'Alta convicción', value: highConviction.length, sub: '≥2 sistemas alineados', color: 'text-emerald-400', idx: 1 },
+          { label: 'Bounce activos', value: bounceCount, sub: 'RSI<30 + conf≥40', color: 'text-purple-400', idx: 2 },
+          { label: 'Value + Flow', value: valueCount + flowCount, sub: 'señales en universo', color: 'text-cyan-400', idx: 3 },
         ].map(({ label, value, sub, color, idx }) => (
           <Card key={label} className={`glass p-4 stagger-${idx}`}>
             <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-1">{label}</div>
@@ -247,20 +252,21 @@ export default function Confluencia() {
         <Card className="glass">
           <CardContent className="py-16 text-center">
             <div className="text-4xl mb-4 opacity-20">🔭</div>
-            <p className="font-medium text-muted-foreground">No hay tickers con confluencia de señales ahora mismo</p>
-            <p className="text-xs text-muted-foreground/60 mt-2">Los sistemas de bounce, value y options flow se actualizan durante el día</p>
+            <p className="font-medium text-muted-foreground">Sin confluencia de señales ahora mismo</p>
+            <p className="text-xs text-muted-foreground/60 mt-2 max-w-sm mx-auto">
+              La sección requiere que ≥2 sistemas coincidan en el mismo ticker
+              (Bounce RSI&lt;30 + Value score≥50 + Options flow alcista).
+              Con VIX elevado o mercado en corrección, el bounce scanner apenas genera setups.
+            </p>
           </CardContent>
         </Card>
       ) : (
         <>
-          {tier3.length > 0 && (
-            <SectionTable title="🏆 Alta Convicción" subtitle="≥3 sistemas coinciden" rows={tier3} />
+          {highConviction.length > 0 && (
+            <SectionTable title="🏆 Alta Convicción" subtitle="≥2 sistemas coinciden · top 10" rows={highConviction} />
           )}
-          {tier2.length > 0 && (
-            <SectionTable title="🎯 Media Convicción" subtitle="2 sistemas coinciden" rows={tier2} />
-          )}
-          {tier1.length > 0 && (
-            <SectionTable title="📡 Un Signal" subtitle="Solo 1 sistema activo" rows={tier1} dim />
+          {midConviction.length > 0 && (
+            <SectionTable title="📡 Señal Única" subtitle="1 sistema con score≥2" rows={midConviction} dim />
           )}
         </>
       )}

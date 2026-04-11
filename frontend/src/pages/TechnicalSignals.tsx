@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { TrendingDown, ChevronDown, ChevronRight, Activity } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
@@ -177,24 +177,21 @@ function TickerCard({ row, signals }: Readonly<{ row: TechnicalSummary; signals:
 
 export default function TechnicalSignals() {
   const { data, loading, error } = useApi(() => fetchTechnicalSignals().then(d => ({ data: d })), [])
-  const [showBearish, setShowBearish] = useState(false)
 
   const { signals = [], summary = [] } = (data as { signals: TechnicalSignal[]; summary: TechnicalSummary[] }) ?? {}
 
-  // Señales accionables: BULLISH con ≥3 señales alcistas confirmadas, ordenadas por net_score
-  const actionable = useMemo(() => summary
-    .filter(r => r.bias === 'BULLISH' && r.bullish_count >= 3)
-    .sort((a, b) => b.net_score - a.net_score)
+  // Portfolio positions — all, sorted bearish first
+  const portfolioAll = useMemo(() => summary
+    .filter(r => r.source === 'portfolio')
+    .sort((a, b) => {
+      if (a.bias === b.bias) return b.net_score - a.net_score
+      return a.bias === 'BEARISH' ? -1 : 1
+    })
   , [summary])
 
-  // Alertas de cartera: posiciones con sesgo bajista
-  const portfolioBearish = useMemo(() =>
-    summary.filter(r => r.source === 'portfolio' && r.bias === 'BEARISH')
-  , [summary])
-
-  // Cortos técnicos: BEARISH con ≥3 señales bajistas
-  const bearishSetups = useMemo(() => summary
-    .filter(r => r.bias === 'BEARISH' && r.bearish_count >= 3)
+  // Entry opportunities: bullish non-portfolio setups with ≥3 confirmed signals, top 10
+  const entryOpps = useMemo(() => summary
+    .filter(r => r.source !== 'portfolio' && r.bias === 'BULLISH' && r.bullish_count >= 3)
     .sort((a, b) => b.net_score - a.net_score)
     .slice(0, 10)
   , [summary])
@@ -210,6 +207,7 @@ export default function TechnicalSignals() {
   }, [signals])
 
   const generatedAt = summary[0]?.generated_at ?? ''
+  const bearishCount = portfolioAll.filter(r => r.bias === 'BEARISH').length
 
   if (loading) return <Loading />
   if (error) return (
@@ -220,64 +218,66 @@ export default function TechnicalSignals() {
     } />
   )
 
-  const displayed = showBearish ? bearishSetups : actionable
-
   return (
-    <div className="space-y-5 max-w-4xl">
+    <div className="space-y-6 max-w-4xl">
       <StaleDataBanner module="technical" />
+
       {/* Header */}
-      <div className="mb-7 animate-fade-in-up flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight gradient-title mb-1 flex items-center gap-2">
-            <Activity size={20} className="text-primary" />
-            Señales Técnicas
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Entradas con ≥3 señales alcistas confirmadas · {actionable.length} setups hoy
-            {generatedAt && <span className="ml-2 text-muted-foreground/40">· {generatedAt}</span>}
-          </p>
-        </div>
-        <div className="flex gap-2 shrink-0 mt-1">
-          <button onClick={() => setShowBearish(false)} className={`filter-btn ${!showBearish ? 'active' : ''}`}>
-            ▲ Alcistas ({actionable.length})
-          </button>
-          <button onClick={() => setShowBearish(true)} className={`filter-btn ${showBearish ? 'active-red' : ''}`}>
-            ▼ Bajistas ({bearishSetups.length})
-          </button>
-        </div>
+      <div className="mb-2 animate-fade-in-up">
+        <h1 className="text-2xl font-extrabold tracking-tight gradient-title mb-1 flex items-center gap-2">
+          <Activity size={20} className="text-primary" />
+          Señales Técnicas
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Estado técnico de tu cartera + mejores oportunidades de entrada
+          {generatedAt && <span className="ml-2 text-muted-foreground/40">· {generatedAt}</span>}
+        </p>
       </div>
 
-      {/* Alerta posiciones en cartera */}
-      {portfolioBearish.length > 0 && (
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/25 text-sm">
-          <TrendingDown size={16} className="text-red-400 shrink-0 mt-0.5" />
-          <span className="text-red-300">
-            <strong>{portfolioBearish.length} posición{portfolioBearish.length > 1 ? 'es' : ''} en cartera</strong> con sesgo bajista —{' '}
-            {portfolioBearish.map(r => r.ticker).join(', ')}
-          </span>
+      {/* ── Mi Cartera ── */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Mi Cartera</h2>
+          {bearishCount > 0 && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold">
+              <TrendingDown size={11} />
+              {bearishCount} bajista{bearishCount > 1 ? 's' : ''}
+            </span>
+          )}
         </div>
-      )}
 
-      {/* Cards */}
-      {displayed.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          No hay setups {showBearish ? 'bajistas' : 'alcistas'} con ≥3 señales confirmadas hoy.
-        </div>
-      ) : (
-        <div className="space-y-2.5 animate-fade-in-up">
-          {displayed.map(row => {
-            const rowSignals = signalsMap.get(row.ticker) ?? []
-            return <TickerCard key={row.ticker} row={row} signals={rowSignals} />
-          })}
-        </div>
-      )}
+        {portfolioAll.length === 0 ? (
+          <div className="text-sm text-muted-foreground/50 py-6 text-center border border-border/20 rounded-lg">
+            No hay posiciones en cartera con datos técnicos. Añade tickers en "Mi Cartera".
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {portfolioAll.map(row => (
+              <TickerCard key={row.ticker} row={row} signals={signalsMap.get(row.ticker) ?? []} />
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* Footer: cuántos más hay */}
-      {!showBearish && summary.filter(r => r.bias === 'BULLISH').length > actionable.length && (
-        <p className="text-center text-xs text-muted-foreground/40 pt-2">
-          {summary.filter(r => r.bias === 'BULLISH').length - actionable.length} tickers alcistas adicionales con &lt;3 señales — no mostrados
-        </p>
-      )}
+      {/* ── Oportunidades de Entrada ── */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Mejores Entradas</h2>
+          <span className="text-xs text-muted-foreground/50">≥3 señales alcistas · top 10</span>
+        </div>
+
+        {entryOpps.length === 0 ? (
+          <div className="text-sm text-muted-foreground/50 py-6 text-center border border-border/20 rounded-lg">
+            Sin setups con ≥3 señales alcistas confirmadas ahora mismo.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {entryOpps.map(row => (
+              <TickerCard key={row.ticker} row={row} signals={signalsMap.get(row.ticker) ?? []} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

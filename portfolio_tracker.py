@@ -238,6 +238,13 @@ class PortfolioTracker:
                             mask = hist.index >= check_date
                             if mask.any():
                                 check_price = float(hist.loc[mask, 'Close'].iloc[0])
+                                # LSE GBp/GBP sanity: if prices differ by ~100x, correct
+                                if signal_price > 0 and check_price > 0:
+                                    ratio = check_price / signal_price
+                                    if ratio < 0.02:   # signal in GBp, fetch in GBP
+                                        check_price = check_price * 100
+                                    elif ratio > 50:   # signal in GBP, fetch in GBp
+                                        check_price = check_price / 100
                                 pct_return = ((check_price - signal_price) / signal_price) * 100
                                 self.recommendations.at[idx, col_return] = round(pct_return, 2)
                                 self.recommendations.at[idx, col_price] = round(check_price, 2)
@@ -331,12 +338,15 @@ class PortfolioTracker:
         else:
             df['company_name'] = df['company_name'].fillna(df['ticker'])
 
-        # Top/Bottom performers
+        # Top/Bottom performers — deduplicated by ticker, extreme returns excluded (data errors)
         perf_cols = ['ticker', 'company_name', 'strategy', 'signal_date', 'signal_price', 'return_14d']
-        if df['return_14d'].notna().sum() > 0:
-            sorted_df = df[df['return_14d'].notna()].sort_values('return_14d', ascending=False)
-            top5 = sorted_df.head(5)[perf_cols].to_dict('records')
-            bottom5 = sorted_df.tail(5)[perf_cols].to_dict('records')
+        # Filter out likely data errors: LSE pence/GBP mismatch causes -99%, splits cause +900%
+        valid_ret = df[df['return_14d'].notna() & (df['return_14d'] > -95) & (df['return_14d'] < 500)]
+        if not valid_ret.empty:
+            top_by_ticker = valid_ret.loc[valid_ret.groupby('ticker')['return_14d'].idxmax()]
+            bot_by_ticker = valid_ret.loc[valid_ret.groupby('ticker')['return_14d'].idxmin()]
+            top5 = top_by_ticker.sort_values('return_14d', ascending=False).head(5)[perf_cols].to_dict('records')
+            bottom5 = bot_by_ticker.sort_values('return_14d').head(5)[perf_cols].to_dict('records')
         else:
             top5 = []
             bottom5 = []
