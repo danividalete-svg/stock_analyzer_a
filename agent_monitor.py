@@ -366,7 +366,8 @@ def handle_command(text: str, store: ProposalStore):
             from agent_research import research
             research(ticker, send_telegram=True)
         except Exception as e:
-            tg_send(f'❌ Error en research: {e}')
+            import traceback
+            tg_send(f'❌ Error en research: {e}\n<pre>{traceback.format_exc()[-600:]}</pre>')
 
     elif cmd == '/ask':
         parts = text.split(maxsplit=2)

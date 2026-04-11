@@ -11,6 +11,8 @@ Uso standalone:  python3 agent_research.py AAPL
 Uso Telegram:    /research AAPL  (desde agent_monitor.py)
 """
 
+from __future__ import annotations
+
 import csv
 import io
 import json
