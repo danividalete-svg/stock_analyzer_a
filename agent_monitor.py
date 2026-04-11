@@ -197,22 +197,26 @@ def apply_code_change(prop: dict) -> bool:
     return True
 
 
-def apply_param_change(param: str, cur_val, new_val) -> bool:
-    """Aplica ajuste de parámetro (propuestas legadas del orchestrator)."""
+def apply_param_change(param: str, cur_val, new_val):
+    """Aplica ajuste de parámetro. Returns 'ok', 'already', or 'error'."""
     cfg = ADJUSTABLE_PARAMS.get(param)
     if not cfg:
-        return False
+        return 'error'
     content, sha = gh_get_file(cfg['file'])
     if content is None:
-        return False
+        return 'error'
     old_str = f'{cfg["pattern_prefix"]}{cur_val}'
     new_str = f'{cfg["pattern_prefix"]}{new_val}'
     if old_str not in content:
+        # Check if already at target value
+        if new_str in content:
+            return 'already'
         print(f'  ❌ Patrón no encontrado: "{old_str}"')
-        return False
+        return 'error'
     new_content = content.replace(old_str, new_str, 1)
-    return gh_update_file(cfg['file'], new_content, sha,
-                          f'agent: adjust {param} {cur_val}→{new_val}')
+    ok = gh_update_file(cfg['file'], new_content, sha,
+                        f'agent: adjust {param} {cur_val}→{new_val}')
+    return 'ok' if ok else 'error'
 
 
 # ── Main loop ──────────────────────────────────────────────────────────────────
@@ -322,31 +326,36 @@ def main():
                     tg_send(f'❌ <b>Ignorado:</b> <code>{param}</code>')
 
                 elif data.startswith('approve_'):
-                    param = data[len('approve_'):]
-                    tg_answer(cq_id, '⏳ Aplicando...')
-                    # Leer valor actual y propuesto del log del orchestrator
-                    log_content, _ = gh_get_file('docs/agent_orchestrator_log.json')
-                    cur_val = new_val = None
-                    if log_content:
+                    # Format: approve_PARAM_CURVAL_NEWVAL
+                    parts = data.split('_')
+                    # parts[0]='approve', parts[1]=PARAM, parts[2]=cur, parts[3]=new
+                    if len(parts) >= 4:
+                        param = parts[1]
                         try:
-                            log = json.loads(log_content)
-                            proposal = log.get('proposal', {})
-                            if proposal.get('param') == param:
-                                cur_val = proposal.get('current_value')
-                                new_val = proposal.get('proposed_value')
-                        except Exception:
-                            pass
-                    if cur_val is None or new_val is None:
-                        tg_send(f'❌ No se encontró la propuesta de <code>{param}</code> en el log.\n'
-                                f'Ejecuta el orchestrator de nuevo para re-proponer.')
+                            cur_val = int(parts[2])
+                            new_val = int(parts[3])
+                        except ValueError:
+                            cur_val = new_val = None
                     else:
-                        ok = apply_param_change(param, cur_val, new_val)
-                        if ok:
-                            tg_send(f'✅ <b>Aplicado:</b> <code>{param}</code>: '
+                        param = '_'.join(parts[1:])
+                        cur_val = new_val = None
+
+                    if cur_val is None or new_val is None:
+                        tg_answer(cq_id, '❌ Formato inválido')
+                        tg_send(f'❌ No se pudo leer los valores de la propuesta <code>{param}</code>.\n'
+                                f'Ejecuta el orchestrator de nuevo.')
+                    else:
+                        tg_answer(cq_id, '⏳ Aplicando...')
+                        result = apply_param_change(param, cur_val, new_val)
+                        if result == 'ok':
+                            tg_send(f'✅ <b>Aplicado:</b> <code>{param}</code> '
                                     f'<b>{cur_val} → {new_val}</b>')
+                        elif result == 'already':
+                            tg_send(f'✅ <code>{param}</code> ya estaba en <b>{new_val}</b> '
+                                    f'(aplicado previamente)')
                         else:
                             tg_send(f'❌ <b>Error aplicando</b> <code>{param}</code>.\n'
-                                    f'El patrón puede haber cambiado. Revisa Railway logs.')
+                                    f'El patrón puede haber cambiado desde la propuesta.')
 
         except KeyboardInterrupt:
             print('\n⏹ Monitor detenido')

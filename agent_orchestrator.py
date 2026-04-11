@@ -596,7 +596,7 @@ def telegram_propose(proposal: dict, metrics: dict) -> bool:
     )
 
     keyboard = {'inline_keyboard': [[
-        {'text': '✅ Aplicar',  'callback_data': f'approve_{param}'},
+        {'text': '✅ Aplicar',  'callback_data': f'approve_{param}_{cur_val}_{new_val}'},
         {'text': '❌ Ignorar', 'callback_data': f'reject_{param}'},
         {'text': '🔍 Ver métricas', 'callback_data': 'metrics'},
     ]]}
@@ -644,7 +644,7 @@ def telegram_propose(proposal: dict, metrics: dict) -> bool:
                     continue
                 data = cq.get('data', '')
 
-                if data == f'approve_{param}':
+                if data == f'approve_{param}_{cur_val}_{new_val}' or data == f'approve_{param}':
                     approved, decided = True, True
                 elif data == f'reject_{param}':
                     approved, decided = False, True
