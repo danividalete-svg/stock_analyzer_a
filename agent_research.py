@@ -178,23 +178,27 @@ def get_edgar_filing(ticker: str) -> dict:
 
 # ── 3. Noticias ────────────────────────────────────────────────────────────────
 
-def get_news(ticker: str) -> list[dict]:
-    """Obtiene las últimas noticias via yfinance."""
-    try:
+def get_news(ticker: str) -> list:
+    """Obtiene las últimas noticias via yfinance con timeout."""
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
+    def _fetch():
         import yfinance as yf
         stock = yf.Ticker(ticker)
         news = stock.news or []
         return [
             {
-                'title':   n.get('content', {}).get('title', n.get('title', '')),
-                'date':    datetime.fromtimestamp(
+                'title':  n.get('content', {}).get('title', n.get('title', '')),
+                'date':   datetime.fromtimestamp(
                     n.get('providerPublishTime', n.get('content', {}).get('pubDate', 0) or 0),
                     tz=timezone.utc
                 ).strftime('%Y-%m-%d') if n.get('providerPublishTime') or n.get('content', {}).get('pubDate') else '',
-                'source':  n.get('content', {}).get('provider', {}).get('displayName', n.get('publisher', '')),
+                'source': n.get('content', {}).get('provider', {}).get('displayName', n.get('publisher', '')),
             }
-            for n in news[:8]
+            for n in news[:6]
         ]
+    try:
+        with ThreadPoolExecutor(max_workers=1) as ex:
+            return ex.submit(_fetch).result(timeout=15)
     except Exception:
         return []
 
@@ -281,76 +285,86 @@ def groq_synthesize(ticker: str, app_data: dict, edgar: dict, news: list) -> str
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
+def _md_to_html(text: str) -> str:
+    """Convert **bold** markdown to Telegram HTML."""
+    import re
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+    return text
+
+
 def research(ticker: str, send_telegram: bool = True) -> str:
-    """
-    Función principal. Devuelve el informe como string
-    y opcionalmente lo envía por Telegram.
-    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     ticker = ticker.strip().upper()
     print(f'🔍 Researching {ticker}...')
 
-    print('  1/4 App data...')
-    app_data = get_app_data(ticker)
+    # Run all 3 data steps in parallel — max 20s total
+    app_data, edgar, news = {}, {}, []
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        f_app   = ex.submit(get_app_data, ticker)
+        f_edgar = ex.submit(get_edgar_filing, ticker)
+        f_news  = ex.submit(get_news, ticker)
+        try: app_data = f_app.result(timeout=20)
+        except Exception: pass
+        try: edgar = f_edgar.result(timeout=20)
+        except Exception: pass
+        try: news = f_news.result(timeout=20)
+        except Exception: pass
 
-    print('  2/4 SEC EDGAR...')
-    edgar = get_edgar_filing(ticker)
-
-    print('  3/4 News...')
-    news = get_news(ticker)
-
-    print('  4/4 Groq synthesis...')
+    print('  Groq synthesis...')
     analysis = groq_synthesize(ticker, app_data, edgar, news)
 
-    # ── Construir mensaje final ────────────────────────────────────────────────
-    now = datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M UTC')
-    sector = app_data.get('sector', '')
-    company = edgar.get('company_name', '')
+    # ── Formato Telegram ───────────────────────────────────────────────────────
+    now     = datetime.now(timezone.utc).strftime('%d %b %Y · %H:%M UTC')
+    company = edgar.get('company_name', '') or app_data.get('sector', '')
+    score   = app_data.get('value_score', '')
+    grade   = app_data.get('grade', '')
 
-    header = [
-        f'🔬 <b>Research: {ticker}</b>',
-        f'<i>{company or sector}</i>' if (company or sector) else '',
-        f'<code>{now}</code>',
-        '━━━━━━━━━━━━━━━━━━━━━',
-    ]
+    # Grade emoji
+    grade_e = {'A': '🟢', 'B': '🟡', 'C': '🟠', 'D': '🔴', 'F': '🔴'}.get(
+        str(grade)[:1], '⚪')
 
-    # Datos clave en una línea
+    lines = [f'🔬 <b>{ticker}</b>  {grade_e} <b>{grade}</b>  ·  <code>{score}pts</code>']
+    if company:
+        lines.append(f'<i>{company}</i>')
+    lines.append(f'<code>{now}</code>')
+    lines.append('─────────────────────')
+
+    # KPI row
     kpis = []
-    if app_data.get('value_score'):
-        kpis.append(f'Score: <b>{app_data["value_score"]}</b> [{app_data.get("grade","")}]')
-    if app_data.get('analyst_upside_pct'):
-        kpis.append(f'Upside: {app_data["analyst_upside_pct"]}%')
     if app_data.get('fcf_yield_pct'):
-        kpis.append(f'FCF: {app_data["fcf_yield_pct"]}%')
+        kpis.append(f'FCF <b>{app_data["fcf_yield_pct"]}%</b>')
+    if app_data.get('analyst_upside_pct'):
+        kpis.append(f'Upside <b>{app_data["analyst_upside_pct"]}%</b>')
     if app_data.get('risk_reward_ratio'):
-        kpis.append(f'R/R: {app_data["risk_reward_ratio"]}x')
+        kpis.append(f'R/R <b>{app_data["risk_reward_ratio"]}x</b>')
+    if app_data.get('roe_pct'):
+        kpis.append(f'ROE <b>{app_data["roe_pct"]}%</b>')
     if kpis:
-        header.append(' · '.join(kpis))
+        lines.append('  '.join(kpis))
 
     if app_data.get('earnings_warning') == 'True':
-        header.append('⚠️ <b>Earnings en &lt;7 días</b>')
+        days = app_data.get('days_to_earnings', '')
+        lines.append(f'⚠️ <b>Earnings en {days} días</b> — entrada de riesgo')
 
     if edgar.get('found'):
-        header.append(f'📄 Último filing: {edgar["form"]} ({edgar["date"]})')
+        lines.append(f'📄 {edgar["form"]} · {edgar["date"]} · {edgar.get("company_name","")}')
 
-    news_lines = []
+    lines.append('')
+    lines.append(_md_to_html(analysis))
+
     if news:
-        news_lines = ['\n<b>Noticias:</b>']
+        lines.append('')
+        lines.append('📰 <b>Noticias recientes</b>')
         for n in news[:4]:
-            title = n['title'][:80] + ('…' if len(n['title']) > 80 else '')
-            news_lines.append(f'  · <i>{n["date"]}</i> {title}')
+            title = n['title'][:90] + ('…' if len(n['title']) > 90 else '')
+            src   = f' <i>({n["source"]})</i>' if n.get('source') else ''
+            lines.append(f'  <code>{n["date"]}</code> {title}{src}')
 
-    msg = '\n'.join([l for l in header if l]) + '\n\n' + \
-          analysis.replace('**', '<b>', 1).replace('**', '</b>', 1) \
-                  .replace('**', '<b>').replace('**', '</b>') + \
-          '\n'.join(news_lines)
-
-    # Limpiar markdown que no soporta HTML de Telegram
-    msg = msg.replace('**', '<b>').replace('**', '</b>')
-
+    msg = '\n'.join(lines)
     if send_telegram:
         tg_send(msg)
         print(f'✅ Research report enviado para {ticker}')
-
     return msg
 
 
