@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { TrendingDown, ChevronDown, ChevronRight, Activity } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import Loading, { ErrorState } from '../components/Loading'
@@ -95,7 +95,7 @@ function TickerCard({ row, signals }: Readonly<{ row: TechnicalSummary; signals:
   const weeklySignals = [...signals.filter((s: TechnicalSignal) => s.timeframe === 'WEEKLY')].sort(sigSortFn)
   const sortedAll = [...signals].sort(sigSortFn)
 
-  const toggle = () => setOpen(o => !o)
+  const toggle = () => setOpen((o: boolean) => !o)
 
   return (
     <Card className="bg-card/40 border-border/30 hover:border-border/60 transition-colors">

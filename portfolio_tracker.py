@@ -19,6 +19,7 @@ TRACKER_DIR = Path('docs/portfolio_tracker')
 RECOMMENDATIONS_FILE = TRACKER_DIR / 'recommendations.csv'
 PERFORMANCE_FILE = TRACKER_DIR / 'performance.csv'
 SUMMARY_FILE = TRACKER_DIR / 'summary.json'
+CALIBRATION_FILE = TRACKER_DIR / 'calibration.json'
 
 
 class PortfolioTracker:
@@ -415,7 +416,94 @@ class PortfolioTracker:
         }
 
         self._save_summary(summary)
+        self.generate_calibration()
         return summary
+
+    def generate_calibration(self):
+        """Compute score/regime/sector calibration — does a higher score actually predict better returns?"""
+        df = self.recommendations
+        completed = df[df['return_14d'].notna() & (df['return_14d'] > -95) & (df['return_14d'] < 500)]
+        if len(completed) < 10:
+            return
+
+        def bucket_stats(subset):
+            if subset.empty:
+                return None
+            wins = (subset['win_14d'] == True).sum()
+            return {
+                'count': int(len(subset)),
+                'win_rate_14d': round(wins / len(subset) * 100, 1),
+                'avg_return_14d': round(subset['return_14d'].mean(), 2),
+                'median_return_14d': round(subset['return_14d'].median(), 2),
+            }
+
+        # Score buckets
+        score_buckets = []
+        breaks = [(50, 55), (55, 60), (60, 65), (65, 70), (70, 75), (75, 200)]
+        for lo, hi in breaks:
+            sub = completed[completed['value_score'].notna() &
+                            (completed['value_score'] >= lo) & (completed['value_score'] < hi)]
+            stats = bucket_stats(sub)
+            if stats:
+                stats['range'] = f'{lo}-{hi}' if hi < 200 else f'{lo}+'
+                score_buckets.append(stats)
+
+        # Market regime
+        regime_rows = []
+        for regime in completed['market_regime'].dropna().unique():
+            sub = completed[completed['market_regime'] == regime]
+            stats = bucket_stats(sub)
+            if stats:
+                stats['regime'] = regime
+                regime_rows.append(stats)
+        regime_rows.sort(key=lambda x: -x['count'])
+
+        # Sector calibration (min 5 signals)
+        sector_rows = []
+        for sector in completed['sector'].dropna().unique():
+            sub = completed[completed['sector'] == sector]
+            if len(sub) < 5:
+                continue
+            stats = bucket_stats(sub)
+            if stats:
+                stats['sector'] = sector
+                sector_rows.append(stats)
+        sector_rows.sort(key=lambda x: -x['win_rate_14d'])
+
+        # FCF yield buckets (only where available)
+        fcf_df = completed[completed['fcf_yield_pct'].notna()].copy()
+        fcf_buckets = []
+        fcf_breaks = [(-99, 0, 'Negative'), (0, 3, '0-3%'), (3, 6, '3-6%'), (6, 12, '6-12%'), (12, 999, '12%+')]
+        for lo, hi, label in fcf_breaks:
+            sub = fcf_df[(fcf_df['fcf_yield_pct'] >= lo) & (fcf_df['fcf_yield_pct'] < hi)]
+            stats = bucket_stats(sub)
+            if stats:
+                stats['range'] = label
+                fcf_buckets.append(stats)
+
+        calibration = {
+            'score_buckets': score_buckets,
+            'regime_analysis': regime_rows,
+            'sector_calibration': sector_rows,
+            'fcf_yield_buckets': fcf_buckets,
+            'total_completed': int(len(completed)),
+            'generated_at': datetime.now().isoformat(),
+        }
+
+        def convert(obj):
+            if isinstance(obj, (np.integer, np.floating)):
+                return float(obj)
+            if isinstance(obj, np.bool_):
+                return bool(obj)
+            if isinstance(obj, dict):
+                return {k: convert(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [convert(i) for i in obj]
+            return obj
+
+        with open(CALIBRATION_FILE, 'w') as f:
+            json.dump(convert(calibration), f, indent=2)
+        print(f'  Calibration saved: {CALIBRATION_FILE}')
 
     def print_report(self, summary: dict):
         """Print formatted performance report"""

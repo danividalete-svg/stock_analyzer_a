@@ -50,6 +50,7 @@ const TechnicalSignals = lazy(() => import('./pages/TechnicalSignals'))
 const CatalystCalendar = lazy(() => import('./pages/CatalystCalendar'))
 const BounceTrader     = lazy(() => import('./pages/BounceTrader'))
 const Confluencia      = lazy(() => import('./pages/Confluencia'))
+const Calibration      = lazy(() => import('./pages/Calibration'))
 
 function NavItem({ item, onClose }: { item: (typeof NAV_PRIMARY)[0]; onClose: () => void }) {
   return (
@@ -240,6 +241,7 @@ export default function App() {
               <Route path="/mean-reversion" element={<MeanReversion />} />
               <Route path="/sectors"        element={<SectorRotation />} />
               <Route path="/portfolio"      element={<Portfolio />} />
+              <Route path="/calibration"   element={<Calibration />} />
               <Route path="/backtest"       element={<Backtest />} />
               <Route path="/industry-groups" element={<IndustryGroups />} />
               <Route path="/position-sizing" element={<PositionSizing />} />

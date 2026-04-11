@@ -1386,6 +1386,12 @@ def portfolio_tracker():
     return jsonify(data if data else {"error": "No portfolio data available"})
 
 
+@app.route('/api/portfolio-tracker/calibration')
+def portfolio_calibration():
+    data = _load_json(DOCS / 'portfolio_tracker' / 'calibration.json')
+    return jsonify(data if data else {"error": "No calibration data yet"})
+
+
 @app.route('/api/market-regime')
 def market_regime():
     us = _load_json(DOCS / 'market_regime.json')

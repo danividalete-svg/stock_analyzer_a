@@ -427,6 +427,38 @@ export const fetchRecurringInsiders = () =>
 export const fetchPortfolioTracker = () =>
   api.get<PortfolioSummary>('/api/portfolio-tracker')
 
+export interface CalibrationBucket {
+  range: string
+  count: number
+  win_rate_14d: number
+  avg_return_14d: number
+  median_return_14d: number
+}
+export interface CalibrationRegime {
+  regime: string
+  count: number
+  win_rate_14d: number
+  avg_return_14d: number
+  median_return_14d: number
+}
+export interface CalibrationSector {
+  sector: string
+  count: number
+  win_rate_14d: number
+  avg_return_14d: number
+  median_return_14d: number
+}
+export interface CalibrationData {
+  score_buckets: CalibrationBucket[]
+  regime_analysis: CalibrationRegime[]
+  sector_calibration: CalibrationSector[]
+  fcf_yield_buckets: CalibrationBucket[]
+  total_completed: number
+  generated_at: string
+}
+export const fetchCalibration = () =>
+  api.get<CalibrationData>('/api/portfolio-tracker/calibration')
+
 export interface BreadthData {
   total: number
   trend_pass?: number; trend_pass_pct?: number
