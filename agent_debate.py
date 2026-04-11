@@ -34,7 +34,7 @@ CHAT_ID      = os.environ.get('TELEGRAM_CHAT_ID', '')
 
 # Scout para los 4 agentes (rápido, paralelo); Maverick para el árbitro
 MODEL_AGENT  = 'meta-llama/llama-4-scout-17b-16e-instruct'
-MODEL_JUDGE  = 'meta-llama/llama-4-maverick-17b-128e-instruct'
+MODEL_JUDGE  = 'meta-llama/llama-4-scout-17b-16e-instruct'
 
 EMOJI = {
     'fundamental': '📊',

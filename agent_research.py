@@ -27,7 +27,7 @@ PAGES_BASE   = 'https://tantancansado.github.io/stock_analyzer_a'
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 BOT_TOKEN    = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 CHAT_ID      = os.environ.get('TELEGRAM_CHAT_ID', '')
-GROQ_MODEL   = 'meta-llama/llama-4-maverick-17b-128e-instruct'  # mejor razonamiento
+GROQ_MODEL   = 'meta-llama/llama-4-scout-17b-16e-instruct'
 EDGAR_SEARCH = 'https://efts.sec.gov/LATEST/search-index'
 EDGAR_BASE   = 'https://www.sec.gov'
 
