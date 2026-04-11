@@ -230,8 +230,12 @@ def main():
     except Exception:
         pass
 
-    # Anuncio de inicio
-    tg_send('🤖 <b>Agent Monitor activo</b>\nEsperando propuestas...')
+    # Anuncio de inicio solo si es un deploy nuevo (no un reinicio automático)
+    deploy_id = os.environ.get('RAILWAY_DEPLOYMENT_ID', '')
+    sentinel  = f'/tmp/.monitor_started_{deploy_id}'
+    if deploy_id and not os.path.exists(sentinel):
+        open(sentinel, 'w').close()
+        tg_send('🤖 <b>Agent Monitor activo</b>\nEsperando propuestas...')
 
     while True:
         try:
