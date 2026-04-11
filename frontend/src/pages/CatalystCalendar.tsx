@@ -63,20 +63,24 @@ function groupByWeek(events: CatalystEvent[]): Array<{ weekLabel: string; events
 
 function EarningsHistoryBar({ history }: { history: NonNullable<CatalystEvent['earnings_history']> }) {
   const { beat_rate, avg_surprise_pct, last_quarters } = history
-  const color = beat_rate >= 75 ? 'text-emerald-400' : beat_rate >= 50 ? 'text-amber-400' : 'text-red-400'
+  const color = (beat_rate ?? 0) >= 75 ? 'text-emerald-400' : (beat_rate ?? 0) >= 50 ? 'text-amber-400' : 'text-red-400'
   return (
     <div className="mt-2 space-y-1.5">
       <div className="flex items-center gap-3 text-xs">
-        <span className={`font-bold ${color}`}>Bate {beat_rate.toFixed(0)}%</span>
-        <span className="text-muted-foreground">
-          Sorpresa media: <span className={avg_surprise_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-            {avg_surprise_pct >= 0 ? '+' : ''}{avg_surprise_pct.toFixed(1)}%
+        {beat_rate != null && (
+          <span className={`font-bold ${color}`}>Bate {beat_rate.toFixed(0)}%</span>
+        )}
+        {avg_surprise_pct != null && (
+          <span className="text-muted-foreground">
+            Sorpresa media: <span className={avg_surprise_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+              {avg_surprise_pct >= 0 ? '+' : ''}{avg_surprise_pct.toFixed(1)}%
+            </span>
           </span>
-        </span>
+        )}
       </div>
       <div className="flex gap-1">
         {last_quarters.map((q, i) => (
-          <div key={i} title={`${q.date}: est ${q.eps_est} vs act ${q.eps_act} (${q.surprise_pct > 0 ? '+' : ''}${q.surprise_pct.toFixed(1)}%)`}
+          <div key={i} title={`${q.date}: est ${q.eps_est} vs act ${q.eps_act} (${(q.surprise_pct ?? 0) > 0 ? '+' : ''}${q.surprise_pct?.toFixed(1) ?? '—'}%)`}
             className={`h-2 w-6 rounded-sm ${q.beat ? 'bg-emerald-500' : 'bg-red-500'}`} />
         ))}
         <span className="text-[0.6rem] text-muted-foreground/50 ml-1 self-end">últimos {last_quarters.length}Q</span>

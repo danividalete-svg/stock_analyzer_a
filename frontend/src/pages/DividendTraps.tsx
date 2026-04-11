@@ -272,7 +272,7 @@ export default function DividendTraps() {
                   <TickerLogo ticker={t.ticker} size="xs" />
                   <span className="font-mono font-bold text-sm text-primary">{t.ticker}</span>
                   <span className="text-xs text-muted-foreground truncate flex-1">{t.company}</span>
-                  <span className="text-xs text-amber-400">Yield {t.dividend_yield?.toFixed(1)}% · Payout {t.payout_ratio?.toFixed(0)}%</span>
+                  <span className="text-xs text-amber-400">Yield {t.dividend_yield?.toFixed(1) ?? '—'}% · Payout {t.payout_ratio?.toFixed(0) ?? '—'}%</span>
                   <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded ${RISK_CONFIG[t.risk_level].bg} ${RISK_CONFIG[t.risk_level].text}`}>
                     {RISK_CONFIG[t.risk_level].label}
                   </span>

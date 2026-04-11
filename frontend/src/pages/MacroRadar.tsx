@@ -678,7 +678,7 @@ function IndexBreakoutsPanel({
                             // If we have summary but no breakout entry (price within 3%), still show direction
                             const above = price != null && maVal != null ? price > maVal : null
                             if (!b && above == null) return <td key={maKey} className="text-center px-0.5 py-1.5 text-muted-foreground/20">·</td>
-                            const pct = b?.pct_from_ma ?? (above != null && maVal != null && price != null ? (price / maVal - 1) * 100 : null)
+                            const pct = b?.pct_from_ma ?? (above != null && maVal != null && maVal !== 0 && price != null ? (price / maVal - 1) * 100 : null)
                             const signal = b?.signal ?? (above ? 'ABOVE' : 'BELOW')
                             const isBearishBreak = signal === 'BEARISH_BREAK'
                             const isBullishBreak = signal === 'BULLISH_BREAK'

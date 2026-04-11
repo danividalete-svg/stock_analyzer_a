@@ -131,7 +131,7 @@ function ContractRow({ c }: { c: TopContract }) {
       <span className="font-bold w-8">{c.side}</span>
       <span className="font-mono">${c.strike}</span>
       <span className="text-muted-foreground">{c.expiry} ({c.dte}d)</span>
-      <span className="text-muted-foreground">vol {c.volume.toLocaleString()}</span>
+      <span className="text-muted-foreground">vol {c.volume?.toLocaleString() ?? '—'}</span>
       {c.vol_oi_ratio != null && (
         <span className="text-muted-foreground">v/OI {c.vol_oi_ratio.toFixed(1)}x</span>
       )}

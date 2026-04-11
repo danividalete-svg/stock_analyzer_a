@@ -170,9 +170,11 @@ export default function Shorts() {
             <TableBody>
               {displayed.map(r => {
                 const isExpanded = expandedTicker === r.ticker
-                const riskList: string[] = r.key_risks
-                  ? JSON.parse(r.key_risks).filter((x: string) => !x.startsWith('SHORT_INTEREST'))
-                  : []
+                const riskList: string[] = (() => {
+                  if (!r.key_risks) return []
+                  try { return JSON.parse(r.key_risks).filter((x: string) => !x.startsWith('SHORT_INTEREST')) }
+                  catch { return [] }
+                })()
                 return (
                   <>
                     <TableRow

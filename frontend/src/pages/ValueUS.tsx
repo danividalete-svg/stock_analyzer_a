@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, type ValueOpportunity } from '../api/client'
 import StaleDataBanner from '../components/StaleDataBanner'
@@ -134,17 +134,17 @@ export default function ValueUS() {
     return () => document.removeEventListener('keydown', handler)
   }, [])
 
-  if (loading) return <Loading />
-  if (error) return <ErrorState message={error} />
-
+  // ─── Derived data — computed before early returns (Rules of Hooks) ───────────
   const rows = data?.data ?? []
   const source = data?.source ?? ''
 
-  // Unique sectors for filter pills
-  const sectors = ['ALL', ...Array.from(new Set(rows.map(r => r.sector).filter(Boolean) as string[])).sort()]
+  const sectors = useMemo(
+    () => ['ALL', ...Array.from(new Set(rows.map(r => r.sector).filter(Boolean) as string[])).sort()],
+    [rows]
+  )
 
-  // Apply filters then sort
-  const filtered = rows.filter(r => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const filtered = useMemo(() => rows.filter(r => {
     if (filterGrade !== 'ALL' && r.conviction_grade !== filterGrade) return false
     if (filterSector !== 'ALL' && r.sector !== filterSector) return false
     if (minScore !== '' && (r.value_score == null || r.value_score < Number(minScore))) return false
@@ -155,25 +155,30 @@ export default function ValueUS() {
     if (hideExits && (cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT')) return false
     if (onlyOwned && !isOwned(r.ticker)) return false
     return true
-  })
+  }), [rows, filterGrade, filterSector, minScore, minFcf, minRr, hideEarnings, hideTraps, hideExits, onlyOwned, cerebro.trapMap, cerebro.exitMap, isOwned]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sorted = [...filtered].sort((a, b) => {
+  const sorted = useMemo(() => [...filtered].sort((a, b) => {
     const av = a[sortKey] ?? 0
     const bv = b[sortKey] ?? 0
     if (av < bv) return sortDir === 'asc' ? -1 : 1
     if (av > bv) return sortDir === 'asc' ? 1 : -1
     return 0
-  })
-  const totalPages = Math.ceil(sorted.length / PAGE_SIZE)
-  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  pagedRef.current = paged
+  }), [filtered, sortKey, sortDir])
 
-  const onSort = (key: SortKey) => {
-    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    else { setSortKey(key); setSortDir('desc') }
-  }
+  const stats = useMemo(() => ({
+    avgScore:   filtered.length ? filtered.reduce((s, r) => s + (r.value_score || 0), 0) / filtered.length : 0,
+    gradeA:     filtered.filter(r => r.conviction_grade === 'A').length,
+    gradeB:     filtered.filter(r => r.conviction_grade === 'B').length,
+    bestUpside: Math.max(...filtered.map(r => r.analyst_upside_pct || 0), 0),
+  }), [filtered])
 
-  const toggleThesis = async (ticker: string, row: ValueOpportunity) => {
+  const concentrated = useMemo(() => {
+    const counts: Record<string, number> = {}
+    sorted.forEach(d => { const s = d.sector || 'Unknown'; counts[s] = (counts[s] || 0) + 1 })
+    return Object.entries(counts).filter(([, c]) => c >= 3)
+  }, [sorted])
+
+  const toggleThesis = useCallback(async (ticker: string, row: ValueOpportunity) => {
     currentThesisTicker.current = ticker
     setExpandedRow(row)
     setThesisText('Cargando tesis...')
@@ -186,6 +191,18 @@ export default function ValueUS() {
         : (t as Record<string, string>).thesis_narrative || (t as Record<string, string>).overview || JSON.stringify(t)
       setThesisText(text)
     } catch { if (currentThesisTicker.current === ticker) setThesisText('Error cargando tesis') }
+  }, [])
+
+  if (loading) return <Loading />
+  if (error) return <ErrorState message={error} />
+
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE)
+  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  pagedRef.current = paged
+
+  const onSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('desc') }
   }
 
   const thCls = (key: SortKey) =>
@@ -194,17 +211,6 @@ export default function ValueUS() {
   const usRegime = regime?.us as Record<string, string> | undefined
   const regimeLabel = usRegime?.regime || usRegime?.market_regime || ''
   const regimeRec = usRegime?.recommendation || ''
-
-  const avgScore = filtered.length ? filtered.reduce((s, r) => s + (r.value_score || 0), 0) / filtered.length : 0
-  const gradeA = filtered.filter(r => r.conviction_grade === 'A').length
-  const gradeB = filtered.filter(r => r.conviction_grade === 'B').length
-  const bestUpside = Math.max(...filtered.map(r => r.analyst_upside_pct || 0), 0)
-
-  const concentrated = useMemo(() => {
-    const counts: Record<string, number> = {}
-    sorted.forEach(d => { const s = d.sector || 'Unknown'; counts[s] = (counts[s] || 0) + 1 })
-    return Object.entries(counts).filter(([, c]) => c >= 3)
-  }, [sorted])
 
   const hiddenByTraps = hideTraps ? Object.values(cerebro.trapMap).filter(t => t.severity === 'HIGH').length : 0
   const hiddenByExits = hideExits ? rows.filter(r => cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT').length : 0
@@ -289,9 +295,9 @@ export default function ValueUS() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'Oportunidades', value: rows.length, sub: 'tickers analizados', idx: 1 },
-          { label: 'Score Medio', value: avgScore.toFixed(1), sub: 'de 100 puntos', color: avgScore >= 50 ? 'text-emerald-400' : 'text-amber-400', idx: 2 },
-          { label: 'Grado A+B', value: gradeA + gradeB, sub: `${gradeA} A, ${gradeB} B`, color: 'text-emerald-400', idx: 3 },
-          { label: 'Mejor Upside', value: `+${bestUpside.toFixed(0)}%`, sub: 'potencial analistas', color: 'text-emerald-400', idx: 4 },
+          { label: 'Score Medio', value: stats.avgScore.toFixed(1), sub: 'de 100 puntos', color: stats.avgScore >= 50 ? 'text-emerald-400' : 'text-amber-400', idx: 2 },
+          { label: 'Grado A+B', value: stats.gradeA + stats.gradeB, sub: `${stats.gradeA} A, ${stats.gradeB} B`, color: 'text-emerald-400', idx: 3 },
+          { label: 'Mejor Upside', value: `+${stats.bestUpside.toFixed(0)}%`, sub: 'potencial analistas', color: 'text-emerald-400', idx: 4 },
         ].map(({ label, value, sub, color, idx }) => (
           <Card key={label} className={`glass glow-border p-5 stagger-${idx}`}>
             <div className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground mb-2">{label}</div>

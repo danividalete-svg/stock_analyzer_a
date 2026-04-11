@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react'
 import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
 import { LayoutDashboard, X, LogOut, ChevronDown } from 'lucide-react'
 import { ThemeProvider } from './context/ThemeContext'
@@ -12,42 +12,44 @@ import ProtectedRoute from './components/ProtectedRoute'
 import CommandPalette from './components/CommandPalette'
 import ErrorBoundary from './components/ErrorBoundary'
 import ScrollToTop from './components/ScrollToTop'
+import Loading from './components/Loading'
 import Login from './pages/Login'
-import ValueUS from './pages/ValueUS'
-import ValueEU from './pages/ValueEU'
-import Momentum from './pages/Momentum'
-import Insiders from './pages/Insiders'
-import OptionsFlow from './pages/OptionsFlow'
-import MeanReversion from './pages/MeanReversion'
-import SectorRotation from './pages/SectorRotation'
-import Portfolio from './pages/Portfolio'
-import Backtest from './pages/Backtest'
-import TickerSearch from './pages/TickerSearch'
-import Datos from './pages/Datos'
-import Dashboard from './pages/Dashboard'
-import PositionSizing from './pages/PositionSizing'
-import IndustryGroups from './pages/IndustryGroups'
-import Watchlist from './pages/Watchlist'
-import GlobalValue from './pages/GlobalValue'
-import MacroRadar from './pages/MacroRadar'
-import MacroCountries from './pages/MacroCountries'
-import EarningsCalendar from './pages/EarningsCalendar'
-import DividendTraps from './pages/DividendTraps'
-import SmartPortfolio from './pages/SmartPortfolio'
-import HedgeFunds from './pages/HedgeFunds'
-import FactorStatus from './pages/FactorStatus'
-import PersonalPortfolio from './pages/PersonalPortfolio'
-import Comparador from './pages/Comparador'
-import Cerebro from './pages/Cerebro'
-import Alerts from './pages/Alerts'
-import Screener from './pages/Screener'
-import MicroCap from './pages/MicroCap'
-import Shorts from './pages/Shorts'
-import MacroCalendar from './pages/MacroCalendar'
-import TechnicalSignals from './pages/TechnicalSignals'
-import CatalystCalendar from './pages/CatalystCalendar'
-import BounceTrader from './pages/BounceTrader'
-import Confluencia from './pages/Confluencia'
+
+const Dashboard        = lazy(() => import('./pages/Dashboard'))
+const ValueUS          = lazy(() => import('./pages/ValueUS'))
+const ValueEU          = lazy(() => import('./pages/ValueEU'))
+const GlobalValue      = lazy(() => import('./pages/GlobalValue'))
+const Momentum         = lazy(() => import('./pages/Momentum'))
+const Insiders         = lazy(() => import('./pages/Insiders'))
+const OptionsFlow      = lazy(() => import('./pages/OptionsFlow'))
+const MeanReversion    = lazy(() => import('./pages/MeanReversion'))
+const SectorRotation   = lazy(() => import('./pages/SectorRotation'))
+const Portfolio        = lazy(() => import('./pages/Portfolio'))
+const Backtest         = lazy(() => import('./pages/Backtest'))
+const TickerSearch     = lazy(() => import('./pages/TickerSearch'))
+const Datos            = lazy(() => import('./pages/Datos'))
+const PositionSizing   = lazy(() => import('./pages/PositionSizing'))
+const IndustryGroups   = lazy(() => import('./pages/IndustryGroups'))
+const Watchlist        = lazy(() => import('./pages/Watchlist'))
+const MacroRadar       = lazy(() => import('./pages/MacroRadar'))
+const MacroCountries   = lazy(() => import('./pages/MacroCountries'))
+const MacroCalendar    = lazy(() => import('./pages/MacroCalendar'))
+const EarningsCalendar = lazy(() => import('./pages/EarningsCalendar'))
+const DividendTraps    = lazy(() => import('./pages/DividendTraps'))
+const SmartPortfolio   = lazy(() => import('./pages/SmartPortfolio'))
+const HedgeFunds       = lazy(() => import('./pages/HedgeFunds'))
+const FactorStatus     = lazy(() => import('./pages/FactorStatus'))
+const PersonalPortfolio= lazy(() => import('./pages/PersonalPortfolio'))
+const Comparador       = lazy(() => import('./pages/Comparador'))
+const Cerebro          = lazy(() => import('./pages/Cerebro'))
+const Alerts           = lazy(() => import('./pages/Alerts'))
+const Screener         = lazy(() => import('./pages/Screener'))
+const MicroCap         = lazy(() => import('./pages/MicroCap'))
+const Shorts           = lazy(() => import('./pages/Shorts'))
+const TechnicalSignals = lazy(() => import('./pages/TechnicalSignals'))
+const CatalystCalendar = lazy(() => import('./pages/CatalystCalendar'))
+const BounceTrader     = lazy(() => import('./pages/BounceTrader'))
+const Confluencia      = lazy(() => import('./pages/Confluencia'))
 
 function NavItem({ item, onClose }: { item: (typeof NAV_PRIMARY)[0]; onClose: () => void }) {
   return (
@@ -219,6 +221,7 @@ export default function App() {
         <ScrollToTop />
         <main className="flex-1 p-5 md:p-8 min-w-0" style={{ overflowX: 'clip' }}>
           <ErrorBoundary resetKey={location.pathname}>
+          <Suspense fallback={<Loading />}>
           <Routes>
             {/* Public route */}
             <Route path="/login" element={<Login />} />
@@ -263,6 +266,7 @@ export default function App() {
               <Route path="/datos"           element={<Datos />} />
             </Route>
           </Routes>
+          </Suspense>
           </ErrorBoundary>
         </main>
       </div>
