@@ -315,12 +315,38 @@ def main():
                                 f"El old_string no se encontró en el archivo. "
                                 f"El código puede haber cambiado desde la propuesta.")
 
-                # Propuestas de parámetros legadas (orchestrator)
-                elif data.startswith(('approve_', 'reject_')):
-                    # El orchestrator maneja estas en su propio loop cuando está activo.
-                    # Si llegamos aquí, el orchestrator ya terminó → no tenemos contexto del valor.
-                    tg_answer(cq_id, '⚠️ Sesión del orchestrator expirada. '
-                                     'Ejecuta de nuevo el orchestrator para re-proponer.')
+                # Propuestas de parámetros del orchestrator (approve_PARAM / reject_PARAM)
+                elif data.startswith('reject_'):
+                    param = data[len('reject_'):]
+                    tg_answer(cq_id, '❌ Ignorado')
+                    tg_send(f'❌ <b>Ignorado:</b> <code>{param}</code>')
+
+                elif data.startswith('approve_'):
+                    param = data[len('approve_'):]
+                    tg_answer(cq_id, '⏳ Aplicando...')
+                    # Leer valor actual y propuesto del log del orchestrator
+                    log_content, _ = gh_get_file('docs/agent_orchestrator_log.json')
+                    cur_val = new_val = None
+                    if log_content:
+                        try:
+                            log = json.loads(log_content)
+                            proposal = log.get('proposal', {})
+                            if proposal.get('param') == param:
+                                cur_val = proposal.get('current_value')
+                                new_val = proposal.get('proposed_value')
+                        except Exception:
+                            pass
+                    if cur_val is None or new_val is None:
+                        tg_send(f'❌ No se encontró la propuesta de <code>{param}</code> en el log.\n'
+                                f'Ejecuta el orchestrator de nuevo para re-proponer.')
+                    else:
+                        ok = apply_param_change(param, cur_val, new_val)
+                        if ok:
+                            tg_send(f'✅ <b>Aplicado:</b> <code>{param}</code>: '
+                                    f'<b>{cur_val} → {new_val}</b>')
+                        else:
+                            tg_send(f'❌ <b>Error aplicando</b> <code>{param}</code>.\n'
+                                    f'El patrón puede haber cambiado. Revisa Railway logs.')
 
         except KeyboardInterrupt:
             print('\n⏹ Monitor detenido')
