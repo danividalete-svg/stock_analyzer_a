@@ -1,0 +1,91 @@
+name: 🤖 Agent Frontend Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      description:
+        description: 'Descripción del cambio (para commit)'
+        required: true
+      chat_id:
+        description: 'Telegram chat_id para notificación'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: cd frontend && npm ci
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      - name: Commit built assets
+        run: |
+          git config user.email "agent@stock-analyzer.bot"
+          git config user.name "Stock Analyzer Agent 🤖"
+          git add docs/app/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🤖 build: ${{ inputs.description }}"
+            git push
+          fi
+
+      - name: Notify Telegram — Success
+        if: success()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID:   ${{ inputs.chat_id }}
+          DESC:      ${{ inputs.description }}
+        run: |
+          python3 -c "
+          import os, requests
+          requests.post(
+              f'https://api.telegram.org/bot{os.environ[\"BOT_TOKEN\"]}/sendMessage',
+              json={
+                  'chat_id': os.environ['CHAT_ID'],
+                  'text': f'✅ <b>Frontend desplegado</b>\n{os.environ[\"DESC\"]}\n\n⏳ GitHub Pages actualizando... (~2 min)',
+                  'parse_mode': 'HTML',
+              },
+              timeout=10,
+          )
+          "
+
+      - name: Notify Telegram — Failure
+        if: failure()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID:   ${{ inputs.chat_id }}
+          DESC:      ${{ inputs.description }}
+        run: |
+          python3 -c "
+          import os, requests
+          requests.post(
+              f'https://api.telegram.org/bot{os.environ[\"BOT_TOKEN\"]}/sendMessage',
+              json={
+                  'chat_id': os.environ['CHAT_ID'],
+                  'text': f'❌ <b>Error en deploy frontend</b>\n{os.environ[\"DESC\"]}\nVer logs en GitHub Actions.',
+                  'parse_mode': 'HTML',
+              },
+              timeout=10,
+          )
+          "

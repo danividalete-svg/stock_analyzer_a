@@ -43,10 +43,78 @@ GITHUB_REPO  = os.environ.get('GITHUB_REPO', 'tantancansado/stock_analyzer_a')
 
 GITHUB_PAGES_BASE = f'https://raw.githubusercontent.com/{GITHUB_REPO}/main'
 GITHUB_API_BASE   = 'https://api.github.com'
-CONFIRM_TIMEOUT   = 10 * 60   # 10 minutos para responder
-LOG_PATH = Path('docs/agent_orchestrator_log.json')
+CONFIRM_TIMEOUT   = None   # None = sin timeout (agent_monitor.py se encarga)
+LOG_PATH          = Path('docs/agent_orchestrator_log.json')
+PROPOSALS_PATH    = Path('docs/agent_proposals.json')
 
 GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
+
+# ─── Archivos candidatos a análisis de código ─────────────────────────────────
+# El agente rota por estos archivos en cada ejecución de --code-review
+CODE_FILES_FRONTEND = [
+    'frontend/src/pages/ValueUS.tsx',
+    'frontend/src/pages/ValueEU.tsx',
+    'frontend/src/pages/Dashboard.tsx',
+    'frontend/src/pages/MeanReversion.tsx',
+    'frontend/src/pages/Portfolio.tsx',
+    'frontend/src/pages/Cerebro.tsx',
+    'frontend/src/pages/MacroRadar.tsx',
+    'frontend/src/pages/BounceTrader.tsx',
+    'frontend/src/pages/TickerSearch.tsx',
+    'frontend/src/pages/Insiders.tsx',
+    'frontend/src/pages/DividendTraps.tsx',
+    'frontend/src/pages/Shorts.tsx',
+    'frontend/src/components/CerebroBadges.tsx',
+    'frontend/src/hooks/useCerebroSignals.ts',
+    'frontend/src/api/client.ts',
+]
+
+CODE_FILES_BACKEND = [
+    'super_score_integrator.py',
+    'mean_reversion_detector.py',
+    'fundamental_scorer.py',
+    'ticker_api.py',
+    'intraday_bounce_scanner.py',
+    'unusual_flow_scanner.py',
+]
+
+CODE_REVIEW_PROMPT = """Eres un senior software engineer revisando una app de análisis de bolsa (React + TypeScript + Python Flask).
+
+Analiza este archivo y encuentra UNA mejora concreta y aplicable:
+- Bug real que pueda causar crash o datos incorrectos
+- Problema de rendimiento (re-renders innecesarios, cálculos sin memoizar)
+- Mejora de UX clara y pequeña
+- Código muerto o incorrecto
+
+REGLAS CRÍTICAS:
+1. La mejora debe ser PEQUEÑA (máx 20 líneas cambiadas en total)
+2. `old_string` debe ser texto que exista LITERALMENTE en el archivo (cópialo exacto)
+3. No inventes funcionalidades ni datos
+4. Si el archivo está bien, responde con action: "none"
+5. Para Python: respetar que dividendYield ya viene en %, no decimal; 50.0 = dato ausente
+6. Para React: seguir los patrones del archivo (useMemo, null guards con ??)
+
+Archivo: {filename}
+Contenido:
+---
+{content}
+---
+
+Responde SOLO con JSON válido (sin markdown):
+{{
+  "action": "improve" | "none",
+  "title": "Título corto (máx 60 chars)",
+  "description": "Qué problema resuelve y por qué (2-3 frases)",
+  "impact": "high" | "medium" | "low",
+  "type": "frontend" | "backend",
+  "changes": [
+    {{
+      "file": "ruta/exacta/del/archivo",
+      "old_string": "código exacto a reemplazar (COPIADO LITERALMENTE del archivo)",
+      "new_string": "código nuevo"
+    }}
+  ]
+}}"""
 
 # Parámetros que el agente puede ajustar (con rangos seguros)
 ADJUSTABLE_PARAMS = {
@@ -91,6 +159,179 @@ ADJUSTABLE_PARAMS = {
         'unit': '% bajo soporte',
     },
 }
+
+
+# ─── Proposals (code review) ─────────────────────────────────────────────────
+
+def _load_proposals() -> list:
+    if PROPOSALS_PATH.exists():
+        try:
+            return json.loads(PROPOSALS_PATH.read_text())
+        except Exception:
+            pass
+    return []
+
+
+def _save_proposals(proposals: list):
+    PROPOSALS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PROPOSALS_PATH.write_text(json.dumps(proposals, indent=2, ensure_ascii=False))
+
+
+def _make_prop_id(title: str) -> str:
+    import hashlib
+    return 'prop_' + hashlib.md5(f'{title}{time.time()}'.encode()).hexdigest()[:8]
+
+
+# ─── Code Analysis (Groq) ────────────────────────────────────────────────────
+
+def analyze_file_with_ai(filepath: str) -> Optional[dict]:
+    """Analiza un archivo con Groq/LLM y devuelve propuesta de mejora."""
+    if not GROQ_API_KEY:
+        return None
+
+    raw_path = f'{GITHUB_PAGES_BASE}/{filepath}'
+    try:
+        r = requests.get(raw_path, timeout=15)
+        if r.status_code != 200:
+            # Try reading locally
+            local = Path(filepath)
+            if local.exists():
+                content = local.read_text(encoding='utf-8')
+            else:
+                print(f'  ⚠ No se pudo obtener {filepath}')
+                return None
+        else:
+            content = r.text
+    except Exception as e:
+        print(f'  ⚠ Error leyendo {filepath}: {e}')
+        return None
+
+    # Truncar para que quepa en contexto
+    if len(content) > 9000:
+        content = content[:9000] + '\n... [truncado]'
+
+    prompt = CODE_REVIEW_PROMPT.format(filename=filepath, content=content)
+
+    try:
+        resp = requests.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={'Authorization': f'Bearer {GROQ_API_KEY}', 'Content-Type': 'application/json'},
+            json={
+                'model': GROQ_MODEL,
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0.15,
+                'max_tokens': 1200,
+                'response_format': {'type': 'json_object'},
+            },
+            timeout=45,
+        )
+        resp.raise_for_status()
+        data = json.loads(resp.json()['choices'][0]['message']['content'])
+        return data
+    except Exception as e:
+        print(f'  ⚠ Groq error para {filepath}: {e}')
+        return None
+
+
+def validate_proposal(prop: dict, filepath: str) -> bool:
+    """Verifica que el old_string exista realmente en el archivo."""
+    for ch in prop.get('changes', []):
+        target = Path(ch.get('file', filepath))
+        if not target.exists():
+            return False
+        if ch.get('old_string', '') not in target.read_text(encoding='utf-8'):
+            return False
+    return bool(prop.get('changes'))
+
+
+def _send_code_proposal(prop: dict) -> Optional[int]:
+    """Envía propuesta de código a Telegram con botones. Devuelve message_id."""
+    impact_e = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(prop['impact'], '⚪')
+    type_e   = '⚛️' if prop['type'] == 'frontend' else '🐍'
+    files    = '\n'.join(f"  • <code>{c['file']}</code>" for c in prop['changes'])
+
+    text = (
+        f"🤖 <b>Mejora de código propuesta</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"{impact_e} Impacto: <b>{prop['impact'].upper()}</b>  {type_e} {prop['type'].upper()}\n\n"
+        f"<b>{prop['title']}</b>\n\n"
+        f"{prop['description']}\n\n"
+        f"📁 Archivos:\n{files}\n\n"
+        f"<i>ID: <code>{prop['id']}</code></i>\n"
+        f"<i>Responde cuando puedas — sin límite de tiempo</i>"
+    )
+    keyboard = {'inline_keyboard': [[
+        {'text': '✅ Aplicar',   'callback_data': f"agent_approve_{prop['id']}"},
+        {'text': '👁 Ver diff',  'callback_data': f"agent_diff_{prop['id']}"},
+        {'text': '❌ Rechazar',  'callback_data': f"agent_reject_{prop['id']}"},
+    ]]}
+
+    try:
+        r = requests.post(
+            f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage',
+            json={'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'HTML',
+                  'reply_markup': keyboard, 'disable_web_page_preview': True},
+            timeout=10,
+        )
+        return r.json().get('result', {}).get('message_id')
+    except Exception:
+        return None
+
+
+def run_code_review(n_files: int = 2):
+    """
+    Analiza N archivos con IA, genera propuestas, las envía a Telegram y las persiste.
+    El agent_monitor.py se encarga de la aprobación (sin timeout).
+    """
+    import random
+
+    proposals = _load_proposals()
+    recently_analyzed = {p.get('source_file') for p in proposals
+                         if p.get('status') in ('pending', 'applied', 'deploying')}
+
+    all_files = CODE_FILES_FRONTEND + CODE_FILES_BACKEND
+    candidates = [f for f in all_files if f not in recently_analyzed]
+    if not candidates:
+        candidates = all_files  # reiniciar rotación
+
+    to_analyze = random.sample(candidates, min(n_files, len(candidates)))
+    new_count = 0
+
+    for filepath in to_analyze:
+        print(f'  🔍 Analizando {filepath}...')
+        result = analyze_file_with_ai(filepath)
+
+        if not result or result.get('action') != 'improve':
+            print('     → Sin mejoras detectadas')
+            continue
+
+        if not validate_proposal(result, filepath):
+            print('     → old_string no encontrado — descartando')
+            continue
+
+        prop = {
+            'id':         _make_prop_id(result['title']),
+            'created_at': datetime.now(timezone.utc).isoformat(),
+            'source_file': filepath,
+            'type':        result.get('type', 'backend'),
+            'title':       result.get('title', 'Mejora sin título')[:80],
+            'description': result.get('description', ''),
+            'impact':      result.get('impact', 'medium'),
+            'changes':     result.get('changes', []),
+            'status':      'pending',
+            'telegram_message_id': None,
+        }
+
+        msg_id = _send_code_proposal(prop)
+        prop['telegram_message_id'] = msg_id
+        proposals.append(prop)
+        _save_proposals(proposals)
+        new_count += 1
+        print(f'     ✅ Propuesta enviada: {prop["title"]} (msg {msg_id})')
+        time.sleep(3)
+
+    print(f'\n  📬 {new_count} propuesta(s) nueva(s) enviadas a Telegram')
+    return new_count
 
 
 # ─── Monitor ──────────────────────────────────────────────────────────────────
@@ -351,7 +592,7 @@ def telegram_propose(proposal: dict, metrics: dict) -> bool:
         f"⚡ <b>Riesgos:</b> {risks}\n"
         f"🎯 Confianza del análisis: {conf}%\n"
         f"\n"
-        f"⏳ <i>Tienes {CONFIRM_TIMEOUT // 60} min para decidir</i>"
+        f"<i>Responde cuando puedas — sin límite de tiempo</i>"
     )
 
     keyboard = {'inline_keyboard': [[
@@ -383,21 +624,18 @@ def telegram_propose(proposal: dict, metrics: dict) -> bool:
     except Exception:
         offset = 0
 
-    deadline = time.time() + CONFIRM_TIMEOUT
     approved = False
     decided  = False
     metrics_requested = False
 
-    while time.time() < deadline and not decided:
-        wait = min(30, int(deadline - time.time()))
-        if wait <= 0:
-            break
+    while not decided:
+        poll_secs = 30
         try:
             upd = requests.get(
                 f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',
-                params={'timeout': wait, 'offset': offset,
+                params={'timeout': poll_secs, 'offset': offset,
                         'allowed_updates': ['callback_query']},
-                timeout=wait + 5,
+                timeout=poll_secs + 5,
             ).json()
             for update in upd.get('result', []):
                 offset = update['update_id'] + 1
@@ -430,10 +668,7 @@ def telegram_propose(proposal: dict, metrics: dict) -> bool:
         except Exception:
             time.sleep(5)
 
-    if decided:
-        final = f"{'✅ APLICADO' if approved else '❌ IGNORADO'} — <b>{param}</b>: {cur_val} → {new_val}"
-    else:
-        final = f"⏰ Sin respuesta ({CONFIRM_TIMEOUT // 60}min) — propuesta cancelada"
+    final = f"{'✅ APLICADO' if approved else '❌ IGNORADO'} — <b>{param}</b>: {cur_val} → {new_val}"
     _tg_edit(msg_id, final)
 
     return approved
@@ -556,7 +791,7 @@ def apply_param_change(proposal: dict) -> bool:
             _gh_trigger_workflow('intraday-bounce.yml')
             print('[executor] 🚀 Workflow disparado')
     else:
-        print(f'[executor] ❌ Error aplicando cambio en GitHub')
+        print('[executor] ❌ Error aplicando cambio en GitHub')
 
     return success
 
@@ -580,14 +815,25 @@ def _log_entry(entry: dict):
 
 def main():
     parser = argparse.ArgumentParser(description='Agent Orchestrator')
-    parser.add_argument('--status',  action='store_true', help='Solo métricas')
-    parser.add_argument('--force',   action='store_true', help='Forzar análisis aunque no haya issue')
-    parser.add_argument('--dry-run', action='store_true', help='Sin cambios reales')
+    parser.add_argument('--status',       action='store_true', help='Solo métricas')
+    parser.add_argument('--force',        action='store_true', help='Forzar análisis aunque no haya issue')
+    parser.add_argument('--dry-run',      action='store_true', help='Sin cambios reales')
+    parser.add_argument('--code-review',  action='store_true', help='Analiza archivos de código con IA y propone mejoras')
+    parser.add_argument('--n-files',      type=int, default=2, help='Nº de archivos a analizar en --code-review (default: 2)')
     args = parser.parse_args()
 
     print(f'\n{"="*60}')
     print(f'🤖 AGENT ORCHESTRATOR — {datetime.now().strftime("%Y-%m-%d %H:%M")}')
     print(f'{"="*60}')
+
+    # ── Code review mode ──────────────────────────────────────────────────────
+    if args.code_review:
+        print(f'\n🔍 Modo --code-review: analizando {args.n_files} archivo(s)...')
+        if args.dry_run:
+            print('   [dry-run] No se enviarán propuestas')
+        else:
+            run_code_review(n_files=args.n_files)
+        return
 
     # 1. Monitor
     print('\n📊 [1/3] Recopilando métricas...')
@@ -614,7 +860,7 @@ def main():
 
     print(f'   Acción: {proposal.get("action")}')
     if proposal.get('action') == 'none' and not args.force:
-        print(f'   Sistema OK — sin cambios necesarios')
+        print('   Sistema OK — sin cambios necesarios')
         _log_entry({'ts': metrics['timestamp'], 'action': 'none', 'metrics': metrics, 'proposal': proposal})
         return
 
@@ -676,7 +922,7 @@ def main():
         )
     _tg_send(msg)
     print(f'\n{"="*60}')
-    print(f'✅ Agent Orchestrator completado')
+    print('✅ Agent Orchestrator completado')
     print(f'{"="*60}\n')
 
 
