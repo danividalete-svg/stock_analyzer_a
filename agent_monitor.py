@@ -368,6 +368,20 @@ def handle_command(text: str, store: ProposalStore):
         except Exception as e:
             tg_send(f'❌ Error en research: {e}')
 
+    elif cmd == '/ask':
+        parts = text.split(maxsplit=2)
+        if len(parts) < 3:
+            tg_send('Uso: /ask TICKER pregunta\nEjemplo: /ask AAPL ¿Cuánta deuda tiene?')
+            return
+        ticker   = parts[1].upper()
+        question = parts[2]
+        tg_send(f'🔎 Consultando filing de <b>{ticker}</b>... (~30s)')
+        try:
+            from agent_ask import ask
+            ask(ticker, question, send_telegram=True)
+        except Exception as e:
+            tg_send(f'❌ Error en ask: {e}')
+
     elif cmd == '/debate':
         parts = text.split()
         if len(parts) < 2:
@@ -388,6 +402,7 @@ def handle_command(text: str, store: ProposalStore):
             "/status         — Resumen de todas las propuestas\n"
             "/research TICK  — Informe completo de una acción\n"
             "/debate TICK    — Debate multi-agente (4 analistas + árbitro)\n"
+            "/ask TICK preg  — RAG sobre el 10-K/10-Q (pregunta libre)\n"
             "/help           — Esta ayuda\n\n"
             "Las propuestas de código llegan automáticamente desde el agent_orchestrator."
         )
