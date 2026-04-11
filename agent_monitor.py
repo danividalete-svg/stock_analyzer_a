@@ -351,13 +351,27 @@ def handle_command(text: str, store: ProposalStore):
             lines.append(f"  • {s}: {n}")
         tg_send('\n'.join(lines))
 
+    elif cmd == '/research':
+        parts = text.split()
+        if len(parts) < 2:
+            tg_send('Uso: /research TICKER\nEjemplo: /research AAPL')
+            return
+        ticker = parts[1].upper()
+        tg_send(f'🔬 Analizando <b>{ticker}</b>... (~30-60s)')
+        try:
+            from agent_research import research
+            research(ticker, send_telegram=True)
+        except Exception as e:
+            tg_send(f'❌ Error en research: {e}')
+
     elif cmd == '/help':
         tg_send(
             "🤖 <b>Agent Monitor — Comandos</b>\n\n"
-            "/pending — Ver propuestas pendientes\n"
-            "/status  — Resumen de todas las propuestas\n"
-            "/help    — Esta ayuda\n\n"
-            "Las propuestas nuevas llegan automáticamente desde el agent_orchestrator."
+            "/pending        — Ver propuestas pendientes\n"
+            "/status         — Resumen de todas las propuestas\n"
+            "/research TICK  — Informe completo de una acción\n"
+            "/help           — Esta ayuda\n\n"
+            "Las propuestas de código llegan automáticamente desde el agent_orchestrator."
         )
 
 
