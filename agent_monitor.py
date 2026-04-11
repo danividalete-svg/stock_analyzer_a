@@ -12,10 +12,13 @@ Variables de entorno:
 Ejecutar: python3 agent_monitor.py
 """
 
+from __future__ import annotations
+
 import base64
 import json
 import os
 import time
+import traceback as _tb
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -366,8 +369,9 @@ def handle_command(text: str, store: ProposalStore):
             from agent_research import research
             research(ticker, send_telegram=True)
         except Exception as e:
-            import traceback
-            tg_send(f'❌ Error en research: {e}\n<pre>{traceback.format_exc()[-600:]}</pre>')
+            tb = _tb.format_exc()
+            print(f'ERROR research: {tb}')
+            tg_send(f'❌ Error en research: {e}\n<pre>{tb[-800:]}</pre>')
 
     elif cmd == '/ask':
         parts = text.split(maxsplit=2)
