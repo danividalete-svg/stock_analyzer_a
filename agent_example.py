@@ -89,7 +89,7 @@ TOOLS = [
 DOCS = Path(__file__).parent / "docs"
 
 
-def _read_csv_file(path: Path, limit: int, columns: list[str] | None) -> list[dict]:
+def _read_csv_file(path: Path, limit: int, columns=None) -> list:
     rows = []
     with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -102,7 +102,7 @@ def _read_csv_file(path: Path, limit: int, columns: list[str] | None) -> list[di
     return rows
 
 
-def tool_read_csv(dataset: str, limit: int = 20, columns: list | None = None) -> str:
+def tool_read_csv(dataset: str, limit: int = 20, columns=None) -> str:
     paths = {
         "value_opportunities": DOCS / "value_opportunities.csv",
         "fundamental_scores": DOCS / "fundamental_scores.csv",
