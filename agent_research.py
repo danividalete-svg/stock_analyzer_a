@@ -45,7 +45,7 @@ def _get(url: str, as_json=False, timeout=15, headers=None):
         return None
 
 
-def _csv_find(filename: str, ticker: str) -> dict | None:
+def _csv_find(filename: str, ticker: str):
     text = _get(f'{PAGES_BASE}/docs/{filename}')
     if not text:
         return None
