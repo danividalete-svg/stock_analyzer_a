@@ -327,17 +327,18 @@ def main():
 
                 elif data.startswith('approve_'):
                     # Format: approve_PARAM_CURVAL_NEWVAL
-                    parts = data.split('_')
-                    # parts[0]='approve', parts[1]=PARAM, parts[2]=cur, parts[3]=new
-                    if len(parts) >= 4:
-                        param = parts[1]
+                    # rsplit from right so param names with _ work (e.g. CONFIDENCE_MIN)
+                    remainder = data[len('approve_'):]
+                    pieces = remainder.rsplit('_', 2)
+                    if len(pieces) == 3:
+                        param = pieces[0]
                         try:
-                            cur_val = int(parts[2])
-                            new_val = int(parts[3])
+                            cur_val = int(pieces[1])
+                            new_val = int(pieces[2])
                         except ValueError:
                             cur_val = new_val = None
                     else:
-                        param = '_'.join(parts[1:])
+                        param = remainder
                         cur_val = new_val = None
 
                     if cur_val is None or new_val is None:
