@@ -1,0 +1,124 @@
+{
+  "score_buckets": [
+    {
+      "n": 201,
+      "win_rate": 35.8,
+      "avg_return": -2.36,
+      "range": "50-55",
+      "lo": 50
+    },
+    {
+      "n": 193,
+      "win_rate": 30.6,
+      "avg_return": -2.79,
+      "range": "55-60",
+      "lo": 55
+    },
+    {
+      "n": 164,
+      "win_rate": 48.8,
+      "avg_return": -0.97,
+      "range": "60-65",
+      "lo": 60
+    },
+    {
+      "n": 58,
+      "win_rate": 31.0,
+      "avg_return": -4.02,
+      "range": "65-70",
+      "lo": 65
+    },
+    {
+      "n": 45,
+      "win_rate": 26.7,
+      "avg_return": -3.8,
+      "range": "70+",
+      "lo": 70
+    }
+  ],
+  "regime_analysis": [
+    {
+      "regime": "CORRECTION",
+      "n": 155,
+      "win_rate": 43.9,
+      "avg_return": -1.57
+    },
+    {
+      "regime": "CONFIRMED_UPTREND",
+      "n": 673,
+      "win_rate": 36.4,
+      "avg_return": -2.5
+    },
+    {
+      "regime": "UPTREND_PRESSURE",
+      "n": 534,
+      "win_rate": 11.2,
+      "avg_return": -8.27
+    }
+  ],
+  "sector_calibration": [
+    {
+      "sector": "Healthcare",
+      "n": 71,
+      "win_rate": 18.3,
+      "avg_return": -7.34
+    },
+    {
+      "sector": "Industrials",
+      "n": 176,
+      "win_rate": 22.2,
+      "avg_return": -6.36
+    },
+    {
+      "sector": "Financial Services",
+      "n": 553,
+      "win_rate": 34.2,
+      "avg_return": -3.09
+    },
+    {
+      "sector": "Technology",
+      "n": 136,
+      "win_rate": 29.4,
+      "avg_return": -3.48
+    },
+    {
+      "sector": "Communication Services",
+      "n": 72,
+      "win_rate": 50.0,
+      "avg_return": 0.58
+    },
+    {
+      "sector": "Real Estate",
+      "n": 36,
+      "win_rate": 19.4,
+      "avg_return": -4.84
+    },
+    {
+      "sector": "Energy",
+      "n": 21,
+      "win_rate": 71.4,
+      "avg_return": 3.39
+    },
+    {
+      "sector": "Consumer Defensive",
+      "n": 59,
+      "win_rate": 15.3,
+      "avg_return": -4.67
+    },
+    {
+      "sector": "Basic Materials",
+      "n": 138,
+      "win_rate": 11.6,
+      "avg_return": -7.73
+    },
+    {
+      "sector": "Consumer Cyclical",
+      "n": 97,
+      "win_rate": 7.2,
+      "avg_return": -11.53
+    }
+  ],
+  "fcf_yield_buckets": [],
+  "total_completed": 1362,
+  "generated_at": "2026-04-12T11:23:58.561759+00:00"
+}
