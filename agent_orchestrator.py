@@ -117,6 +117,7 @@ Responde SOLO con JSON válido (sin markdown):
 }}"""
 
 # Parámetros que el agente puede ajustar (con rangos seguros)
+# NOTA: 'current' es solo el valor por defecto — siempre se lee del archivo real
 ADJUSTABLE_PARAMS = {
     'RSI_DAILY_MAX': {
         'file': 'mean_reversion_detector.py',
@@ -159,6 +160,31 @@ ADJUSTABLE_PARAMS = {
         'unit': '% bajo soporte',
     },
 }
+
+
+def _read_actual_values() -> dict:
+    """
+    Lee los valores actuales de los archivos reales vía GitHub API.
+    Evita proponer cambios que ya están aplicados.
+    """
+    import re
+    actual = {}
+    for param, cfg in ADJUSTABLE_PARAMS.items():
+        content, _ = _gh_get_file(cfg['file'])
+        if content is None:
+            actual[param] = cfg['current']
+            continue
+        prefix = re.escape(cfg['pattern_prefix'])
+        match = re.search(prefix + r'(-?\d+(?:\.\d+)?)', content)
+        if match:
+            try:
+                val = float(match.group(1))
+                actual[param] = int(val) if val == int(val) else val
+            except ValueError:
+                actual[param] = cfg['current']
+        else:
+            actual[param] = cfg['current']
+    return actual
 
 
 # ─── Proposals (code review) ─────────────────────────────────────────────────
@@ -450,7 +476,7 @@ def gather_metrics() -> dict:
 
 # ─── Analista (Groq) ──────────────────────────────────────────────────────────
 
-ANALYST_SYSTEM = """Eres un analista técnico experto en sistemas de trading algorítmico.
+ANALYST_SYSTEM_TEMPLATE = """Eres un analista técnico experto en sistemas de trading algorítmico.
 Analizas métricas de un scanner de rebotes técnicos (mean reversion) y propones ajustes
 específicos y conservadores a sus parámetros.
 
@@ -463,12 +489,8 @@ REGLAS DE ORO:
 6. Si la tasa de acierto 7d cae por debajo del 40% → endurecer filtros
 7. Si todo está bien → responde con action: "none"
 
-PARÁMETROS AJUSTABLES:
-- RSI_DAILY_MAX: RSI máximo para "oversold" (actual 30, rango 25-35)
-- CONFIDENCE_MIN: confianza mínima frontend (actual 40%, rango 30-55%)
-- VIX_VETO: VIX que veta todos los setups (actual 35, rango 28-45)
-- CUM_RSI2_MAX: CumRSI2 para señal Connors (actual 35, rango 20-50)
-- SUPPORT_VETO_PCT: distancia bajo soporte para veto (actual -5%, rango -8 a -3%)
+PARÁMETROS AJUSTABLES (valores reales ahora mismo):
+{params_summary}
 
 Responde SOLO en JSON sin ningún texto adicional."""
 
@@ -488,11 +510,20 @@ Analiza y responde en este JSON exacto:
 }}"""
 
 
-def groq_analyze(metrics: dict) -> Optional[dict]:
+def groq_analyze(metrics: dict, actual_values: dict) -> Optional[dict]:
     """Usa Groq LLM para analizar métricas y proponer ajuste."""
     if not GROQ_API_KEY:
         print('[agent] GROQ_API_KEY no configurado — skipping analysis')
         return None
+
+    # Build dynamic params summary with REAL current values
+    params_lines = []
+    for param, cfg in ADJUSTABLE_PARAMS.items():
+        cur = actual_values.get(param, cfg['current'])
+        params_lines.append(
+            f"- {param}: {cfg['description']} (actual={cur}, rango {cfg['min']}-{cfg['max']} {cfg['unit']})"
+        )
+    analyst_system = ANALYST_SYSTEM_TEMPLATE.format(params_summary='\n'.join(params_lines))
 
     metrics_str = json.dumps(metrics, indent=2, ensure_ascii=False)
     prompt = ANALYST_PROMPT.format(metrics=metrics_str)
@@ -504,7 +535,7 @@ def groq_analyze(metrics: dict) -> Optional[dict]:
             json={
                 'model': GROQ_MODEL,
                 'messages': [
-                    {'role': 'system', 'content': ANALYST_SYSTEM},
+                    {'role': 'system', 'content': analyst_system},
                     {'role': 'user',   'content': prompt},
                 ],
                 'temperature': 0.2,
@@ -516,6 +547,12 @@ def groq_analyze(metrics: dict) -> Optional[dict]:
         r.raise_for_status()
         content = r.json()['choices'][0]['message']['content']
         proposal = json.loads(content)
+
+        # Override current_value with the real file value
+        param = proposal.get('param')
+        if param and param in actual_values:
+            proposal['current_value'] = actual_values[param]
+
         return proposal
     except Exception as e:
         print(f'[agent] Groq error: {e}')
@@ -559,10 +596,11 @@ def _tg_edit(msg_id: int, text: str):
         pass
 
 
-def telegram_propose(proposal: dict, metrics: dict) -> bool:
+def telegram_propose(proposal: dict, metrics: dict):
     """
-    Envía propuesta a Telegram con botones Aplicar/Ignorar.
-    Espera CONFIRM_TIMEOUT segundos. Returns True si aprobado.
+    Envía propuesta a Telegram con botones y sale inmediatamente.
+    El agente monitor (siempre activo) es el único que maneja el callback
+    y aplica el cambio — esto evita la carrera de doble ejecución.
     """
     param     = proposal.get('param', '?')
     cur_val   = proposal.get('current_value', '?')
@@ -572,106 +610,29 @@ def telegram_propose(proposal: dict, metrics: dict) -> bool:
     risks     = proposal.get('risks', '')
     conf      = int(proposal.get('confidence', 0) * 100)
 
-    info = metrics
     text = (
-        f"🤖 <b>Agent Orchestrator — Propuesta de mejora</b>\n"
+        f"🤖 <b>Propuesta de ajuste</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"📊 <b>Estado actual:</b>\n"
-        f"   VIX: {info.get('vix', '?')} | Régimen: {info.get('market_regime', '?')}\n"
-        f"   Setups detectados: {info.get('bounce_total_detected', 0)} → pasan filtros: {info.get('bounce_passing_filters', 0)}\n"
-        f"   Win rate 7d: {info.get('portfolio_win_rate_7d', 'N/A')}\n"
+        f"📊 VIX: {metrics.get('vix', '?')} | Régimen: {metrics.get('market_regime', '?')}\n"
+        f"   Setups: {metrics.get('bounce_total_detected', 0)} detectados → "
+        f"{metrics.get('bounce_passing_filters', 0)} pasan filtros\n"
+        f"   Win rate 7d: {metrics.get('portfolio_win_rate_7d', 'N/A')}\n"
         f"\n"
         f"⚠️ <b>Problema:</b> {issue}\n"
         f"\n"
-        f"🔧 <b>Ajuste propuesto:</b>\n"
-        f"   Parámetro: <code>{param}</code>\n"
-        f"   Valor actual: <b>{cur_val}</b> → Nuevo: <b>{new_val}</b>\n"
-        f"\n"
-        f"💡 <b>Razonamiento:</b> {reasoning}\n"
-        f"\n"
-        f"⚡ <b>Riesgos:</b> {risks}\n"
-        f"🎯 Confianza del análisis: {conf}%\n"
-        f"\n"
-        f"<i>Responde cuando puedas — sin límite de tiempo</i>"
+        f"🔧 <code>{param}</code>: <b>{cur_val}</b> → <b>{new_val}</b>\n"
+        f"💡 {reasoning}\n"
+        f"⚡ Riesgos: {risks}\n"
+        f"🎯 Confianza: {conf}%"
     )
 
     keyboard = {'inline_keyboard': [[
-        {'text': '✅ Aplicar',  'callback_data': f'approve_{param}_{cur_val}_{new_val}'},
-        {'text': '❌ Ignorar', 'callback_data': f'reject_{param}'},
-        {'text': '🔍 Ver métricas', 'callback_data': 'metrics'},
+        {'text': '✅ Aplicar',   'callback_data': f'approve_{param}_{cur_val}_{new_val}'},
+        {'text': '❌ Ignorar',  'callback_data': f'reject_{param}'},
     ]]}
 
-    msg_id = _tg_send(text, keyboard)
-    if msg_id is None:
-        # Sin Telegram → auto-rechazar en producción para evitar cambios no supervisados
-        print('[agent] Sin Telegram — propuesta rechazada automáticamente (sin supervisión)')
-        return False
-
-    # Limpiar webhook
-    try:
-        requests.post(f'https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook',
-                      json={'drop_pending_updates': False}, timeout=5)
-    except Exception:
-        pass
-
-    # Offset inicial
-    try:
-        upd = requests.get(
-            f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',
-            params={'limit': 1, 'allowed_updates': ['callback_query']}, timeout=10,
-        ).json()
-        offset = (upd['result'][-1]['update_id'] + 1) if upd.get('result') else 0
-    except Exception:
-        offset = 0
-
-    approved = False
-    decided  = False
-    metrics_requested = False
-
-    while not decided:
-        poll_secs = 30
-        try:
-            upd = requests.get(
-                f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',
-                params={'timeout': poll_secs, 'offset': offset,
-                        'allowed_updates': ['callback_query']},
-                timeout=poll_secs + 5,
-            ).json()
-            for update in upd.get('result', []):
-                offset = update['update_id'] + 1
-                cq = update.get('callback_query')
-                if not cq:
-                    continue
-                data = cq.get('data', '')
-
-                if data == f'approve_{param}_{cur_val}_{new_val}' or data == f'approve_{param}':
-                    approved, decided = True, True
-                elif data == f'reject_{param}':
-                    approved, decided = False, True
-                elif data == 'metrics' and not metrics_requested:
-                    metrics_requested = True
-                    _tg_send(
-                        f"📊 <b>Métricas completas:</b>\n<pre>{json.dumps(metrics, indent=2, ensure_ascii=False)}</pre>",
-                    )
-
-                if decided:
-                    cb_text = '✅ Aplicando cambio...' if approved else '❌ Propuesta rechazada'
-                    try:
-                        requests.post(
-                            f'https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery',
-                            json={'callback_query_id': cq['id'], 'text': cb_text},
-                            timeout=5,
-                        )
-                    except Exception:
-                        pass
-                    break
-        except Exception:
-            time.sleep(5)
-
-    final = f"{'✅ APLICADO' if approved else '❌ IGNORADO'} — <b>{param}</b>: {cur_val} → {new_val}"
-    _tg_edit(msg_id, final)
-
-    return approved
+    _tg_send(text, keyboard)
+    print(f'[agent] Propuesta enviada a Telegram — el monitor aplicará si se aprueba')
 
 
 # ─── Ejecutor (GitHub API) ────────────────────────────────────────────────────
@@ -849,9 +810,16 @@ def main():
         print('\n✅ Modo --status: solo métricas. Done.')
         return
 
+    # 1b. Read actual values from source files (prevents stale proposals)
+    print('\n🔍 Leyendo valores actuales de archivos...')
+    actual_values = _read_actual_values()
+    for param, val in actual_values.items():
+        ADJUSTABLE_PARAMS[param]['current'] = val
+        print(f'   {param}: {val}')
+
     # 2. Analista
     print('\n🧠 [2/3] Analizando con Groq...')
-    proposal = groq_analyze(metrics)
+    proposal = groq_analyze(metrics, actual_values)
 
     if proposal is None:
         print('   Sin propuesta (Groq no disponible o sin API key)')
@@ -884,45 +852,19 @@ def main():
         print(f'   Propuesta: {json.dumps(proposal, indent=2, ensure_ascii=False)}')
         return
 
-    approved = telegram_propose(proposal, metrics)
+    # 3. Send to Telegram and exit — monitor handles the callback and applies
+    telegram_propose(proposal, metrics)
 
-    # Log
     _log_entry({
-        'ts': metrics['timestamp'],
-        'action': 'proposed',
-        'approved': approved,
-        'metrics': metrics,
-        'proposal': proposal,
+        'ts':       metrics['timestamp'],
+        'action':   'proposed',
+        'param':    proposal.get('param'),
+        'cur_val':  proposal.get('current_value'),
+        'new_val':  proposal.get('proposed_value'),
+        'metrics':  metrics,
     })
 
-    if not approved:
-        print('\n❌ Propuesta rechazada o sin respuesta. Sin cambios.')
-        return
-
-    # 4. Ejecutar
-    print('\n🔧 Aplicando cambio...')
-    if not GITHUB_TOKEN:
-        print('   GITHUB_TOKEN no configurado — no se puede aplicar')
-        _tg_send('⚠️ <b>Agent:</b> Falta GITHUB_TOKEN para aplicar el cambio. Configúralo en Railway.')
-        return
-
-    success = apply_param_change(proposal)
-
-    if success:
-        msg = (
-            f"✅ <b>Cambio aplicado:</b>\n"
-            f"   {proposal.get('param')}: {proposal.get('current_value')} → {proposal.get('proposed_value')}\n"
-            f"   El pipeline se ejecutará en ~5 minutos vía GitHub Actions."
-        )
-    else:
-        msg = (
-            f"❌ <b>Error aplicando cambio:</b>\n"
-            f"   {proposal.get('param')}: {proposal.get('current_value')} → {proposal.get('proposed_value')}\n"
-            f"   Revisar logs en Railway."
-        )
-    _tg_send(msg)
-    print(f'\n{"="*60}')
-    print('✅ Agent Orchestrator completado')
+    print('\n✅ Propuesta enviada. El monitor aplicará cuando el usuario apruebe.')
     print(f'{"="*60}\n')
 
 
