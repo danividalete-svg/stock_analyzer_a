@@ -236,7 +236,7 @@ def run():
     now = datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M UTC')
     print(f'🧠 Agent Adaptive corriendo — {now}')
 
-    rows = fetch_csv('docs/portfolio_tracker/recommendations.csv')
+    rows = fetch_csv('portfolio_tracker/recommendations.csv')
     if not rows:
         tg_send('⚠️ <b>Agent Adaptive:</b> No se pudo cargar recommendations.csv')
         return
@@ -247,7 +247,7 @@ def run():
         return
 
     # ── Current market regime ──
-    regime_data = fetch_json('docs/market_regime.json')
+    regime_data = fetch_json('market_regime.json')
     current_regime = regime_data.get('regime', 'UNKNOWN')
 
     # ── Find optimal score threshold ──
