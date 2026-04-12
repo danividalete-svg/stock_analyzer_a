@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-04-12T11:23:56.556265+00:00",
+  "total_signals_analyzed": 1362,
+  "current_regime": "UNKNOWN",
+  "recommended_score_min": 60,
+  "regime_modifier": 0,
+  "regime_win_rate": null,
+  "regime_n": 0,
+  "optimal_score_bucket": {
+    "lo": 60,
+    "win_rate": 48.8,
+    "n": 164
+  },
+  "best_sectors": [
+    "Energy",
+    "Communication Services",
+    "Financial Services"
+  ],
+  "worst_sectors": [
+    "Consumer Defensive",
+    "Basic Materials",
+    "Consumer Cyclical"
+  ],
+  "score_calibration": [
+    {
+      "n": 201,
+      "win_rate": 35.8,
+      "avg_return": -2.36,
+      "range": "50-55",
+      "lo": 50
+    },
+    {
+      "n": 193,
+      "win_rate": 30.6,
+      "avg_return": -2.79,
+      "range": "55-60",
+      "lo": 55
+    },
+    {
+      "n": 164,
+      "win_rate": 48.8,
+      "avg_return": -0.97,
+      "range": "60-65",
+      "lo": 60
+    },
+    {
+      "n": 58,
+      "win_rate": 31.0,
+      "avg_return": -4.02,
+      "range": "65-70",
+      "lo": 65
+    },
+    {
+      "n": 45,
+      "win_rate": 26.7,
+      "avg_return": -3.8,
+      "range": "70+",
+      "lo": 70
+    }
+  ],
+  "regime_calibration": [
+    {
+      "regime": "CORRECTION",
+      "n": 155,
+      "win_rate": 43.9,
+      "avg_return": -1.57
+    },
+    {
+      "regime": "CONFIRMED_UPTREND",
+      "n": 673,
+      "win_rate": 36.4,
+      "avg_return": -2.5
+    },
+    {
+      "regime": "UPTREND_PRESSURE",
+      "n": 534,
+      "win_rate": 11.2,
+      "avg_return": -8.27
+    }
+  ]
+}
