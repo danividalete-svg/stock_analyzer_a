@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-13",
-  "scan_time": "01:53",
+  "scan_time": "07:50",
   "tickers": [
     "ENPH",
     "NKE",
@@ -11,7 +11,7 @@
   "count": 11,
   "alta_count": 3,
   "media_count": 3,
-  "new_alerts": 6,
+  "new_alerts": 0,
   "items": [
     {
       "id": "29bc254e-1970-3579-94b3-c402fad8f22c",
@@ -39,7 +39,7 @@
       "title": "The Great Rotation: Buy This Sector Before It Comes Back in Style",
       "source": "Motley Fool",
       "pub_date": "2026-04-12T21:25:00Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 10h",
       "url": "https://www.fool.com/investing/2026/04/12/great-rotation-buy-healthcare-sector-before-oscr/",
       "importance": "ALTA"
     },
@@ -49,7 +49,7 @@
       "title": "Market Crash: This Dividend Stock Becomes a No-Brainer Buy at a Discount",
       "source": "Motley Fool",
       "pub_date": "2026-04-12T10:15:00Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 21h",
       "url": "https://www.fool.com/investing/2026/04/12/market-crash-dividend-stock-no-brainer-discount/",
       "importance": "MEDIA"
     },
@@ -59,7 +59,7 @@
       "title": "Enphase Energy (ENPH) Price Target Cut by $4 Ahead of Q1 Report",
       "source": "Insider Monkey",
       "pub_date": "2026-04-12T18:48:55Z",
-      "time_ago": "hace 7h",
+      "time_ago": "hace 13h",
       "url": "https://finance.yahoo.com/sectors/energy/articles/enphase-energy-enph-price-target-184855845.html",
       "importance": "MEDIA"
     },
@@ -69,7 +69,7 @@
       "title": "Nike To End Adidas' 25-Year Reign As UEFA Champions League Ball Sponsor—Not A 'Silver Bullet' Says Analyst",
       "source": "Benzinga",
       "pub_date": "2026-04-12T23:31:20Z",
-      "time_ago": "hace 2h",
+      "time_ago": "hace 8h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-end-adidas-25-reign-233120531.html",
       "importance": "MEDIA"
     },
