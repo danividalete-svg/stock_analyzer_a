@@ -761,9 +761,13 @@ TF_ITEMS_OF_INTEREST = {
     10:    'gross_profit',         # Gross Profit
     4051:  'ebitda',               # EBITDA
     21:    'ebit',                 # Operating Income / EBIT
+    32:    'interest_expense',     # Net Interest Expense (after operating income)
+    11:    'interest_expense',     # Interest Expense alternative ID
+    14:    'income_tax_expense',   # Income Tax Expense (Benefit)
     15:    'net_income',           # Net Income
     142:   'eps_diluted',          # Diluted EPS Excl Extra Items
     2006:  'cash_from_operations', # Cash from Operations
+    2023:  'wc_change',            # Changes in Working Capital (CF statement)
     2021:  'capex',                # Capital Expenditure (negative)
     1096:  'cash',                 # Cash And Equivalents
     4173:  'total_debt',           # Total Debt

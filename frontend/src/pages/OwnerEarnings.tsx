@@ -17,12 +17,19 @@ interface FcfBreakdownRow {
   ebitda?: number | null; ebitda_margin?: number | null
   dna?: number | null
   ebit?: number | null; ebit_margin?: number | null
+  interest?: number | null; interest_src?: string
+  income_tax?: number | null; tax_src?: string
+  pre_tax_income?: number | null
   net_income?: number | null; net_margin?: number | null
+  delta_wc?: number | null; wc_src?: string
   cfo?: number | null
   capex?: number | null; capex_maint?: number | null
+  template_fcf?: number | null
   owner_earnings?: number | null
   source?: string
 }
+
+interface ForwardEstimate { eps_norm?: number | null; ebitda?: number | null }
 
 interface OeResult {
   ticker: string
@@ -49,8 +56,72 @@ interface OeResult {
   fcf_breakdown: Record<string, FcfBreakdownRow>
   forward_fcf: Record<string, FcfEntry>
   forward_net_debt: Record<string, number>
+  forward_shares: Record<string, number>
+  forward_estimates: Record<string, ForwardEstimate>
   price_targets: Record<string, PriceTarget>
   error?: string
+}
+
+// ── Local price-target recomputation (mirrors owner_earnings.py logic) ────────
+
+interface ComputedTargets {
+  priceTargets: Record<string, PriceTarget>
+  exitPrice: number | null
+  buyPrice: number | null
+  upsidePct: number | null
+  signal: string
+}
+
+function recompute(
+  data: OeResult,
+  evFcfT: number,
+  perT: number,
+  evEbitdaT: number,
+  returnT: number,
+): ComputedTargets {
+  const fwdYears = Object.keys(data.forward_fcf).sort()
+  if (fwdYears.length === 0) return { priceTargets: {}, exitPrice: null, buyPrice: null, upsidePct: null, signal: 'NO_DATA' }
+
+  const priceTargets: Record<string, PriceTarget> = {}
+
+  for (const yr of fwdYears) {
+    const fwd = data.forward_fcf[yr]
+    const nd  = data.forward_net_debt[yr] ?? 0
+    const sh  = data.forward_shares?.[yr] ?? 1
+    const est = data.forward_estimates?.[yr] ?? {}
+    const ndPs = sh > 0 ? nd / sh : 0
+    const targets: PriceTarget = {}
+
+    const evFcfPrice = fwd.fcf_per_share * evFcfT - ndPs
+    if (evFcfPrice > 0) targets.ev_fcf = Math.round(evFcfPrice * 100) / 100
+
+    const eps = est.eps_norm
+    if (eps && eps > 0) targets.per = Math.round(eps * perT * 100) / 100
+
+    const ebitda = est.ebitda
+    if (ebitda && sh > 0) {
+      const mc = ebitda * evEbitdaT - nd
+      if (mc > 0) targets.ev_ebitda = Math.round(mc / sh * 100) / 100
+    }
+
+    const valid = Object.values(targets).filter((v): v is number => v != null && v > 0)
+    if (valid.length) targets.average = Math.round(valid.reduce((a, b) => a + b, 0) / valid.length * 100) / 100
+
+    priceTargets[yr] = targets
+  }
+
+  const exitYr = fwdYears[fwdYears.length - 1]
+  const exitP  = priceTargets[exitYr]?.ev_fcf ?? priceTargets[exitYr]?.average ?? null
+  const yearsToExit = Math.max(1, Math.min(parseInt(exitYr) - (data.exit_year! - data.years_to_exit!), 10))
+  const buyP = exitP && exitP > 0 ? Math.round(exitP / Math.pow(1 + returnT / 100, yearsToExit) * 100) / 100 : null
+
+  const upside = buyP && data.current_price && data.current_price > 0
+    ? Math.round((buyP / data.current_price - 1) * 1000) / 10
+    : null
+
+  const sig = upside == null ? 'NO_DATA' : upside >= 15 ? 'BUY' : upside >= 0 ? 'WATCH' : upside >= -15 ? 'HOLD' : 'OVERVALUED'
+
+  return { priceTargets, exitPrice: exitP, buyPrice: buyP, upsidePct: upside, signal: sig }
 }
 
 interface BatchResult {
@@ -70,6 +141,7 @@ const SIGNAL_COLORS: Record<string, string> = {
 }
 
 const SIGNAL_ORDER: Record<string, number> = { BUY: 0, WATCH: 1, HOLD: 2, OVERVALUED: 3, NO_DATA: 4 }
+void SIGNAL_ORDER // used by sort in BatchView via sortKey comparators
 
 function SignalBadge({ signal }: { signal: string }) {
   return (
@@ -98,6 +170,29 @@ function upsideColor(pct: number | null) {
   return 'text-red-400'
 }
 
+// ── Small editable number input ───────────────────────────────────────────────
+
+function ParamInput({
+  label, value, onChange, suffix = 'x', min = 1, max = 100, step = 0.5,
+}: {
+  label: string; value: number; onChange: (v: number) => void
+  suffix?: string; min?: number; max?: number; step?: number
+}) {
+  return (
+    <div className="flex flex-col gap-1 min-w-0">
+      <span className="text-[0.55rem] uppercase tracking-widest text-muted-foreground/50 font-semibold leading-none">{label}</span>
+      <div className="flex items-center gap-1">
+        <input
+          type="number" min={min} max={max} step={step} value={value}
+          onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(v) }}
+          className="w-16 bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm font-bold tabular-nums text-cyan-400 text-right focus:outline-none focus:border-cyan-500/50 focus:bg-white/8 transition-colors"
+        />
+        <span className="text-xs text-muted-foreground/50 shrink-0">{suffix}</span>
+      </div>
+    </div>
+  )
+}
+
 // ── Detail view ───────────────────────────────────────────────────────────────
 
 function DetailView({
@@ -107,19 +202,17 @@ function DetailView({
   onBack: () => void
   onRecalculate: (ret: number) => void
 }) {
-  const [localReturn, setLocalReturn] = useState(data.target_return_pct)
-  const [pending, setPending] = useState(false)
+  const [evFcfT,   setEvFcfT]   = useState(data.ev_fcf_target)
+  const [perT,     setPerT]     = useState(data.per_target)
+  const [evEbT,    setEvEbT]    = useState(data.ev_ebitda_target)
+  const [returnT,  setReturnT]  = useState(data.target_return_pct)
+  const [apiPending, setApiPending] = useState(false)
+
+  // All price targets and buy price recomputed locally on every param change
+  const computed = recompute(data, evFcfT, perT, evEbT, returnT)
 
   const histYears = Object.keys(data.historical_fcf).map(Number).sort((a, b) => b - a)
   const fwdYears  = Object.keys(data.forward_fcf).sort()
-
-  const upside = data.upside_pct
-  const signal = data.signal
-
-  const handleReturnChange = (v: number) => {
-    setLocalReturn(v)
-    setPending(v !== data.target_return_pct)
-  }
 
   return (
     <div className="space-y-5">
@@ -135,96 +228,106 @@ function DetailView({
           <div>
             <div className="flex items-center gap-3 mb-1">
               <h2 className="text-2xl font-bold tracking-tight">{data.ticker}</h2>
-              <SignalBadge signal={signal} />
+              {data.company_name && <span className="text-sm text-muted-foreground truncate max-w-xs">{data.company_name}</span>}
+              <SignalBadge signal={computed.signal} />
             </div>
             <p className="text-xs text-muted-foreground">
-              Precio de compra para <span className="text-foreground font-semibold">{data.target_return_pct}%</span> anual · Salida {data.exit_year ?? '—'}E ({data.years_to_exit ?? '—'} años)
+              Precio compra para <span className="text-foreground font-semibold">{returnT}%</span> anual · Salida {data.exit_year ?? '—'}E ({data.years_to_exit ?? '—'} años)
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
-            {/* Current price */}
             <div className="text-right">
               <div className="text-xs text-muted-foreground uppercase tracking-widest mb-0.5">Precio actual</div>
               <div className="text-xl font-bold tabular-nums">{fmt(data.current_price, '$')}</div>
             </div>
-            {/* Buy price */}
             <div className="text-right">
               <div className="text-xs text-muted-foreground uppercase tracking-widest mb-0.5">Precio de compra</div>
-              <div className={cn('text-xl font-bold tabular-nums', signal === 'BUY' ? 'text-emerald-400' : '')}>
-                {fmt(data.buy_price, '$')}
+              <div className={cn('text-xl font-bold tabular-nums', computed.signal === 'BUY' ? 'text-emerald-400' : '')}>
+                {fmt(computed.buyPrice, '$')}
               </div>
             </div>
-            {/* Upside */}
             <div className="text-right">
               <div className="text-xs text-muted-foreground uppercase tracking-widest mb-0.5">Margen seguridad</div>
-              <div className={cn('text-xl font-bold tabular-nums', upsideColor(upside))}>
-                {upside != null ? `${upside > 0 ? '+' : ''}${upside.toFixed(1)}%` : '—'}
+              <div className={cn('text-xl font-bold tabular-nums', upsideColor(computed.upsidePct))}>
+                {computed.upsidePct != null ? `${computed.upsidePct > 0 ? '+' : ''}${computed.upsidePct.toFixed(1)}%` : '—'}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Progress bar: current price vs buy price */}
-        {data.buy_price && data.current_price && data.exit_price && (
+        {/* Progress bar */}
+        {computed.buyPrice && data.current_price && computed.exitPrice && (
           <div className="mt-4">
             <div className="flex justify-between text-[0.65rem] text-muted-foreground mb-1">
-              <span>Precio compra ${data.buy_price.toFixed(2)}</span>
-              <span>Objetivo ${data.exit_price.toFixed(2)} ({data.exit_year}E)</span>
+              <span>Compra ${computed.buyPrice.toFixed(2)}</span>
+              <span>Objetivo ${computed.exitPrice.toFixed(2)} ({data.exit_year}E)</span>
             </div>
-            <div className="h-1.5 rounded-full bg-white/5 overflow-clip relative">
+            <div className="h-1.5 rounded-full bg-white/5 overflow-clip">
               <div
-                className={cn('h-full rounded-full transition-all', signal === 'BUY' ? 'bg-emerald-500' : signal === 'WATCH' ? 'bg-amber-500' : signal === 'HOLD' ? 'bg-sky-500' : 'bg-red-500')}
-                style={{ width: `${Math.min(100, Math.max(2, (data.current_price / data.exit_price) * 100))}%` }}
+                className={cn('h-full rounded-full transition-all', computed.signal === 'BUY' ? 'bg-emerald-500' : computed.signal === 'WATCH' ? 'bg-amber-500' : computed.signal === 'HOLD' ? 'bg-sky-500' : 'bg-red-500')}
+                style={{ width: `${Math.min(100, Math.max(2, (data.current_price / computed.exitPrice) * 100))}%` }}
               />
             </div>
           </div>
         )}
 
-        {/* Return slider inline */}
-        <div className="mt-4 pt-4 border-t border-white/6 flex items-center gap-4">
-          <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 font-semibold shrink-0">Retorno objetivo</span>
-          <input
-            type="range" min={8} max={25} step={1} value={localReturn}
-            onChange={e => handleReturnChange(Number(e.target.value))}
-            className="flex-1 accent-cyan-400 h-1"
-          />
-          <span className="text-sm font-bold tabular-nums w-10 text-right text-cyan-400 shrink-0">{localReturn}%</span>
-          {pending && (
-            <button
-              onClick={() => { setPending(false); onRecalculate(localReturn) }}
-              className="px-3 py-1 rounded-md bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold transition-colors shrink-0"
-            >
-              Recalcular
-            </button>
-          )}
-        </div>
-      </div>
+        {/* Parameters row — editable */}
+        <div className="mt-4 pt-4 border-t border-white/6">
+          <div className="flex flex-wrap items-end gap-5">
+            {/* Return % — slider */}
+            <div className="flex flex-col gap-1 flex-1 min-w-36">
+              <span className="text-[0.55rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">Retorno objetivo</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range" min={8} max={25} step={1} value={returnT}
+                  onChange={e => setReturnT(Number(e.target.value))}
+                  className="flex-1 accent-cyan-400 h-1"
+                />
+                <span className="text-sm font-bold tabular-nums w-9 text-right text-cyan-400 shrink-0">{returnT}%</span>
+              </div>
+            </div>
 
-      {/* Multiples reference row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {[
-          { label: 'EV/FCF mediana', value: fmt(data.median_ev_fcf, '', 'x', 1) },
-          { label: 'EV/FCF objetivo', value: fmt(data.ev_fcf_target, '', 'x', 1) },
-          { label: 'FCF Yield NTM', value: fmt(data.ntm_fcf_yield_pct, '', '%', 1) },
-          { label: 'P/E NTM', value: fmt(data.ntm_pe, '', 'x', 1) },
-          { label: 'EV/EBITDA NTM', value: fmt(data.ntm_ev_ebitda, '', 'x', 1) },
-          { label: 'CapEx/Ventas med.', value: fmt(data.capex_pct_sales_median, '', '%', 1) },
-        ].map(({ label, value }) => (
-          <div key={label} className="glass rounded-lg p-3 border border-white/6">
-            <div className="text-sm font-bold tabular-nums text-foreground/90">{value}</div>
-            <div className="text-[0.5rem] uppercase tracking-widest text-muted-foreground/50 mt-0.5 leading-tight">{label}</div>
+            <div className="h-8 w-px bg-white/8 hidden sm:block" />
+
+            {/* Multiples — inputs */}
+            <div className="flex flex-wrap gap-4">
+              <ParamInput label="EV/FCF objetivo" value={evFcfT} onChange={setEvFcfT} min={5} max={80} step={0.5} />
+              <ParamInput label="P/E objetivo"    value={perT}   onChange={setPerT}   min={5} max={80} step={0.5} />
+              <ParamInput label="EV/EBITDA obj."  value={evEbT}  onChange={setEvEbT}  min={3} max={50} step={0.5} />
+            </div>
+
+            <div className="h-8 w-px bg-white/8 hidden sm:block" />
+
+            {/* Reference (read-only) */}
+            <div className="flex flex-wrap gap-3 text-[0.65rem] text-muted-foreground/50">
+              <span>Mediana hist.: <span className="text-muted-foreground">{fmt(data.median_ev_fcf, '', 'x', 1)}</span></span>
+              <span>FCF Yield NTM: <span className="text-muted-foreground">{fmt(data.ntm_fcf_yield_pct, '', '%', 1)}</span></span>
+              <span>P/E NTM: <span className="text-muted-foreground">{fmt(data.ntm_pe, '', 'x', 1)}</span></span>
+            </div>
+
+            {/* API recalc button for return change */}
+            {returnT !== data.target_return_pct && !apiPending && (
+              <button
+                onClick={() => { setApiPending(true); onRecalculate(returnT) }}
+                className="px-3 py-1 rounded-md bg-white/8 hover:bg-white/12 border border-white/10 text-xs text-muted-foreground transition-colors shrink-0"
+                title="Recalcular FCF forward con este retorno"
+              >
+                Actualizar FCF →
+              </button>
+            )}
           </div>
-        ))}
+        </div>
       </div>
 
       {/* Tables row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        {/* FCF Breakdown */}
-        <div>
-          <p className="text-xs font-semibold mb-1.5">Desglose FCF histórico</p>
+        {/* FCF Breakdown — template style */}
+        <div className="xl:col-span-2">
+          <p className="text-xs font-semibold mb-1.5">Desglose FCF histórico — fórmula plantilla</p>
           <p className="text-[0.65rem] text-muted-foreground mb-2">
-            Revenue → EBITDA → EBIT → CFO → CapEx maint → Owner Earnings
+            FCF = EBITDA − CapEx<sub>mant</sub> − Interés − Impuestos + ΔCT
+            <span className="ml-2 opacity-50">· interés/impuestos estimados hasta próxima actualización TIKR</span>
           </p>
           <Card className="glass">
             <Table>
@@ -233,9 +336,13 @@ function DetailView({
                   <TableHead>Año</TableHead>
                   <TableHead className="text-right">Revenue</TableHead>
                   <TableHead className="text-right">EBITDA</TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">D&A</TableHead>
                   <TableHead className="text-right">EBIT</TableHead>
-                  <TableHead className="text-right">CFO</TableHead>
-                  <TableHead className="text-right">CapEx maint</TableHead>
+                  <TableHead className="text-right text-amber-400/80">− Interés</TableHead>
+                  <TableHead className="text-right text-amber-400/80">− Imptos</TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">NI</TableHead>
+                  <TableHead className="text-right text-sky-400/80">ΔCT</TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">− CapEx<sub>m</sub></TableHead>
                   <TableHead className="text-right font-bold text-cyan-400/80">FCF</TableHead>
                   <TableHead className="text-right">Fuente</TableHead>
                 </TableRow>
@@ -244,22 +351,39 @@ function DetailView({
                 {histYears.map(yr => {
                   const b = data.fcf_breakdown?.[yr]
                   if (!b) return null
+                  const estInterest = b.interest_src !== 'tikr'
+                  const estTax     = b.tax_src !== 'tikr'
+                  const estWc      = b.wc_src !== 'tikr'
                   return (
                     <TableRow key={yr}>
                       <TableCell className="font-medium">{yr}</TableCell>
-                      <TableCell className="text-right">
-                        {fmtM(b.revenue)}
-                      </TableCell>
+                      <TableCell className="text-right">{fmtM(b.revenue)}</TableCell>
                       <TableCell className="text-right">
                         <span>{fmtM(b.ebitda)}</span>
                         {b.ebitda_margin != null && <span className="ml-1 text-[0.6rem] text-muted-foreground/50">{b.ebitda_margin.toFixed(0)}%</span>}
                       </TableCell>
+                      <TableCell className="text-right text-muted-foreground/60">{fmtM(b.dna)}</TableCell>
                       <TableCell className="text-right">
                         <span>{fmtM(b.ebit)}</span>
                         {b.ebit_margin != null && <span className="ml-1 text-[0.6rem] text-muted-foreground/50">{b.ebit_margin.toFixed(0)}%</span>}
                       </TableCell>
-                      <TableCell className="text-right text-muted-foreground/70">{fmtM(b.cfo)}</TableCell>
-                      <TableCell className="text-right text-muted-foreground/70">{fmtM(b.capex_maint)}</TableCell>
+                      <TableCell className={cn('text-right', estInterest ? 'text-amber-400/60' : 'text-amber-400')}>
+                        <span>{fmtM(b.interest)}</span>
+                        {estInterest && <span className="ml-0.5 text-[0.5rem] opacity-60">~</span>}
+                      </TableCell>
+                      <TableCell className={cn('text-right', estTax ? 'text-amber-400/60' : 'text-amber-400')}>
+                        <span>{fmtM(b.income_tax)}</span>
+                        {estTax && <span className="ml-0.5 text-[0.5rem] opacity-60">~</span>}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground/60">
+                        <span>{fmtM(b.net_income)}</span>
+                        {b.net_margin != null && <span className="ml-1 text-[0.6rem] text-muted-foreground/40">{b.net_margin.toFixed(0)}%</span>}
+                      </TableCell>
+                      <TableCell className={cn('text-right', estWc ? 'text-sky-400/60' : 'text-sky-400')}>
+                        <span>{b.delta_wc != null ? fmtM(b.delta_wc) : '—'}</span>
+                        {estWc && <span className="ml-0.5 text-[0.5rem] opacity-60">~</span>}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground/60">{fmtM(b.capex_maint)}</TableCell>
                       <TableCell className="text-right font-bold text-cyan-400">{fmtM(b.owner_earnings)}</TableCell>
                       <TableCell className="text-right">
                         <span className={cn('text-[0.6rem] px-1.5 py-0.5 rounded font-medium',
@@ -267,14 +391,14 @@ function DetailView({
                           b.source === 'cfo_based'    ? 'bg-sky-500/10 text-sky-400' :
                                                         'bg-amber-500/10 text-amber-400'
                         )}>
-                          {b.source === 'tikr_actuals' ? 'TIKR' : b.source === 'cfo_based' ? 'CFO' : 'NI'}
+                          {b.source === 'tikr_actuals' ? 'TIKR' : b.source === 'cfo_based' ? 'CFO' : 'Tmpl'}
                         </span>
                       </TableCell>
                     </TableRow>
                   )
                 })}
                 {histYears.length === 0 && (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sin datos históricos</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-6">Sin datos históricos</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
@@ -285,39 +409,50 @@ function DetailView({
         <div>
           <p className="text-xs font-semibold mb-1.5">Objetivos de precio por año</p>
           <p className="text-[0.65rem] text-muted-foreground mb-2">
-            Precio compra = objetivo_{data.exit_year}E ÷ (1 + {data.target_return_pct}%)^años
+            Precio compra = objetivo_{data.exit_year}E ÷ (1+{returnT}%)^n · CAGR = retorno anual comprando hoy
           </p>
           <Card className="glass">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-border/40">
                   <TableHead>Año</TableHead>
-                  <TableHead className="text-right">FCF/sh</TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">FCF/sh</TableHead>
                   <TableHead className="text-right">EV/FCF</TableHead>
-                  <TableHead className="text-right">P/E</TableHead>
-                  <TableHead className="text-right">Promedio</TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">P/E</TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">EV/EBITDA</TableHead>
+                  <TableHead className="text-right font-semibold">Promedio</TableHead>
+                  <TableHead className="text-right text-emerald-400/80">CAGR</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {fwdYears.map(yr => {
-                  const fwd = data.forward_fcf[yr]
-                  const pt  = data.price_targets[yr]
+                {fwdYears.map((yr, i) => {
+                  const fwd  = data.forward_fcf[yr]
+                  const pt   = computed.priceTargets[yr]
                   if (!fwd || !pt) return null
-                  const isExit = String(data.exit_year) === yr
+                  const isExit  = String(data.exit_year) === yr
+                  const yearsN  = i + 1  // years from now (approx)
+                  const avgP    = pt.average
+                  const cagr    = avgP && data.current_price && data.current_price > 0
+                    ? (Math.pow(avgP / data.current_price, 1 / yearsN) - 1) * 100
+                    : null
                   return (
                     <TableRow key={yr} className={cn(isExit && 'bg-cyan-500/5')}>
                       <TableCell className="font-medium">
                         {yr}E{isExit && <span className="ml-1 text-[0.6rem] text-cyan-400/70">←</span>}
                       </TableCell>
-                      <TableCell className="text-right text-muted-foreground/70">{fmt(fwd.fcf_per_share, '$')}</TableCell>
+                      <TableCell className="text-right text-muted-foreground/60">{fmt(fwd.fcf_per_share, '$')}</TableCell>
                       <TableCell className="text-right">{fmt(pt.ev_fcf, '$')}</TableCell>
-                      <TableCell className="text-right text-muted-foreground/70">{fmt(pt.per, '$')}</TableCell>
-                      <TableCell className={cn('text-right font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(pt.average, '$')}</TableCell>
+                      <TableCell className="text-right text-muted-foreground/60">{fmt(pt.per, '$')}</TableCell>
+                      <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebitda, '$')}</TableCell>
+                      <TableCell className={cn('text-right font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(avgP, '$')}</TableCell>
+                      <TableCell className={cn('text-right font-semibold text-sm', cagr == null ? 'text-muted-foreground' : cagr >= returnT ? 'text-emerald-400' : cagr >= 0 ? 'text-amber-400' : 'text-red-400')}>
+                        {cagr != null ? `${cagr > 0 ? '+' : ''}${cagr.toFixed(1)}%` : '—'}
+                      </TableCell>
                     </TableRow>
                   )
                 })}
                 {fwdYears.length === 0 && (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sin estimaciones forward</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Sin estimaciones forward</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>

@@ -57,13 +57,57 @@ def _capex_maintenance(ebitda: float, ebit: float, capex: float) -> float:
     return min(abs(capex), dna)
 
 
-def _owner_earnings(cfo: Optional[float], ni: float, ebitda: float, ebit: float, capex: float) -> float:
-    """FCF = CFO − CapEx_maint si CFO disponible, sino net_income + D&A − CapEx_maint."""
-    capex_maint = _capex_maintenance(ebitda, ebit, capex)
-    if cfo:
-        return cfo - capex_maint
-    dna = ebitda - ebit
-    return ni + dna - capex_maint
+def _template_components(
+    ni: float, ebitda: float, ebit: float,
+    cfo: Optional[float],
+    total_debt: Optional[float],
+    interest_tikr: Optional[float],
+    income_tax_tikr: Optional[float],
+    wc_change_tikr: Optional[float],
+) -> tuple[float, float, float, str, str, str]:
+    """
+    Deriva los componentes de la fórmula template:
+      FCF = EBITDA − CapEx_maint − Interest − Taxes + ΔWC
+
+    Retorna: (interest, income_tax, delta_wc, interest_src, tax_src, wc_src)
+    Fuentes: 'tikr' = dato exacto TIKR | 'derived' = derivado de datos disponibles
+    """
+    dna = ebitda - ebit  # D&A = EBITDA - EBIT
+
+    # 1. Interest expense (positive = coste financiero)
+    if interest_tikr is not None:
+        interest = abs(interest_tikr)
+        interest_src = "tikr"
+    elif total_debt and total_debt > 0:
+        # Estimación: deuda total × tasa media 4% (compañías IG con bonos a 10Y ~4%)
+        interest = total_debt * 0.04
+        interest_src = "estimated"
+    else:
+        interest = max(0.0, (ebit - ni) * 0.35)  # 35% del gap EBIT-NI como intereses
+        interest_src = "estimated"
+
+    # 2. Tax expense (positive = impuesto pagado)
+    if income_tax_tikr is not None:
+        income_tax = abs(income_tax_tikr)
+        tax_src = "tikr"
+    else:
+        # Derivado: EBIT − interés − NI ≈ impuestos + interés minoritario
+        income_tax = max(0.0, ebit - interest - ni)
+        tax_src = "derived"
+
+    # 3. Cambio en capital circulante (ΔWC > 0 = liberación de caja; < 0 = consumo)
+    if wc_change_tikr is not None:
+        delta_wc = wc_change_tikr
+        wc_src = "tikr"
+    elif cfo is not None:
+        # Residual: CFO − NI − D&A (incluye SBC y diferidos — aproximación)
+        delta_wc = cfo - ni - dna
+        wc_src = "derived"
+    else:
+        delta_wc = 0.0
+        wc_src = "zero"
+
+    return interest, income_tax, delta_wc, interest_src, tax_src, wc_src
 
 
 def _fcf_conversion_median(historical_fcf: dict, metrics: dict, years: list) -> float:
@@ -78,12 +122,18 @@ def _fcf_conversion_median(historical_fcf: dict, metrics: dict, years: list) -> 
 
 
 def _historical_annual_prices(ticker: str, years: list) -> dict:
-    """Precios de cierre anuales (último día del año fiscal) via yfinance."""
+    """Precios de cierre anuales (último día del año fiscal) via yfinance.
+
+    yfinance devuelve precios en GBX (peniques) para tickers .L (mercado LSE).
+    TIKR almacena financieros en GBP (millones). Factor de corrección: ÷100.
+    """
     if not _YF_AVAILABLE or not years:
         return {}
     t = ticker.upper()
     if t in _price_cache:
         return _price_cache[t]
+    # Tickers LSE: yfinance usa GBX (pence), TIKR usa GBP — corregir ÷100
+    gbx_to_gbp = t.endswith('.L')
     try:
         oldest = min(years)
         hist = yf.Ticker(t).history(start=f"{oldest - 1}-01-01", end=f"{max(years) + 1}-01-01",
@@ -96,7 +146,8 @@ def _historical_annual_prices(ticker: str, years: list) -> dict:
             # Precio de cierre en diciembre del año fiscal
             yr_data = hist[hist.index.year == yr]
             if not yr_data.empty:
-                result[yr] = float(yr_data["Close"].iloc[-1])
+                price = float(yr_data["Close"].iloc[-1])
+                result[yr] = price / 100.0 if gbx_to_gbp else price
         _price_cache[t] = result
         return result
     except Exception:
@@ -165,6 +216,12 @@ def calculate(
         cfo    = _metric(metrics, "cash_from_operations", yr)
         rev    = _metric(metrics, "total_revenue", yr)
 
+        # Template formula components (available after next scraper run)
+        interest_tikr  = _metric(metrics, "interest_expense", yr)
+        tax_tikr       = _metric(metrics, "income_tax_expense", yr)
+        wc_change_tikr = _metric(metrics, "wc_change", yr)
+        total_debt_yr  = _metric(metrics, "total_debt", yr)
+
         if None in (ni, ebitda, ebit, capex, shares) or shares == 0:
             continue
 
@@ -172,6 +229,17 @@ def calculate(
         capex_maint = _capex_maintenance(ebitda, ebit, capex)
         est_fcf = est_actuals_fcf.get(yr)
 
+        # Template formula components
+        interest, income_tax, delta_wc, interest_src, tax_src, wc_src = _template_components(
+            ni, ebitda, ebit, cfo, total_debt_yr,
+            interest_tikr, tax_tikr, wc_change_tikr,
+        )
+        pre_tax_income = ebit - interest
+
+        # Template FCF (for display; equals CFO-based when components are derived)
+        template_fcf = ebitda - capex_maint - interest - income_tax + delta_wc
+
+        # Best FCF estimate for valuation (priority: TIKR actuals > CFO-based > template)
         if est_fcf:
             oe = est_fcf
             source = "tikr_actuals"
@@ -179,26 +247,34 @@ def calculate(
             oe = cfo - capex_maint
             source = "cfo_based"
         else:
-            oe = ni + dna - capex_maint
-            source = "ni_based"
+            oe = template_fcf
+            source = "template"
 
         historical_fcf[yr] = round(oe, 2)
         historical_fcf_ps[yr] = round(oe / shares, 4)
 
         fcf_breakdown[yr] = {
-            "revenue":       round(rev, 2) if rev else None,
-            "ebitda":        round(ebitda, 2),
-            "ebitda_margin": round(ebitda / rev * 100, 1) if rev and rev > 0 else None,
-            "dna":           round(dna, 2),
-            "ebit":          round(ebit, 2),
-            "ebit_margin":   round(ebit / rev * 100, 1) if rev and rev > 0 else None,
-            "net_income":    round(ni, 2),
-            "net_margin":    round(ni / rev * 100, 1) if rev and rev > 0 else None,
-            "cfo":           round(cfo, 2) if cfo else None,
-            "capex":         round(capex, 2),
-            "capex_maint":   round(capex_maint, 2),
+            "revenue":        round(rev, 2) if rev else None,
+            "ebitda":         round(ebitda, 2),
+            "ebitda_margin":  round(ebitda / rev * 100, 1) if rev and rev > 0 else None,
+            "dna":            round(dna, 2),
+            "ebit":           round(ebit, 2),
+            "ebit_margin":    round(ebit / rev * 100, 1) if rev and rev > 0 else None,
+            "interest":       round(interest, 2),
+            "interest_src":   interest_src,
+            "income_tax":     round(income_tax, 2),
+            "tax_src":        tax_src,
+            "pre_tax_income": round(pre_tax_income, 2),
+            "net_income":     round(ni, 2),
+            "net_margin":     round(ni / rev * 100, 1) if rev and rev > 0 else None,
+            "delta_wc":       round(delta_wc, 2),
+            "wc_src":         wc_src,
+            "cfo":            round(cfo, 2) if cfo else None,
+            "capex":          round(capex, 2),
+            "capex_maint":    round(capex_maint, 2),
+            "template_fcf":   round(template_fcf, 2),
             "owner_earnings": round(oe, 2),
-            "source":        source,
+            "source":         source,
         }
 
         if rev and rev > 0:
@@ -348,6 +424,14 @@ def calculate(
         "target_return_pct": round(target_return * 100, 1),
         "forward_fcf": forward_fcf,
         "forward_net_debt": forward_net_debt,
+        "forward_shares": {yr: round(v, 4) for yr, v in forward_shares.items()},
+        "forward_estimates": {
+            yr_str: {
+                "eps_norm": _fv(forward_est.get(yr_str, {}).get("eps_norm")),
+                "ebitda":   _fv(forward_est.get(yr_str, {}).get("ebitda")),
+            }
+            for yr_str in forward_fcf
+        },
         "price_targets": price_targets,
         "buy_price": buy_price,
         "exit_price": exit_price,
