@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Analyzer — System Overview</title>
+<style>
+  :root {
+    --bg: #050810;
+    --surface: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --cyan: #06b6d4;
+    --cyan-dim: rgba(6,182,212,0.15);
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --violet: #8b5cf6;
+    --rose: #f43f5e;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --radius: 12px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Orbs ── */
+  .orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.18;
+    animation: drift 20s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 600px; height: 600px; background: #06b6d4; top: -200px; left: -200px; animation-duration: 22s; }
+  .orb-2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -150px; right: -150px; animation-duration: 28s; animation-delay: -8s; }
+  .orb-3 { width: 400px; height: 400px; background: #10b981; top: 40%; left: 60%; animation-duration: 18s; animation-delay: -4s; }
+  @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.08); } }
+
+  /* ── Layout ── */
+  .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Nav ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,8,16,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; gap: 0; height: 52px;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px;
+    color: white; text-decoration: none; margin-right: 32px; flex-shrink: 0;
+  }
+  .nav-logo span { color: var(--cyan); }
+  .nav-links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a {
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    color: var(--muted); text-decoration: none; white-space: nowrap;
+    transition: all .2s; border: 1px solid transparent;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--surface); }
+  .nav-links a.active { color: var(--cyan); border-color: rgba(6,182,212,0.3); background: rgba(6,182,212,0.06); }
+
+  /* ── Hero ── */
+  .hero { padding: 88px 0 64px; text-align: center; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap-6px; gap: 6px;
+    padding: 4px 14px; border-radius: 100px;
+    border: 1px solid rgba(6,182,212,0.3);
+    background: rgba(6,182,212,0.08);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 56px); font-weight: 800; letter-spacing: -0.03em;
+    line-height: 1.1; margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 30%, var(--cyan) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero p { font-size: 16px; color: var(--muted); max-width: 600px; margin: 0 auto 40px; }
+  .hero-stats {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 48px;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 24px; text-align: center; min-width: 120px;
+  }
+  .stat-n { font-size: 28px; font-weight: 800; color: var(--cyan); }
+  .stat-l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+  /* ── Section ── */
+  section { padding: 64px 0; border-top: 1px solid var(--border); }
+  .sec-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 8px;
+  }
+  h2 { font-size: clamp(22px, 3vw, 32px); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .sec-desc { color: var(--muted); max-width: 620px; margin-bottom: 36px; font-size: 14px; }
+
+  /* ── Cards ── */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; transition: border-color .2s, transform .2s;
+    position: relative; overflow: hidden;
+  }
+  .card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+  .card::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--card-color, transparent) 0%, transparent 60%);
+    opacity: 0.06; pointer-events: none;
+  }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; margin-bottom: 12px;
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  }
+  .card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: .04em;
+    padding: 2px 8px; border-radius: 100px; margin-top: 10px;
+    text-transform: uppercase;
+  }
+  .tag-cyan { background: rgba(6,182,212,0.12); color: var(--cyan); border: 1px solid rgba(6,182,212,0.25); }
+  .tag-emerald { background: rgba(16,185,129,0.12); color: var(--emerald); border: 1px solid rgba(16,185,129,0.25); }
+  .tag-amber { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+  .tag-violet { background: rgba(139,92,246,0.12); color: var(--violet); border: 1px solid rgba(139,92,246,0.25); }
+  .tag-rose { background: rgba(244,63,94,0.12); color: var(--rose); border: 1px solid rgba(244,63,94,0.25); }
+
+  /* ── Pipeline flow ── */
+  .pipeline { display: flex; flex-direction: column; gap: 0; }
+  .pipeline-step {
+    display: grid; grid-template-columns: 200px 1fr; gap: 0; position: relative;
+  }
+  .pipeline-step:not(:last-child)::before {
+    content: ''; position: absolute; left: 99px; top: 56px; bottom: -8px; width: 2px;
+    background: linear-gradient(to bottom, var(--border), transparent);
+  }
+  .pipeline-left {
+    display: flex; flex-direction: column; align-items: center; padding: 16px 0 24px;
+  }
+  .step-num {
+    width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0;
+    border: 2px solid var(--border);
+  }
+  .step-label { font-size: 10px; color: var(--muted); margin-top: 6px; text-align: center; text-transform: uppercase; letter-spacing: .05em; }
+  .pipeline-right {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; margin: 8px 0; margin-left: 16px;
+  }
+  .pipeline-right h3 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .pipeline-right p { font-size: 12px; color: var(--muted); }
+  .pipeline-right .outputs {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+  }
+  .output-file {
+    font-size: 10px; font-family: monospace; padding: 2px 8px; border-radius: 6px;
+    background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2);
+    color: var(--cyan);
+  }
+
+  /* ── Score formula ── */
+  .formula-box {
+    background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.2);
+    border-radius: var(--radius); padding: 20px 24px; font-family: monospace;
+    font-size: 13px; line-height: 1.8; color: #94a3b8; margin-bottom: 24px;
+  }
+  .formula-box .highlight { color: var(--cyan); font-weight: 700; }
+  .formula-box .reject { color: var(--rose); }
+  .formula-box .bonus { color: var(--emerald); }
+
+  /* ── Score bar ── */
+  .score-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .score-row { display: flex; align-items: center; gap: 12px; }
+  .score-row-label { width: 200px; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .score-bar-wrap { flex: 1; background: rgba(255,255,255,0.05); border-radius: 100px; height: 6px; overflow: hidden; }
+  .score-bar { height: 100%; border-radius: 100px; transition: width 1s ease; }
+  .score-row-pts { width: 48px; text-align: right; font-size: 12px; font-weight: 700; }
+
+  /* ── Table ── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th {
+    text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .mono { font-family: monospace; font-size: 12px; color: var(--cyan); }
+
+  /* ── Tier list ── */
+  .tiers { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .tier {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px;
+  }
+  .tier-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .tier-badge {
+    font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 100px;
+    letter-spacing: .04em; text-transform: uppercase;
+  }
+  .tier-stars { font-size: 11px; }
+  .tier-tickers { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .ticker-chip {
+    font-size: 10px; font-family: monospace; font-weight: 700;
+    padding: 2px 6px; border-radius: 5px;
+    background: rgba(255,255,255,0.05); color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Columns ── */
+  .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 640px) { .cols-2 { grid-template-columns: 1fr; } }
+
+  /* ── Callout ── */
+  .callout {
+    border-radius: var(--radius); padding: 16px 20px;
+    font-size: 13px; line-height: 1.6; margin-bottom: 16px;
+    display: flex; gap: 12px;
+  }
+  .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .callout-cyan { background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2); }
+  .callout-emerald { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+  .callout-amber { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+  .callout-rose { background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.2); }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border-bottom: 2px solid transparent; color: var(--muted);
+    transition: all .2s; background: none; border-left: none; border-right: none; border-top: none;
+    margin-bottom: -1px;
+  }
+  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .tab:hover { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border); padding: 32px 0;
+    text-align: center; color: var(--muted); font-size: 12px;
+  }
+
+  /* ── Animations ── */
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity .5s, transform .5s; }
+  .fade-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">⬡ Stock<span>Analyzer</span></a>
+    <div class="nav-links">
+      <a href="#sistema" class="active">Sistema</a>
+      <a href="#universo">Universo</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#scoring">Scoring</a>
+      <a href="#estrategias">Estrategias</a>
+      <a href="#valoracion">Valoración</a>
+      <a href="#ia">IA</a>
+      <a href="#herramientas">Herramientas</a>
+      <a href="#datos">Datos</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="wrap">
+  <div class="hero fade-in">
+    <div class="hero-badge">📊 Sistema de análisis cuantitativo VALUE/GARP</div>
+    <h1>Stock Analyzer</h1>
+    <p>Pipeline diario automatizado que identifica oportunidades de inversión en acciones globales combinando análisis fundamental, técnico e inteligencia artificial. Estilo Lynch / Piotroski / Minervini.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-n">105</div><div class="stat-l">Tickers curados</div></div>
+      <div class="stat"><div class="stat-n">39</div><div class="stat-l">Módulos análisis</div></div>
+      <div class="stat"><div class="stat-n">Mon–Fri</div><div class="stat-l">Pipeline diario</div></div>
+      <div class="stat"><div class="stat-n">30 min</div><div class="stat-l">Scan intraday</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Fuentes de datos</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Sistema -->
+<div class="wrap">
+<section id="sistema" class="fade-in">
+  <div class="sec-label">Arquitectura</div>
+  <h2>Cómo funciona el sistema</h2>
+  <p class="sec-desc">Dos estrategias paralelas: <strong>VALUE/GARP</strong> (objetivo retornos consistentes 5–15%) y <strong>MOMENTUM</strong> (patrones VCP/Minervini). Cada una con su propio universo de análisis, scoring y alertas.</p>
+
+  <div class="callout callout-cyan">
+    <span class="callout-icon">🎯</span>
+    <div><strong>Filosofía central:</strong> 0 señales falsas mejor que 10 señales dudosas. El sistema prefiere no dar ninguna recomendación antes que dar una mala. Hard rejects automáticos para ROE negativo, márgenes negativos y objetivos de analistas por debajo del precio actual.</div>
+  </div>
+
+  <div class="cards">
+    <div class="card" style="--card-color: #06b6d4">
+      <div class="card-icon">💎</div>
+      <h3>VALUE / GARP</h3>
+      <p>Identifica empresas de calidad con ventajas competitivas duraderas cotizando con margen de seguridad. Basado en Piotroski F-Score, Magic Formula de Greenblatt y PEG ratio estilo Lynch.</p>
+      <span class="tag tag-cyan">Principal</span>
+    </div>
+    <div class="card" style="--card-color: #f97316">
+      <div class="card-icon">📈</div>
+      <h3>MOMENTUM</h3>
+      <p>Detecta patrones VCP (Volatility Contraction Pattern) de Mark Minervini — bases técnicas con compresión de volumen previas a breakouts institucionales.</p>
+      <span class="tag tag-amber">Complementario</span>
+    </div>
+    <div class="card" style="--card-color: #10b981">
+      <div class="card-icon">🏦</div>
+      <h3>Owner Earnings</h3>
+      <p>Modelo de valoración DCF simplificado: precio de compra para generar un retorno anual objetivo (por defecto 15%) basado en FCF proyectado y múltiplos históricos.</p>
+      <span class="tag tag-emerald">Nuevo</span>
+    </div>
+    <div class="card" style="--card-color: #f43f5e">
+      <div class="card-icon">⚡</div>
+      <h3>Bounce Trader</h3>
+      <p>Scanner intraday de rebotes técnicos en caídas bruscas (≥4%) con soporte cercano, alto ratio riesgo/beneficio y volumen anómalo. Ejecutable en Interactive Brokers.</p>
+      <span class="tag tag-rose">Intraday</span>
+    </div>
+    <div class="card" style="--card-color: #8b5cf6">
+      <div class="card-icon">🔄</div>
+      <h3>Mean Reversion</h3>
+      <p>Identifica correcciones en tendencias alcistas: RSI &lt;30 en empresas fundamentalmente sólidas, bull flags y rebotes en zonas de soporte con compras insider como confirmación.</p>
+      <span class="tag tag-violet">Táctico</span>
+    </div>
+    <div class="card" style="--card-color: #22c55e">
+      <div class="card-icon">🎯</div>
+      <h3>Confluencia</h3>
+      <p>Señales donde convergen VALUE + MOMENTUM + Técnico + Insiders + Opciones al mismo tiempo. Alta probabilidad de éxito por alineamiento multi-factor.</p>
+      <span class="tag tag-emerald">Alta convicción</span>
+    </div>
+  </div>
+</section>
+
+<!-- Universo -->
+<section id="universo" class="fade-in">
+  <div class="sec-label">Universo de inversión</div>
+  <h2>105 empresas curadas</h2>
+  <p class="sec-desc">No es un screener del S&P500 completo. El universo está seleccionado manualmente por calidad del negocio: moat duradera, ROIC consistente, generación de caja predecible. Clasificadas en 4 niveles.</p>
+
+  <div class="tiers">
+    <div class="tier">
+      <div class="tier-header">
+        <span class="tier-badge" style="background: rgba(250,204,21,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.3);">Tier 1</span>
+        <span class="tier-stars">★★★★★</span>
+      </div>
+      <p style="font-size:12px; color: var(--muted); margin-bottom:8px"><strong>37 empresas elite.</strong> Moats excepcionales, ROIC sostenido &gt;20%, pricing power comprobado a lo largo de ciclos.</p>
+      <div class="tier-tickers">
+        <span class="ticker-chip">VRSK</span><span class="ticker-chip">WCN</span><span class="ticker-chip">V</span><span class="ticker-chip">MA</span><span class="ticker-chip">MSCI</span><span class="ticker-chip">SPGI</span><span class="ticker-chip">COST</span><span class="ticker-chip">CTAS</span><span class="ticker-chip">ROP</span><span class="ticker-chip">CME</span><span class="ticker-chip">LIN</span><span class="ticker-chip">ADP</span><span class="ticker-chip">PAYX</span><span class="ticker-chip">WM</span><span class="ticker-chip">MSFT</span><span class="ticker-chip">KLAC</span>
+        <span style="font-size:10px; color: var(--muted); padding: 2px 6px;">+21 más</span>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-header">
+        <span class="tier-badge" style="background: rgba(6,182,212,.12); color: var(--cyan); border: 1px solid rgba(6,182,212,.3);">Tier 2</span>
+        <span class="tier-stars">★★★★☆</span>
+      </div>
+      <p style="font-size:12px; color: var(--muted); margin-bottom:8px"><strong>~50 empresas.</strong> Moats sólidos, ciclicidad moderada. Alta convicción a largo plazo.</p>
+      <div class="tier-tickers">
+        <span class="ticker-chip">INTU</span><span class="ticker-chip">ECL</span><span class="ticker-chip">SHW</span><span class="ticker-chip">VEEV</span><span class="ticker-chip">AON</span><span class="ticker-chip">FICO</span><span class="ticker-chip">ISRG</span><span class="ticker-chip">NOW</span><span class="ticker-chip">MCD</span><span class="ticker-chip">PEP</span><span class="ticker-chip">ZTS</span><span class="ticker-chip">TYL</span>
+        <span style="font-size:10px; color: var(--muted); padding: 2px 6px;">+38 más</span>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-header">
+        <span class="tier-badge" style="background: rgba(245,158,11,.12); color: var(--amber); border: 1px solid rgba(245,158,11,.3);">Tier 3</span>
+        <span class="tier-stars">★★★☆☆</span>
+      </div>
+      <p style="font-size:12px; color: var(--muted); margin-bottom:8px"><strong>~15 empresas.</strong> Calidad con mayor ciclicidad o apalancamiento. Requieren timing más preciso.</p>
+      <div class="tier-tickers">
+        <span class="ticker-chip">RELX</span><span class="ticker-chip">EXPN.L</span><span class="ticker-chip">LSEG.L</span><span class="ticker-chip">AUTO.L</span><span class="ticker-chip">ITRK.L</span>
+        <span style="font-size:10px; color: var(--muted); padding: 2px 6px;">+10 más</span>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-header">
+        <span class="tier-badge" style="background: rgba(100,116,139,.12); color: #94a3b8; border: 1px solid rgba(100,116,139,.3);">Tier 4</span>
+        <span class="tier-stars">★★☆☆☆</span>
+      </div>
+      <p style="font-size:12px; color: var(--muted); margin-bottom:8px"><strong>~3 excepciones.</strong> Cíclicas o con apalancamiento donde el precio puede crear oportunidad puntual.</p>
+      <div class="tier-tickers">
+        <span class="ticker-chip">BRK-B</span><span class="ticker-chip">AWK</span><span class="ticker-chip">ERIE</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-amber" style="margin-top:20px">
+    <span class="callout-icon">⚠️</span>
+    <div><strong>No es el S&P500.</strong> El universo excluye deliberadamente empresas cíclicas puras, negocios sin moat, compañías con ROE históricamente negativo y growth especulativo sin beneficios. La calidad del universo determina la calidad de las señales.</div>
+  </div>
+</section>
+
+<!-- Pipeline -->
+<section id="pipeline" class="fade-in">
+  <div class="sec-label">Automatización</div>
+  <h2>Pipeline diario — Lunes a Viernes, 5:23 UTC</h2>
+  <p class="sec-desc">GitHub Actions ejecuta 9 pasos secuenciales cada madrugada. Cada paso alimenta al siguiente. El resultado: análisis completo listo antes de la apertura europea.</p>
+
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(6,182,212,.15); border-color: rgba(6,182,212,.4); color: var(--cyan);">1</div>
+        <div class="step-label">~2 min</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>🌐 Sector Rotation Detector</h3>
+        <p>Analiza los 11 ETFs sectoriales SPDR (XLK, XLF, XLV…) con ventana de 90 días. Calcula velocidad y aceleración del momentum sectorial. Sectores en caída temporal reciben bonus VALUE (+8 pts) — estrategia contrarian.</p>
+        <div class="outputs"><span class="output-file">sector_rotation.csv</span></div>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(139,92,246,.15); border-color: rgba(139,92,246,.4); color: var(--violet);">2</div>
+        <div class="step-label">~5 min</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>📉 Mean Reversion Scanner</h3>
+        <p>Detecta 5 tipos de setup: rebotes oversold (RSI &lt;30), bull flags (pullback 10–15%), rebotes en soporte, dip buying insider. Filtra por SPY &gt; MA50 (régimen de mercado) y ratio riesgo/beneficio positivo.</p>
+        <div class="outputs"><span class="output-file">mean_reversion.csv</span></div>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(16,185,129,.15); border-color: rgba(16,185,129,.4); color: var(--emerald);">3</div>
+        <div class="step-label">~15 min ⚠️</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>⚙️ Fundamental Scorer + Super Score Integrator</h3>
+        <p>Paso crítico. Descarga datos fundamentales (yfinance) para los 105 tickers: ROE, márgenes, deuda, FCF yield, insiders, opciones, revisiones de analistas. Calcula <strong>value_score</strong> y <strong>momentum_score</strong> (0–100) con hard rejects automáticos.</p>
+        <div class="outputs">
+          <span class="output-file">fundamental_scores.csv</span>
+          <span class="output-file">value_opportunities.csv</span>
+          <span class="output-file">momentum_opportunities.csv</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.4); color: var(--amber);">4</div>
+        <div class="step-label">~3 min</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>🤖 AI Quality Filter</h3>
+        <p>Llama-3.3-70b (Groq) revisa las señales VALUE y MOMENTUM. Verifica: RS line en máximos, aceleración de beneficios, flujo institucional de opciones, fortaleza sectorial, régimen de mercado. Resultado: BUY / HOLD / AVOID con confianza 0–100.</p>
+        <div class="outputs">
+          <span class="output-file">value_opportunities_filtered.csv</span>
+          <span class="output-file">momentum_filtered.csv</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(6,182,212,.12); border-color: rgba(6,182,212,.3); color: var(--cyan);">5</div>
+        <div class="step-label">~2 min</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>🎯 Entry/Exit Calculator</h3>
+        <p>Calcula rangos de entrada y salida precisos. Entrada: pivote VCP ±2%, zona de pullback, soporte técnico. Salida: valor razonable por PER / EV/FCF / objetivos analistas. Stop loss: soporte técnico o –7–8% máximo. Ratio mínimo 3:1.</p>
+        <div class="outputs"><span class="output-file">entry_exit_signals.csv</span></div>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(139,92,246,.12); border-color: rgba(139,92,246,.3); color: var(--violet);">6</div>
+        <div class="step-label">~4 min</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>📝 Thesis Generator</h3>
+        <p>Genera tesis de inversión narrativas para cada oportunidad: setup técnico, caso fundamental (ROE, crecimiento, márgenes), contexto sectorial, catalizadores (earnings, buybacks, insider activity), factores de riesgo. Enriquecidas con datos TIKR Pro.</p>
+        <div class="outputs"><span class="output-file">theses.json</span></div>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.3); color: var(--emerald);">7</div>
+        <div class="step-label">~1 min</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>📊 Dashboard Generator</h3>
+        <p>Consolida todos los outputs en el dashboard HTML estático. Incluye resumen ejecutivo del día: régimen de mercado, top picks VALUE/MOMENTUM, alertas activas, señales de confluencia, estado del portfolio.</p>
+        <div class="outputs"><span class="output-file">super_dashboard.html</span></div>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.3); color: var(--amber);">8</div>
+        <div class="step-label">~2 min</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>📈 Portfolio Tracker</h3>
+        <p>Registra cada señal emitida y calcula el retorno real a 7, 14 y 30 días. Calcula win rate por estrategia y timeframe, drawdown máximo, correlación score-retorno. Sólo registra señales con score ≥55 o grade A/B. Máximo 6 picks/día.</p>
+        <div class="outputs">
+          <span class="output-file">recommendations.csv</span>
+          <span class="output-file">summary.json</span>
+          <span class="output-file">calibration.json</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="pipeline-left">
+        <div class="step-num" style="background: rgba(100,116,139,.15); border-color: rgba(100,116,139,.4); color: #94a3b8;">9</div>
+        <div class="step-label">~3 min</div>
+      </div>
+      <div class="pipeline-right">
+        <h3>🗄️ Ticker Data Cache</h3>
+        <p>Actualiza el caché de búsqueda del frontend: fundamentals, precio, scores, tesis, señales por ticker. Permite búsqueda instantánea sin llamadas a la API en tiempo real. Incluye todos los tickers del universo + S&P500 completo (solo para búsqueda).</p>
+        <div class="outputs"><span class="output-file">ticker_data_cache.json</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-violet" style="margin-top: 24px; background: rgba(139,92,246,.08); border-color: rgba(139,92,246,.2);">
+    <span class="callout-icon">🔄</span>
+    <div><strong>Pipeline adicional cada 30 min (13:30–20:00 UTC, Lunes–Viernes):</strong> Bounce Trader scanner + flujo inusual de opciones + agente de conflictos. Genera alertas Telegram en tiempo real para setups intraday de rebote.</div>
+  </div>
+</section>
+
+<!-- Scoring -->
+<section id="scoring" class="fade-in">
+  <div class="sec-label">Sistema de puntuación</div>
+  <h2>Cómo se calcula el Value Score</h2>
+  <p class="sec-desc">Score de 0 a 100 que mide la calidad y el timing de cada oportunidad. Combina factores cuantitativos fundamentales con señales de mercado. Diseñado para maximizar la tasa de acierto.</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this, 'tab-value')">VALUE Score</button>
+    <button class="tab" onclick="switchTab(this, 'tab-momentum')">MOMENTUM Score</button>
+    <button class="tab" onclick="switchTab(this, 'tab-rejects')">Hard Rejects</button>
+  </div>
+
+  <div id="tab-value" class="tab-content active">
+    <div class="score-rows">
+      <div class="score-row">
+        <span class="score-row-label">Fundamentales (Piotroski + Lynch)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:40%; background: var(--cyan);"></div></div>
+        <span class="score-row-pts" style="color: var(--cyan)">40 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Rentabilidad (ROE, márgenes, FCF)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:15%; background: var(--emerald);"></div></div>
+        <span class="score-row-pts" style="color: var(--emerald)">15 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Insiders (directivos comprando)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:15%; background: var(--violet);"></div></div>
+        <span class="score-row-pts" style="color: var(--violet)">15 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Institucional (13F, acumulación)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:15%; background: var(--violet);"></div></div>
+        <span class="score-row-pts" style="color: var(--violet)">15 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Flujo de opciones (actividad inusual)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:10%; background: var(--amber);"></div></div>
+        <span class="score-row-pts" style="color: var(--amber)">10 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">FCF Yield ≥ 5%</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:8%; background: var(--emerald);"></div></div>
+        <span class="score-row-pts" style="color: var(--emerald)">8 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Rotación sectorial (timing contrarian)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:8%; background: var(--cyan);"></div></div>
+        <span class="score-row-pts" style="color: var(--cyan)">8 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Mean reversion + momentum revisiones</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:8%; background: var(--amber);"></div></div>
+        <span class="score-row-pts" style="color: var(--amber)">8 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Dividendo sostenible + buybacks activos</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:8%; background: var(--emerald);"></div></div>
+        <span class="score-row-pts" style="color: var(--emerald)">8 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">ML score (modelo predictivo)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:5%; background: var(--violet);"></div></div>
+        <span class="score-row-pts" style="color: var(--violet)">5 pts</span>
+      </div>
+    </div>
+    <div class="callout callout-emerald">
+      <span class="callout-icon">✅</span>
+      <div><strong>Grades:</strong> A (≥75 pts), B (65–74), C (55–64), D (45–54). Solo A y B entran en el portfolio tracker como señales formales. Sin cobertura de analistas: penalización del 15% sobre el score final.</div>
+    </div>
+  </div>
+
+  <div id="tab-momentum" class="tab-content">
+    <div class="score-rows">
+      <div class="score-row">
+        <span class="score-row-label">Patrón VCP (Minervini)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:60%; background: var(--amber);"></div></div>
+        <span class="score-row-pts" style="color: var(--amber)">60 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Tendencia (medias móviles)</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:20%; background: var(--cyan);"></div></div>
+        <span class="score-row-pts" style="color: var(--cyan)">20 pts</span>
+      </div>
+      <div class="score-row">
+        <span class="score-row-label">Aceleración de beneficios</span>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:20%; background: var(--emerald);"></div></div>
+        <span class="score-row-pts" style="color: var(--emerald)">20 pts</span>
+      </div>
+    </div>
+    <div class="callout callout-amber">
+      <span class="callout-icon">📐</span>
+      <div><strong>VCP (Volatility Contraction Pattern):</strong> Secuencia de bases con rangos decrecientes y volumen comprimiéndose. Señal de acumulación institucional silenciosa. Breakout válido: precio supera el pivote con volumen ≥1.5x la media en la semana del breakout. Umbral mínimo: score ≥ 60.</div>
+    </div>
+  </div>
+
+  <div id="tab-rejects" class="tab-content">
+    <div class="callout callout-rose">
+      <span class="callout-icon">🚫</span>
+      <div><strong>Hard Rejects automáticos — no se pueden sobreescribir:</strong></div>
+    </div>
+    <table class="data-table" style="margin-top: 12px;">
+      <thead>
+        <tr><th>Condición</th><th>Consecuencia</th><th>Razón</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>ROE negativo</td><td style="color: var(--rose)">Value Score → 0, excluido</td><td>La empresa destruye capital de los accionistas</td></tr>
+        <tr><td>Margen neto negativo</td><td style="color: var(--rose)">−20 pts penalización</td><td>Sin rentabilidad operativa base</td></tr>
+        <tr><td>Objetivo analistas &lt; precio actual</td><td style="color: var(--rose)">Value Score → 0, excluido</td><td>El consenso considera la acción sobrevalorada</td></tr>
+        <tr><td>fundamental_score = 50.0</td><td style="color: var(--amber)">Sin puntos fundamentales</td><td>50.0 es el valor por defecto cuando faltan datos</td></tr>
+        <tr><td>ml_score = 50.0</td><td style="color: var(--amber)">Sin puntos ML</td><td>50.0 indica que el modelo no tiene datos suficientes</td></tr>
+        <tr><td>Precio &gt; 52w high × 1.25</td><td style="color: var(--amber)">Flag sobreextensión</td><td>Riesgo de corrección técnica elevado</td></tr>
+        <tr><td>Earnings en &lt;7 días</td><td style="color: var(--amber)">−5 pts "earnings warning"</td><td>Riesgo binario de evento próximo</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Estrategias -->
+<section id="estrategias" class="fade-in">
+  <div class="sec-label">Módulos de análisis</div>
+  <h2>Estrategias especializadas</h2>
+  <p class="sec-desc">Cada módulo cubre un ángulo diferente del mercado. Pueden usarse de forma independiente o combinada (señales de confluencia).</p>
+
+  <div class="cards">
+    <div class="card" style="--card-color: #06b6d4">
+      <div class="card-icon">🌍</div>
+      <h3>VALUE Global (US / EU / Internacional)</h3>
+      <p>Tabla filtrable con scoring, grade, sector, FCF yield, ratio riesgo/beneficio, días a earnings. Filtros: grade A–D, sector, FCF% mínimo, R:R mínimo, ocultar earnings próximos. Watchlist integrada.</p>
+    </div>
+    <div class="card" style="--card-color: #8b5cf6">
+      <div class="card-icon">👥</div>
+      <h3>Insiders</h3>
+      <p>Compras de directivos y consejeros registradas en SEC (US) y equivalentes europeos. Normalizado por tamaño de la operación y contexto histórico del directivo. Score de convicción 0–100.</p>
+    </div>
+    <div class="card" style="--card-color: #ec4899">
+      <div class="card-icon">🌊</div>
+      <h3>Options Flow</h3>
+      <p>Flujo inusual de opciones: calls/puts con volumen anormalmente alto vs open interest. Detecta posicionamiento institucional antes de movimientos. Segmentado por dirección, vencimiento y tamaño.</p>
+    </div>
+    <div class="card" style="--card-color: #f59e0b">
+      <div class="card-icon">🏛️</div>
+      <h3>Hedge Funds 13F</h3>
+      <p>Seguimiento de posiciones declaradas trimestralmente por hedge funds (SEC 13F). Identifica empresas que acumulan grandes gestores: Buffett, Ackman, Tepper, etc. Nuevas posiciones y aumentos significativos.</p>
+    </div>
+    <div class="card" style="--card-color: #e11d48">
+      <div class="card-icon">📡</div>
+      <h3>Macro Radar</h3>
+      <p>Dashboard macroeconómico: curva de tipos (2Y–10Y), spread high yield, VIX, dollar index, precio del petróleo, oro. Indicadores de régimen (risk-on / risk-off). Ciclo de Dalio simplificado.</p>
+    </div>
+    <div class="card" style="--card-color: #06b6d4">
+      <div class="card-icon">🌐</div>
+      <h3>Macro Países</h3>
+      <p>Comparativa macroeconómica por países: PIB, inflación, tipos de interés, deuda/PIB, reservas de divisa. Framework de soberanía monetaria para identificar economías con capacidad de estímulo.</p>
+    </div>
+    <div class="card" style="--card-color: #0ea5e9">
+      <div class="card-icon">🔬</div>
+      <h3>Micro-Cap</h3>
+      <p>Scanner especializado en pequeñas empresas (&lt;$500M market cap) con características VALUE: bajo PEG, FCF positivo, insider ownership alto. Mayor riesgo pero mayor potencial de retorno asimétrico.</p>
+    </div>
+    <div class="card" style="--card-color: #ef4444">
+      <div class="card-icon">📉</div>
+      <h3>Cortos (Shorts)</h3>
+      <p>Identifica candidatos a posiciones cortas: márgenes en deterioro, deuda creciente, deterioro del negocio, múltiplos excesivos. Incluye short squeeze risk para alertar sobre posibles coberturas masivas.</p>
+    </div>
+    <div class="card" style="--card-color: #f97316">
+      <div class="card-icon">⚡</div>
+      <h3>Señales Técnicas</h3>
+      <p>Cruces de medias móviles (Golden/Death Cross), RSI extremos, MACD divergencias, bandas de Bollinger. Útil como confirmación de señales fundamentales, no como señal primaria.</p>
+    </div>
+    <div class="card" style="--card-color: #22c55e">
+      <div class="card-icon">⚖️</div>
+      <h3>Position Sizing</h3>
+      <p>Calculadora de tamaño de posición basada en Kelly Criterion. Inputs: capital del portfolio, precio de entrada, stop loss, probabilidad de acierto histórica. Ajustado por convicción y concentración sectorial.</p>
+    </div>
+    <div class="card" style="--card-color: #a78bfa">
+      <div class="card-icon">🧪</div>
+      <h3>Calibración</h3>
+      <p>Análisis de precisión del sistema: ¿Los scores altos predicen mejores retornos? ¿Cuál es el win rate por grade? ¿El modelo está calibrado o sobreoptimizado? Datos reales de las últimas recomendaciones.</p>
+    </div>
+    <div class="card" style="--card-color: #f97316">
+      <div class="card-icon">🕯️</div>
+      <h3>Catalizadores</h3>
+      <p>Calendario de eventos que pueden mover el precio: earnings dates, vencimientos de opciones (OpEx), aprobaciones FDA (PDUFA), eventos macro (Fed, CPI, NFP). Integrado con la señal de "earnings warning".</p>
+    </div>
+  </div>
+</section>
+
+<!-- Valoración Owner Earnings -->
+<section id="valoracion" class="fade-in">
+  <div class="sec-label">Modelo de valoración</div>
+  <h2>Owner Earnings — Precio justo por DCF</h2>
+  <p class="sec-desc">Para cada empresa del universo, calcula el precio de compra que generaría un retorno anual objetivo. Basado en la fórmula de Buffett/Munger adaptada a los datos disponibles.</p>
+
+  <div class="cols-2">
+    <div>
+      <div class="formula-box">
+<span class="highlight">FCF</span> = EBITDA − CapEx<sub>mant</sub> − Interés − Impuestos + ΔCT
+
+<span style="color:var(--muted)">donde:</span>
+  CapEx<sub>mant</sub> = min(|CapEx total|, D&A)
+  D&A               = EBITDA − EBIT
+  ΔCT               = CFO − NI − D&A <span style="color:var(--muted)">(aprox.)</span>
+
+<span class="highlight">Precio objetivo</span> = FCF/acción × EV/FCF<sub>target</sub> − Deuda neta/acción
+
+<span class="highlight">Precio de compra</span> = Precio objetivo<sub>año N</sub> ÷ (1 + retorno)^N
+      </div>
+      <div class="callout callout-cyan">
+        <span class="callout-icon">📐</span>
+        <div><strong>EV/FCF objetivo:</strong> 90% de la mediana histórica calculada con precios reales anuales via yfinance. Descuento conservador sobre el múltiplo al que el mercado ha valorado históricamente la empresa.</div>
+      </div>
+    </div>
+    <div>
+      <table class="data-table">
+        <thead><tr><th>Señal</th><th>Condición</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-emerald">BUY</span></td><td>Precio compra ≥ +15% sobre precio actual</td></tr>
+          <tr><td><span class="tag tag-amber">WATCH</span></td><td>Precio compra 0% a +15% sobre actual</td></tr>
+          <tr><td><span class="tag tag-cyan">HOLD</span></td><td>Precio compra −15% a 0% sobre actual</td></tr>
+          <tr><td><span class="tag tag-rose">OVERVALUED</span></td><td>Precio compra &lt; −15% sobre actual</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px;">
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 8px">Múltiplos editables por el usuario</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <div style="background: rgba(6,182,212,.08); border: 1px solid rgba(6,182,212,.2); border-radius: 8px; padding: 8px 12px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--cyan)">EV/FCF</div>
+            <div style="font-size: 10px; color: var(--muted)">Objetivo</div>
+          </div>
+          <div style="background: rgba(139,92,246,.08); border: 1px solid rgba(139,92,246,.2); border-radius: 8px; padding: 8px 12px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--violet)">P/E</div>
+            <div style="font-size: 10px; color: var(--muted)">Objetivo</div>
+          </div>
+          <div style="background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.2); border-radius: 8px; padding: 8px 12px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--amber)">EV/EBITDA</div>
+            <div style="font-size: 10px; color: var(--muted)">Objetivo</div>
+          </div>
+          <div style="background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2); border-radius: 8px; padding: 8px 12px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: var(--emerald)">15%</div>
+            <div style="font-size: 10px; color: var(--muted)">Retorno obj.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IA -->
+<section id="ia" class="fade-in">
+  <div class="sec-label">Inteligencia Artificial</div>
+  <h2>Automatización con IA</h2>
+  <p class="sec-desc">Tres capas de IA en el pipeline. No para predecir precios, sino para filtrar ruido y generar contexto narrativo.</p>
+
+  <div class="cards">
+    <div class="card" style="--card-color: #8b5cf6">
+      <div class="card-icon">🧠</div>
+      <h3>Cerebro IA — Agente Proactivo</h3>
+      <p>Agente que monitorea señales de convergencia multi-factor. Cuando VALUE + MOMENTUM + Técnico + Insiders se alinean en la misma empresa, genera una alerta de alta convicción con tesis completa. No espera a que el usuario busque — llega solo.</p>
+      <span class="tag tag-violet">Proactivo</span>
+    </div>
+    <div class="card" style="--card-color: #06b6d4">
+      <div class="card-icon">🔍</div>
+      <h3>AI Quality Filter</h3>
+      <p>Llama-3.3-70b (Groq) revisa cada señal del pipeline. Verifica coherencia entre fundamentales, técnico y contexto macro. Descarta señales que pasan el scoring cuantitativo pero tienen contexto adverso no capturado por los datos.</p>
+      <span class="tag tag-cyan">Filtro</span>
+    </div>
+    <div class="card" style="--card-color: #10b981">
+      <div class="card-icon">📋</div>
+      <h3>Thesis Generator</h3>
+      <p>Genera tesis de inversión en lenguaje natural para cada oportunidad. Combina datos cuantitativos del pipeline con narrativa sobre el negocio. Exportable como resumen ejecutivo para presentar a comités de inversión.</p>
+      <span class="tag tag-emerald">Narrativa</span>
+    </div>
+  </div>
+</section>
+
+<!-- Herramientas -->
+<section id="herramientas" class="fade-in">
+  <div class="sec-label">Frontend — 39 módulos</div>
+  <h2>Herramientas disponibles</h2>
+  <p class="sec-desc">Aplicación web React desplegada en GitHub Pages. Autenticación segura via Supabase JWT. Cada módulo es accesible desde el sidebar o mediante búsqueda rápida (⌘K).</p>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px;">
+    <!-- groups -->
+    <div style="grid-column: 1/-1; font-size: 11px; font-weight: 700; color: var(--cyan); text-transform: uppercase; letter-spacing: .08em; margin-top: 8px;">📊 Análisis principal</div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Dashboard</h3><p style="font-size: 11px">Resumen diario</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Value US / EU / Global</h3><p style="font-size: 11px">Oportunidades VALUE</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Confluencia</h3><p style="font-size: 11px">Señales alineadas</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Owner Earnings</h3><p style="font-size: 11px">DCF simplificado</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Cerebro IA</h3><p style="font-size: 11px">Agente proactivo</p></div>
+
+    <div style="grid-column: 1/-1; font-size: 11px; font-weight: 700; color: var(--violet); text-transform: uppercase; letter-spacing: .08em; margin-top: 8px;">📡 Smart Money</div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Insiders</h3><p style="font-size: 11px">Compras directivos</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Hedge Funds 13F</h3><p style="font-size: 11px">Posiciones SEC</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Options Flow</h3><p style="font-size: 11px">Flujo inusual</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Screener</h3><p style="font-size: 11px">Filtros avanzados</p></div>
+
+    <div style="grid-column: 1/-1; font-size: 11px; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: .08em; margin-top: 8px;">⚡ Trading Táctico</div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Bounce Trader</h3><p style="font-size: 11px">Rebotes intraday</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Mean Reversion</h3><p style="font-size: 11px">RSI extremos</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Momentum VCP</h3><p style="font-size: 11px">Minervini patterns</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Señales Técnicas</h3><p style="font-size: 11px">Medias, RSI, MACD</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Cortos</h3><p style="font-size: 11px">Candidatos short</p></div>
+
+    <div style="grid-column: 1/-1; font-size: 11px; font-weight: 700; color: var(--rose); text-transform: uppercase; letter-spacing: .08em; margin-top: 8px;">🌐 Macro</div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Macro Radar</h3><p style="font-size: 11px">Tipos, spreads, VIX</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Macro Países</h3><p style="font-size: 11px">PIB, inflación, CB</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Rotación Sectorial</h3><p style="font-size: 11px">Momentum 11 sectores</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Calendario Macro</h3><p style="font-size: 11px">Fed, CPI, NFP</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Catalizadores</h3><p style="font-size: 11px">Earnings, FDA, OpEx</p></div>
+
+    <div style="grid-column: 1/-1; font-size: 11px; font-weight: 700; color: var(--emerald); text-transform: uppercase; letter-spacing: .08em; margin-top: 8px;">💼 Portfolio & Gestión</div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Mi Cartera</h3><p style="font-size: 11px">Posiciones personales</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Signal Tracker</h3><p style="font-size: 11px">Win rate & retornos</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Smart Portfolio</h3><p style="font-size: 11px">Constructor óptimo</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Position Sizing</h3><p style="font-size: 11px">Kelly criterion</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Watchlist</h3><p style="font-size: 11px">Seguimiento</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Alertas</h3><p style="font-size: 11px">Email / Telegram</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Calibración</h3><p style="font-size: 11px">Precisión del modelo</p></div>
+    <div class="card" style="padding: 12px"><h3 style="font-size: 12px">Backtest</h3><p style="font-size: 11px">Simulación histórica</p></div>
+  </div>
+</section>
+
+<!-- Datos -->
+<section id="datos" class="fade-in">
+  <div class="sec-label">Fuentes de datos</div>
+  <h2>De dónde viene la información</h2>
+  <p class="sec-desc">Tres fuentes complementarias. Ningún dato inventado: si falta, el sistema no puntúa — nunca asigna un número por defecto.</p>
+
+  <div class="cards">
+    <div class="card" style="--card-color: #06b6d4">
+      <div class="card-icon">📦</div>
+      <h3>yfinance (Yahoo Finance)</h3>
+      <p>Datos fundamentales en tiempo real: ROE, márgenes, deuda, FCF, dividendos, número de acciones, insiders, institucionales, opciones. Gratuito. Limite de rate-limit gestionado con reintentos y fallbacks.</p>
+      <span class="tag tag-cyan">Principal — gratuito</span>
+    </div>
+    <div class="card" style="--card-color: #8b5cf6">
+      <div class="card-icon">🏦</div>
+      <h3>TIKR Pro (scraper propio)</h3>
+      <p>Datos de estados financieros históricos (7 años): EBITDA, EBIT, CFO, CapEx, intereses, impuestos, deuda, equity. Estimaciones de analistas (forward 4 años): FCF, EBITDA, EPS normalizado. Actualización semanal automática.</p>
+      <span class="tag tag-violet">Enriquecimiento</span>
+    </div>
+    <div class="card" style="--card-color: #10b981">
+      <div class="card-icon">🤖</div>
+      <h3>Groq API (LLM)</h3>
+      <p>Llama-3.3-70b para filtrado de calidad y generación de tesis. Llama-4-Scout para análisis macro y agente Cerebro. API gratuita con límite de tasa. Fallback a reglas cuantitativas si falla.</p>
+      <span class="tag tag-emerald">IA — gratuito</span>
+    </div>
+  </div>
+
+  <div style="margin-top: 24px;">
+    <table class="data-table">
+      <thead>
+        <tr><th>Archivo</th><th>Contenido</th><th>Actualización</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono">fundamental_scores.csv</td><td>Score fundamental por ticker (105 tickers)</td><td>Diaria (pipeline)</td></tr>
+        <tr><td class="mono">value_opportunities.csv</td><td>Oportunidades VALUE sin filtrar</td><td>Diaria</td></tr>
+        <tr><td class="mono">value_opportunities_filtered.csv</td><td>VALUE filtrado por AI quality filter</td><td>Diaria</td></tr>
+        <tr><td class="mono">momentum_opportunities.csv</td><td>Setups MOMENTUM/VCP</td><td>Diaria</td></tr>
+        <tr><td class="mono">tikr_earnings_data.json</td><td>Financieros históricos + estimaciones analistas (TIKR)</td><td>Semanal (domingos)</td></tr>
+        <tr><td class="mono">theses.json</td><td>Tesis de inversión narrativas</td><td>Diaria</td></tr>
+        <tr><td class="mono">recommendations.csv</td><td>Historial de señales + retornos reales</td><td>Diaria</td></tr>
+        <tr><td class="mono">cerebro_insights.json</td><td>Señales de convergencia del agente IA</td><td>Diaria</td></tr>
+        <tr><td class="mono">history/YYYY-MM-DD/</td><td>Archivo histórico diario (45 días)</td><td>Diaria</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="wrap">
+    <p>Stock Analyzer · Sistema VALUE/GARP automatizado · Pipeline diario Lun–Vie 05:23 UTC · Datos: yfinance + TIKR Pro + Groq</p>
+    <p style="margin-top: 6px; font-size: 11px; opacity: .5">Este documento es una auditoría técnica del sistema, no una recomendación de inversión.</p>
+  </div>
+</footer>
+
+<script>
+  // ── Tabs ──
+  function switchTab(btn, id) {
+    btn.closest('section').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.closest('section').querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ── Scroll spy ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px' });
+  sections.forEach(s => obs.observe(s));
+
+  // ── Fade in on scroll ──
+  const fadeObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); fadeObs.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => fadeObs.observe(el));
+</script>
+</body>
+</html>
