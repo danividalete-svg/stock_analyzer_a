@@ -293,7 +293,7 @@ export default function BounceTrader() {
       if (s.distance_to_support_pct != null && s.distance_to_support_pct < -5) return false
       if (s.current_price < 1.0) return false  // penny stocks
       // Confianza mínima para ser accionable
-      if ((s.bounce_confidence ?? 0) < 34) return false
+      if ((s.bounce_confidence ?? 0) < 31) return false
       // Dark pool distribución fuerte + confianza baja = trampa
       if (s.dark_pool_signal === 'DISTRIBUTION' && (s.bounce_confidence ?? 0) < 60) return false
       // R:R mínimo 1:1
