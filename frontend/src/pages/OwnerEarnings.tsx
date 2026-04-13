@@ -87,12 +87,26 @@ function upsideColor(pct: number | null) {
 
 // ── Detail view ───────────────────────────────────────────────────────────────
 
-function DetailView({ data, onBack }: { data: OeResult; onBack: () => void }) {
+function DetailView({
+  data, onBack, onRecalculate,
+}: {
+  data: OeResult
+  onBack: () => void
+  onRecalculate: (ret: number) => void
+}) {
+  const [localReturn, setLocalReturn] = useState(data.target_return_pct)
+  const [pending, setPending] = useState(false)
+
   const histYears = Object.keys(data.historical_fcf).map(Number).sort((a, b) => b - a)
   const fwdYears  = Object.keys(data.forward_fcf).sort()
 
   const upside = data.upside_pct
   const signal = data.signal
+
+  const handleReturnChange = (v: number) => {
+    setLocalReturn(v)
+    setPending(v !== data.target_return_pct)
+  }
 
   return (
     <div className="space-y-5">
@@ -146,7 +160,6 @@ function DetailView({ data, onBack }: { data: OeResult; onBack: () => void }) {
               <span>Objetivo ${data.exit_price.toFixed(2)} ({data.exit_year}E)</span>
             </div>
             <div className="h-1.5 rounded-full bg-white/5 overflow-clip relative">
-              {/* Buy price marker at position 0 */}
               <div
                 className={cn('h-full rounded-full transition-all', signal === 'BUY' ? 'bg-emerald-500' : signal === 'WATCH' ? 'bg-amber-500' : signal === 'HOLD' ? 'bg-sky-500' : 'bg-red-500')}
                 style={{ width: `${Math.min(100, Math.max(2, (data.current_price / data.exit_price) * 100))}%` }}
@@ -154,6 +167,25 @@ function DetailView({ data, onBack }: { data: OeResult; onBack: () => void }) {
             </div>
           </div>
         )}
+
+        {/* Return slider inline */}
+        <div className="mt-4 pt-4 border-t border-white/6 flex items-center gap-4">
+          <span className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 font-semibold shrink-0">Retorno objetivo</span>
+          <input
+            type="range" min={8} max={25} step={1} value={localReturn}
+            onChange={e => handleReturnChange(Number(e.target.value))}
+            className="flex-1 accent-cyan-400 h-1"
+          />
+          <span className="text-sm font-bold tabular-nums w-10 text-right text-cyan-400 shrink-0">{localReturn}%</span>
+          {pending && (
+            <button
+              onClick={() => { setPending(false); onRecalculate(localReturn) }}
+              className="px-3 py-1 rounded-md bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold transition-colors shrink-0"
+            >
+              Recalcular
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Multiples reference row */}
@@ -535,35 +567,42 @@ export default function OwnerEarnings() {
       </div>
 
       {/* Content */}
-      {selected ? (
-        detailLoading ? <Loading /> :
-        detailError   ? <ErrorState message={detailError} /> :
-        <DetailView data={selected} onBack={handleBack} />
-      ) : (
-        loadingBatch ? <Loading /> :
-        batchError   ? <ErrorState message={batchError} /> :
-        batchData    ? (
-          <BatchView
-            results={batchData.results}
-            onSelect={handleSelectTicker}
-            targetReturn={pendingReturn}
-            onTargetReturnChange={setPendingReturn}
-          />
-        ) : null
-      )}
-
-      {/* Pending return apply (shown when slider changed but not yet applied) */}
-      {!selected && pendingReturn !== targetReturn && !loadingBatch && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <Button
-            onClick={handleApplyReturn}
-            className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20 gap-2"
-          >
-            <RefreshCw size={13} />
-            Recalcular con {pendingReturn}%
-          </Button>
-        </div>
-      )}
+      {selected && renderDetail()}
+      {!selected && renderBatch()}
     </div>
   )
+
+  function renderDetail() {
+    if (detailLoading) return <Loading />
+    if (detailError)   return <ErrorState message={detailError} />
+    if (!selected)     return null
+    return <DetailView data={selected} onBack={handleBack} onRecalculate={ret => fetchDetail(selected.ticker, ret)} />
+  }
+
+  function renderBatch() {
+    if (loadingBatch) return <Loading />
+    if (batchError)   return <ErrorState message={batchError} />
+    if (!batchData)   return null
+    return (
+      <>
+        <BatchView
+          results={batchData.results}
+          onSelect={handleSelectTicker}
+          targetReturn={pendingReturn}
+          onTargetReturnChange={setPendingReturn}
+        />
+        {pendingReturn !== targetReturn && (
+          <div className="fixed bottom-6 right-6 z-50">
+            <Button
+              onClick={handleApplyReturn}
+              className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-xl shadow-cyan-500/20 gap-2"
+            >
+              <RefreshCw size={13} />
+              Recalcular con {pendingReturn}%
+            </Button>
+          </div>
+        )}
+      </>
+    )
+  }
 }
