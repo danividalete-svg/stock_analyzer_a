@@ -282,18 +282,19 @@ class MeanReversionDetector:
                 return None
             if current_rsi == 0.0:
                 return None  # error de datos yfinance
-            if current_price < 2.00:
-                return None  # demasiado cerca del umbral de delisting ($1) para bounce seguro
+            if current_price < 5.00:
+                return None  # penny/micro-cap: spread y liquidez inasumibles para bounce
             avg_dollar_volume = avg_volume_20d * current_price
             if avg_dollar_volume < 1_000_000:
                 return None  # volumen en dólares insuficiente (<$1M/día) — spread y slippage inasumibles
             # Market cap mínimo $300M: micro-caps son manipulables y tienen spreads elevados
+            # Si el dato no está disponible (0) también se rechaza — fail closed
             try:
                 market_cap = float(stock.fast_info.get('marketCap') or 0)
-                if 0 < market_cap < 300_000_000:
+                if market_cap < 300_000_000:
                     return None
             except Exception:
-                pass
+                return None  # sin datos de market cap → rechazar
             # Mínimo de confirmaciones técnicas: al menos 2 de los 4 pilares deben cumplirse
             # (near_support, significant_dip, stoch<30, below_bb ó connors)
             tech_confirmations = sum([
@@ -549,7 +550,7 @@ class MeanReversionDetector:
             current_price = hist['Close'].iloc[-1]
 
             # Filtros básicos de liquidez — igual que oversold bounce
-            if current_price < 2.00:
+            if current_price < 5.00:
                 return None
             avg_dollar_volume_bf = hist['Volume'].tail(20).mean() * current_price
             if avg_dollar_volume_bf < 1_000_000:
