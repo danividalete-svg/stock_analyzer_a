@@ -435,6 +435,7 @@ def calculate(
 
     return {
         "ticker": ticker.upper(),
+        "company_name": td.get("company_name", ""),
         "current_price": current_price,
         "market_cap": market_cap,
         "tev": tev,
