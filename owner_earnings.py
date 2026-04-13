@@ -360,6 +360,34 @@ def calculate(
         forward_net_debt[yr_str] = round(net_debt_proj, 2)
         forward_shares[yr_str] = round(shares_proj, 4)
 
+    # ── Fallback: proyección desde NTM FCF cuando no hay estimaciones anuales ──
+    # Aplica a tickers con ntm_fcf disponible pero sin forward consensus (e.g. V, MCD)
+    if not forward_fcf and ntm_fcf_m and ntm_fcf_m > 0:
+        # Tasa de crecimiento histórica de FCF (últimos 3 años, si disponible)
+        hist_years_sorted = sorted(historical_fcf.keys(), reverse=True)
+        fcf_growth = 0.07  # default conservador 7%
+        if len(hist_years_sorted) >= 4:
+            fcf_new = historical_fcf[hist_years_sorted[0]]
+            fcf_old = historical_fcf[hist_years_sorted[3]]
+            if fcf_old and fcf_old > 0 and fcf_new > 0:
+                cagr = (fcf_new / fcf_old) ** (1 / 3) - 1
+                fcf_growth = max(-0.05, min(0.25, cagr))  # clamp [-5%, 25%]
+
+        ntm_shares = shares_proj
+        ntm_nd = net_debt_proj
+        for i in range(4):
+            yr_str = str(current_year + i)
+            proj_fcf = ntm_fcf_m * ((1 + fcf_growth) ** i)
+            ntm_shares *= (1 + median_shares_change)
+            ntm_nd = max(0.0, ntm_nd - proj_fcf * 0.30)
+            forward_fcf[yr_str] = {
+                "fcf": round(proj_fcf, 2),
+                "fcf_per_share": round(proj_fcf / ntm_shares, 4),
+                "projected": True,   # flag: no analyst consensus
+            }
+            forward_net_debt[yr_str] = round(ntm_nd, 2)
+            forward_shares[yr_str] = round(ntm_shares, 4)
+
     # ── Precio objetivo por múltiplo por año ──────────────────────────────────
     price_targets: dict = {}
 

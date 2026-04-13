@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface FcfEntry { fcf: number; fcf_per_share: number }
+interface FcfEntry { fcf: number; fcf_per_share: number; projected?: boolean }
 interface PriceTarget { ev_fcf?: number; per?: number; ev_ebitda?: number; average?: number }
 interface FcfBreakdownRow {
   revenue?: number | null
@@ -211,8 +211,9 @@ function DetailView({
   // All price targets and buy price recomputed locally on every param change
   const computed = recompute(data, evFcfT, perT, evEbT, returnT)
 
-  const histYears = Object.keys(data.historical_fcf).map(Number).sort((a, b) => b - a)
-  const fwdYears  = Object.keys(data.forward_fcf).sort()
+  const histYears   = Object.keys(data.historical_fcf).map(Number).sort((a, b) => b - a)
+  const fwdYears    = Object.keys(data.forward_fcf).sort()
+  const isProjected = fwdYears.length > 0 && data.forward_fcf[fwdYears[0]]?.projected === true
 
   return (
     <div className="space-y-5">
@@ -233,6 +234,7 @@ function DetailView({
             </div>
             <p className="text-xs text-muted-foreground">
               Precio compra para <span className="text-foreground font-semibold">{returnT}%</span> anual · Salida {data.exit_year ?? '—'}E ({data.years_to_exit ?? '—'} años)
+              {isProjected && <span className="ml-2 text-[0.6rem] text-amber-400/70 border border-amber-400/20 rounded px-1.5 py-0.5">estimaciones proyectadas ~</span>}
             </p>
           </div>
 
@@ -429,16 +431,19 @@ function DetailView({
                   const fwd  = data.forward_fcf[yr]
                   const pt   = computed.priceTargets[yr]
                   if (!fwd || !pt) return null
-                  const isExit  = String(data.exit_year) === yr
-                  const yearsN  = i + 1  // years from now (approx)
+                  const isExit    = String(data.exit_year) === yr
+                  const isProj    = fwd.projected === true
+                  const yearsN    = i + 1  // years from now (approx)
                   const avgP    = pt.average
                   const cagr    = avgP && data.current_price && data.current_price > 0
                     ? (Math.pow(avgP / data.current_price, 1 / yearsN) - 1) * 100
                     : null
                   return (
-                    <TableRow key={yr} className={cn(isExit && 'bg-cyan-500/5')}>
+                    <TableRow key={yr} className={cn(isExit && 'bg-cyan-500/5', isProj && 'opacity-75')}>
                       <TableCell className="font-medium">
-                        {yr}E{isExit && <span className="ml-1 text-[0.6rem] text-cyan-400/70">←</span>}
+                        {yr}E
+                        {isExit && <span className="ml-1 text-[0.6rem] text-cyan-400/70">←</span>}
+                        {isProj && <span className="ml-1 text-[0.5rem] text-amber-400/60 font-normal">~</span>}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground/60">{fmt(fwd.fcf_per_share, '$')}</TableCell>
                       <TableCell className="text-right">{fmt(pt.ev_fcf, '$')}</TableCell>
