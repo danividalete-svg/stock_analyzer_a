@@ -2337,12 +2337,24 @@ def owner_earnings_batch():
         target_return = float(request.args.get('target_return', 0.15))
         from owner_earnings import batch_calculate
         results = batch_calculate(target_return=target_return)
-        # Ordenar por upside_pct descendente (mejores oportunidades primero)
+
+        # Enriquecer con company_name desde fundamental_scores.csv
+        name_map: dict = {}
+        try:
+            import pandas as pd
+            fund_df = pd.read_csv(DOCS / 'fundamental_scores.csv', usecols=['ticker', 'company_name'])
+            name_map = dict(zip(fund_df['ticker'], fund_df['company_name']))
+        except Exception:
+            pass
+
         sorted_results = sorted(
             [v for v in results.values() if isinstance(v, dict) and v.get('buy_price')],
             key=lambda x: x.get('upside_pct') or -999,
             reverse=True
         )
+        for r in sorted_results:
+            r['company_name'] = name_map.get(r.get('ticker', ''), '')
+
         return jsonify({
             "target_return_pct": round(target_return * 100, 1),
             "total": len(sorted_results),

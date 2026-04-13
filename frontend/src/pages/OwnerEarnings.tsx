@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import api from '../api/client'
 import Loading, { ErrorState } from '../components/Loading'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
 import { ArrowLeft, Calculator, ChevronDown, ChevronUp, RefreshCw, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +15,7 @@ interface PriceTarget { ev_fcf?: number; per?: number; ev_ebitda?: number; avera
 
 interface OeResult {
   ticker: string
+  company_name?: string
   current_price: number | null
   buy_price: number | null
   exit_price: number | null
@@ -208,83 +209,75 @@ function DetailView({
       {/* Tables row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
         {/* Historical FCF */}
-        <div className="glass rounded-xl border border-white/8 overflow-clip">
-          <div className="px-4 py-3 border-b border-white/6">
-            <h3 className="text-sm font-semibold">Owner Earnings históricos</h3>
-            <p className="text-[0.65rem] text-muted-foreground mt-0.5">FCF = CFO − CapEx mantenimiento (o /est actuals si disponibles)</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/6">
-                  <th className="text-left px-4 py-2 text-[0.65rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">Año</th>
-                  <th className="text-right px-4 py-2 text-[0.65rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">FCF ($M)</th>
-                  <th className="text-right px-4 py-2 text-[0.65rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">FCF/acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {histYears.map(yr => {
-                  const fcf = data.historical_fcf[yr]
-                  const ps  = data.historical_fcf_per_share[yr]
-                  return (
-                    <tr key={yr} className="border-b border-white/4 last:border-0 hover:bg-white/3 transition-colors">
-                      <td className="px-4 py-2 font-medium tabular-nums">{yr}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{fmtM(fcf)}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{fmt(ps, '$')}</td>
-                    </tr>
-                  )
-                })}
+        <div>
+          <p className="text-xs font-semibold mb-1.5">Owner Earnings históricos</p>
+          <p className="text-[0.65rem] text-muted-foreground mb-2">FCF = CFO − CapEx mantenimiento (o /est actuals si disponibles)</p>
+          <Card className="glass">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-border/40">
+                  <TableHead>Año</TableHead>
+                  <TableHead className="text-right">FCF ($M)</TableHead>
+                  <TableHead className="text-right">FCF/acción</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {histYears.map(yr => (
+                  <TableRow key={yr}>
+                    <TableCell className="font-medium">{yr}</TableCell>
+                    <TableCell className="text-right">{fmtM(data.historical_fcf[yr])}</TableCell>
+                    <TableCell className="text-right">{fmt(data.historical_fcf_per_share[yr], '$')}</TableCell>
+                  </TableRow>
+                ))}
                 {histYears.length === 0 && (
-                  <tr><td colSpan={3} className="px-4 py-6 text-center text-muted-foreground text-sm">Sin datos históricos</td></tr>
+                  <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-6">Sin datos históricos</TableCell></TableRow>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
         </div>
 
         {/* Price targets */}
-        <div className="glass rounded-xl border border-white/8 overflow-clip">
-          <div className="px-4 py-3 border-b border-white/6">
-            <h3 className="text-sm font-semibold">Objetivos de precio por año</h3>
-            <p className="text-[0.65rem] text-muted-foreground mt-0.5">
-              Precio compra = objetivo_{data.exit_year}E ÷ (1 + {data.target_return_pct}%)^años
-            </p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/6">
-                  <th className="text-left px-4 py-2 text-[0.65rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">Año</th>
-                  <th className="text-right px-4 py-2 text-[0.65rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">FCF/sh</th>
-                  <th className="text-right px-4 py-2 text-[0.65rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">EV/FCF</th>
-                  <th className="text-right px-4 py-2 text-[0.65rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">P/E</th>
-                  <th className="text-right px-4 py-2 text-[0.65rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">Promedio</th>
-                </tr>
-              </thead>
-              <tbody>
+        <div>
+          <p className="text-xs font-semibold mb-1.5">Objetivos de precio por año</p>
+          <p className="text-[0.65rem] text-muted-foreground mb-2">
+            Precio compra = objetivo_{data.exit_year}E ÷ (1 + {data.target_return_pct}%)^años
+          </p>
+          <Card className="glass">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-border/40">
+                  <TableHead>Año</TableHead>
+                  <TableHead className="text-right">FCF/sh</TableHead>
+                  <TableHead className="text-right">EV/FCF</TableHead>
+                  <TableHead className="text-right">P/E</TableHead>
+                  <TableHead className="text-right">Promedio</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {fwdYears.map(yr => {
                   const fwd = data.forward_fcf[yr]
                   const pt  = data.price_targets[yr]
                   if (!fwd || !pt) return null
                   const isExit = String(data.exit_year) === yr
                   return (
-                    <tr key={yr} className={cn('border-b border-white/4 last:border-0 hover:bg-white/3 transition-colors', isExit && 'bg-cyan-500/5')}>
-                      <td className="px-4 py-2 font-medium tabular-nums">
+                    <TableRow key={yr} className={cn(isExit && 'bg-cyan-500/5')}>
+                      <TableCell className="font-medium">
                         {yr}E{isExit && <span className="ml-1 text-[0.6rem] text-cyan-400/70">←</span>}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums text-muted-foreground/70">{fmt(fwd.fcf_per_share, '$')}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{fmt(pt.ev_fcf, '$')}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-muted-foreground/70">{fmt(pt.per, '$')}</td>
-                      <td className={cn('px-4 py-2 text-right tabular-nums font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(pt.average, '$')}</td>
-                    </tr>
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground/70">{fmt(fwd.fcf_per_share, '$')}</TableCell>
+                      <TableCell className="text-right">{fmt(pt.ev_fcf, '$')}</TableCell>
+                      <TableCell className="text-right text-muted-foreground/70">{fmt(pt.per, '$')}</TableCell>
+                      <TableCell className={cn('text-right font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(pt.average, '$')}</TableCell>
+                    </TableRow>
                   )
                 })}
                 {fwdYears.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground text-sm">Sin estimaciones forward</td></tr>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sin estimaciones forward</TableCell></TableRow>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
         </div>
       </div>
     </div>
@@ -323,7 +316,14 @@ function BatchView({
 
   const filtered = results
     .filter(r => !r.error)
-    .filter(r => !filter || r.ticker.includes(filter.toUpperCase()))
+    .filter(r => {
+      const q = filter.trim().toUpperCase()
+      if (!q) return true
+      return (
+        r.ticker?.toUpperCase().includes(q) ||
+        (r.company_name ?? '').toUpperCase().includes(q)
+      )
+    })
     .filter(r => signalFilter === 'ALL' || r.signal === signalFilter)
     .sort((a, b) => {
       if (sortKey === 'ticker') {
@@ -339,9 +339,10 @@ function BatchView({
     return acc
   }, {})
 
-  const thCls = (k: SortKey) => cn(
-    'px-4 py-2.5 text-[0.6rem] uppercase tracking-widest font-semibold text-muted-foreground/50 cursor-pointer select-none whitespace-nowrap hover:text-muted-foreground transition-colors text-right',
-    sortKey === k && 'text-primary'
+  const thCls = (k: SortKey, left = false) => cn(
+    'cursor-pointer select-none whitespace-nowrap hover:text-foreground transition-colors',
+    left ? 'text-left' : 'text-right',
+    sortKey === k ? 'text-primary' : 'text-muted-foreground/50'
   )
 
   return (
@@ -366,16 +367,16 @@ function BatchView({
           </div>
         </div>
 
-        <div className="flex-1 min-w-[140px] max-w-[220px]">
+        <div className="flex-1 min-w-[160px] max-w-[260px]">
           <label className="text-[0.6rem] uppercase tracking-widest text-muted-foreground/50 font-semibold block mb-1.5">
-            Filtrar ticker
+            Buscar ticker o empresa
           </label>
           <div className="relative">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
             <Input
               value={filter}
               onChange={e => setFilter(e.target.value)}
-              placeholder="MSFT, AAPL…"
+              placeholder="MSFT, Microsoft, Visa…"
               className="pl-7 h-8 text-sm bg-white/4 border-white/10"
             />
           </div>
@@ -401,78 +402,69 @@ function BatchView({
       </div>
 
       {/* Table */}
-      <div className="glass rounded-xl border border-white/8 overflow-clip">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-white/8 bg-white/2">
-                <th
-                  onClick={() => onSort('ticker')}
-                  className={cn(thCls('ticker'), 'text-left')}
-                >
-                  Ticker <SortIcon k="ticker" />
-                </th>
-                <th onClick={() => onSort('current_price')} className={thCls('current_price')}>
-                  Precio actual <SortIcon k="current_price" />
-                </th>
-                <th onClick={() => onSort('buy_price')} className={thCls('buy_price')}>
-                  Precio compra <SortIcon k="buy_price" />
-                </th>
-                <th onClick={() => onSort('upside_pct')} className={thCls('upside_pct')}>
-                  Margen seg. <SortIcon k="upside_pct" />
-                </th>
-                <th className="px-4 py-2.5 text-[0.6rem] uppercase tracking-widest font-semibold text-muted-foreground/50 text-right">
-                  Señal
-                </th>
-                <th onClick={() => onSort('median_ev_fcf')} className={thCls('median_ev_fcf')}>
-                  EV/FCF med. <SortIcon k="median_ev_fcf" />
-                </th>
-                <th onClick={() => onSort('ntm_fcf_yield_pct')} className={thCls('ntm_fcf_yield_pct')}>
-                  FCF Yield NTM <SortIcon k="ntm_fcf_yield_pct" />
-                </th>
-                <th className="px-4 py-2.5 text-[0.6rem] uppercase tracking-widest font-semibold text-muted-foreground/50 text-right">
-                  Salida
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(row => (
-                <tr
-                  key={row.ticker}
-                  onClick={() => onSelect(row)}
-                  className="border-b border-white/4 last:border-0 hover:bg-white/4 cursor-pointer transition-colors"
-                >
-                  <td className="px-4 py-3 font-bold text-foreground tracking-wide">{row.ticker}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{fmt(row.current_price, '$')}</td>
-                  <td className="px-4 py-3 text-right tabular-nums font-semibold">{fmt(row.buy_price, '$')}</td>
-                  <td className={cn('px-4 py-3 text-right tabular-nums font-bold', upsideColor(row.upside_pct))}>
-                    {row.upside_pct != null ? `${row.upside_pct > 0 ? '+' : ''}${row.upside_pct.toFixed(1)}%` : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <SignalBadge signal={row.signal} />
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground/70">
-                    {fmt(row.median_ev_fcf, '', 'x', 1)}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground/70">
-                    {fmt(row.ntm_fcf_yield_pct, '', '%', 1)}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground/50 text-xs">
-                    {row.exit_year ?? '—'}E
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
-                    No hay resultados
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card className="glass">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead onClick={() => onSort('ticker')} className={thCls('ticker', true)}>
+                Ticker <SortIcon k="ticker" />
+              </TableHead>
+              <TableHead className="text-muted-foreground/40">Empresa</TableHead>
+              <TableHead onClick={() => onSort('current_price')} className={thCls('current_price')}>
+                Precio actual <SortIcon k="current_price" />
+              </TableHead>
+              <TableHead onClick={() => onSort('buy_price')} className={thCls('buy_price')}>
+                Precio compra <SortIcon k="buy_price" />
+              </TableHead>
+              <TableHead onClick={() => onSort('upside_pct')} className={thCls('upside_pct')}>
+                Margen seg. <SortIcon k="upside_pct" />
+              </TableHead>
+              <TableHead className="text-right">Señal</TableHead>
+              <TableHead onClick={() => onSort('median_ev_fcf')} className={thCls('median_ev_fcf')}>
+                EV/FCF med. <SortIcon k="median_ev_fcf" />
+              </TableHead>
+              <TableHead onClick={() => onSort('ntm_fcf_yield_pct')} className={thCls('ntm_fcf_yield_pct')}>
+                FCF Yield NTM <SortIcon k="ntm_fcf_yield_pct" />
+              </TableHead>
+              <TableHead className="text-right text-muted-foreground/40">Salida</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.map(row => (
+              <TableRow key={row.ticker} onClick={() => onSelect(row)} className="cursor-pointer">
+                <TableCell className="font-bold tracking-wide">{row.ticker}</TableCell>
+                <TableCell className="text-muted-foreground/60 max-w-[160px] truncate text-xs">
+                  {row.company_name || '—'}
+                </TableCell>
+                <TableCell className="text-right">{fmt(row.current_price, '$')}</TableCell>
+                <TableCell className="text-right font-semibold">{fmt(row.buy_price, '$')}</TableCell>
+                <TableCell className={cn('text-right font-bold', upsideColor(row.upside_pct))}>
+                  {row.upside_pct != null ? `${row.upside_pct > 0 ? '+' : ''}${row.upside_pct.toFixed(1)}%` : '—'}
+                </TableCell>
+                <TableCell className="text-right">
+                  <SignalBadge signal={row.signal} />
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground/70">
+                  {fmt(row.median_ev_fcf, '', 'x', 1)}
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground/70">
+                  {fmt(row.ntm_fcf_yield_pct, '', '%', 1)}
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground/50 text-xs">
+                  {row.exit_year ?? '—'}E
+                </TableCell>
+              </TableRow>
+            ))}
+            {filtered.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
+                  No hay resultados
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   )
 }
