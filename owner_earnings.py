@@ -147,6 +147,7 @@ def calculate(
     historical_fcf: dict = {}
     historical_fcf_ps: dict = {}
     capex_pct_sales: list = []
+    fcf_breakdown: dict = {}   # desglose paso a paso para verificación
 
     # Actuals FCF de /est (más preciso — cubre últimos 3 años)
     est_actuals_fcf = {
@@ -167,12 +168,39 @@ def calculate(
         if None in (ni, ebitda, ebit, capex, shares) or shares == 0:
             continue
 
-        # Preferir FCF actuals de analistas, luego CFO−CapexMaint, luego NI+D&A−CapexMaint
-        oe = est_actuals_fcf.get(yr) or _owner_earnings(cfo, ni, ebitda, ebit, capex)
+        dna = ebitda - ebit
+        capex_maint = _capex_maintenance(ebitda, ebit, capex)
+        est_fcf = est_actuals_fcf.get(yr)
+
+        if est_fcf:
+            oe = est_fcf
+            source = "tikr_actuals"
+        elif cfo:
+            oe = cfo - capex_maint
+            source = "cfo_based"
+        else:
+            oe = ni + dna - capex_maint
+            source = "ni_based"
+
         historical_fcf[yr] = round(oe, 2)
         historical_fcf_ps[yr] = round(oe / shares, 4)
 
-        capex_maint = _capex_maintenance(ebitda, ebit, capex)
+        fcf_breakdown[yr] = {
+            "revenue":       round(rev, 2) if rev else None,
+            "ebitda":        round(ebitda, 2),
+            "ebitda_margin": round(ebitda / rev * 100, 1) if rev and rev > 0 else None,
+            "dna":           round(dna, 2),
+            "ebit":          round(ebit, 2),
+            "ebit_margin":   round(ebit / rev * 100, 1) if rev and rev > 0 else None,
+            "net_income":    round(ni, 2),
+            "net_margin":    round(ni / rev * 100, 1) if rev and rev > 0 else None,
+            "cfo":           round(cfo, 2) if cfo else None,
+            "capex":         round(capex, 2),
+            "capex_maint":   round(capex_maint, 2),
+            "owner_earnings": round(oe, 2),
+            "source":        source,
+        }
+
         if rev and rev > 0:
             capex_pct_sales.append(capex_maint / rev)
 
@@ -308,6 +336,7 @@ def calculate(
         "tev": tev,
         "historical_fcf": historical_fcf,
         "historical_fcf_per_share": historical_fcf_ps,
+        "fcf_breakdown": fcf_breakdown,
         "capex_pct_sales_median": round(capex_pct_median * 100, 2),
         "median_ev_fcf": round(median_ev_fcf, 1),
         "ntm_fcf_yield_pct": ntm_fcf_yield,

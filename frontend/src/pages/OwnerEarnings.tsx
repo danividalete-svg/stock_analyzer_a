@@ -12,6 +12,17 @@ import { cn } from '@/lib/utils'
 
 interface FcfEntry { fcf: number; fcf_per_share: number }
 interface PriceTarget { ev_fcf?: number; per?: number; ev_ebitda?: number; average?: number }
+interface FcfBreakdownRow {
+  revenue?: number | null
+  ebitda?: number | null; ebitda_margin?: number | null
+  dna?: number | null
+  ebit?: number | null; ebit_margin?: number | null
+  net_income?: number | null; net_margin?: number | null
+  cfo?: number | null
+  capex?: number | null; capex_maint?: number | null
+  owner_earnings?: number | null
+  source?: string
+}
 
 interface OeResult {
   ticker: string
@@ -35,6 +46,7 @@ interface OeResult {
   capex_pct_sales_median: number
   historical_fcf: Record<string, number>
   historical_fcf_per_share: Record<string, number>
+  fcf_breakdown: Record<string, FcfBreakdownRow>
   forward_fcf: Record<string, FcfEntry>
   forward_net_debt: Record<string, number>
   price_targets: Record<string, PriceTarget>
@@ -208,29 +220,61 @@ function DetailView({
 
       {/* Tables row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        {/* Historical FCF */}
+        {/* FCF Breakdown */}
         <div>
-          <p className="text-xs font-semibold mb-1.5">Owner Earnings históricos</p>
-          <p className="text-[0.65rem] text-muted-foreground mb-2">FCF = CFO − CapEx mantenimiento (o /est actuals si disponibles)</p>
+          <p className="text-xs font-semibold mb-1.5">Desglose FCF histórico</p>
+          <p className="text-[0.65rem] text-muted-foreground mb-2">
+            Revenue → EBITDA → EBIT → CFO → CapEx maint → Owner Earnings
+          </p>
           <Card className="glass">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-border/40">
                   <TableHead>Año</TableHead>
-                  <TableHead className="text-right">FCF ($M)</TableHead>
-                  <TableHead className="text-right">FCF/acción</TableHead>
+                  <TableHead className="text-right">Revenue</TableHead>
+                  <TableHead className="text-right">EBITDA</TableHead>
+                  <TableHead className="text-right">EBIT</TableHead>
+                  <TableHead className="text-right">CFO</TableHead>
+                  <TableHead className="text-right">CapEx maint</TableHead>
+                  <TableHead className="text-right font-bold text-cyan-400/80">FCF</TableHead>
+                  <TableHead className="text-right">Fuente</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {histYears.map(yr => (
-                  <TableRow key={yr}>
-                    <TableCell className="font-medium">{yr}</TableCell>
-                    <TableCell className="text-right">{fmtM(data.historical_fcf[yr])}</TableCell>
-                    <TableCell className="text-right">{fmt(data.historical_fcf_per_share[yr], '$')}</TableCell>
-                  </TableRow>
-                ))}
+                {histYears.map(yr => {
+                  const b = data.fcf_breakdown?.[yr]
+                  if (!b) return null
+                  return (
+                    <TableRow key={yr}>
+                      <TableCell className="font-medium">{yr}</TableCell>
+                      <TableCell className="text-right">
+                        {fmtM(b.revenue)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span>{fmtM(b.ebitda)}</span>
+                        {b.ebitda_margin != null && <span className="ml-1 text-[0.6rem] text-muted-foreground/50">{b.ebitda_margin.toFixed(0)}%</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span>{fmtM(b.ebit)}</span>
+                        {b.ebit_margin != null && <span className="ml-1 text-[0.6rem] text-muted-foreground/50">{b.ebit_margin.toFixed(0)}%</span>}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground/70">{fmtM(b.cfo)}</TableCell>
+                      <TableCell className="text-right text-muted-foreground/70">{fmtM(b.capex_maint)}</TableCell>
+                      <TableCell className="text-right font-bold text-cyan-400">{fmtM(b.owner_earnings)}</TableCell>
+                      <TableCell className="text-right">
+                        <span className={cn('text-[0.6rem] px-1.5 py-0.5 rounded font-medium',
+                          b.source === 'tikr_actuals' ? 'bg-emerald-500/10 text-emerald-400' :
+                          b.source === 'cfo_based'    ? 'bg-sky-500/10 text-sky-400' :
+                                                        'bg-amber-500/10 text-amber-400'
+                        )}>
+                          {b.source === 'tikr_actuals' ? 'TIKR' : b.source === 'cfo_based' ? 'CFO' : 'NI'}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
                 {histYears.length === 0 && (
-                  <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-6">Sin datos históricos</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sin datos históricos</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
