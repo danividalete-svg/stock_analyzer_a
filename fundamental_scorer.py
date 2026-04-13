@@ -1533,6 +1533,10 @@ def main():
     parser.add_argument('--value', action='store_true',
                        help='Score VALUE tickers from value_opportunities.csv (target prices, ROE)')
     parser.add_argument('--all', action='store_true', help='Score todas las fuentes (VCP + ML + VALUE)')
+    parser.add_argument('--curated', action='store_true',
+                       help='Score curated universe from curated_tickers.py (Tier 1+2+3, ~90 tickers)')
+    parser.add_argument('--curated-all', action='store_true',
+                       help='Score full curated universe including Tier 4 (~120 tickers)')
     parser.add_argument('--as-of-date', type=str, default=None,
                        help='Historical date for scoring (YYYY-MM-DD). Only use earnings/financials reported before this date. '
                             'Prevents look-ahead bias in backtesting.')
@@ -1573,6 +1577,22 @@ def main():
         print(f"  🎯 Catalyst Timing: {result['catalyst_timing_score']:.1f}/100")
         for key, value in result['catalyst_details'].items():
             print(f"      • {key}: {value}")
+
+    elif args.curated or args.curated_all:
+        from curated_tickers import get_universe
+        include_t4 = bool(args.curated_all)
+        tickers = get_universe(include_tier4=include_t4)
+        tier_label = 'T1+T2+T3+T4' if include_t4 else 'T1+T2+T3'
+        print(f"🎯 Universo curado ({tier_label}): {len(tickers)} tickers")
+        print(f"📊 Scoring {len(tickers)} tickers únicos...")
+        results_df = scorer.score_batch(tickers)
+        scorer.save_results(results_df)
+        print(f"\n{'='*80}")
+        print(f"🏆 TOP 10 FUNDAMENTAL SCORES")
+        if not results_df.empty and 'fundamental_score' in results_df.columns:
+            top10 = results_df.nlargest(10, 'fundamental_score')
+            for _, row in top10.iterrows():
+                print(f"  {row['ticker']:8s} {row['fundamental_score']:.1f}")
 
     elif args.vcp or args.ml or args.all or args.five_d or args.value:
         tickers = []

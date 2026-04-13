@@ -43,7 +43,7 @@ jobs:
         run: python3 sector_rotation_detector.py || echo "Sector rotation failed"
 
       - name: Fundamental Scoring [CRITICAL - before integrator]
-        run: python3 fundamental_scorer.py --vcp --5d --value --top 100
+        run: python3 fundamental_scorer.py --curated
 
       - name: Run Super Score Integration [CRITICAL]
         run: python3 super_score_integrator.py
