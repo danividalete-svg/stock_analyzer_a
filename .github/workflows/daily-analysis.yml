@@ -175,10 +175,6 @@ jobs:
           python3 mean_reversion_detector.py || echo "Mean reversion detector failed"
           python3 mean_reversion_backtester.py || echo "Mean reversion backtest failed"
 
-      - name: Micro-Cap Scanner
-        continue-on-error: true
-        run: python3 micro_cap_scanner.py || echo "Micro-cap scanner failed"
-
       - name: Macro Country Scanner
         continue-on-error: true
         run: python3 macro_country_scanner.py || echo "Macro country scanner failed"
@@ -386,7 +382,6 @@ jobs:
             'earnings':       ('docs/earnings_calendar.json',                    'generated_at'),
             'catalysts':      ('docs/catalysts.json',                            'generated_at'),
             'momentum':       ('docs/momentum_opportunities.csv',                None),
-            'micro_cap':      ('docs/micro_cap_opportunities.csv',               None),
             'unusual_flow':   ('docs/unusual_flow.json',                          'scan_date'),
             'financial_agent':('docs/financial_agent_briefing.json',              'generated_at'),
             'agent_orchestrator': ('docs/agent_orchestrator_log.json',            'generated_at'),
