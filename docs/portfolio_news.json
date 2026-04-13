@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-13",
-  "scan_time": "13:05",
+  "scan_time": "19:03",
   "tickers": [
     "ENPH",
     "NKE",
@@ -8,10 +8,10 @@
     "VRSK",
     "UNH"
   ],
-  "count": 10,
+  "count": 15,
   "alta_count": 3,
-  "media_count": 4,
-  "new_alerts": 2,
+  "media_count": 7,
+  "new_alerts": 3,
   "items": [
     {
       "id": "a267b6e4-bc81-39a8-a64c-566876566c7a",
@@ -29,7 +29,7 @@
       "title": "The Great Rotation: Buy This Sector Before It Comes Back in Style",
       "source": "Motley Fool",
       "pub_date": "2026-04-12T21:25:00Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 21h",
       "url": "https://www.fool.com/investing/2026/04/12/great-rotation-buy-healthcare-sector-before-oscr/",
       "importance": "ALTA"
     },
@@ -38,7 +38,7 @@
       "ticker": "UNH",
       "title": "⏰ Earnings en 7 días — 21 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-13T13:05:01.191084+00:00",
+      "pub_date": "2026-04-13T19:03:41.874876+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
@@ -59,7 +59,7 @@
       "title": "Enphase Energy (ENPH) Price Target Cut by $4 Ahead of Q1 Report",
       "source": "Insider Monkey",
       "pub_date": "2026-04-12T18:48:55Z",
-      "time_ago": "hace 18h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/sectors/energy/articles/enphase-energy-enph-price-target-184855845.html",
       "importance": "MEDIA"
     },
@@ -69,7 +69,7 @@
       "title": "Nike To End Adidas' 25-Year Reign As UEFA Champions League Ball Sponsor—Not A 'Silver Bullet' Says Analyst",
       "source": "Benzinga",
       "pub_date": "2026-04-12T23:31:20Z",
-      "time_ago": "hace 13h",
+      "time_ago": "hace 19h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-end-adidas-25-reign-233120531.html",
       "importance": "MEDIA"
     },
@@ -79,28 +79,48 @@
       "title": "Here Are Monday’s Top Wall Street Analyst Research Calls: Adobe, Best Buy, Bilibili, Constellation Brands, CoreWeave, Nike, Starbucks, T-Mobile, and More",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-13T10:50:44Z",
-      "time_ago": "hace 2h",
+      "time_ago": "hace 8h",
       "url": "https://247wallst.com/investing/2026/04/13/here-are-mondays-top-wall-street-analyst-research-calls-adobe-best-buy-bilibili-constellation-brands-coreweave-nike-starbucks-t-mobile-and-more/",
       "importance": "MEDIA"
     },
     {
-      "id": "4432d482-d02d-3f54-95c8-a9c2eec6e4a5",
-      "ticker": "ENPH",
-      "title": "Enphase (ENPH) Stock Down Signficantly After Jim Cramer Advised Selling It",
-      "source": "Insider Monkey",
-      "pub_date": "2026-04-11T14:57:56Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/enphase-enph-stock-down-signficantly-145756821.html",
-      "importance": "BAJA"
+      "id": "8e6a68af-972e-3418-b01b-ee9604d3ea02",
+      "ticker": "NKE",
+      "title": "Nike downgraded, Starbucks upgraded: Wall Street's top analyst calls",
+      "source": "The Fly",
+      "pub_date": "2026-04-13T13:58:26Z",
+      "time_ago": "hace 5h",
+      "url": "https://finance.yahoo.com/news/netflix-resumed-starbucks-downgraded-wall-133343741.html",
+      "importance": "MEDIA"
     },
     {
-      "id": "f671bd26-ce62-3123-8fe1-5799434590a8",
+      "id": "2b4f477f-9819-3d74-b1f3-fa45dbc622a2",
       "ticker": "NKE",
-      "title": "Jim Cramer on NIKE: “It’s Been One of My Bigger Mistakes”",
-      "source": "Insider Monkey",
-      "pub_date": "2026-04-11T15:34:40Z",
+      "title": "Nike Got Downgraded: Can the Iconic Brand Ever Recover?",
+      "source": "Motley Fool",
+      "pub_date": "2026-04-13T16:05:00Z",
+      "time_ago": "hace 2h",
+      "url": "https://www.fool.com/investing/2026/04/13/nike-got-downgraded-can-the-iconic-brand-recover/",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "51ce9e62-54fd-3469-8344-de3dbbc1ea6a",
+      "ticker": "NKE",
+      "title": "HSBC Downgrades Nike to Hold as Turnaround Becomes a Show-Me Story With No Near-Term Catalysts",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-13T16:13:15Z",
+      "time_ago": "hace 2h",
+      "url": "https://247wallst.com/investing/2026/04/13/hsbc-downgrades-nike-to-hold-as-turnaround-becomes-a-show-me-story-with-no-near-term-catalysts/",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "2e53dc11-d22a-38d3-a4c9-e78188b882c5",
+      "ticker": "NKE",
+      "title": "With Nike Shares Near a 12-Year Low, Is Now the Time to Be Brave?",
+      "source": "MarketBeat",
+      "pub_date": "2026-04-12T15:10:00Z",
       "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-nike-one-bigger-153440220.html",
+      "url": "https://www.marketbeat.com/originals/with-nike-shares-near-a-12-year-low-is-now-the-time-to-be-brave/?utm_source=yahoofinance&utm_medium=yahoofinance",
       "importance": "BAJA"
     },
     {
@@ -109,8 +129,38 @@
       "title": "3 Cash-Producing Stocks We Keep Off Our Radar",
       "source": "StockStory",
       "pub_date": "2026-04-13T07:40:01Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 11h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/3-cash-producing-stocks-keep-074001683.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "31a7573e-9051-3dce-ab86-1fb5f027ff7d",
+      "ticker": "NKE",
+      "title": "Nike’s innovation chief departs as leadership turnover continues",
+      "source": "Retail Dive",
+      "pub_date": "2026-04-13T11:45:00Z",
+      "time_ago": "hace 7h",
+      "url": "https://www.retaildive.com/news/nike-innovation-chief-tony-bignell-exits-andy-caine-turnaround/817310/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "d1966a1e-8694-37d4-a2c9-77c2ffd4ff64",
+      "ticker": "UNH",
+      "title": "Patient Opportunity Equity Strategy Remains Firm on Its Thesis for UnitedHealth Group (UNH)",
+      "source": "Insider Monkey",
+      "pub_date": "2026-04-13T13:40:43Z",
+      "time_ago": "hace 5h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/patient-opportunity-equity-strategy-remains-134043001.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "b9c60c5e-3337-3069-a5d2-88455b5c16c6",
+      "ticker": "VRSK",
+      "title": "FDS or VRSK: Which Is the Better Value Stock Right Now?",
+      "source": "Zacks",
+      "pub_date": "2026-04-13T15:40:02Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/fds-vrsk-better-value-stock-154002374.html",
       "importance": "BAJA"
     }
   ]
