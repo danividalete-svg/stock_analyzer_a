@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-13T20:56:35.662637",
+  "timestamp": "2026-04-13T21:40:19.872525",
   "date": "2026-04-13",
   "intraday_update": true,
   "regime": {
@@ -7,8 +7,8 @@
     "color": "#10b981",
     "description": "Mercado en calma. Condiciones favorables para operar."
   },
-  "composite_score": 4.5,
-  "composite_pct": 58.0,
+  "composite_score": 4.0,
+  "composite_pct": 57.1,
   "max_score": 28,
   "signals": {
     "yield_curve": {
@@ -31,11 +31,11 @@
     },
     "copper_gold": {
       "current": 0.0138,
-      "percentile": 46.2,
+      "percentile": 46.5,
       "score": 0,
-      "change_5d": 5.5,
-      "change_20d": 11.1,
-      "interpretation": "Cobre/Oro en p46, subiendo (+5.5% 5d)",
+      "change_5d": 5.6,
+      "change_20d": 11.2,
+      "interpretation": "Cobre/Oro en p47, subiendo (+5.6% 5d)",
       "label": "Cobre/Oro (Dr. Copper)",
       "description": "Falling = recession pessimism. Most underappreciated indicator"
     },
@@ -50,12 +50,12 @@
       "description": "Gold outperformance signals safe-haven rotation"
     },
     "oil": {
-      "current": 97.89,
+      "current": 98.01,
       "percentile": 96.4,
       "score": -0.5,
-      "change_5d": -12.9,
-      "change_20d": -0.8,
-      "interpretation": "Petroleo $97.9 (precio elevado)",
+      "change_5d": -12.8,
+      "change_20d": -0.7,
+      "interpretation": "Petroleo $98.0 (precio elevado)",
       "label": "Petr\u00f3leo (Geopol\u00edtico)",
       "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
     },
@@ -70,21 +70,21 @@
       "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
     },
     "dollar": {
-      "current": 98.42,
+      "current": 98.4,
       "percentile": 37.7,
       "score": 1,
-      "change_5d": -1.57,
-      "change_20d": -1.94,
+      "change_5d": -1.58,
+      "change_20d": -1.95,
       "interpretation": "DXY 98.4 (rango neutro)",
       "label": "D\u00f3lar (DXY)",
       "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
     },
     "yen": {
-      "current": 159.44,
-      "percentile": 96.8,
+      "current": 159.35,
+      "percentile": 96.5,
       "score": 1,
-      "change_5d": -0.21,
-      "change_20d": -0.08,
+      "change_5d": -0.27,
+      "change_20d": -0.14,
       "interpretation": "USD/JPY 159.4 (yen debil (risk-on))",
       "label": "Yen (Safe Haven)",
       "description": "USDJPY falling = yen strengthening = risk-off / fear"
@@ -102,11 +102,11 @@
       "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
     },
     "skew": {
-      "current": 144.18,
-      "percentile": 47.1,
-      "score": -1.5,
-      "change_5d": -1.9,
-      "interpretation": "SKEW 144 (alta demanda put OTM)",
+      "current": 156.93,
+      "percentile": 96.4,
+      "score": -2,
+      "change_5d": 6.3,
+      "interpretation": "SKEW 157 (crash insurance extremo)",
       "label": "SKEW Index (Tail Risk)",
       "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
     },
