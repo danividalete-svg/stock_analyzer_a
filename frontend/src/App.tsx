@@ -51,6 +51,7 @@ const CatalystCalendar = lazy(() => import('./pages/CatalystCalendar'))
 const BounceTrader     = lazy(() => import('./pages/BounceTrader'))
 const Confluencia      = lazy(() => import('./pages/Confluencia'))
 const Calibration      = lazy(() => import('./pages/Calibration'))
+const OwnerEarnings    = lazy(() => import('./pages/OwnerEarnings'))
 
 function NavItem({ item, onClose }: { item: (typeof NAV_PRIMARY)[0]; onClose: () => void }) {
   return (
@@ -265,6 +266,7 @@ export default function App() {
               <Route path="/technical"      element={<TechnicalSignals />} />
               <Route path="/catalysts"      element={<CatalystCalendar />} />
               <Route path="/bounce"         element={<BounceTrader />} />
+              <Route path="/owner-earnings" element={<OwnerEarnings />} />
               <Route path="/datos"           element={<Datos />} />
             </Route>
           </Routes>

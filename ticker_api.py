@@ -2314,6 +2314,44 @@ def backtest():
     return jsonify(result)
 
 
+@app.route('/api/owner-earnings/<ticker>')
+def owner_earnings_endpoint(ticker):
+    """Owner Earnings valuation model — precio de compra para X% retorno anual."""
+    ticker = ticker.upper().strip()
+    try:
+        target_return = float(request.args.get('target_return', 0.15))
+        ev_fcf_target = request.args.get('ev_fcf_target')
+        ev_fcf_target = float(ev_fcf_target) if ev_fcf_target else None
+
+        from owner_earnings import calculate
+        result = calculate(ticker, target_return=target_return, ev_fcf_target=ev_fcf_target)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"ticker": ticker, "error": str(e)}), 500
+
+
+@app.route('/api/owner-earnings-batch')
+def owner_earnings_batch():
+    """Owner Earnings para todos los tickers VALUE del universo TIKR."""
+    try:
+        target_return = float(request.args.get('target_return', 0.15))
+        from owner_earnings import batch_calculate
+        results = batch_calculate(target_return=target_return)
+        # Ordenar por upside_pct descendente (mejores oportunidades primero)
+        sorted_results = sorted(
+            [v for v in results.values() if isinstance(v, dict) and v.get('buy_price')],
+            key=lambda x: x.get('upside_pct') or -999,
+            reverse=True
+        )
+        return jsonify({
+            "target_return_pct": round(target_return * 100, 1),
+            "total": len(sorted_results),
+            "results": sorted_results
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/theses/<ticker>')
 def theses(ticker):
     ticker = ticker.upper().strip()

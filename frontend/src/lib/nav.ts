@@ -3,7 +3,7 @@ import {
   ArrowLeftRight, PieChart, BarChart2, FlaskConical, Search, LayoutDashboard, Database,
   Ruler, Layers, Star, Radar, CalendarDays, AlertTriangle, Sparkles, Building2, Zap,
   DollarSign, Euro, Wallet, GitCompare, Bell, SlidersHorizontal, CalendarCheck, CandlestickChart, Brain,
-  Gem, Flame, Crosshair,
+  Gem, Flame, Crosshair, Calculator,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -22,6 +22,7 @@ export const NAV_PRIMARY: NavLinkItem[] = [
   { path: '/confluencia',    icon: GitCompare,      label: 'Confluencia',    color: '#22c55e', tag: '🎯', keywords: ['confluencia', 'convergencia', 'señales', 'alineado', 'conviction'] },
   { path: '/bounce',         icon: Crosshair,       label: 'Bounce Trader',  color: '#f97316', tag: '⚡', keywords: ['bounce', 'rebote', 'corto plazo', 'oversold', 'rsi extremo'] },
   { path: '/my-portfolio',   icon: Wallet,          label: 'Mi Cartera',     color: '#10b981', keywords: ['mis posiciones', 'personal', 'posiciones', 'mi cartera'] },
+  { path: '/owner-earnings', icon: Calculator,       label: 'Owner Earnings', color: '#06b6d4', keywords: ['owner earnings', 'valoracion', 'compra', 'buffett', 'fcf', 'precio objetivo'] },
   { path: '/search',         icon: Search,          label: 'Buscar Ticker',  color: '#94a3b8', keywords: ['buscar', 'ticker', 'search', 'analisis'] },
 ]
 

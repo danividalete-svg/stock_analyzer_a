@@ -17,6 +17,16 @@ class ThesisGenerator:
         self.csv_5d = None
         self.vcp_data = None
         self.ai_client = None
+        # TIKR Pro enrichment data (optional — silently skip if missing)
+        self._tikr_data: dict = {}
+        tikr_path = Path("docs/tikr_earnings_data.json")
+        if tikr_path.exists():
+            try:
+                raw = json.loads(tikr_path.read_text())
+                self._tikr_data = raw.get('data', {})
+                print(f"✅ TIKR data loaded: {len(self._tikr_data)} tickers")
+            except Exception:
+                pass
         # Load Cerebro IA per-ticker signals (optional — silently skip if missing)
         self._cerebro_map: dict = {}
         cerebro_csv = Path("docs/cerebro_ticker_signals.csv")
@@ -199,6 +209,12 @@ class ThesisGenerator:
             'short_percent_float': _safe_float(record.get('short_percent_float')),
             'proximity_to_52w_high': _safe_float(record.get('proximity_to_52w_high')),
             'company_name': record.get('company_name', ''),
+            # TIKR NTM multiples (enrichment, if available)
+            'tikr_ntm_pe':          self._tikr_data.get(record.get('ticker', '').upper(), {}).get('multiples', {}).get('ntm_pe'),
+            'tikr_ntm_ev_ebitda':   self._tikr_data.get(record.get('ticker', '').upper(), {}).get('multiples', {}).get('ntm_ev_ebitda'),
+            'tikr_ntm_fcf_yield':   self._tikr_data.get(record.get('ticker', '').upper(), {}).get('multiples', {}).get('ntm_fcf_yield_pct'),
+            'tikr_target_price':    self._tikr_data.get(record.get('ticker', '').upper(), {}).get('valuation_model', {}).get('target_price'),
+            'tikr_irr_pct':         self._tikr_data.get(record.get('ticker', '').upper(), {}).get('valuation_model', {}).get('irr_pct'),
         }
 
     def _load_insider_detail(self, ticker: str) -> dict:
@@ -528,6 +544,114 @@ class ThesisGenerator:
             f"  Si es CONFIRM o WATCH, refuerza la tesis con esta confluencia de señales.\n"
         )
 
+    def _tikr_context(self, ticker: str) -> str:
+        """Returns a TIKR Pro context block for the AI prompt, or empty string."""
+        d = self._tikr_data.get(str(ticker).upper()) or self._tikr_data.get(str(ticker))
+        if not d:
+            return ""
+
+        lines = ["\nTIKR PRO DATA (NTM multiples + historial financiero):"]
+
+        # NTM multiples
+        m = d.get('multiples', {})
+        if m:
+            parts = []
+            if m.get('ntm_ev_ebitda'):
+                parts.append(f"EV/EBITDA NTM={m['ntm_ev_ebitda']}x")
+            if m.get('ntm_pe'):
+                parts.append(f"P/E NTM={m['ntm_pe']}x")
+            if m.get('ntm_fcf_yield_pct'):
+                parts.append(f"FCF Yield NTM={m['ntm_fcf_yield_pct']}%")
+            if m.get('ntm_ev_revenue'):
+                parts.append(f"EV/Revenue NTM={m['ntm_ev_revenue']}x")
+            if m.get('ntm_eps'):
+                parts.append(f"EPS NTM=${m['ntm_eps']}")
+            if parts:
+                lines.append("- Múltiplos NTM: " + " | ".join(parts))
+
+        # Valuation model (TIKR DCF / IRR)
+        vm = d.get('valuation_model', {})
+        if vm.get('target_price'):
+            irr = f", IRR={vm['irr_pct']}%" if vm.get('irr_pct') else ""
+            lines.append(f"- Modelo valoración TIKR: target ${vm['target_price']:.2f}{irr}")
+        if vm.get('revenue_cagr'):
+            cagr = vm['revenue_cagr']
+            parts = [f"{k}={v}%" for k, v in sorted(cagr.items())]
+            lines.append(f"- CAGR ingresos (modelo): {', '.join(parts)}")
+
+        # Historical financials (last 5 years)
+        fh = d.get('financials_history', {})
+        metrics = fh.get('metrics', {})
+        years = sorted(fh.get('annual_years', []), reverse=True)[:5]
+        if years and metrics:
+            def _hist_line(key, label, pct=False):
+                vals = metrics.get(key, {})
+                if not vals:
+                    return None
+                # JSON keys are strings; year list may contain ints or strings
+                parts = [f"{y}: {vals.get(str(y), vals.get(y)):.1f}{'%' if pct else 'M'}"
+                         for y in years if vals.get(str(y), vals.get(y)) is not None]
+                return f"- {label}: {' | '.join(parts)}" if parts else None
+
+            for line in filter(None, [
+                _hist_line('total_revenue',      'Ingresos ($M)'),
+                _hist_line('ebitda',             'EBITDA ($M)'),
+                _hist_line('ebitda_margin_pct',  'Margen EBITDA', pct=True),
+                _hist_line('net_margin_pct',     'Margen neto', pct=True),
+                _hist_line('roe_pct',            'ROE', pct=True),
+            ]):
+                lines.append(line)
+
+            rc = fh.get('revenue_cagr', {})
+            if rc:
+                cagr_parts = [f"{k}={v}%" for k, v in sorted(rc.items())]
+                lines.append(f"- Revenue CAGR real: {', '.join(cagr_parts)}")
+
+        # Top institutional shareholders
+        sh = d.get('shareholders', {})
+        top = sh.get('top_holders', [])[:3]
+        if top:
+            holder_strs = [f"{h['name']} ({h.get('pct_of_shares', '?')}%)" for h in top if h.get('name')]
+            if holder_strs:
+                lines.append(f"- Top accionistas institucionales: {', '.join(holder_strs)}")
+
+        # Recent filings / earnings releases
+        rp = d.get('reports', {})
+        releases = rp.get('earnings_releases', [])
+        filings  = rp.get('sec_filings', [])
+        if releases:
+            r0 = releases[0]
+            lines.append(f"- Último earnings release: {r0.get('form_name','')} ({r0.get('release_date','')})")
+        if filings:
+            recent_f = [f"{f['form_type']} {f.get('period_end','')}" for f in filings[:2] if f.get('form_type')]
+            if recent_f:
+                lines.append(f"- Filings recientes: {', '.join(recent_f)}")
+
+        # Analyst consensus estimates (forward)
+        ae = d.get('analyst_estimates', {})
+        fwd = ae.get('forward', {})
+        rev_flag = ae.get('revision_flag', '')
+        if fwd:
+            rev_str = {'up': ' ↑ revisiones al alza', 'down': ' ↓ revisiones a la baja', 'stable': ''}.get(rev_flag, '')
+            lines.append(f"- Estimaciones consenso analistas{rev_str}:")
+            for yr in sorted(fwd.keys()):
+                yr_data = fwd[yr]
+                parts = []
+                if yr_data.get('revenue'):
+                    parts.append(f"Rev=${yr_data['revenue']/1000:.1f}B")
+                if yr_data.get('ebitda'):
+                    parts.append(f"EBITDA=${yr_data['ebitda']/1000:.1f}B")
+                if yr_data.get('eps_norm'):
+                    parts.append(f"EPS=${yr_data['eps_norm']}")
+                if yr_data.get('fcf'):
+                    parts.append(f"FCF=${yr_data['fcf']/1000:.1f}B")
+                if parts:
+                    lines.append(f"  {yr}E: {' | '.join(parts)}")
+
+        if len(lines) == 1:
+            return ""
+        return "\n".join(lines) + "\n"
+
     def _generate_narrative(self, row, vcp_row):
         """Genera la narrativa/tesis escrita — adaptada al tipo de oportunidad"""
         source = row.get('_source', '5d')
@@ -607,7 +731,7 @@ CONTEXTO MERCADO:
 - Flujo opciones: {_fmt(row.get('sentiment'))}
 - Bonus sector rotation: {float(row.get('tier_boost', 0) or 0):.1f}
 - Señal mean reversion: {float(row.get('mr_bonus', 0) or 0) > 0}
-{self._cerebro_context(ticker)}
+{self._cerebro_context(ticker)}{self._tikr_context(ticker)}
 Eres un analista de inversión value/GARP profesional (estilo Peter Lynch).
 Escribe una tesis de inversión breve y accionable en español basada EXCLUSIVAMENTE en los datos anteriores.
 
@@ -616,15 +740,16 @@ REGLAS ESTRICTAS:
 - Si un dato dice "no disponible", menciónalo honestamente como limitación.
 - Si fundamental_score = 50.0, indica que no hay datos fundamentales reales.
 - Conecta las señales entre sí cuando sea posible (ej: insiders comprando + mejora de márgenes).
+- Si hay datos TIKR Pro, úsalos para contextualizar la valoración (NTM multiples vs histórico).
 - Señala riesgos y preocupaciones, no solo lo positivo.
 - Las compras de insiders > 6 meses son menos relevantes, señálalo.
 - Tono profesional y directo. Sin hipérbole, sin emojis.
 
 ESTRUCTURA (usa **negrita** para cada sección):
 1. **Resumen** — Una frase sobre la empresa y la oportunidad
-2. **Fundamentales** — Analiza ROE, márgenes, crecimiento, salud financiera
+2. **Fundamentales** — Analiza ROE, márgenes, crecimiento, salud financiera; usa historial TIKR si disponible
 3. **Insiders** — Evalúa calidad y recencia de las compras
-4. **Valoración** — Compara precio actual con targets (analistas, DCF, P/E)
+4. **Valoración** — Compara precio actual con targets (analistas, DCF, P/E, múltiplos NTM TIKR)
 5. **Riesgos** — Al menos 1-2 riesgos concretos
 6. **Conclusión** — Veredicto claro: comprar, esperar, o evitar. Con justificación.
 """
