@@ -364,7 +364,7 @@ def run_code_review(n_files: int = 2):
 
 def _fetch_json(path: str) -> Optional[dict]:
     """Descarga JSON desde GitHub Pages (siempre actualizado)."""
-    url = f'{GITHUB_PAGES_BASE}/docs/{path}'
+    url = f'{GITHUB_PAGES_BASE}/{path}'
     try:
         r = requests.get(url, timeout=15)
         if r.status_code == 200:
@@ -376,7 +376,7 @@ def _fetch_json(path: str) -> Optional[dict]:
 
 def _fetch_csv_lines(path: str) -> list[str]:
     """Descarga CSV desde GitHub Pages y devuelve líneas."""
-    url = f'{GITHUB_PAGES_BASE}/docs/{path}'
+    url = f'{GITHUB_PAGES_BASE}/{path}'
     try:
         r = requests.get(url, timeout=15)
         if r.status_code == 200:

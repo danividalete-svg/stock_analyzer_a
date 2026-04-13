@@ -48,7 +48,7 @@ def _get(url: str, as_json=False, timeout=15, headers=None):
 
 
 def _csv_find(filename: str, ticker: str):
-    text = _get(f'{PAGES_BASE}/docs/{filename}')
+    text = _get(f'{PAGES_BASE}/{filename}')
     if not text:
         return None
     reader = csv.DictReader(io.StringIO(text))
@@ -100,7 +100,7 @@ def get_app_data(ticker: str) -> dict:
         data['interest_coverage']    = fund.get('interest_coverage')
 
     # Mean reversion
-    mr = _get(f'{PAGES_BASE}/docs/mean_reversion_opportunities.json', as_json=True)
+    mr = _get(f'{PAGES_BASE}/mean_reversion_opportunities.json', as_json=True)
     if mr:
         for o in mr.get('opportunities', []):
             if str(o.get('ticker', '')).upper() == ticker.upper():
@@ -111,7 +111,7 @@ def get_app_data(ticker: str) -> dict:
                 break
 
     # Portfolio history
-    recs_text = _get(f'{PAGES_BASE}/docs/portfolio_tracker/recommendations.csv')
+    recs_text = _get(f'{PAGES_BASE}/portfolio_tracker/recommendations.csv')
     if recs_text:
         reader = csv.DictReader(io.StringIO(recs_text))
         returns = []

@@ -59,7 +59,7 @@ def main():
     now = datetime.now(timezone.utc)
 
     # ── 1. Scan age ────────────────────────────────────────────────────────────
-    mr = fetch(f'{PAGES_BASE}/docs/mean_reversion_opportunities.json', as_json=True)
+    mr = fetch(f'{PAGES_BASE}/mean_reversion_opportunities.json', as_json=True)
     vix = None
     bounce_count = 0
 
@@ -98,7 +98,7 @@ def main():
         )
 
     # ── 3. Value CSV vacío ────────────────────────────────────────────────────
-    value_csv = fetch(f'{PAGES_BASE}/docs/value_opportunities_filtered.csv')
+    value_csv = fetch(f'{PAGES_BASE}/value_opportunities_filtered.csv')
     if value_csv is None:
         issues.append("❌ <b>value_opportunities_filtered.csv</b> no disponible")
     else:
@@ -111,7 +111,7 @@ def main():
             )
 
     # ── 4. Retornos extremos en portfolio ─────────────────────────────────────
-    recs_csv = fetch(f'{PAGES_BASE}/docs/portfolio_tracker/recommendations.csv')
+    recs_csv = fetch(f'{PAGES_BASE}/portfolio_tracker/recommendations.csv')
     if recs_csv:
         reader = csv.DictReader(io.StringIO(recs_csv))
         extremes = []

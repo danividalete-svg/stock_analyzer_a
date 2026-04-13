@@ -63,7 +63,7 @@ def gather_context(ticker: str) -> dict:
     ctx: dict = {'ticker': ticker}
 
     # Fundamental scores
-    text = _get(f'{PAGES_BASE}/docs/fundamental_scores.csv')
+    text = _get(f'{PAGES_BASE}/fundamental_scores.csv')
     if text:
         for row in csv.DictReader(io.StringIO(text)):
             if row.get('ticker', '').upper() == ticker.upper():
@@ -73,7 +73,7 @@ def gather_context(ticker: str) -> dict:
     # Value opportunities US
     for fname in ('value_opportunities_filtered.csv',
                   'european_value_opportunities_filtered.csv'):
-        text = _get(f'{PAGES_BASE}/docs/{fname}')
+        text = _get(f'{PAGES_BASE}/{fname}')
         if text:
             for row in csv.DictReader(io.StringIO(text)):
                 if row.get('ticker', '').upper() == ticker.upper():
@@ -82,7 +82,7 @@ def gather_context(ticker: str) -> dict:
                     break
 
     # Mean reversion / bounce
-    mr = _get(f'{PAGES_BASE}/docs/mean_reversion_opportunities.json',
+    mr = _get(f'{PAGES_BASE}/mean_reversion_opportunities.json',
               as_json=True)
     if mr:
         ctx['market_regime'] = mr.get('market_regime', '')
@@ -102,7 +102,7 @@ def gather_context(ticker: str) -> dict:
                 ops[0].get('market_regime') if ops else None)
 
     # Portfolio history
-    text = _get(f'{PAGES_BASE}/docs/portfolio_tracker/recommendations.csv')
+    text = _get(f'{PAGES_BASE}/portfolio_tracker/recommendations.csv')
     if text:
         returns = []
         for row in csv.DictReader(io.StringIO(text)):
