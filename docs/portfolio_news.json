@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-13",
-  "scan_time": "07:50",
+  "scan_time": "13:05",
   "tickers": [
     "ENPH",
     "NKE",
@@ -8,21 +8,11 @@
     "VRSK",
     "UNH"
   ],
-  "count": 11,
+  "count": 10,
   "alta_count": 3,
-  "media_count": 3,
-  "new_alerts": 0,
+  "media_count": 4,
+  "new_alerts": 2,
   "items": [
-    {
-      "id": "29bc254e-1970-3579-94b3-c402fad8f22c",
-      "ticker": "NKE",
-      "title": "Nike Reported Its Q3 Earnings Last Week. Is a Turnaround on the Horizon for the Struggling Retailer?",
-      "source": "Motley Fool",
-      "pub_date": "2026-04-11T11:35:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://www.fool.com/investing/2026/04/11/nike-reported-its-q3-earnings-last-week-is-a-turn/",
-      "importance": "ALTA"
-    },
     {
       "id": "a267b6e4-bc81-39a8-a64c-566876566c7a",
       "ticker": "NKE",
@@ -39,8 +29,18 @@
       "title": "The Great Rotation: Buy This Sector Before It Comes Back in Style",
       "source": "Motley Fool",
       "pub_date": "2026-04-12T21:25:00Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 15h",
       "url": "https://www.fool.com/investing/2026/04/12/great-rotation-buy-healthcare-sector-before-oscr/",
+      "importance": "ALTA"
+    },
+    {
+      "id": "earn_UNH_20260421",
+      "ticker": "UNH",
+      "title": "⏰ Earnings en 7 días — 21 Apr",
+      "source": "Earnings Calendar",
+      "pub_date": "2026-04-13T13:05:01.191084+00:00",
+      "time_ago": "",
+      "url": "",
       "importance": "ALTA"
     },
     {
@@ -49,7 +49,7 @@
       "title": "Market Crash: This Dividend Stock Becomes a No-Brainer Buy at a Discount",
       "source": "Motley Fool",
       "pub_date": "2026-04-12T10:15:00Z",
-      "time_ago": "hace 21h",
+      "time_ago": "hace 1d",
       "url": "https://www.fool.com/investing/2026/04/12/market-crash-dividend-stock-no-brainer-discount/",
       "importance": "MEDIA"
     },
@@ -59,7 +59,7 @@
       "title": "Enphase Energy (ENPH) Price Target Cut by $4 Ahead of Q1 Report",
       "source": "Insider Monkey",
       "pub_date": "2026-04-12T18:48:55Z",
-      "time_ago": "hace 13h",
+      "time_ago": "hace 18h",
       "url": "https://finance.yahoo.com/sectors/energy/articles/enphase-energy-enph-price-target-184855845.html",
       "importance": "MEDIA"
     },
@@ -69,39 +69,19 @@
       "title": "Nike To End Adidas' 25-Year Reign As UEFA Champions League Ball Sponsor—Not A 'Silver Bullet' Says Analyst",
       "source": "Benzinga",
       "pub_date": "2026-04-12T23:31:20Z",
-      "time_ago": "hace 8h",
+      "time_ago": "hace 13h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-end-adidas-25-reign-233120531.html",
       "importance": "MEDIA"
     },
     {
-      "id": "131782fb-5448-3ce0-9db7-564edf24823b",
+      "id": "83ad9b2b-2d58-3815-afc5-8d3b98dcbc0f",
       "ticker": "NKE",
-      "title": "NFL’s media rights stand-off hits a plot twist",
-      "source": "Financial Times",
-      "pub_date": "2026-04-11T08:00:02Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/nfl-media-rights-stand-off-080002438.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "45452125-7e9b-3418-9737-3d4da24b657a",
-      "ticker": "UNH",
-      "title": "UnitedHealth Expands Doula And AI Tools As Valuation Gap Persists",
-      "source": "Simply Wall St.",
-      "pub_date": "2026-04-11T08:05:43Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-expands-doula-ai-tools-080543545.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "0061ef39-d4ca-362a-90f3-3e630ab8f53b",
-      "ticker": "NKE",
-      "title": "Nike on the brink as shares crash 75% from highs. Critics say brand went ‘woke’ and is now broke (but here’s the truth)",
-      "source": "Moneywise",
-      "pub_date": "2026-04-11T12:20:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/nike-brink-shares-crash-75-122000902.html",
-      "importance": "BAJA"
+      "title": "Here Are Monday’s Top Wall Street Analyst Research Calls: Adobe, Best Buy, Bilibili, Constellation Brands, CoreWeave, Nike, Starbucks, T-Mobile, and More",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-13T10:50:44Z",
+      "time_ago": "hace 2h",
+      "url": "https://247wallst.com/investing/2026/04/13/here-are-mondays-top-wall-street-analyst-research-calls-adobe-best-buy-bilibili-constellation-brands-coreweave-nike-starbucks-t-mobile-and-more/",
+      "importance": "MEDIA"
     },
     {
       "id": "4432d482-d02d-3f54-95c8-a9c2eec6e4a5",
@@ -121,6 +101,16 @@
       "pub_date": "2026-04-11T15:34:40Z",
       "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-nike-one-bigger-153440220.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "e445b0a4-bf30-38d1-92c4-29b435b8f339",
+      "ticker": "NKE",
+      "title": "3 Cash-Producing Stocks We Keep Off Our Radar",
+      "source": "StockStory",
+      "pub_date": "2026-04-13T07:40:01Z",
+      "time_ago": "hace 5h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/3-cash-producing-stocks-keep-074001683.html",
       "importance": "BAJA"
     }
   ]
