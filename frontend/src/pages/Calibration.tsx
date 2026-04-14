@@ -4,22 +4,24 @@ import Loading, { ErrorState } from '../components/Loading'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 
-function WinBar({ value, max = 80 }: { value: number; max?: number }) {
-  const pct = Math.min((value / max) * 100, 100)
-  const color = value >= 50 ? '#22c55e' : value >= 35 ? '#f59e0b' : '#ef4444'
+function WinBar({ value, max = 80 }: { value: number | null | undefined; max?: number }) {
+  const v = value ?? 0
+  const pct = Math.min((v / max) * 100, 100)
+  const color = v >= 50 ? '#22c55e' : v >= 35 ? '#f59e0b' : '#ef4444'
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-2 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
         <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="text-xs w-10 text-right" style={{ color }}>{value.toFixed(1)}%</span>
+      <span className="text-xs w-10 text-right" style={{ color }}>{v.toFixed(1)}%</span>
     </div>
   )
 }
 
-function ReturnBadge({ value }: { value: number }) {
-  const color = value > 0 ? '#22c55e' : value > -3 ? '#f59e0b' : '#ef4444'
-  return <span style={{ color }} className="text-xs font-mono">{value > 0 ? '+' : ''}{value.toFixed(2)}%</span>
+function ReturnBadge({ value }: { value: number | null | undefined }) {
+  const v = value ?? 0
+  const color = v > 0 ? '#22c55e' : v > -3 ? '#f59e0b' : '#ef4444'
+  return <span style={{ color }} className="text-xs font-mono">{v > 0 ? '+' : ''}{v.toFixed(2)}%</span>
 }
 
 function ScoreBucketsTable({ buckets }: { buckets: CalibrationBucket[] }) {

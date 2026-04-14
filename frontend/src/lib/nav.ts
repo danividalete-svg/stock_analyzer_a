@@ -38,7 +38,6 @@ export const NAV_SECONDARY: NavLinkItem[] = [
   { path: '/sectors',         icon: PieChart,         label: 'Rotación Sectorial', color: '#6366f1', keywords: ['sector', 'rotacion', 'sectorial'] },
   { path: '/hedge-funds',     icon: Building2,        label: 'Hedge Funds 13F',    color: '#f59e0b', keywords: ['hedge fund', '13f', 'buffett', 'sec', 'whales'] },
   { path: '/portfolio',       icon: BarChart2,        label: 'Signal Tracker',     color: '#22c55e', keywords: ['signal tracker', 'rendimiento', 'tracker'] },
-  { path: '/calibration',     icon: FlaskConical,     label: 'Calibración',        color: '#a78bfa', keywords: ['calibracion', 'calibration', 'score', 'precision', 'accuracy'] },
   { path: '/watchlist',       icon: Star,             label: 'Watchlist',          color: '#f59e0b', keywords: ['watchlist', 'seguimiento', 'favoritos'] },
   { path: '/alerts',          icon: Bell,             label: 'Alertas',            color: '#f59e0b', keywords: ['alertas', 'email', 'notificaciones', 'precio'] },
   { path: '/earnings',        icon: CalendarDays,     label: 'Earnings',           color: '#f59e0b', keywords: ['earnings', 'resultados', 'calendario'] },

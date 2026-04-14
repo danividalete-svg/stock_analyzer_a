@@ -1,3 +1,0 @@
-import{a as o,j as r}from"./index-ByYjElsz.js";function l({ticker:a,showShares:s=!1,className:t=""}){const{getPosition:n}=o(),e=n(a);return e?r.jsxs("span",{className:`inline-flex items-center gap-1 text-[0.58rem] font-bold px-1.5 py-0.5 rounded-full
-        bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 uppercase tracking-wide
-        whitespace-nowrap ${t}`,title:`En tu cartera: ${e.shares} acc · coste ${e.currency==="EUR"?"€":"$"}${e.avg_price.toFixed(2)}`,children:[r.jsx("span",{className:"w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"}),s?`${e.shares} acc`:"En cartera"]}):null}export{l as O};
