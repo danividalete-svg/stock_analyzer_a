@@ -55,7 +55,6 @@ CODE_FILES_FRONTEND = [
     'frontend/src/pages/ValueUS.tsx',
     'frontend/src/pages/ValueEU.tsx',
     'frontend/src/pages/Dashboard.tsx',
-    'frontend/src/pages/MeanReversion.tsx',
     'frontend/src/pages/Portfolio.tsx',
     'frontend/src/pages/Cerebro.tsx',
     'frontend/src/pages/MacroRadar.tsx',
@@ -63,7 +62,6 @@ CODE_FILES_FRONTEND = [
     'frontend/src/pages/TickerSearch.tsx',
     'frontend/src/pages/Insiders.tsx',
     'frontend/src/pages/DividendTraps.tsx',
-    'frontend/src/pages/Shorts.tsx',
     'frontend/src/components/CerebroBadges.tsx',
     'frontend/src/hooks/useCerebroSignals.ts',
     'frontend/src/api/client.ts',
@@ -74,7 +72,6 @@ CODE_FILES_BACKEND = [
     'mean_reversion_detector.py',
     'fundamental_scorer.py',
     'ticker_api.py',
-    'intraday_bounce_scanner.py',
     'unusual_flow_scanner.py',
 ]
 
@@ -480,14 +477,17 @@ ANALYST_SYSTEM_TEMPLATE = """Eres un analista técnico experto en sistemas de tr
 Analizas métricas de un scanner de rebotes técnicos (mean reversion) y propones ajustes
 específicos y conservadores a sus parámetros.
 
-REGLAS DE ORO:
+REGLAS DE ORO — LEER EN ORDEN, LA PRIMERA QUE APLIQUE GANA:
+0. Si vix=null/None O market_regime=null/None → los datos del scan no están disponibles.
+   En ese caso SIEMPRE responde con action="none". NUNCA propongas cambios sin datos reales.
 1. Solo propones cambios si hay un problema claro y concreto
 2. Los cambios son SIEMPRE conservadores: máximo ±3 unidades por ajuste
 3. Nunca relajas filtros en mercados bajistas (SPY bajo MA200) o VIX > 30
-4. Si el sistema detecta 0-2 setups con VIX bajo y mercado alcista → posiblemente filtros demasiado estrictos
+4. Si detectas 0-2 setups Y VIX < 20 Y mercado alcista confirmado (no None) → filtros posiblemente estrictos
 5. Si detecta >15 setups con VIX alto → filtros demasiado laxos
 6. Si la tasa de acierto 7d cae por debajo del 40% → endurecer filtros
-7. Si todo está bien → responde con action: "none"
+7. Si scan_age_hours > 36 → datos obsoletos, no propongas cambios (action="none")
+8. Si todo está bien o no hay suficientes datos → responde con action: "none"
 
 PARÁMETROS AJUSTABLES (valores reales ahora mismo):
 {params_summary}
@@ -808,6 +808,21 @@ def main():
 
     if args.status:
         print('\n✅ Modo --status: solo métricas. Done.')
+        return
+
+    # Guard: si no hay datos del scan, no tiene sentido analizar
+    vix_ok    = metrics.get('vix') is not None
+    regime_ok = metrics.get('market_regime') is not None
+    scan_age  = metrics.get('scan_age_hours')
+    age_ok    = scan_age is None or scan_age < 36
+
+    if not (vix_ok and regime_ok and age_ok) and not args.force:
+        reason = []
+        if not vix_ok:     reason.append('VIX=None')
+        if not regime_ok:  reason.append('régimen=None')
+        if not age_ok:     reason.append(f'scan obsoleto ({scan_age:.0f}h)')
+        print(f'\n⚠️  Sin datos suficientes ({", ".join(reason)}) — abortando análisis')
+        _log_entry({'ts': metrics['timestamp'], 'action': 'no_data', 'reason': reason, 'metrics': metrics})
         return
 
     # 1b. Read actual values from source files (prevents stale proposals)
