@@ -1,82 +1,78 @@
 {
-  "generated_at": "2026-04-14T14:56:11Z",
+  "generated_at": "2026-04-14T15:05:49Z",
   "pipeline_date": "2026-04-14",
-  "ok_count": 4,
-  "total": 15,
+  "ok_count": 3,
+  "total": 14,
   "modules": {
     "value_us": {
-      "status": "stale",
-      "date": "2026-03-24",
-      "days_ago": 14
+      "status": "ok",
+      "date": "2026-04-13",
+      "days_ago": 1
     },
     "value_eu": {
       "status": "stale",
-      "date": "2026-03-24",
-      "days_ago": 14
+      "date": "2026-04-08",
+      "days_ago": 6
     },
     "value_global": {
       "status": "stale",
       "date": "2026-03-24",
-      "days_ago": 14
+      "days_ago": 21
     },
     "fundamental": {
-      "status": "stale",
-      "date": "2026-03-24",
-      "days_ago": 14
+      "status": "ok",
+      "date": "2026-04-13",
+      "days_ago": 1
     },
     "technical": {
       "status": "stale",
       "date": "2026-03-24",
-      "days_ago": 14
+      "days_ago": 21
     },
     "cerebro": {
-      "status": "ok",
-      "date": "2026-04-07",
-      "days_ago": 0
-    },
-    "shorts": {
-      "status": "ok",
-      "date": "2026-04-06",
-      "days_ago": 1
+      "status": "stale",
+      "date": "2026-04-08",
+      "days_ago": 6
     },
     "mean_reversion": {
       "status": "stale",
-      "date": "2026-04-02",
-      "days_ago": 5
+      "date": "2026-04-10",
+      "days_ago": 4
     },
     "macro": {
       "status": "ok",
-      "date": "2026-04-06",
+      "date": "2026-04-13",
       "days_ago": 1
     },
     "insiders": {
       "status": "stale",
       "date": "2026-03-24",
-      "days_ago": 14
+      "days_ago": 21
     },
     "portfolio": {
       "status": "stale",
-      "date": "2026-03-24",
-      "days_ago": 14
+      "date": "2026-04-08",
+      "days_ago": 6
     },
     "earnings": {
       "status": "missing",
-      "date": null
+      "date": null,
+      "days_ago": null
     },
     "catalysts": {
-      "status": "ok",
+      "status": "stale",
       "date": "2026-04-07",
-      "days_ago": 0
+      "days_ago": 7
     },
-    "momentum": {
+    "options_flow": {
       "status": "stale",
       "date": "2026-03-24",
-      "days_ago": 14
+      "days_ago": 21
     },
-    "micro_cap": {
-      "status": "stale",
-      "date": "2026-04-02",
-      "days_ago": 5
+    "bounce": {
+      "status": "missing",
+      "date": null,
+      "days_ago": null
     }
   }
 }

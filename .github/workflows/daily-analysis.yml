@@ -34,6 +34,39 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # ── Heartbeat: escribe pipeline_status.json via GitHub API al inicio ──
+      # Esto garantiza que el banner muestre "corrió hoy" aunque el push final falle
+      - name: Pipeline Heartbeat (API push)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -c "
+          import json, os
+          from datetime import datetime, timezone
+          now = datetime.now(timezone.utc)
+          status = {
+            'last_run': now.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'run_date': now.strftime('%Y-%m-%d'),
+            'status': 'running',
+            'run_id': os.environ.get('GITHUB_RUN_ID', ''),
+          }
+          with open('docs/pipeline_status.json', 'w') as f:
+            json.dump(status, f, indent=2)
+          "
+          REPO="${{ github.repository }}"
+          SHA=$(gh api "repos/${REPO}/contents/docs/pipeline_status.json" --jq '.sha' 2>/dev/null || echo "")
+          CONTENT=$(base64 -w 0 docs/pipeline_status.json)
+          DATE=$(date +%Y-%m-%d)
+          if [ -n "$SHA" ]; then
+            gh api "repos/${REPO}/contents/docs/pipeline_status.json" \
+              --method PUT \
+              -f message="chore: pipeline heartbeat ${DATE}" \
+              -f content="${CONTENT}" \
+              -f sha="${SHA}" \
+              --silent && echo "Heartbeat pushed via API" || echo "Heartbeat push failed (non-critical)"
+          fi
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -135,7 +168,9 @@ jobs:
           git add docs/*.json docs/*.csv || true
           git add docs/portfolio_tracker/ docs/theses.json || true
           git add data/ || true
+          # Excluir app/ y status files (status va por GitHub API)
           git reset HEAD -- docs/app/ 2>/dev/null || true
+          git reset HEAD -- docs/pipeline_status.json docs/pipeline_health.json 2>/dev/null || true
 
           SCAN_DATE=$(date +%Y-%m-%d)
           git diff --cached --quiet && echo "No core changes to commit" || \
@@ -416,6 +451,31 @@ jobs:
               print(f'  [{icon}] {n}: {m[\"status\"]} ({m[\"date\"]})')
           "
 
+      # ── Push status files via GitHub API (immune a fallos de git push) ────
+      # Estos dos archivos son los que controlan el banner de la app.
+      # El push via API nunca falla por conflictos de git con sesiones de dev.
+      - name: Push Status Files via GitHub API
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          DATE=$(date +%Y-%m-%d)
+          for FILE in docs/pipeline_status.json docs/pipeline_health.json; do
+            [ -f "$FILE" ] || continue
+            SHA=$(gh api "repos/${REPO}/contents/${FILE}" --jq '.sha' 2>/dev/null || echo "")
+            [ -z "$SHA" ] && echo "Cannot find SHA for $FILE, skipping" && continue
+            CONTENT=$(base64 -w 0 "$FILE")
+            gh api "repos/${REPO}/contents/${FILE}" \
+              --method PUT \
+              -f message="chore: pipeline status ${DATE}" \
+              -f content="${CONTENT}" \
+              -f sha="${SHA}" \
+              --silent \
+              && echo "API push OK: $FILE" \
+              || echo "API push failed for $FILE (non-critical)"
+          done
+
       - name: Commit and Push Scanner Outputs
         if: always()
         run: |
@@ -425,7 +485,9 @@ jobs:
           git add docs/*.json docs/*.csv || true
           git add docs/history/ docs/portfolio_tracker/ docs/theses.json || true
           git add data/ || true
+          # Excluir app/ y status files (estos van por GitHub API, no por git push)
           git reset HEAD -- docs/app/ 2>/dev/null || true
+          git reset HEAD -- docs/pipeline_status.json docs/pipeline_health.json 2>/dev/null || true
 
           SCAN_DATE=$(date +%Y-%m-%d)
           git diff --cached --quiet && echo "No scanner changes to commit" || \
