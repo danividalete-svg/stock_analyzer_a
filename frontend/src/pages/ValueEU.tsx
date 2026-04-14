@@ -1,5 +1,5 @@
 import StaleDataBanner from '../components/StaleDataBanner'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useDeferredValue } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchEUValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, fetchValueEUInsight, type ValueOpportunity } from '../api/client'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
@@ -95,6 +95,10 @@ export default function ValueEU() {
   // pagedRef must be declared before early returns (React Rules of Hooks)
   const pagedRef = useRef<ValueOpportunity[]>([])
 
+  // useDeferredValue: numeric filter inputs don't block UI during filtering
+  const deferredMinFcf = useDeferredValue(minFcf)
+  const deferredMinRr = useDeferredValue(minRr)
+
   useEffect(() => { setPage(1); setFocusedIdx(-1) }, [filterGrade, filterSector, filterMarket, minScore, minFcf, minRr, hideTraps, hideExits, onlyOwned])
 
   // Keyboard navigation — j/k/Enter/Escape
@@ -143,8 +147,8 @@ export default function ValueEU() {
     if (filterSector !== 'ALL' && r.sector !== filterSector) return false
     if (filterMarket !== 'ALL' && r.market !== filterMarket) return false
     if (minScore !== '' && (r.value_score == null || r.value_score < Number(minScore))) return false
-    if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
-    if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
+    if (deferredMinFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(deferredMinFcf))) return false
+    if (deferredMinRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(deferredMinRr))) return false
     if (hideTraps && cerebro.trapMap[r.ticker]?.severity === 'HIGH') return false
     if (hideExits && (cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT')) return false
     if (onlyOwned && !isOwned(r.ticker)) return false

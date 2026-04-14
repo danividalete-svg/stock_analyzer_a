@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback, useDeferredValue } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, type ValueOpportunity } from '../api/client'
 import StaleDataBanner from '../components/StaleDataBanner'
@@ -96,6 +96,11 @@ export default function ValueUS() {
   const [focusedIdx, setFocusedIdx] = useState(-1)
   const PAGE_SIZE = 50
 
+  // useDeferredValue: los filtros de texto/número no bloquean el UI mientras se recalcula
+  const deferredMinFcf = useDeferredValue(minFcf)
+  const deferredMinRr = useDeferredValue(minRr)
+  const deferredMinScore = useDeferredValue(minScore)
+
   const currentThesisTicker = useRef<string | null>(null)
   // pagedRef must be declared before early returns (React Rules of Hooks)
   const pagedRef = useRef<ValueOpportunity[]>([])
@@ -147,15 +152,15 @@ export default function ValueUS() {
   const filtered = useMemo(() => rows.filter(r => {
     if (filterGrade !== 'ALL' && r.conviction_grade !== filterGrade) return false
     if (filterSector !== 'ALL' && r.sector !== filterSector) return false
-    if (minScore !== '' && (r.value_score == null || r.value_score < Number(minScore))) return false
-    if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
-    if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
+    if (deferredMinScore !== '' && (r.value_score == null || r.value_score < Number(deferredMinScore))) return false
+    if (deferredMinFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(deferredMinFcf))) return false
+    if (deferredMinRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(deferredMinRr))) return false
     if (hideEarnings && r.earnings_warning) return false
     if (hideTraps && cerebro.trapMap[r.ticker]?.severity === 'HIGH') return false
     if (hideExits && (cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT')) return false
     if (onlyOwned && !isOwned(r.ticker)) return false
     return true
-  }), [rows, filterGrade, filterSector, minScore, minFcf, minRr, hideEarnings, hideTraps, hideExits, onlyOwned, cerebro.trapMap, cerebro.exitMap, isOwned]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [rows, filterGrade, filterSector, deferredMinScore, deferredMinFcf, deferredMinRr, hideEarnings, hideTraps, hideExits, onlyOwned, cerebro.trapMap, cerebro.exitMap, isOwned]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const sorted = useMemo(() => [...filtered].sort((a, b) => {
     const av = a[sortKey] ?? 0

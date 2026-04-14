@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react'
+import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 import StaleDataBanner from '../components/StaleDataBanner'
 import {
@@ -1472,9 +1473,19 @@ export default function Dashboard() {
           )}
 
           {/* Market Regime + Portfolio Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <RegimeCard label="Mercado US" data={usRegime} loading={loadingRegime} />
-            <RegimeCard label="Mercado EU" data={euRegime} loading={loadingRegime} />
+          <motion.div
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6"
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.07 } } }}
+          >
+            <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } } }}>
+              <RegimeCard label="Mercado US" data={usRegime} loading={loadingRegime} />
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } } }}>
+              <RegimeCard label="Mercado EU" data={euRegime} loading={loadingRegime} />
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } } }}>
             <StatCard
               label={winRateIsConviction ? 'Win Rate 7d (≥55pts)' : 'Win Rate 7d (base)'}
               value={winRate7d?.win_rate != null ? `${winRate7d.win_rate.toFixed(1)}%` : '—'}
@@ -1491,6 +1502,8 @@ export default function Dashboard() {
               color={winRateColor()}
               loading={false}
             />
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } } }}>
             <StatCard
               label="Señales Activas"
               value={signalsNum ?? '—'}
@@ -1498,7 +1511,8 @@ export default function Dashboard() {
               sub={totalSignals > 0 ? `${totalSignals} señales totales` : 'Sin datos de portfolio'}
               loading={false}
             />
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Setup del día — hero card */}
           {bestPick && (

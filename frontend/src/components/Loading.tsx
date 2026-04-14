@@ -61,7 +61,7 @@ function SkeletonTableRow({ cols, delay }: { cols: number[]; delay: number }) {
 
 function SkeletonTable() {
   return (
-    <Card className="glass overflow-hidden animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+    <Card className="glass overflow-clip animate-fade-in-up" style={{ animationDelay: '80ms' }}>
       {/* Filter bar skeleton */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border/20">
         <Skeleton className="h-6 w-16 rounded" />
