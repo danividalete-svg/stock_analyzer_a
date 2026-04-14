@@ -16,38 +16,23 @@ import Loading from './components/Loading'
 import Login from './pages/Login'
 
 const Dashboard        = lazy(() => import('./pages/Dashboard'))
-const ValueUS          = lazy(() => import('./pages/ValueUS'))
-const ValueEU          = lazy(() => import('./pages/ValueEU'))
-const GlobalValue      = lazy(() => import('./pages/GlobalValue'))
-const Momentum         = lazy(() => import('./pages/Momentum'))
+const Value            = lazy(() => import('./pages/Value'))
+const EntrySetups      = lazy(() => import('./pages/EntrySetups'))
 const Insiders         = lazy(() => import('./pages/Insiders'))
 const OptionsFlow      = lazy(() => import('./pages/OptionsFlow'))
-const MeanReversion    = lazy(() => import('./pages/MeanReversion'))
 const SectorRotation   = lazy(() => import('./pages/SectorRotation'))
-const Portfolio        = lazy(() => import('./pages/Portfolio'))
+const MyPortfolio      = lazy(() => import('./pages/MyPortfolio'))
 const Backtest         = lazy(() => import('./pages/Backtest'))
 const TickerSearch     = lazy(() => import('./pages/TickerSearch'))
 const Datos            = lazy(() => import('./pages/Datos'))
 const PositionSizing   = lazy(() => import('./pages/PositionSizing'))
-const IndustryGroups   = lazy(() => import('./pages/IndustryGroups'))
 const Watchlist        = lazy(() => import('./pages/Watchlist'))
-const MacroRadar       = lazy(() => import('./pages/MacroRadar'))
-const MacroCountries   = lazy(() => import('./pages/MacroCountries'))
-const MacroCalendar    = lazy(() => import('./pages/MacroCalendar'))
-const EarningsCalendar = lazy(() => import('./pages/EarningsCalendar'))
+const Macro            = lazy(() => import('./pages/Macro'))
+const Calendar         = lazy(() => import('./pages/Calendar'))
 const DividendTraps    = lazy(() => import('./pages/DividendTraps'))
-const SmartPortfolio   = lazy(() => import('./pages/SmartPortfolio'))
-const HedgeFunds       = lazy(() => import('./pages/HedgeFunds'))
-const FactorStatus     = lazy(() => import('./pages/FactorStatus'))
-const PersonalPortfolio= lazy(() => import('./pages/PersonalPortfolio'))
 const Comparador       = lazy(() => import('./pages/Comparador'))
 const Cerebro          = lazy(() => import('./pages/Cerebro'))
 const Alerts           = lazy(() => import('./pages/Alerts'))
-const Screener         = lazy(() => import('./pages/Screener'))
-const MicroCap         = lazy(() => import('./pages/MicroCap'))
-const Shorts           = lazy(() => import('./pages/Shorts'))
-const TechnicalSignals = lazy(() => import('./pages/TechnicalSignals'))
-const CatalystCalendar = lazy(() => import('./pages/CatalystCalendar'))
 const BounceTrader     = lazy(() => import('./pages/BounceTrader'))
 const Confluencia      = lazy(() => import('./pages/Confluencia'))
 const Calibration      = lazy(() => import('./pages/Calibration'))
@@ -232,39 +217,31 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/"               element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard"      element={<Dashboard />} />
-              <Route path="/value"          element={<ValueUS />} />
-              <Route path="/value-eu"       element={<ValueEU />} />
-              <Route path="/value-global"   element={<GlobalValue />} />
-              <Route path="/momentum"       element={<Momentum />} />
+              <Route path="/value"          element={<Value />} />
+              <Route path="/value-eu"       element={<Navigate to="/value?region=eu" replace />} />
+              <Route path="/value-global"   element={<Navigate to="/value?region=global" replace />} />
+              <Route path="/entry-setups"   element={<EntrySetups />} />
+              <Route path="/momentum"       element={<Navigate to="/entry-setups?tab=momentum" replace />} />
               <Route path="/insiders"       element={<Insiders />} />
               <Route path="/options"        element={<OptionsFlow />} />
               <Route path="/confluencia"   element={<Confluencia />} />
-              <Route path="/mean-reversion" element={<MeanReversion />} />
+              <Route path="/mean-reversion" element={<Navigate to="/entry-setups?tab=mean-reversion" replace />} />
               <Route path="/sectors"        element={<SectorRotation />} />
-              <Route path="/portfolio"      element={<Portfolio />} />
+              <Route path="/portfolio"      element={<Navigate to="/my-portfolio?tab=signals" replace />} />
               <Route path="/calibration"   element={<Calibration />} />
               <Route path="/backtest"       element={<Backtest />} />
-              <Route path="/industry-groups" element={<IndustryGroups />} />
               <Route path="/position-sizing" element={<PositionSizing />} />
               <Route path="/watchlist"      element={<Watchlist />} />
               <Route path="/search"         element={<TickerSearch />} />
-              <Route path="/macro-radar"       element={<MacroRadar />} />
-              <Route path="/macro-countries"  element={<MacroCountries />} />
-              <Route path="/earnings"       element={<EarningsCalendar />} />
+              <Route path="/macro-radar"       element={<Macro />} />
+              <Route path="/macro-countries"  element={<Navigate to="/macro-radar?tab=countries" replace />} />
+              <Route path="/earnings"       element={<Calendar />} />
+              <Route path="/catalysts"      element={<Navigate to="/earnings?tab=catalysts" replace />} />
               <Route path="/dividend-traps"   element={<DividendTraps />} />
-              <Route path="/smart-portfolio" element={<SmartPortfolio />} />
-              <Route path="/hedge-funds" element={<HedgeFunds />} />
-              <Route path="/factor-status" element={<FactorStatus />} />
-              <Route path="/my-portfolio"  element={<PersonalPortfolio />} />
+              <Route path="/my-portfolio"  element={<MyPortfolio />} />
               <Route path="/compare"        element={<Comparador />} />
               <Route path="/cerebro"        element={<Cerebro />} />
               <Route path="/alerts"         element={<Alerts />} />
-              <Route path="/screener"       element={<Screener />} />
-              <Route path="/micro-cap"      element={<MicroCap />} />
-              <Route path="/shorts"         element={<Shorts />} />
-              <Route path="/macro-calendar" element={<MacroCalendar />} />
-              <Route path="/technical"      element={<TechnicalSignals />} />
-              <Route path="/catalysts"      element={<CatalystCalendar />} />
               <Route path="/bounce"         element={<BounceTrader />} />
               <Route path="/owner-earnings" element={<OwnerEarnings />} />
               <Route path="/datos"           element={<Datos />} />
