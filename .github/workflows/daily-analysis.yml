@@ -387,10 +387,13 @@ jobs:
           git diff --cached --quiet && echo "No changes to commit" || \
             git commit -m "chore: Daily full pipeline - ${SCAN_DATE}" -m "Automated via GitHub Actions"
 
-          # Push with retry: fetch + rebase before each attempt
+          # Push with retry: stash leftover working-tree files, fetch + rebase, push
           push_with_retry() {
             for i in 1 2 3; do
               git fetch origin main
+              # Park any unstaged/untracked leftovers so rebase can proceed cleanly.
+              # (We already committed everything we care about above.)
+              git stash --include-untracked 2>/dev/null || true
               git rebase origin/main && git push && echo "Push OK (attempt $i)" && return 0
               git rebase --abort 2>/dev/null || true
               echo "Attempt $i failed, retrying..."
