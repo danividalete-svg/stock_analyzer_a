@@ -294,7 +294,7 @@ export const fetchPortfolioNews = async (): Promise<{ data: PortfolioNewsData }>
   const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
   const base = csvBase || ''
   try {
-    const res = await fetch(`${base}/docs/portfolio_news.json`, { cache: 'no-store' })
+    const res = await fetch(`${base}/portfolio_news.json`, { cache: 'no-store' })
     if (res.ok) return { data: await res.json() as PortfolioNewsData }
   } catch { /* fall through to API */ }
   return api.get<PortfolioNewsData>('/api/portfolio-news')
@@ -740,7 +740,7 @@ const _csvBase = () => (import.meta.env.VITE_CSV_BASE as string | undefined) || 
 
 export const fetchPipelineStatus = async (): Promise<PipelineStatus | null> => {
   try {
-    const res = await fetch(`${_csvBase()}/docs/pipeline_status.json`, { cache: 'no-store' })
+    const res = await fetch(`${_csvBase()}/pipeline_status.json`, { cache: 'no-store' })
     if (!res.ok) return null
     return await res.json() as PipelineStatus
   } catch {
@@ -750,7 +750,7 @@ export const fetchPipelineStatus = async (): Promise<PipelineStatus | null> => {
 
 export const fetchPipelineHealth = async (): Promise<PipelineHealth | null> => {
   try {
-    const res = await fetch(`${_csvBase()}/docs/pipeline_health.json`, { cache: 'no-store' })
+    const res = await fetch(`${_csvBase()}/pipeline_health.json`, { cache: 'no-store' })
     if (!res.ok) return null
     return await res.json() as PipelineHealth
   } catch {
