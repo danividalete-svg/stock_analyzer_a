@@ -1,38 +1,41 @@
 /* ═══════════════════════════════════════════════════════════════════
-   HYBRID THEME — Liquid Glass × Nothing Phone
-   Glassmorphism intact · Dot-grid overlay · VT323 for display data
+   HYBRID THEME — Liquid Glass × Nothing Phone  (optional, toggleable)
+   Enable:  document.body.setAttribute('data-nothing-theme', 'true')
+   Disable: document.body.removeAttribute('data-nothing-theme')
 ════════════════════════════════════════════════════════════════════ */
 
 /* ── Typography: Space Mono for data, VT323 for display numbers ─── */
 
-/* Monospace for all data-like elements */
-code, pre, kbd,
-[class*="font-mono"],
-[class*="tabular"],
-.score-bar span {
+body[data-nothing-theme] code,
+body[data-nothing-theme] pre,
+body[data-nothing-theme] kbd,
+body[data-nothing-theme] [class*="font-mono"],
+body[data-nothing-theme] [class*="tabular"],
+body[data-nothing-theme] .score-bar span {
   font-family: 'Space Mono', monospace !important;
 }
 
 /* Ticker column — always monospaced */
-td:first-child, th:first-child {
+body[data-nothing-theme] td:first-child,
+body[data-nothing-theme] th:first-child {
   font-family: 'Space Mono', monospace !important;
   letter-spacing: 0.05em;
 }
 
 /* VT323 dot-matrix for big display numbers (prices, scores, headlines) */
-[class*="text-4xl"],
-[class*="text-3xl"],
-[class*="text-2xl"],
-[class*="text-xl"][class*="font-bold"],
-[class*="text-lg"][class*="font-bold"] {
+body[data-nothing-theme] [class*="text-4xl"],
+body[data-nothing-theme] [class*="text-3xl"],
+body[data-nothing-theme] [class*="text-2xl"],
+body[data-nothing-theme] [class*="text-xl"][class*="font-bold"],
+body[data-nothing-theme] [class*="text-lg"][class*="font-bold"] {
   font-family: 'VT323', monospace !important;
   letter-spacing: 0.06em;
   line-height: 1.1;
 }
 
 /* Table headers: VT323 + uppercase */
-.glass table thead th,
-.dark .glass table thead th {
+body[data-nothing-theme] .glass table thead th,
+body[data-nothing-theme] .dark .glass table thead th {
   font-family: 'VT323', monospace !important;
   font-size: 0.82rem !important;
   letter-spacing: 0.14em !important;
@@ -41,8 +44,8 @@ td:first-child, th:first-child {
 }
 
 /* Sidebar app name + section labels */
-aside [class*="font-bold"],
-aside [class*="font-semibold"] {
+body[data-nothing-theme] aside [class*="font-bold"],
+body[data-nothing-theme] aside [class*="font-semibold"] {
   font-family: 'VT323', monospace !important;
   letter-spacing: 0.08em;
 }
@@ -50,7 +53,7 @@ aside [class*="font-semibold"] {
 /* ── Dot-matrix grid overlay ────────────────────────────────────── */
 /* Sits at z-index 0, below all content, above the background.
    Low opacity so it plays nicely with the glass panels. */
-body::before {
+body[data-nothing-theme]::before {
   content: '';
   position: fixed;
   inset: 0;
@@ -60,4 +63,3 @@ body::before {
     radial-gradient(circle, rgba(255,255,255,0.09) 1.1px, transparent 1.1px);
   background-size: 22px 22px;
 }
-

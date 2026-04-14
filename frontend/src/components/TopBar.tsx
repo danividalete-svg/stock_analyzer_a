@@ -1,7 +1,8 @@
 import { useLocation, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Clock, Sun, Moon, Menu, Search, Brain } from 'lucide-react'
+import { Clock, Sun, Moon, Menu, Search, Brain, Grid3x3 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
+import { useNothingTheme } from '../hooks/useNothingTheme'
 import { Button } from '@/components/ui/button'
 import { fetchCerebroAlerts } from '../api/client'
 import { useApi } from '../hooks/useApi'
@@ -53,6 +54,7 @@ export default function TopBar({ onMenuClick, onOpenCmd }: Readonly<Props>) {
   const location = useLocation()
   const [time, setTime]   = useState(new Date())
   const { theme, toggle } = useTheme()
+  const { enabled: nothingEnabled, toggle: toggleNothing } = useNothingTheme()
   const { data: alertsData } = useApi(() => fetchCerebroAlerts(), [])
   const highAlerts = alertsData?.high_count ?? 0
 
@@ -125,6 +127,16 @@ export default function TopBar({ onMenuClick, onOpenCmd }: Readonly<Props>) {
           )}
         </Link>
 
+        <Button
+          variant="outline"
+          size="icon"
+          className={`h-8 w-8 transition-all border-border/60 ${nothingEnabled ? 'bg-primary/15 border-primary/50 text-primary' : ''}`}
+          onClick={toggleNothing}
+          title={nothingEnabled ? 'Desactivar tema Nothing' : 'Activar tema Nothing (dot matrix)'}
+          aria-label="Toggle Nothing theme"
+        >
+          <Grid3x3 size={14} strokeWidth={1.75} />
+        </Button>
         <Button
           variant="outline"
           size="icon"
