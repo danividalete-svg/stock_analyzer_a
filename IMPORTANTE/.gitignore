@@ -1,0 +1,7 @@
+docs/tikr_earnings_data.json
+docs/tikr_id_cache.json
+frontend/node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+*.log
