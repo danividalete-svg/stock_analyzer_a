@@ -518,7 +518,7 @@ jobs:
 
     steps:
       - name: Trigger GitHub Pages Deployment
-        run: gh workflow run pages-deploy.yml
+        run: gh workflow run pages-deploy.yml --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
