@@ -17,7 +17,9 @@ interface Props {
 
 export default function PageTabs({ tabs, defaultTab, paramKey = 'tab' }: Readonly<Props>) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeId = searchParams.get(paramKey) ?? defaultTab ?? tabs[0]?.id
+  const rawParam = searchParams.get(paramKey)
+  const validIds = new Set(tabs.map(t => t.id))
+  const activeId = (rawParam && validIds.has(rawParam) ? rawParam : null) ?? defaultTab ?? tabs[0]?.id
 
   const setTab = (id: string) => setSearchParams({ [paramKey]: id }, { replace: true })
   const active = tabs.find(t => t.id === activeId) ?? tabs[0]

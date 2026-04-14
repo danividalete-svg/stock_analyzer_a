@@ -89,6 +89,10 @@ export interface ValueOpportunity {
   // Cerebro IA synthesized signal (written by cerebro.py → read by super_score_integrator)
   cerebro_signal?: string
   cerebro_score_adj?: number
+  // AI quality filter reasoning (ai_quality_filter.py via Groq)
+  ai_reasoning?: string | null
+  ai_verdict?: string | null
+  ai_confidence?: number | null
 }
 
 export interface MomentumOpportunity {
@@ -1070,4 +1074,14 @@ export const fetchTechnicalSignals = async (): Promise<{ signals: TechnicalSigna
     return obj as unknown as TechnicalSummary
   })
   return { signals, summary }
+}
+
+export async function fetchPortfolioPrices(tickers: string[]): Promise<Record<string, number>> {
+  if (!tickers.length) return {}
+  try {
+    const res = await api.post<{ prices: Record<string, number> }>('/api/portfolio-prices', { tickers })
+    return res.data.prices ?? {}
+  } catch {
+    return {}
+  }
 }

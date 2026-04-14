@@ -1,5 +1,5 @@
 import StaleDataBanner from '../components/StaleDataBanner'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   fetchCerebroInsights, fetchCerebroConvergence, fetchCerebroAlerts, fetchCerebroCalibration,
@@ -21,6 +21,7 @@ import {
   Zap, CheckCircle2, Newspaper, Bot, AlertOctagon, ShieldAlert,
   Building2, Users, Wallet, BarChart2, Activity, Repeat2,
 } from 'lucide-react'
+import { nlAlert } from '@/lib/nl'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,85 @@ function alertColor(severity: CerebroAlert['severity']) {
   if (severity === 'HIGH')   return 'border-red-500/25 bg-red-500/5'
   if (severity === 'MEDIUM') return 'border-amber-500/20 bg-amber-500/5'
   return 'border-border/30 bg-muted/5'
+}
+
+// ── Sorted, NL-enriched alerts tab ───────────────────────────────────────────
+
+const SEV_ORDER: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+
+function AlertsTab({ alerts, showAll, onToggleAll }: {
+  alerts: CerebroAlert[]
+  showAll: boolean
+  onToggleAll: () => void
+}) {
+  const sorted = useMemo(() => [...alerts].sort((a, b) => {
+    const so = (SEV_ORDER[a.severity] ?? 3) - (SEV_ORDER[b.severity] ?? 3)
+    return so !== 0 ? so : (a.ticker < b.ticker ? -1 : 1)
+  }), [alerts])
+
+  const highAlerts = sorted.filter(a => a.severity === 'HIGH')
+  const displayed  = showAll ? sorted : highAlerts
+
+  if (alerts.length === 0) {
+    return <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin alertas activas hoy</CardContent></Card>
+  }
+
+  return (
+    <div className="space-y-2 animate-fade-in-up">
+      <div className="flex items-center justify-between">
+        <span className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/40">
+          {showAll ? `Todas las alertas (${sorted.length})` : `HIGH priority (${highAlerts.length})`}
+        </span>
+        <button onClick={onToggleAll} className="filter-btn">
+          {showAll ? `Solo HIGH (${highAlerts.length})` : `Ver todas (${sorted.length})`}
+        </button>
+      </div>
+
+      {highAlerts.length === 0 && !showAll && (
+        <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin alertas HIGH hoy</CardContent></Card>
+      )}
+
+      {displayed.map((alert, i) => {
+        const nlSummary = nlAlert({ type: alert.type, ticker: alert.ticker, severity: alert.severity, details: alert.message })
+        const sameAsMessage = nlSummary === alert.message
+        return (
+          <div key={`${alert.ticker}-${alert.type}-${i}`}
+            className={`flex items-start gap-3 p-4 rounded-xl border animate-fade-in-up ${alertColor(alert.severity)}`}
+            style={{ animationDelay: `${i * 50}ms` }}>
+            <div className="mt-0.5 shrink-0">{alertIcon(alert.type)}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Link to={`/search?q=${alert.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">
+                  {alert.ticker}
+                </Link>
+                <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded border ${
+                  alert.severity === 'HIGH'
+                    ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                    : alert.severity === 'MEDIUM'
+                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                    : 'bg-muted/20 text-muted-foreground border-border/30'
+                }`}>{alert.severity}</span>
+                <span className="text-[0.65rem] font-semibold text-foreground/70">{alert.title}</span>
+              </div>
+              {/* NL plain-language summary */}
+              <p className="text-[0.75rem] text-foreground/80 leading-relaxed font-medium">
+                {nlSummary}
+              </p>
+              {/* Original message if different from NL summary */}
+              {!sameAsMessage && alert.message && (
+                <p className="text-[0.68rem] text-muted-foreground/60 mt-0.5 leading-relaxed">
+                  {alert.message}
+                </p>
+              )}
+            </div>
+            <Link to={`/search?q=${alert.ticker}`} className="shrink-0 text-muted-foreground/40 hover:text-primary mt-0.5 transition-colors" title="Analizar ticker">
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 function strategyBadge(s: string) {
@@ -759,75 +839,11 @@ export default function Cerebro() {
 
       {/* ── TAB: Alertas ──────────────────────────────────────────────────────── */}
       {activeTab === 'alerts' && (
-        <div className="space-y-2 animate-fade-in-up">
-          {alerts.length === 0 ? (
-            <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin alertas activas hoy</CardContent></Card>
-          ) : (() => {
-            const highAlerts = alerts.filter(a => a.severity === 'HIGH')
-            const displayedAlerts = showAllAlerts ? alerts : highAlerts
-            return (
-            <>
-              {highAlerts.length === 0 && !showAllAlerts && (
-                <Card className="glass"><CardContent className="py-12 text-center text-muted-foreground">Sin alertas HIGH hoy</CardContent></Card>
-              )}
-              {!showAllAlerts && alerts.length > highAlerts.length && (
-                <div className="flex justify-end">
-                  <button onClick={() => setShowAllAlerts(true)} className="filter-btn">
-                    Ver todas ({alerts.length})
-                  </button>
-                </div>
-              )}
-              {showAllAlerts && (
-                <div className="flex justify-end">
-                  <button onClick={() => setShowAllAlerts(false)} className="filter-btn active">
-                    Solo HIGH ({highAlerts.length})
-                  </button>
-                </div>
-              )}
-              {/* Mobile cards */}
-              <div className="sm:hidden space-y-2">
-                {displayedAlerts.map((alert, i) => (
-                  <div key={`mob-${alert.ticker}-${alert.type}-${i}`} className={`p-3 rounded-xl border animate-fade-in-up ${alertColor(alert.severity)}`} style={{ animationDelay: `${i * 60}ms` }}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="shrink-0">{alertIcon(alert.type)}</div>
-                      <Link to={`/search?q=${alert.ticker}`} className="font-mono font-bold text-primary text-sm hover:underline">{alert.ticker}</Link>
-                      <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded border ${alert.severity === 'HIGH' ? 'bg-red-500/15 text-red-400 border-red-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'}`}>{alert.severity}</span>
-                    </div>
-                    <div className="text-[0.72rem] font-semibold text-foreground/80 mb-0.5">{alert.title}</div>
-                    <p className="text-[0.72rem] text-muted-foreground leading-relaxed">{alert.message}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Desktop list */}
-              <div className="hidden sm:block space-y-2">
-                {displayedAlerts.map((alert, i) => (
-                  <div key={`${alert.ticker}-${alert.type}-${i}`} className={`flex items-start gap-3 p-4 rounded-xl border animate-fade-in-up ${alertColor(alert.severity)}`} style={{ animationDelay: `${i * 60}ms` }}>
-                    <div className="mt-0.5 shrink-0">{alertIcon(alert.type)}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <Link to={`/search?q=${alert.ticker}`} className="font-mono font-bold text-primary text-[0.8rem] hover:underline">
-                          {alert.ticker}
-                        </Link>
-                        <span className={`text-[0.55rem] font-bold px-1.5 py-0.5 rounded border ${
-                          alert.severity === 'HIGH'
-                            ? 'bg-red-500/15 text-red-400 border-red-500/30'
-                            : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                        }`}>{alert.severity}</span>
-                        <span className="text-[0.65rem] font-semibold text-foreground/80">{alert.title}</span>
-                      </div>
-                      <p className="text-[0.72rem] text-muted-foreground leading-relaxed">{alert.message}</p>
-                    </div>
-                    <Link to={`/search?q=${alert.ticker}`} className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground mt-0.5">
-                      <ChevronRight size={14} />
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </>
-            )
-          })()}
-        </div>
+        <AlertsTab
+          alerts={alerts}
+          showAll={showAllAlerts}
+          onToggleAll={() => setShowAllAlerts(v => !v)}
+        />
       )}
 
       {/* ── TAB: Calibración ─────────────────────────────────────────────────── */}

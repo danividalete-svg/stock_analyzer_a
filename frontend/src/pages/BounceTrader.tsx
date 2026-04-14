@@ -5,6 +5,7 @@ import Loading, { ErrorState } from '../components/Loading'
 import StaleDataBanner from '../components/StaleDataBanner'
 import TickerLogo from '../components/TickerLogo'
 import { AlertTriangle, TrendingDown, Zap, Star, Target } from 'lucide-react'
+import { nlBounceSetup, nlBounceConfidence } from '@/lib/nl'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -121,6 +122,31 @@ function BounceCard({ s, isConviction }: { s: BounceSetup; isConviction: boolean
           <span>Earnings en {s.days_to_earnings}d — riesgo elevado</span>
         </div>
       )}
+
+      {/* NL Summary */}
+      <div className="px-0.5">
+        <p className="text-[0.72rem] leading-relaxed text-muted-foreground/80">
+          {nlBounceSetup({
+            ticker:               s.ticker,
+            drawdown_pct:         s.drawdown_pct,
+            rsi:                  s.rsi,
+            rsi_tier:             s.rsi_tier,
+            bounce_confidence:    s.bounce_confidence,
+            value_score:          s.value_score,
+            days_to_earnings:     s.days_to_earnings,
+            earnings_warning:     s.earnings_warning,
+            consecutive_down_days: s.consecutive_down_days,
+            dark_pool_signal:     s.dark_pool_signal,
+            connors_signal:       s.connors_signal,
+            hammer_candle:        s.hammer_candle,
+          })}
+        </p>
+        {s.bounce_confidence != null && (
+          <p className="text-[0.65rem] mt-1 text-muted-foreground/50 italic">
+            {nlBounceConfidence(s.bounce_confidence)}
+          </p>
+        )}
+      </div>
 
       {/* Main numbers */}
       <div className="grid grid-cols-3 gap-2">

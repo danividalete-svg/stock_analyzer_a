@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, RefreshCw, TrendingUp, TrendingDown, Wallet, AlertTriangle, X, Loader2, BookOpen, Send, Trash2, ChevronDown, ChevronUp, Zap, Brain } from 'lucide-react'
+import { Plus, RefreshCw, TrendingUp, TrendingDown, Wallet, AlertTriangle, X, Loader2, BookOpen, Send, Trash2, ChevronDown, ChevronUp, Zap, Brain, Pencil, Check } from 'lucide-react'
+import { nlPositionStatus } from '@/lib/nl'
 import axios from 'axios'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
@@ -621,15 +622,19 @@ function MetricChip({ label, value, valueClass = 'text-foreground' }: { label: s
   )
 }
 
-function PositionCard({ result, pos, userId, onRemove, cerebro, confluence }: {
+function PositionCard({ result, pos, userId, onRemove, onEdit, cerebro, confluence }: {
   result?: PositionResult
   pos: Position
   userId: string
   onRemove: () => void
+  onEdit: (id: string, shares: number, avgPrice: number) => void
   cerebro: CerebroMaps
   confluence: ConfluenceSignals | null
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [editing, setEditing]   = useState(false)
+  const [editShares, setEditShares]   = useState(String(pos.shares))
+  const [editPrice, setEditPrice]     = useState(String(pos.avg_price))
   const ticker = pos.ticker
   const cur    = result?.current_price ?? pos.avg_price
   const pl     = result?.pl_pct ?? 0
@@ -679,26 +684,70 @@ function PositionCard({ result, pos, userId, onRemove, cerebro, confluence }: {
           </p>
         </div>
 
-        {/* Right: price + action + remove */}
+        {/* Right: price + action + remove + edit */}
         <div className="flex flex-col items-end gap-1.5 shrink-0">
           <div className="flex items-center gap-1.5">
-            {result && (
+            {result && !editing && (
               <span className={`text-[0.62rem] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wide ${ACTION_STYLES[action]}`}>
                 {action}
               </span>
             )}
+            <button
+              onClick={() => { setEditing(e => !e); setEditShares(String(pos.shares)); setEditPrice(String(pos.avg_price)) }}
+              className={`p-1 rounded-md transition-colors ${editing ? 'text-primary bg-primary/10' : 'text-muted-foreground/40 hover:text-primary hover:bg-primary/10'}`}
+              title="Editar posición"
+            >
+              <Pencil size={12} />
+            </button>
             <button onClick={onRemove} className="p-1 rounded-md text-muted-foreground/40 hover:text-red-400 hover:bg-red-500/10 transition-colors">
               <X size={12} />
             </button>
           </div>
-          <div className="text-right">
-            <div className="font-extrabold text-base tabular-nums text-foreground">{sym}{cur.toFixed(2)}</div>
-            {result && (
-              <div className="text-[0.6rem] text-muted-foreground/40 tabular-nums">
-                {sym}{result.market_value.toFixed(0)} · {result.portfolio_pct.toFixed(1)}%
+          {editing ? (
+            <div className="flex flex-col items-end gap-1 mt-1">
+              <div className="flex items-center gap-1">
+                <span className="text-[0.6rem] text-muted-foreground/50">acc</span>
+                <input
+                  type="number"
+                  value={editShares}
+                  onChange={e => setEditShares(e.target.value)}
+                  className="w-16 text-right text-xs bg-background/60 border border-border/40 rounded px-1 py-0.5 focus:outline-none focus:border-primary/50"
+                  min="0"
+                  step="any"
+                />
               </div>
-            )}
-          </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[0.6rem] text-muted-foreground/50">base</span>
+                <input
+                  type="number"
+                  value={editPrice}
+                  onChange={e => setEditPrice(e.target.value)}
+                  className="w-20 text-right text-xs bg-background/60 border border-border/40 rounded px-1 py-0.5 focus:outline-none focus:border-primary/50"
+                  min="0"
+                  step="any"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  const s = parseFloat(editShares)
+                  const p = parseFloat(editPrice)
+                  if (s > 0 && p > 0) { onEdit(pos.id, s, p); setEditing(false) }
+                }}
+                className="flex items-center gap-1 text-[0.6rem] font-bold px-2 py-0.5 rounded bg-primary/15 border border-primary/30 text-primary hover:bg-primary/25 transition-colors"
+              >
+                <Check size={10} /> Guardar
+              </button>
+            </div>
+          ) : (
+            <div className="text-right">
+              <div className="font-extrabold text-base tabular-nums text-foreground">{sym}{cur.toFixed(2)}</div>
+              {result && (
+                <div className="text-[0.6rem] text-muted-foreground/40 tabular-nums">
+                  {sym}{result.market_value.toFixed(0)} · {result.portfolio_pct.toFixed(1)}%
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -719,6 +768,21 @@ function PositionCard({ result, pos, userId, onRemove, cerebro, confluence }: {
             <span className="text-muted-foreground/50 uppercase tracking-wide">{result.conviction}</span>
           </span>
         )}
+      </div>
+
+      {/* ── NL STATUS SENTENCE ── */}
+      <div className="px-4 pb-2">
+        <p className="text-[0.73rem] leading-relaxed text-muted-foreground/70">
+          {nlPositionStatus({
+            pl_pct:          pl,
+            action,
+            cerebro_exit:    !!exit,
+            cerebro_trap:    !!trap,
+            cerebro_smart_money: !!sm,
+            optimal_size_pct:    result?.optimal_size_pct,
+            portfolio_pct:       result?.portfolio_pct,
+          })}
+        </p>
       </div>
 
       {/* ── CEREBRO SIGNALS (compact pills) ── */}
@@ -952,6 +1016,15 @@ export default function PersonalPortfolio() {
   const removePosition = async (id: string) => {
     await supabase.from('personal_portfolio_positions').delete().eq('id', id)
     setPositions(prev => prev.filter(p => p.id !== id))
+    setResult(null); setAnalyzed(false)
+  }
+
+  const updatePosition = async (id: string, shares: number, avgPrice: number) => {
+    await supabase
+      .from('personal_portfolio_positions')
+      .update({ shares, avg_price: avgPrice })
+      .eq('id', id)
+    setPositions(prev => prev.map(p => p.id === id ? { ...p, shares, avg_price: avgPrice } : p))
     setResult(null); setAnalyzed(false)
   }
 
@@ -1209,6 +1282,7 @@ export default function PersonalPortfolio() {
                         userId={user!.id}
                         result={result?.positions.find(r => r.ticker === pos.ticker)}
                         onRemove={() => removePosition(pos.id)}
+                        onEdit={updatePosition}
                         cerebro={cerebro}
                         confluence={confluence[pos.ticker] ?? null}
                       />

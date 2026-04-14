@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table'
 import { ArrowLeft, Calculator, ChevronDown, ChevronUp, RefreshCw, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { nlValuation } from '@/lib/nl'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -273,6 +274,18 @@ function DetailView({
             </div>
           </div>
         )}
+
+        {/* NL valuation narrative */}
+        <p className="mt-3 text-[0.73rem] leading-relaxed text-muted-foreground/75 italic">
+          {nlValuation({
+            ticker:          data.ticker,
+            current_price:   data.current_price ?? 0,
+            intrinsic_value: computed.buyPrice,
+            upside_pct:      computed.upsidePct,
+            ev_fcf:          evFcfT,
+            fcf_yield_pct:   data.ntm_fcf_yield_pct,
+          })}
+        </p>
 
         {/* Parameters row — editable */}
         <div className="mt-4 pt-4 border-t border-white/6">

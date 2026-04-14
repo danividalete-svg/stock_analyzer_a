@@ -250,6 +250,57 @@ def _classify_importance(title: str) -> str:
     return 'BAJA'
 
 
+def _groq_classify_batch(items: list[dict]) -> None:
+    """Re-classify non-earnings news items using Groq. Mutates 'importance' in-place."""
+    import requests as req
+    api_key = os.environ.get('GROQ_API_KEY', '')
+    if not api_key:
+        return  # fall back to keyword classification silently
+
+    # Only re-classify non-earnings items (earnings alerts are already ALTA and authoritative)
+    to_classify = [i for i in items if not i['title'].startswith('⏰')]
+    if not to_classify:
+        return
+
+    numbered = [f'{j+1}. [{i["ticker"]}] {i["title"]}' for j, i in enumerate(to_classify)]
+    prompt = (
+        'Classify each financial news headline as ALTA, MEDIA, or BAJA impact for a stock investor.\n'
+        'ALTA = earnings surprises, guidance changes, M&A, regulatory actions, CEO change, bankruptcy, dividend cut\n'
+        'MEDIA = analyst upgrades/downgrades, buybacks, contracts, partnerships, ordinary dividends\n'
+        'BAJA = general market commentary, sector overviews, conference appearances\n\n'
+        'Headlines:\n' + '\n'.join(numbered) + '\n\n'
+        'Reply ONLY with a JSON array of strings, one per headline, e.g. ["ALTA","MEDIA","BAJA",...]'
+    )
+    try:
+        resp = req.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+            json={
+                'model': 'llama-3.1-8b-instant',
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0,
+                'max_tokens': 256,
+            },
+            timeout=15,
+        )
+        resp.raise_for_status()
+        raw = resp.json()['choices'][0]['message']['content'].strip()
+        # Extract JSON array from response
+        start, end = raw.find('['), raw.rfind(']')
+        if start == -1 or end == -1:
+            return
+        labels = json.loads(raw[start:end + 1])
+        if not isinstance(labels, list) or len(labels) != len(to_classify):
+            return
+        valid = {'ALTA', 'MEDIA', 'BAJA'}
+        for item, label in zip(to_classify, labels):
+            if isinstance(label, str) and label.upper() in valid:
+                item['importance'] = label.upper()
+        print(f'  Groq re-classified {len(to_classify)} headlines')
+    except Exception as e:
+        print(f'  Groq classification skipped: {e}')
+
+
 def _time_ago(pub_date_str: str) -> str:
     """Convert ISO pubDate to human-readable 'hace Xh/Xmin'."""
     try:
@@ -472,6 +523,15 @@ def run_portfolio_news_monitor() -> dict:
         count = sum(1 for i in news if i['importance'] in ('ALTA', 'MEDIA'))
         print(f"{len(news)} noticias, {count} importantes")
         time.sleep(0.3)
+
+    # Re-classify with Groq (batch, single API call)
+    _groq_classify_batch(all_items)
+
+    # Rebuild new_alerts after Groq re-classification (importance may have changed)
+    new_alerts = [
+        i for i in all_items
+        if i['id'] not in seen_ids and i['importance'] in ('ALTA', 'MEDIA')
+    ]
 
     # Sort: ALTA first, then MEDIA, then by date
     _order = {'ALTA': 0, 'MEDIA': 1, 'BAJA': 2}

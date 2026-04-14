@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import StaleDataBanner from '../components/StaleDataBanner'
 import {
   fetchMarketRegime, fetchValueOpportunities, fetchEUValueOpportunities,
   fetchPortfolioTracker, fetchRecurringInsiders, fetchOptionsFlow, fetchMeanReversion,
   fetchMacroRadar, fetchDailyBriefing, fetchMarketBreadth, fetchCerebroConvergence, fetchCerebroAlerts,
-  fetchCerebroEntrySignals, fetchCerebroDailyPlan, fetchLivePrices, fetchPortfolioNews,
+  fetchCerebroEntrySignals, fetchCerebroDailyPlan, fetchLivePrices, fetchPortfolioNews, fetchPortfolioPrices,
   type ValueOpportunity, type InsiderData, type PortfolioSummary, type BreadthData, type CerebroAlert,
   type DailyPlan, type DailyPlanAction, type MacroPlay, type LivePricesData, type PortfolioNewsItem,
 } from '../api/client'
@@ -1189,6 +1189,17 @@ export default function Dashboard() {
   const watchlistTickers = new Set(watchlistEntries.map(e => e.ticker.toUpperCase()))
   const myTickers = new Set(myPositions.map(p => p.ticker.toUpperCase()))
 
+  // Portfolio P&L widget — fetched once per session
+  const [livePrices, setLivePrices] = useState<Record<string, number>>({})
+  const [loadingLivePrices, setLoadingLivePrices] = useState(false)
+  useEffect(() => {
+    if (!myPositions.length) return
+    setLoadingLivePrices(true)
+    fetchPortfolioPrices(myPositions.map(p => p.ticker))
+      .then(setLivePrices)
+      .finally(() => setLoadingLivePrices(false))
+  }, [myPositions.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const pf = (portfolio as PortfolioSummary) ?? {}
   const overall = pf.overall as Record<string, { count: number; win_rate: number; avg_return: number }> | undefined
 
@@ -1398,6 +1409,42 @@ export default function Dashboard() {
                 {' '}· {winRate7d.count} señales
               </span>
             </div>
+            <ChevronRight size={13} className="text-muted-foreground/30 group-hover:text-primary transition-colors shrink-0" />
+          </Link>
+        </div>
+      )}
+
+      {/* Portfolio P&L mini widget */}
+      {myPositions.length > 0 && (
+        <div className="mb-4 animate-fade-in-up">
+          <Link to="/my-portfolio" className="flex items-center gap-3 glass rounded-xl px-4 py-3 border border-border/30 hover:border-primary/30 transition-colors group">
+            <Wallet size={14} strokeWidth={1.75} className="text-muted-foreground/50 shrink-0" />
+            <span className="text-[0.6rem] font-bold uppercase tracking-widest text-muted-foreground/50 shrink-0">Mi Cartera</span>
+            {loadingLivePrices ? (
+              <span className="text-xs text-muted-foreground/40">cargando…</span>
+            ) : (() => {
+              const totalCost  = myPositions.reduce((s, p) => s + p.shares * p.avg_price, 0)
+              const totalValue = myPositions.reduce((s, p) => {
+                const price = livePrices[p.ticker.toUpperCase()] ?? p.avg_price
+                return s + p.shares * price
+              }, 0)
+              const pl    = totalValue - totalCost
+              const plPct = totalCost > 0 ? (pl / totalCost * 100) : 0
+              const pos   = pl >= 0
+              return (
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <span className={`text-xl font-extrabold tabular-nums ${pos ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {pos ? '+' : ''}{plPct.toFixed(2)}%
+                  </span>
+                  <span className={`text-xs font-semibold tabular-nums hidden sm:inline ${pos ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
+                    {pos ? '+' : ''}${pl.toFixed(0)}
+                  </span>
+                  <span className="text-[0.68rem] text-muted-foreground/40 hidden md:inline">
+                    {myPositions.length} posiciones · ${totalValue.toFixed(0)}
+                  </span>
+                </div>
+              )
+            })()}
             <ChevronRight size={13} className="text-muted-foreground/30 group-hover:text-primary transition-colors shrink-0" />
           </Link>
         </div>

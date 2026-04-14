@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Command } from 'cmdk'
 import { useNavigate } from 'react-router-dom'
-import { Search, ArrowRight } from 'lucide-react'
+import { Search, ArrowRight, TrendingUp } from 'lucide-react'
 import { NAV_LINKS } from '@/lib/nav'
 
 interface Props {
@@ -9,12 +9,18 @@ interface Props {
   onClose: () => void
 }
 
+// Regex: looks like a ticker (1-5 uppercase letters, optionally with a dot for EU)
+const TICKER_RE = /^[A-Z]{1,5}(\.[A-Z]{1,2})?$/
+
+function looksLikeTicker(q: string): boolean {
+  return TICKER_RE.test(q.trim().toUpperCase())
+}
+
 export default function CommandPalette({ open, onClose }: Props) {
   const [query, setQuery]       = useState('')
   const navigate                = useNavigate()
   const inputRef                = useRef<HTMLInputElement>(null)
 
-  // Focus input when opened
   useEffect(() => {
     if (open) {
       setQuery('')
@@ -22,7 +28,6 @@ export default function CommandPalette({ open, onClose }: Props) {
     }
   }, [open])
 
-  // ESC key
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -36,16 +41,27 @@ export default function CommandPalette({ open, onClose }: Props) {
     onClose()
   }, [navigate, onClose])
 
-  // Filter nav links by query
+  const goTicker = useCallback((ticker: string) => {
+    navigate(`/search?q=${encodeURIComponent(ticker.trim().toUpperCase())}`)
+    onClose()
+  }, [navigate, onClose])
+
+  const q      = query.trim()
+  const upper  = q.toUpperCase()
+  const isLikelyTicker = looksLikeTicker(q)
+
   const filtered = NAV_LINKS.filter(item => {
-    if (!query) return true
-    const q = query.toLowerCase()
+    if (!q) return true
+    const ql = q.toLowerCase()
     return (
-      item.label.toLowerCase().includes(q) ||
-      item.path.toLowerCase().includes(q) ||
-      (item.keywords ?? []).some(k => k.toLowerCase().includes(q))
+      item.label.toLowerCase().includes(ql) ||
+      item.path.toLowerCase().includes(ql) ||
+      (item.keywords ?? []).some(k => k.toLowerCase().includes(ql))
     )
   })
+
+  // If query looks like a ticker, show it first as a direct action
+  const showTickerAction = q.length >= 1 && q.length <= 6
 
   if (!open) return null
 
@@ -71,7 +87,13 @@ export default function CommandPalette({ open, onClose }: Props) {
               ref={inputRef}
               value={query}
               onValueChange={setQuery}
-              placeholder="Navegar, buscar ticker…"
+              onKeyDown={e => {
+                // Enter on empty or ticker-like query → go to search
+                if (e.key === 'Enter' && q && filtered.length === 0) {
+                  goTicker(q)
+                }
+              }}
+              placeholder="Página o ticker (AAPL, MSFT…)"
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 outline-none"
             />
             {query && (
@@ -89,8 +111,33 @@ export default function CommandPalette({ open, onClose }: Props) {
             )}
           </div>
 
-          <Command.List className="max-h-[400px] overflow-y-auto p-2">
-            {filtered.length === 0 && (
+          <Command.List className="max-h-[420px] overflow-y-auto p-2">
+            {/* Ticker quick-jump — shown whenever query looks like a ticker */}
+            {showTickerAction && (
+              <Command.Group heading="Analizar ticker" className="cmd-group">
+                <Command.Item
+                  value={`ticker-${upper}`}
+                  onSelect={() => goTicker(q)}
+                  className="cmd-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm transition-all"
+                >
+                  <span className="flex items-center justify-center w-6 h-6 rounded-md flex-shrink-0 bg-primary/15 text-primary">
+                    <TrendingUp size={13} strokeWidth={1.75} />
+                  </span>
+                  <span className="flex-1 text-foreground font-medium">
+                    Analizar <span className="font-mono text-primary">{upper}</span>
+                  </span>
+                  {isLikelyTicker && (
+                    <span className="text-[0.6rem] text-muted-foreground/50 border border-border/30 px-1.5 py-0.5 rounded">
+                      ticker
+                    </span>
+                  )}
+                  <ArrowRight size={12} className="text-muted-foreground/30 flex-shrink-0" />
+                </Command.Item>
+              </Command.Group>
+            )}
+
+            {/* Navigation items */}
+            {filtered.length === 0 && !showTickerAction && (
               <Command.Empty className="py-10 text-center text-sm text-muted-foreground">
                 Sin resultados para "<span className="text-foreground">{query}</span>"
               </Command.Empty>
@@ -124,6 +171,7 @@ export default function CommandPalette({ open, onClose }: Props) {
             <span><kbd className="mr-0.5">↑↓</kbd> navegar</span>
             <span><kbd className="mr-0.5">↵</kbd> abrir</span>
             <span><kbd className="mr-0.5">esc</kbd> cerrar</span>
+            <span className="ml-auto opacity-60">escribe un ticker para ir directo al análisis</span>
           </div>
         </Command>
       </div>

@@ -9,11 +9,12 @@ import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 
-type FilterMode = 'all' | 'warning' | 'catalyst'
+type FilterMode = 'all' | 'warning' | 'catalyst' | 'portfolio'
 
 function filterLabel(f: FilterMode, total: number): string {
-  if (f === 'warning') return '⚠ Riesgo earnings'
-  if (f === 'catalyst') return '⚡ Catalizador'
+  if (f === 'warning')   return '⚠ Riesgo earnings'
+  if (f === 'catalyst')  return '⚡ Catalizador'
+  if (f === 'portfolio') return '💼 Mi cartera'
   return `Todos (${total})`
 }
 
@@ -63,22 +64,24 @@ export default function EarningsCalendar() {
   const [search, setSearch] = useState('')
   const { positions: myPositions } = usePersonalPortfolio()
 
+  const myTickers = useMemo(() => new Set(myPositions.map(p => p.ticker.toUpperCase())), [myPositions])
+
   const filtered = useMemo(() => {
     if (!data?.earnings) return []
     let rows = data.earnings
-    if (filter === 'warning') rows = rows.filter(r => r.earnings_warning)
-    if (filter === 'catalyst') rows = rows.filter(r => r.earnings_catalyst)
+    if (filter === 'warning')   rows = rows.filter(r => r.earnings_warning)
+    if (filter === 'catalyst')  rows = rows.filter(r => r.earnings_catalyst)
+    if (filter === 'portfolio') rows = rows.filter(r => myTickers.has(r.ticker.toUpperCase()))
     if (search.trim()) {
       const q = search.trim().toUpperCase()
       rows = rows.filter(r => r.ticker.includes(q) || r.company.toUpperCase().includes(q) || r.sector.toUpperCase().includes(q))
     }
     return rows
-  }, [data, filter, search])
+  }, [data, filter, search, myTickers])
 
   const grouped = useMemo(() => groupByDate(filtered), [filtered])
   const sortedDates = Object.keys(grouped).sort()
 
-  const myTickers = useMemo(() => new Set(myPositions.map(p => p.ticker.toUpperCase())), [myPositions])
   const myEarnings = useMemo(() => {
     if (!data?.earnings || myTickers.size === 0) return []
     return data.earnings
@@ -195,7 +198,7 @@ export default function EarningsCalendar() {
           className="flex-1 text-sm rounded-lg border border-border/40 bg-background/60 px-3 py-1.5 focus:outline-none focus:border-primary/50 text-foreground placeholder:text-muted-foreground/50"
         />
         <div className="flex gap-1.5 flex-wrap">
-          {(['all', 'warning', 'catalyst'] as FilterMode[]).map(f => (
+          {(['all', 'portfolio', 'warning', 'catalyst'] as FilterMode[]).map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`text-[0.68rem] font-semibold px-3 py-1 rounded-full border transition-colors ${
                 filter === f

@@ -3,6 +3,7 @@ import { Bell, Plus, Trash2, ToggleLeft, ToggleRight, AlertTriangle, TrendingDow
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
 import TickerLogo from '../components/TickerLogo'
+import { useToast } from '../components/Toast'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,7 @@ const TYPE_STYLES: Record<AlertType, string> = {
 
 function AddAlertForm({ onAdd, userEmail }: { onAdd: () => void; userEmail: string }) {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [ticker,    setTicker]    = useState('')
   const [alertType, setAlertType] = useState<AlertType>('price_below')
   const [threshold, setThreshold] = useState('')
@@ -64,8 +66,9 @@ function AddAlertForm({ onAdd, userEmail }: { onAdd: () => void; userEmail: stri
       active: true,
     })
     setSaving(false)
-    if (err) return setError(err.message)
+    if (err) { setError(err.message); toast(err.message, 'error'); return }
     setTicker(''); setThreshold('')
+    toast(`Alerta creada para ${t} · ${typeConfig.label}`, 'success')
     onAdd()
   }
 

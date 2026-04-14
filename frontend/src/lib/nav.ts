@@ -16,9 +16,9 @@ export const NAV_PRIMARY: NavLinkItem[] = [
   { path: '/value',          icon: DollarSign,      label: 'Value',          color: '#10b981', keywords: ['value', 'fundamental', 'us', 'eu', 'europa', 'global', 'acciones'] },
   { path: '/macro-radar',    icon: Radar,           label: 'Macro',          color: '#e11d48', keywords: ['macro', 'radar', 'economía', 'países', 'pib', 'global', 'country'] },
   { path: '/insiders',       icon: Users,           label: 'Insiders',       color: '#8b5cf6', keywords: ['insiders', 'directivos', 'compras'] },
-  { path: '/bounce',         icon: Crosshair,       label: 'Bounce',         color: '#f97316', keywords: ['bounce', 'rebote', 'corto plazo', 'oversold', 'rsi extremo'] },
+  { path: '/bounce',         icon: Crosshair,       label: 'Rebotes técnicos', color: '#f97316', keywords: ['bounce', 'rebote', 'corto plazo', 'oversold', 'rsi extremo'] },
   { path: '/my-portfolio',   icon: Wallet,          label: 'Mi cartera',     color: '#10b981', keywords: ['mis posiciones', 'personal', 'posiciones', 'mi cartera'] },
-  { path: '/owner-earnings', icon: Calculator,      label: 'Valoración',     color: '#06b6d4', keywords: ['owner earnings', 'valoracion', 'compra', 'buffett', 'fcf', 'precio objetivo'] },
+  { path: '/owner-earnings', icon: Calculator,      label: 'Owner Earnings', color: '#06b6d4', keywords: ['owner earnings', 'valoracion', 'compra', 'buffett', 'fcf', 'precio objetivo', 'dcf'] },
   { path: '/search',         icon: Search,          label: 'Buscar',         color: '#94a3b8', keywords: ['buscar', 'ticker', 'search', 'analisis'] },
 ]
 
@@ -33,8 +33,8 @@ export const NAV_SECONDARY: NavLinkItem[] = [
   { path: '/dividend-traps',  icon: AlertTriangle, label: 'Dividend traps',  color: '#ef4444', keywords: ['dividendo', 'trampa', 'yield trap'] },
   { path: '/position-sizing', icon: Ruler,         label: 'Position sizing', color: '#f59e0b', keywords: ['position', 'tamaño', 'kelly', 'sizing'] },
   { path: '/backtest',        icon: FlaskConical,  label: 'Backtest',        color: '#6366f1', keywords: ['backtest', 'historico', 'simulacion'] },
-  { path: '/compare',         icon: Shuffle,       label: 'Comparar',        color: '#0ea5e9', keywords: ['comparar', 'comparador', 'compare'] },
-  { path: '/datos',           icon: Database,      label: 'Datos',           color: '#64748b', keywords: ['datos', 'historial', 'csv', 'descarga'] },
+  { path: '/compare',         icon: Shuffle,       label: 'Comparar tickers', color: '#0ea5e9', keywords: ['comparar', 'comparador', 'compare'] },
+  { path: '/datos',           icon: Database,      label: 'Exportar datos',   color: '#64748b', keywords: ['datos', 'historial', 'csv', 'descarga', 'exportar'] },
 ]
 
 // All items flat (for command palette)

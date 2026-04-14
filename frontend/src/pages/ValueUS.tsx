@@ -584,6 +584,7 @@ export default function ValueUS() {
                   <TableCell className="font-mono font-bold text-primary text-[0.8rem] tracking-wide">
                     <div className="flex items-center gap-2">
                       <TickerLogo ticker={d.ticker} size="sm" />
+                      <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-1.5">
                         {d.ticker}
                         {isReady && (
@@ -617,6 +618,16 @@ export default function ValueUS() {
                           </span>
                         )}
                       </div>
+                      {/* NL reason preview — first conviction reason or AI reasoning */}
+                      {(() => {
+                        const reason = d.ai_reasoning
+                          ?? (d.conviction_reasons ? d.conviction_reasons.split(' | ')[0] : null)
+                        return reason ? (
+                          <span className="text-[0.62rem] text-muted-foreground/50 font-normal font-sans leading-tight max-w-[200px] truncate hidden lg:block">
+                            {reason}
+                          </span>
+                        ) : null
+                      })()}
                       <CerebroBadges
                         entryInfo={cerebro.entryMap[d.ticker]}
                         trapInfo={cerebro.trapMap[d.ticker]}
@@ -628,6 +639,7 @@ export default function ValueUS() {
                         decayInfo={cerebro.decayMap[d.ticker]}
                         sectorInfo={cerebro.sectorMap[d.ticker]}
                       />
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className={compact ? 'hidden' : 'hidden sm:table-cell max-w-[160px] truncate text-muted-foreground text-[0.76rem]'}>{d.company_name}</TableCell>

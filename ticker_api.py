@@ -3104,6 +3104,26 @@ def price_history(ticker: str):
         return jsonify({'ticker': ticker, 'prices': [], 'error': str(e)})
 
 
+@app.route('/api/portfolio-prices', methods=['POST'])
+def portfolio_prices():
+    """Fast current-price lookup for a list of tickers (portfolio P&L widget)."""
+    import yfinance as yf
+    data = request.get_json(silent=True) or {}
+    tickers = [t.upper().strip() for t in (data.get('tickers') or []) if t]
+    if not tickers:
+        return jsonify({'prices': {}})
+    prices: dict[str, float] = {}
+    for t in tickers:
+        try:
+            info = yf.Ticker(t).fast_info
+            price = float(getattr(info, 'last_price', None) or 0)
+            if price > 0:
+                prices[t] = round(price, 4)
+        except Exception:
+            pass
+    return jsonify({'prices': prices})
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':

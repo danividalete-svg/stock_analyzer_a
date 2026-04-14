@@ -10,6 +10,7 @@ import { NAV_PRIMARY, NAV_SECONDARY } from '@/lib/nav'
 import TopBar from './components/TopBar'
 import ProtectedRoute from './components/ProtectedRoute'
 import CommandPalette from './components/CommandPalette'
+import ShortcutsModal from './components/ShortcutsModal'
 import ErrorBoundary from './components/ErrorBoundary'
 import ScrollToTop from './components/ScrollToTop'
 import Loading from './components/Loading'
@@ -123,16 +124,23 @@ export default function App() {
   const { user, signOut } = useAuth()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [cmdOpen, setCmdOpen]         = useState(false)
+  const [cmdOpen, setCmdOpen]           = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const close = () => setSidebarOpen(false)
   const handleSignOut = () => { close(); signOut() }
 
-  // ⌘K / Ctrl+K global shortcut
+  // ⌘K / Ctrl+K global shortcut + ? shortcuts modal
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
         if (user) setCmdOpen(o => !o)
+        return
+      }
+      // ? key — only when no input/textarea is focused
+      if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+        e.preventDefault()
+        if (user) setShortcutsOpen(o => !o)
       }
     }
     document.addEventListener('keydown', handler)
@@ -196,6 +204,9 @@ export default function App() {
 
           {/* Command Palette */}
           <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
+
+          {/* Shortcuts Modal */}
+          <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
         </>
       )}
 
