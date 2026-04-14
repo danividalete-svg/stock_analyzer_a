@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-14",
-  "scan_time": "01:48",
+  "scan_time": "07:20",
   "tickers": [
     "ENPH",
     "NKE",
@@ -8,10 +8,10 @@
     "VRSK",
     "UNH"
   ],
-  "count": 17,
-  "alta_count": 2,
-  "media_count": 8,
-  "new_alerts": 1,
+  "count": 19,
+  "alta_count": 3,
+  "media_count": 9,
+  "new_alerts": 2,
   "items": [
     {
       "id": "bc59e823-978d-339d-a637-37f8df95183b",
@@ -24,11 +24,21 @@
       "importance": "ALTA"
     },
     {
+      "id": "3d6e83a2-bf4c-3a44-aa82-342c9aaa6037",
+      "ticker": "UNH",
+      "title": "Analyst Raises Price Target on UnitedHealth Group (UNH), Keeps ‘Neutral’ Rating",
+      "source": "Insider Monkey",
+      "pub_date": "2026-04-14T02:14:41Z",
+      "time_ago": "hace 5h",
+      "url": "https://finance.yahoo.com/sectors/healthcare/articles/analyst-raises-price-target-unitedhealth-021441954.html",
+      "importance": "ALTA"
+    },
+    {
       "id": "earn_UNH_20260421",
       "ticker": "UNH",
       "title": "⏰ Earnings en 7 días — 21 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-14T01:48:40.143429+00:00",
+      "pub_date": "2026-04-14T07:20:11.730076+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
@@ -69,7 +79,7 @@
       "title": "Here Are Monday’s Top Wall Street Analyst Research Calls: Adobe, Best Buy, Bilibili, Constellation Brands, CoreWeave, Nike, Starbucks, T-Mobile, and More",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-13T10:50:44Z",
-      "time_ago": "hace 14h",
+      "time_ago": "hace 20h",
       "url": "https://247wallst.com/investing/2026/04/13/here-are-mondays-top-wall-street-analyst-research-calls-adobe-best-buy-bilibili-constellation-brands-coreweave-nike-starbucks-t-mobile-and-more/",
       "importance": "MEDIA"
     },
@@ -79,7 +89,7 @@
       "title": "Nike downgraded, Starbucks upgraded: Wall Street's top analyst calls",
       "source": "The Fly",
       "pub_date": "2026-04-13T13:58:26Z",
-      "time_ago": "hace 11h",
+      "time_ago": "hace 17h",
       "url": "https://finance.yahoo.com/news/netflix-resumed-starbucks-downgraded-wall-133343741.html",
       "importance": "MEDIA"
     },
@@ -89,7 +99,7 @@
       "title": "Nike Got Downgraded: Can the Iconic Brand Ever Recover?",
       "source": "Motley Fool",
       "pub_date": "2026-04-13T16:05:00Z",
-      "time_ago": "hace 9h",
+      "time_ago": "hace 15h",
       "url": "https://www.fool.com/investing/2026/04/13/nike-got-downgraded-can-the-iconic-brand-recover/",
       "importance": "MEDIA"
     },
@@ -99,7 +109,7 @@
       "title": "HSBC Downgrades Nike to Hold as Turnaround Becomes a Show-Me Story With No Near-Term Catalysts",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-13T16:13:15Z",
-      "time_ago": "hace 9h",
+      "time_ago": "hace 15h",
       "url": "https://247wallst.com/investing/2026/04/13/hsbc-downgrades-nike-to-hold-as-turnaround-becomes-a-show-me-story-with-no-near-term-catalysts/",
       "importance": "MEDIA"
     },
@@ -109,8 +119,18 @@
       "title": "Is Nike at Risk of Losing Its ‘Superpower’ Status? Here’s Why One Analyst Thinks It’s a Possibility",
       "source": "Footwear News",
       "pub_date": "2026-04-13T21:08:55Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 10h",
       "url": "https://wwd.com/footwear-news/shoe-industry-news/analyst-jay-sole-nike-sportswear-superpower-status-1238913756/",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "cdc50c4c-9d10-31be-acaf-e6c05fbc9b9b",
+      "ticker": "NKE",
+      "title": "NIKE (NKE) Downgraded to Neutral, Price Target Cut by $10",
+      "source": "Insider Monkey",
+      "pub_date": "2026-04-14T02:06:27Z",
+      "time_ago": "hace 5h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/nike-nke-downgraded-neutral-price-020627357.html",
       "importance": "MEDIA"
     },
     {
@@ -129,7 +149,7 @@
       "title": "3 Cash-Producing Stocks We Keep Off Our Radar",
       "source": "StockStory",
       "pub_date": "2026-04-13T07:40:01Z",
-      "time_ago": "hace 18h",
+      "time_ago": "hace 23h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/3-cash-producing-stocks-keep-074001683.html",
       "importance": "BAJA"
     },
@@ -139,7 +159,7 @@
       "title": "Nike’s innovation chief departs as leadership turnover continues",
       "source": "Retail Dive",
       "pub_date": "2026-04-13T11:45:00Z",
-      "time_ago": "hace 14h",
+      "time_ago": "hace 19h",
       "url": "https://www.retaildive.com/news/nike-innovation-chief-tony-bignell-exits-andy-caine-turnaround/817310/",
       "importance": "BAJA"
     },
@@ -149,7 +169,7 @@
       "title": "Patient Opportunity Equity Strategy Remains Firm on Its Thesis for UnitedHealth Group (UNH)",
       "source": "Insider Monkey",
       "pub_date": "2026-04-13T13:40:43Z",
-      "time_ago": "hace 12h",
+      "time_ago": "hace 17h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/patient-opportunity-equity-strategy-remains-134043001.html",
       "importance": "BAJA"
     },
@@ -159,7 +179,7 @@
       "title": "FDS or VRSK: Which Is the Better Value Stock Right Now?",
       "source": "Zacks",
       "pub_date": "2026-04-13T15:40:02Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 15h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/fds-vrsk-better-value-stock-154002374.html",
       "importance": "BAJA"
     },
@@ -169,7 +189,7 @@
       "title": "UnitedHealth Group (UNH) Outperforms Broader Market: What You Need to Know",
       "source": "Zacks",
       "pub_date": "2026-04-13T21:50:05Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 9h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/unitedhealth-group-unh-outperforms-broader-215005111.html",
       "importance": "BAJA"
     },
@@ -179,7 +199,7 @@
       "title": "Broadridge Brings Crypto and Tokenized Assets Into One Platform for Canadian Wealth Managers",
       "source": "CryptoProwl",
       "pub_date": "2026-04-14T01:15:00Z",
-      "time_ago": "hace 33min",
+      "time_ago": "hace 6h",
       "url": "https://www.cryptoprowl.com/releases/broadridge-brings-crypto-and-tokenized-assets-into-one-platform-for-canadian-wealth-managers-4150",
       "importance": "BAJA"
     }
