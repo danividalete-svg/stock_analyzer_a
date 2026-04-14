@@ -1,43 +1,43 @@
 {
-  "generated_at": "2026-04-14T15:05:49Z",
+  "generated_at": "2026-04-14T15:48:22Z",
   "pipeline_date": "2026-04-14",
-  "ok_count": 3,
+  "ok_count": 11,
   "total": 14,
   "modules": {
     "value_us": {
       "status": "ok",
-      "date": "2026-04-13",
-      "days_ago": 1
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "value_eu": {
-      "status": "stale",
-      "date": "2026-04-08",
-      "days_ago": 6
+      "status": "ok",
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "value_global": {
-      "status": "stale",
-      "date": "2026-03-24",
-      "days_ago": 21
+      "status": "ok",
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "fundamental": {
       "status": "ok",
-      "date": "2026-04-13",
-      "days_ago": 1
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "technical": {
-      "status": "stale",
-      "date": "2026-03-24",
-      "days_ago": 21
+      "status": "ok",
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "cerebro": {
-      "status": "stale",
-      "date": "2026-04-08",
-      "days_ago": 6
+      "status": "ok",
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "mean_reversion": {
-      "status": "stale",
-      "date": "2026-04-10",
-      "days_ago": 4
+      "status": "ok",
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "macro": {
       "status": "ok",
@@ -45,19 +45,18 @@
       "days_ago": 1
     },
     "insiders": {
-      "status": "stale",
-      "date": "2026-03-24",
-      "days_ago": 21
+      "status": "ok",
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "portfolio": {
-      "status": "stale",
-      "date": "2026-04-08",
-      "days_ago": 6
+      "status": "ok",
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "earnings": {
       "status": "missing",
-      "date": null,
-      "days_ago": null
+      "date": null
     },
     "catalysts": {
       "status": "stale",
@@ -65,14 +64,13 @@
       "days_ago": 7
     },
     "options_flow": {
-      "status": "stale",
-      "date": "2026-03-24",
-      "days_ago": 21
+      "status": "ok",
+      "date": "2026-04-14",
+      "days_ago": 0
     },
     "bounce": {
       "status": "missing",
-      "date": null,
-      "days_ago": null
+      "date": null
     }
   }
 }
