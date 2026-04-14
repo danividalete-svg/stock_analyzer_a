@@ -1,6 +1,6 @@
 {
-  "scan_date": "2026-04-13",
-  "scan_time": "19:03",
+  "scan_date": "2026-04-14",
+  "scan_time": "01:48",
   "tickers": [
     "ENPH",
     "NKE",
@@ -8,28 +8,18 @@
     "VRSK",
     "UNH"
   ],
-  "count": 15,
-  "alta_count": 3,
-  "media_count": 7,
-  "new_alerts": 3,
+  "count": 17,
+  "alta_count": 2,
+  "media_count": 8,
+  "new_alerts": 1,
   "items": [
-    {
-      "id": "a267b6e4-bc81-39a8-a64c-566876566c7a",
-      "ticker": "NKE",
-      "title": "Nike’s UEFA Ball Deal Puts Brand Exposure And Valuation In Focus",
-      "source": "Simply Wall St.",
-      "pub_date": "2026-04-11T19:11:49Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/nike-uefa-ball-deal-puts-191149912.html",
-      "importance": "ALTA"
-    },
     {
       "id": "bc59e823-978d-339d-a637-37f8df95183b",
       "ticker": "UNH",
       "title": "The Great Rotation: Buy This Sector Before It Comes Back in Style",
       "source": "Motley Fool",
       "pub_date": "2026-04-12T21:25:00Z",
-      "time_ago": "hace 21h",
+      "time_ago": "hace 1d",
       "url": "https://www.fool.com/investing/2026/04/12/great-rotation-buy-healthcare-sector-before-oscr/",
       "importance": "ALTA"
     },
@@ -38,7 +28,7 @@
       "ticker": "UNH",
       "title": "⏰ Earnings en 7 días — 21 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-13T19:03:41.874876+00:00",
+      "pub_date": "2026-04-14T01:48:40.143429+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
@@ -69,7 +59,7 @@
       "title": "Nike To End Adidas' 25-Year Reign As UEFA Champions League Ball Sponsor—Not A 'Silver Bullet' Says Analyst",
       "source": "Benzinga",
       "pub_date": "2026-04-12T23:31:20Z",
-      "time_ago": "hace 19h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-end-adidas-25-reign-233120531.html",
       "importance": "MEDIA"
     },
@@ -79,7 +69,7 @@
       "title": "Here Are Monday’s Top Wall Street Analyst Research Calls: Adobe, Best Buy, Bilibili, Constellation Brands, CoreWeave, Nike, Starbucks, T-Mobile, and More",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-13T10:50:44Z",
-      "time_ago": "hace 8h",
+      "time_ago": "hace 14h",
       "url": "https://247wallst.com/investing/2026/04/13/here-are-mondays-top-wall-street-analyst-research-calls-adobe-best-buy-bilibili-constellation-brands-coreweave-nike-starbucks-t-mobile-and-more/",
       "importance": "MEDIA"
     },
@@ -89,7 +79,7 @@
       "title": "Nike downgraded, Starbucks upgraded: Wall Street's top analyst calls",
       "source": "The Fly",
       "pub_date": "2026-04-13T13:58:26Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 11h",
       "url": "https://finance.yahoo.com/news/netflix-resumed-starbucks-downgraded-wall-133343741.html",
       "importance": "MEDIA"
     },
@@ -99,7 +89,7 @@
       "title": "Nike Got Downgraded: Can the Iconic Brand Ever Recover?",
       "source": "Motley Fool",
       "pub_date": "2026-04-13T16:05:00Z",
-      "time_ago": "hace 2h",
+      "time_ago": "hace 9h",
       "url": "https://www.fool.com/investing/2026/04/13/nike-got-downgraded-can-the-iconic-brand-recover/",
       "importance": "MEDIA"
     },
@@ -109,8 +99,18 @@
       "title": "HSBC Downgrades Nike to Hold as Turnaround Becomes a Show-Me Story With No Near-Term Catalysts",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-13T16:13:15Z",
-      "time_ago": "hace 2h",
+      "time_ago": "hace 9h",
       "url": "https://247wallst.com/investing/2026/04/13/hsbc-downgrades-nike-to-hold-as-turnaround-becomes-a-show-me-story-with-no-near-term-catalysts/",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "e332e5f8-e8ef-36f9-b201-340bbb8824a7",
+      "ticker": "NKE",
+      "title": "Is Nike at Risk of Losing Its ‘Superpower’ Status? Here’s Why One Analyst Thinks It’s a Possibility",
+      "source": "Footwear News",
+      "pub_date": "2026-04-13T21:08:55Z",
+      "time_ago": "hace 4h",
+      "url": "https://wwd.com/footwear-news/shoe-industry-news/analyst-jay-sole-nike-sportswear-superpower-status-1238913756/",
       "importance": "MEDIA"
     },
     {
@@ -129,7 +129,7 @@
       "title": "3 Cash-Producing Stocks We Keep Off Our Radar",
       "source": "StockStory",
       "pub_date": "2026-04-13T07:40:01Z",
-      "time_ago": "hace 11h",
+      "time_ago": "hace 18h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/3-cash-producing-stocks-keep-074001683.html",
       "importance": "BAJA"
     },
@@ -139,7 +139,7 @@
       "title": "Nike’s innovation chief departs as leadership turnover continues",
       "source": "Retail Dive",
       "pub_date": "2026-04-13T11:45:00Z",
-      "time_ago": "hace 7h",
+      "time_ago": "hace 14h",
       "url": "https://www.retaildive.com/news/nike-innovation-chief-tony-bignell-exits-andy-caine-turnaround/817310/",
       "importance": "BAJA"
     },
@@ -149,7 +149,7 @@
       "title": "Patient Opportunity Equity Strategy Remains Firm on Its Thesis for UnitedHealth Group (UNH)",
       "source": "Insider Monkey",
       "pub_date": "2026-04-13T13:40:43Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 12h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/patient-opportunity-equity-strategy-remains-134043001.html",
       "importance": "BAJA"
     },
@@ -159,8 +159,28 @@
       "title": "FDS or VRSK: Which Is the Better Value Stock Right Now?",
       "source": "Zacks",
       "pub_date": "2026-04-13T15:40:02Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/fds-vrsk-better-value-stock-154002374.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "984d1fdc-c210-3b32-a36e-50ad9d622e5b",
+      "ticker": "UNH",
+      "title": "UnitedHealth Group (UNH) Outperforms Broader Market: What You Need to Know",
+      "source": "Zacks",
+      "pub_date": "2026-04-13T21:50:05Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/unitedhealth-group-unh-outperforms-broader-215005111.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "6fef378b-39cb-37f7-aad2-c7efb2963f1a",
+      "ticker": "BR",
+      "title": "Broadridge Brings Crypto and Tokenized Assets Into One Platform for Canadian Wealth Managers",
+      "source": "CryptoProwl",
+      "pub_date": "2026-04-14T01:15:00Z",
+      "time_ago": "hace 33min",
+      "url": "https://www.cryptoprowl.com/releases/broadridge-brings-crypto-and-tokenized-assets-into-one-platform-for-canadian-wealth-managers-4150",
       "importance": "BAJA"
     }
   ]
