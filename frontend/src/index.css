@@ -541,13 +541,8 @@ button:active:not(:disabled) { transform: scale(0.97); }
 @keyframes emptyIconIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
 @keyframes scoreRingIn { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
 @keyframes slideDown   { from { opacity: 0; transform: translateY(-8px) scaleY(0.94); } to { opacity: 1; transform: none; } }
-@keyframes floatY    { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes shimmer   { 0% { background-position: -800px 0; } 100% { background-position: 800px 0; } }
 @keyframes spin      { to { transform: rotate(360deg); } }
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 0 3px hsl(var(--ring) / 0.18); }
-  50%       { box-shadow: 0 0 0 6px hsl(var(--ring) / 0.18), 0 0 20px hsl(var(--ring) / 0.12); }
-}
 
 /* Entrance animations
    CRITICAL: use "backwards" NOT "both". "both" persists the final
@@ -617,12 +612,6 @@ button:active:not(:disabled) { transform: scale(0.97); }
 /* ═══════════════════════════════════════════════════════════════════
    GRADE-A BADGE GLOW — emerald pulse for conviction-A picks
 ════════════════════════════════════════════════════════════════════ */
-
-@keyframes gradeAGlow {
-  0%, 100% { box-shadow: 0 0 6px  hsl(160 84% 45% / 0.25), 0 0 2px hsl(160 84% 45% / 0.15); }
-  50%       { box-shadow: 0 0 14px hsl(160 84% 45% / 0.50), 0 0 5px hsl(160 84% 45% / 0.30); }
-}
-
 
 /* ═══════════════════════════════════════════════════════════════════
    TABLE ROW HOVER — gradient sweep from left
@@ -1733,12 +1722,8 @@ main > *:nth-child(12) { animation-delay: 210ms; }
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   SCORE RING — entrance animation
+   SCORE RING
 ════════════════════════════════════════════════════════════════════ */
-
-@keyframes ringDraw {
-  from { stroke-dashoffset: 251; opacity: 0; }
-}
 
 /* Applied via ScoreRing component's SVG circle */
 .score-ring-circle {

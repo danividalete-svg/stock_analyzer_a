@@ -103,32 +103,6 @@ export interface MomentumOpportunity {
   analyst_upside_pct?: number
 }
 
-export interface MicroCapOpportunity {
-  ticker: string
-  company_name?: string
-  current_price: number
-  market_cap: number
-  micro_cap_score: number
-  micro_cap_quality: string
-  piotroski_score?: number
-  piotroski_label?: string
-  fcf_yield_pct?: number
-  rev_growth_yoy?: number
-  financial_health_score?: number
-  buyback_active?: boolean
-  short_squeeze_potential?: string
-  sector?: string
-  industry?: string
-  analyst_upside_pct?: number
-  target_price_analyst?: number
-  analyst_count?: number
-  earnings_warning?: boolean
-  days_to_earnings?: number
-  ai_verdict?: string | null
-  ai_confidence?: number | null
-  ai_reasoning?: string | null
-}
-
 export interface InsiderData {
   ticker: string
   company_name?: string
@@ -289,65 +263,6 @@ export const fetchGlobalValueOpportunities = async (): Promise<{
 export const fetchMomentumOpportunities = () =>
   api.get<{ data: MomentumOpportunity[]; count: number; source: string }>('/api/momentum-opportunities')
 
-export const fetchMicroCapOpportunities = () =>
-  api.get<{ data: MicroCapOpportunity[]; count: number; source: string }>('/api/micro-cap')
-
-export type ShortQuality = 'ALTA' | 'MEDIA' | 'BAJA'
-export type ShortSqueezeRisk = 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN'
-
-export interface ShortOpportunity {
-  ticker: string
-  company_name?: string
-  sector?: string
-  industry?: string
-  short_score: number
-  short_quality: ShortQuality
-  tech_score: number
-  fund_score: number
-  down_score: number
-  safety_score: number
-  current_price: number
-  market_cap?: number
-  analyst_target?: number
-  analyst_upside_pct?: number
-  analyst_rec?: string
-  short_interest_pct?: number
-  squeeze_risk?: ShortSqueezeRisk
-  days_to_earnings?: number
-  earnings_warning?: boolean
-  below_ma50?: boolean
-  below_ma200?: boolean
-  death_cross?: boolean
-  weinstein_stage?: number
-  pct_from_52w_high?: number
-  rsi_daily?: number
-  rev_growth_yoy?: number
-  fcf_yield_pct?: number
-  roe_pct?: number
-  debt_to_equity?: number
-  operating_margin?: number
-  piotroski_score?: number
-  key_risks?: string
-  short_thesis?: string
-  ai_verdict?: 'BUY' | 'HOLD' | 'AVOID' | null
-  ai_confidence?: number | null
-  ai_reasoning?: string | null
-}
-
-export interface ShortScanData {
-  scan_date: string
-  count: number
-  alta: number
-  media: number
-  baja: number
-  data: ShortOpportunity[]
-  ai_filtered_available?: boolean
-  confirmed_count?: number
-}
-
-export const fetchShortOpportunities = () =>
-  api.get<ShortScanData>('/api/shorts')
-
 export interface PortfolioNewsItem {
   id: string
   ticker: string
@@ -370,11 +285,6 @@ export interface PortfolioNewsData {
   items: PortfolioNewsItem[]
 }
 
-export interface PortfolioWatchEntry {
-  ticker: string
-  notes?: string
-}
-
 // Portfolio news is updated every 6h — read from GitHub Pages directly (always fresh)
 export const fetchPortfolioNews = async (): Promise<{ data: PortfolioNewsData }> => {
   const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
@@ -385,12 +295,6 @@ export const fetchPortfolioNews = async (): Promise<{ data: PortfolioNewsData }>
   } catch { /* fall through to API */ }
   return api.get<PortfolioNewsData>('/api/portfolio-news')
 }
-
-export const fetchPortfolioWatch = () =>
-  api.get<{ tickers: PortfolioWatchEntry[] }>('/api/portfolio-watch')
-
-export const savePortfolioWatch = (tickers: PortfolioWatchEntry[]) =>
-  api.post<{ ok: boolean }>('/api/portfolio-watch', { tickers })
 
 export const fetchSectorRotation = () =>
   api.get<SectorRotationData>('/api/sector-rotation')
@@ -856,12 +760,6 @@ export const fetchDailyBriefing = () =>
 export const fetchInsidersInsight = () =>
   api.get<{ narrative: string | null; date: string | null; total_tickers?: number }>('/api/insiders-insight')
 
-export const fetchIndustryGroupsInsight = () =>
-  api.get<{ narrative: string | null; date: string | null; macro_regime?: string; top_sectors?: unknown[]; bottom_sectors?: unknown[] }>('/api/industry-groups-insight')
-
-export const fetchOptionsFlowInsight = () =>
-  api.get<{ narrative: string | null; date: string | null; total_flows?: number; sentiment_breakdown?: Record<string, number> }>('/api/options-flow-insight')
-
 export const fetchValueEUInsight = () =>
   api.get<{ narrative: string | null; date: string | null; macro_regime?: string; picks_count?: number }>('/api/value-eu-insight')
 
@@ -1011,72 +909,8 @@ export interface CorrelationData {
 export const fetchCorrelationMatrix = () =>
   api.get<CorrelationData>('/api/correlation-matrix')
 
-export interface SmartPortfolioPick {
-  ticker: string
-  company: string
-  sector: string
-  current_price: number | null
-  value_score: number
-  conviction_grade: string
-  conviction_score: number | null
-  analyst_upside_pct: number | null
-  target_price_analyst: number | null
-  fcf_yield_pct: number | null
-  risk_reward_ratio: number | null
-  dividend_yield_pct: number | null
-  buyback_active: boolean
-  days_to_earnings: number | null
-  earnings_date: string | null
-  earnings_catalyst: boolean
-  stop_loss: number | null
-  entry_price: number | null
-  allocation_pct: number
-  rank_score: number
-}
-
-export interface SmartPortfolioData {
-  date: string
-  timestamp: string
-  regime: { name: string; color: string; description: string }
-  regime_name: string
-  picks: SmartPortfolioPick[]
-  cash_pct: number
-  total_picks: number
-  invested_pct: number
-  portfolio_thesis: string | null
-  risk_notes: string[]
-  params: { n_picks: number; min_score: number; cash_pct: number; require_rr: number }
-  trap_tickers_excluded: string[]
-}
-
-export const fetchSmartPortfolio = () =>
-  api.get<SmartPortfolioData>('/api/smart-portfolio')
-
-export const fetchBacktest = () =>
-  api.get('/api/backtest')
-
 export const fetchThesis = (ticker: string) =>
   api.get<{ ticker: string; thesis: string | null }>(`/api/theses/${ticker}`)
-
-export interface HedgeFundConsensusItem {
-  ticker: string
-  company_name: string
-  funds_count: number
-  funds_list: string
-  total_value_m: number
-  avg_portfolio_pct: number
-  latest_date: string
-}
-
-export interface HedgeFundData {
-  generated_at: string
-  funds_scraped: string[]
-  holdings_count: number
-  top_consensus: HedgeFundConsensusItem[]
-}
-
-export const fetchHedgeFunds = () =>
-  api.get<HedgeFundData>('/api/hedge-funds')
 
 export const analyzeTicker = (ticker: string) =>
   api.get(`/api/analyze/${ticker}`)
@@ -1170,52 +1004,6 @@ export const fetchPriceHistory = (ticker: string) =>
   api.get<{ ticker: string; prices: PricePoint[] }>(`/api/price-history/${ticker}`)
 
 export default api
-
-export interface FactorDetail {
-  status: string
-  score: number
-  interpretation?: string
-  academic_edge?: string
-  opportunities?: number
-  grade_a?: number
-  grade_b?: number
-  avg_upside_pct?: number
-  avg_fcf_yield?: number
-  avg_piotroski?: number
-  pct_strong?: number
-  pct_weak?: number
-  avg_roic_pct?: number
-  market_regime?: string
-  avg_score?: number
-  active_signals?: number
-  cluster_buying?: number
-  high_confidence?: number
-  total_positions?: number
-  consensus_2plus?: number
-  consensus_3plus?: number
-  funds_tracked?: number
-  as_of?: string
-  error?: string
-}
-
-export interface FactorStatusData {
-  generated_at: string
-  factors: {
-    value?: FactorDetail
-    quality?: FactorDetail
-    momentum?: FactorDetail
-    insider?: FactorDetail
-    smart_money?: FactorDetail
-  }
-  combined_score: number
-  factor_alignment: string
-  recommendation: string
-  value_momentum_correlation?: string
-  value_momentum_note?: string
-}
-
-export const fetchFactorStatus = () =>
-  api.get<FactorStatusData>('/api/factor-status')
 
 export interface TechnicalSignal {
   ticker: string

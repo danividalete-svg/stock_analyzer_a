@@ -52,16 +52,19 @@ GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 # ─── Archivos candidatos a análisis de código ─────────────────────────────────
 # El agente rota por estos archivos en cada ejecución de --code-review
 CODE_FILES_FRONTEND = [
+    'frontend/src/pages/Dashboard.tsx',
     'frontend/src/pages/ValueUS.tsx',
     'frontend/src/pages/ValueEU.tsx',
-    'frontend/src/pages/Dashboard.tsx',
-    'frontend/src/pages/Portfolio.tsx',
+    'frontend/src/pages/GlobalValue.tsx',
     'frontend/src/pages/Cerebro.tsx',
     'frontend/src/pages/MacroRadar.tsx',
+    'frontend/src/pages/MacroCountries.tsx',
     'frontend/src/pages/BounceTrader.tsx',
     'frontend/src/pages/TickerSearch.tsx',
     'frontend/src/pages/Insiders.tsx',
     'frontend/src/pages/DividendTraps.tsx',
+    'frontend/src/pages/Portfolio.tsx',
+    'frontend/src/pages/PersonalPortfolio.tsx',
     'frontend/src/components/CerebroBadges.tsx',
     'frontend/src/hooks/useCerebroSignals.ts',
     'frontend/src/api/client.ts',
