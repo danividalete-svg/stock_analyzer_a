@@ -1,0 +1,14 @@
+# Owner Earnings — dependencias Python
+# Instalación: pip install -r requirements.txt
+
+flask>=3.1.0
+flask-cors>=6.0.0
+requests>=2.32.0
+
+# Para tikr_scraper.py (autenticación AWS Cognito de TIKR Pro)
+pycognito>=0.7.0
+
+# Para owner_earnings.py (precios históricos vía yfinance — opcional)
+# Si falla la instalación de yfinance, el modelo sigue funcionando
+# pero sin precios históricos anuales (usa fallback NTM)
+yfinance>=0.2.54

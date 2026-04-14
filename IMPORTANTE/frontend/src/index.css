@@ -1,0 +1,1859 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════
+   FONTS
+════════════════════════════════════════════════════════════════════ */
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SHADCN DESIGN TOKENS — dark (default) + light
+════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Light mode — clean elevated cards, not glassmorphism */
+  --background:    220 18% 95%;
+  --foreground:    222 47% 8%;
+  --card:          0 0% 100%;
+  --card-foreground: 222 47% 8%;
+  --popover:       0 0% 100%;
+  --popover-foreground: 222 47% 8%;
+  --primary:       239 84% 57%;
+  --primary-foreground: 0 0% 100%;
+  --secondary:     220 13% 92%;
+  --secondary-foreground: 222 47% 12%;
+  --muted:         220 13% 92%;
+  --muted-foreground: 220 10% 36%;
+  --accent:        220 13% 92%;
+  --accent-foreground: 222 47% 12%;
+  --destructive:   0 84% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border:        220 13% 88%;
+  --input:         220 13% 89%;
+  --ring:          239 84% 57%;
+  --radius:        0.75rem;
+
+  /* Brand extras */
+  --indigo:   239 84% 60%;
+  --emerald:  160 84% 34%;
+  --sidebar-width: 224px;
+  --topbar-height: 50px;
+}
+
+.dark {
+  /* Dark mode */
+  --background:    222 47% 4%;
+  --foreground:    213 31% 91%;
+  --card:          222 47% 7%;
+  --card-foreground: 213 31% 91%;
+  --popover:       222 47% 7%;
+  --popover-foreground: 213 31% 91%;
+  --primary:       239 84% 67%;
+  --primary-foreground: 0 0% 100%;
+  --secondary:     222 47% 11%;
+  --secondary-foreground: 213 31% 91%;
+  --muted:         222 47% 11%;
+  --muted-foreground: 215 20% 55%;
+  --accent:        222 47% 11%;
+  --accent-foreground: 213 31% 91%;
+  --destructive:   0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border:        239 30% 20%;
+  --input:         239 30% 18%;
+  --ring:          239 84% 67%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BASE
+════════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  * { border-color: hsl(var(--border)); }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar        { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { background: hsl(228 20% 72%); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(239 60% 60% / 0.6); }
+  .dark ::-webkit-scrollbar-thumb { background: hsl(239 30% 25%); }
+  .dark ::-webkit-scrollbar-thumb:hover { background: hsl(239 84% 67% / 0.5); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MICRO-INTERACTIONS & POLISH
+════════════════════════════════════════════════════════════════════ */
+
+/* Text selection — brand indigo tint */
+::selection {
+  background: hsl(239 84% 67% / 0.22);
+  color: hsl(var(--foreground));
+}
+
+/* Focus ring — consistent, accessible */
+:focus-visible {
+  outline: 1.5px solid hsl(var(--primary) / 0.7);
+  outline-offset: 3px;
+  border-radius: var(--radius, 4px);
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.10);
+}
+
+/* Sticky table headers — stick beneath the 50px TopBar */
+.glass table thead th {
+  position: sticky;
+  top: var(--topbar-height, 50px);
+  z-index: 5;
+  background: hsl(var(--card) / 0.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+/* Dark mode: fully opaque header so no tbody rows bleed through */
+.dark .glass table thead th {
+  background: hsl(222 47% 6%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Smooth link transitions */
+a { transition: color 0.15s ease, opacity 0.15s ease; }
+
+/* Better button active state */
+button:active:not(:disabled) { transform: scale(0.97); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   GRADIENT TITLE
+════════════════════════════════════════════════════════════════════ */
+
+.gradient-title {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(160 84% 40%) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+/* Light mode gradient-title → overridden by Cybertruck Light section */
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIQUID GLASS — real frosted glass with backdrop-filter
+   Requires vibrant orbs behind to have something to blur through.
+════════════════════════════════════════════════════════════════════ */
+
+.glass {
+  /* Very transparent — orbs show through as blurred color */
+  background: hsl(var(--card) / 0.20);
+  backdrop-filter: blur(16px) saturate(160%) brightness(1.04);
+  -webkit-backdrop-filter: blur(16px) saturate(160%) brightness(1.04);
+
+  /* Subtle border — specular insets simulate glass edge refraction */
+  border: 1px solid hsl(0 0% 100% / 0.10);
+  box-shadow:
+    0 8px 32px hsl(0 0% 0% / 0.35),
+    0 2px 8px  hsl(0 0% 0% / 0.20),
+    inset 0  1.5px 0 hsl(0 0% 100% / 0.44),  /* top bright edge  */
+    inset 0 -1px   0 hsl(0 0% 0%   / 0.08),  /* bottom dark edge */
+    inset  1.5px 0 0 hsl(0 0% 100% / 0.15),  /* left bright edge */
+    inset -1px   0 0 hsl(0 0% 0%   / 0.05);  /* right dark edge  */
+
+  position: relative;
+  /* overflow:clip clips content (border-radius, pseudo-elements) like
+     overflow:hidden, but does NOT create a scroll container — so
+     position:sticky thead elements correctly stick to the viewport
+     instead of to this panel. Fixes first-row-hidden bug. */
+  overflow: clip;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.22s ease;
+}
+
+/* Hover: stronger lift + brighter speculars */
+.glass:not(:has(table)):hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 20px 52px hsl(0 0% 0% / 0.40),
+    0  6px 18px hsl(0 0% 0% / 0.26),
+    inset 0  1.5px 0 hsl(0 0% 100% / 0.55),
+    inset 0 -1px   0 hsl(0 0% 0%   / 0.08),
+    inset  1.5px 0 0 hsl(0 0% 100% / 0.20),
+    inset -1px   0 0 hsl(0 0% 0%   / 0.05);
+}
+
+/* Iridescent gradient border — simulates prismatic glass edge */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    hsl(0 0% 100% / 0.52) 0%,
+    hsl(239 84% 75% / 0.30) 28%,
+    transparent 52%,
+    hsl(160 84% 55% / 0.22) 76%,
+    hsl(0 0% 100% / 0.44) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cursor spotlight — follows mouse on hover */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    280px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    hsl(0 0% 100% / 0.07) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Light mode glass, orbs, sidebar, topbar, tables, glow-border
+   → all defined in Cybertruck Light section below */
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   BACKGROUND ORBS — vivid color blobs that glass blurs through
+   These need to be bright enough to actually show through cards.
+════════════════════════════════════════════════════════════════════ */
+
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+/* Indigo — main brand hue, anchors top-left corner */
+.orb-1 {
+  width: 1100px; height: 1100px;
+  background: radial-gradient(circle, hsl(239 84% 65%), hsl(250 80% 52%) 50%, transparent 70%);
+  opacity: 0.42;
+  top: -440px; left: -340px;
+  animation: floatOrb 16s ease-in-out infinite;
+}
+/* Emerald/teal — warmth in bottom-right */
+.orb-2 {
+  width: 720px; height: 720px;
+  background: radial-gradient(circle, hsl(162 84% 42%), hsl(185 84% 44%) 50%, transparent 70%);
+  opacity: 0.30;
+  bottom: -260px; right: -220px;
+  animation: floatOrb 20s ease-in-out infinite;
+  animation-delay: -8s;
+}
+/* Violet/rose — mid-screen accent */
+.orb-3 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, hsl(280 80% 62%), hsl(300 75% 55%) 50%, transparent 70%);
+  opacity: 0.18;
+  top: 30%; right: 15%;
+  animation: floatOrb 24s ease-in-out infinite;
+  animation-delay: -14s;
+}
+.orb-4, .orb-5 { display: none; }
+
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0)     scale(1);    }
+  25%       { transform: translate(30px, -24px) scale(1.04); }
+  50%       { transform: translate(-18px, 18px) scale(0.96); }
+  75%       { transform: translate(12px, 8px)   scale(1.02); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCORE BAR — custom animated progress
+════════════════════════════════════════════════════════════════════ */
+
+.score-bar   { display: inline-flex; align-items: center; gap: 8px; }
+.score-track {
+  position: relative; display: inline-block; width: 52px; height: 5px; border-radius: 3px; overflow: hidden;
+  /* Spectrum: full red→amber→green gradient as the track bg */
+  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 44%, #22c55e 100%);
+}
+
+/* Mask element covers the "unfilled" right portion */
+.score-mask {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  border-radius: 0 3px 3px 0;
+  background: hsl(var(--border));
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Shimmer sweep over the visible filled portion */
+.score-track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, hsl(0 0% 100% / 0.45) 50%, transparent 100%);
+  width: 50%;
+  animation: scoreShimmer 7s ease-in-out infinite;
+  animation-delay: 2s;
+  pointer-events: none;
+}
+@keyframes scoreShimmer {
+  0%   { transform: translateX(-200%); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(400%);  opacity: 0; }
+}
+
+/* Legacy fill (kept for backwards compat, hidden via ScoreBar update) */
+.score-fill  { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   NAV — colored icon + indicator via --nav-color
+════════════════════════════════════════════════════════════════════ */
+
+.nav-icon {
+  color: var(--nav-color, hsl(var(--muted-foreground)));
+  opacity: 0.55;
+  transition: opacity 0.15s, color 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  width: 18px; flex-shrink: 0;
+}
+.nav-link:hover .nav-icon,
+.nav-link-active .nav-icon { opacity: 1; }
+
+.nav-link-active {
+  position: relative;
+  color: var(--nav-color, hsl(var(--primary)));
+}
+.nav-link-active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 18%; bottom: 18%;
+  width: 2px;
+  background: var(--nav-color, hsl(var(--primary)));
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nav-color, hsl(var(--primary))) 80%, transparent);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   API STATUS DOT — pulsing green
+════════════════════════════════════════════════════════════════════ */
+
+.api-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: hsl(160 84% 39%);
+  box-shadow: 0 0 8px hsl(160 84% 39% / 0.6);
+  flex-shrink: 0;
+  animation: pulseDot 3s ease-in-out infinite;
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px hsl(160 84% 39% / 0.6); }
+  50%       { opacity: 0.5; box-shadow: 0 0 4px hsl(160 84% 39% / 0.3); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   GRADE BADGES
+════════════════════════════════════════════════════════════════════ */
+
+/* Light mode (default — contrast verified) */
+.grade-A { background: #f0fdf4; color: #065f46; border-color: #16a34a; text-shadow: none; }
+.grade-B { background: #eff6ff; color: #1e40af; border-color: #2563eb; text-shadow: none; }
+.grade-C { background: #fffbeb; color: #92400e; border-color: #d97706; text-shadow: none; }
+.grade-D { background: #fef2f2; color: #991b1b; border-color: #dc2626; text-shadow: none; }
+
+/* Dark mode — solid dark tints so linter can verify contrast */
+.dark .grade-A { background: #052e16; color: #4ade80; border-color: #166534; box-shadow: 0 0 8px hsl(160 84% 45% / 0.25); }
+.dark .grade-B { background: #172554; color: #93c5fd; border-color: #1e40af; }
+.dark .grade-C { background: #1c1404; color: #fbbf24; border-color: #92400e; }
+.dark .grade-D { background: #1c0505; color: #f87171; border-color: #7f1d1d; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   THESIS MODAL
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes modalEnterMobile {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes modalEnterDesktop {
+  from { transform: scale(0.96) translateY(12px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);    opacity: 1; }
+}
+
+.modal-enter {
+  animation: modalEnterMobile 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (min-width: 640px) {
+  .modal-enter {
+    animation: modalEnterDesktop 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   FILTER BAR — shared label + button tokens
+════════════════════════════════════════════════════════════════════ */
+
+/* Section label: "Score≥", "Grado", "Sector" */
+.filter-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground) / 0.5);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Base pill button */
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 1.625rem;          /* 26px — readable on mobile */
+  padding: 0 0.625rem;       /* px-2.5 */
+  font-size: 0.72rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border) / 0.5);
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+  transition: border-color 0.14s ease,
+              color        0.14s ease,
+              background   0.14s ease,
+              transform    0.10s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow   0.14s ease;
+  white-space: nowrap;
+  cursor: pointer;
+  line-height: 1;
+  will-change: transform;
+}
+.filter-btn:hover {
+  border-color: hsl(var(--border) / 0.9);
+  color: hsl(var(--foreground));
+  transform: translateY(-1px);
+}
+.filter-btn:active { transform: scale(0.94) translateY(0); }
+.filter-btn.active {
+  border-color: hsl(var(--primary) / 0.6);
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+}
+.filter-btn.active-red {
+  border-color: hsl(0 84% 60% / 0.6);
+  background: hsl(0 84% 60% / 0.12);
+  color: hsl(0 84% 65%);
+}
+.filter-btn.active-amber {
+  border-color: hsl(38 92% 50% / 0.6);
+  background: hsl(38 92% 50% / 0.12);
+  color: hsl(38 92% 55%);
+}
+
+/* Number input inside filter bar */
+.filter-input {
+  width: 3.25rem;
+  height: 1.625rem;
+  padding: 0 0.5rem;
+  font-size: 0.72rem;
+  border-radius: 0.375rem;
+  border: 1px solid hsl(var(--border) / 0.5);
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+.filter-input::placeholder { color: hsl(var(--muted-foreground) / 0.4); }
+.filter-input:focus { outline: none; border-color: hsl(var(--primary) / 0.5); }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECTOR QUADRANT CELLS
+════════════════════════════════════════════════════════════════════ */
+
+.q-leading   { background: linear-gradient(135deg, hsl(160 84% 39% / 0.06), transparent); }
+.q-leading   h4 { color: hsl(160 84% 50%); }
+.q-improving { background: linear-gradient(135deg, hsl(217 91% 60% / 0.06), transparent); }
+.q-improving h4 { color: hsl(217 91% 65%); }
+.q-weakening { background: linear-gradient(135deg, hsl(38 92% 50%  / 0.06), transparent); }
+.q-weakening h4 { color: hsl(38 92% 55%); }
+.q-lagging   { background: linear-gradient(135deg, hsl(0 84% 60%   / 0.06), transparent); }
+.q-lagging   h4 { color: hsl(0 84% 65%); }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR LOGO ICON — glass sphere
+════════════════════════════════════════════════════════════════════ */
+
+.sidebar-logo-icon {
+  background: linear-gradient(135deg, hsl(239 84% 67%) 0%, hsl(262 83% 58%) 100%);
+  box-shadow:
+    0 4px 16px hsl(239 84% 67% / 0.45),
+    inset 0 1px 0 hsl(0 0% 100% / 0.38),
+    inset 0 -1px 0 hsl(0 0% 0% / 0.20),
+    inset 1px 0 0 hsl(0 0% 100% / 0.18);
+  position: relative;
+  overflow: hidden;
+}
+.sidebar-logo-icon::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(148deg, hsl(0 0% 100% / 0.28) 0%, transparent 50%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes fadeIn    { from { opacity: 0; }                              to { opacity: 1; } }
+/* CRITICAL: "to" must use transform:none — NOT translateY(0).
+   translateY(0) creates a containing block that breaks position:sticky
+   on descendant thead elements (first table row hidden behind header). */
+@keyframes fadeInUp    { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes emptyIconIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+@keyframes scoreRingIn { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+@keyframes slideDown   { from { opacity: 0; transform: translateY(-8px) scaleY(0.94); } to { opacity: 1; transform: none; } }
+@keyframes shimmer   { 0% { background-position: -800px 0; } 100% { background-position: 800px 0; } }
+@keyframes spin      { to { transform: rotate(360deg); } }
+
+/* Entrance animations
+   CRITICAL: use "backwards" NOT "both". "both" persists the final
+   keyframe's transform after the animation → creates a containing block
+   that breaks position:sticky on descendant thead elements.
+   "backwards" only applies the "from" keyframe before the animation
+   starts (keeps elements hidden during delay), but does NOT persist
+   anything after it ends → element reverts to natural CSS (no transform)
+   → sticky works correctly relative to the viewport. */
+.animate-fade-in    { animation: fadeIn    0.25s ease both; }
+.animate-fade-in-up { animation: fadeInUp  0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.animate-slide-down { animation: slideDown 0.15s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+/* Staggered stat cards */
+.stagger-1 { animation: fadeInUp 0.32s ease backwards 0.03s; }
+.stagger-2 { animation: fadeInUp 0.32s ease backwards 0.08s; }
+.stagger-3 { animation: fadeInUp 0.32s ease backwards 0.13s; }
+.stagger-4 { animation: fadeInUp 0.32s ease backwards 0.18s; }
+.stagger-5 { animation: fadeInUp 0.32s ease backwards 0.22s; }
+
+/* Staggered analysis sections */
+.stagger-a1 { animation: fadeInUp 0.30s ease backwards 0.05s; }
+.stagger-a2 { animation: fadeInUp 0.30s ease backwards 0.10s; }
+.stagger-a3 { animation: fadeInUp 0.30s ease backwards 0.15s; }
+.stagger-a4 { animation: fadeInUp 0.30s ease backwards 0.20s; }
+.stagger-a5 { animation: fadeInUp 0.30s ease backwards 0.25s; }
+.stagger-a6 { animation: fadeInUp 0.30s ease backwards 0.30s; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   AURORA TOP LINE — iridescent chromatic bar
+════════════════════════════════════════════════════════════════════ */
+
+.aurora-line {
+  position: fixed;
+  top: 0; left: -30%; right: -30%;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(262 83% 70% / 0.0) 5%,
+    hsl(239 84% 67% / 0.9) 22%,
+    hsl(160 84% 55% / 1.0) 50%,
+    hsl(262 83% 68% / 0.9) 78%,
+    hsl(300 80% 65% / 0.0) 95%,
+    transparent 100%
+  );
+  z-index: 9999;
+  pointer-events: none;
+  animation: auroraDrift 7s ease-in-out infinite alternate;
+  filter: blur(0.5px);
+}
+@keyframes auroraDrift {
+  from { transform: translateX(-10%); opacity: 0.6; }
+  to   { transform: translateX(10%);  opacity: 1.0; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   GRADE-A BADGE GLOW — emerald pulse for conviction-A picks
+════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   TABLE ROW HOVER — gradient sweep from left
+════════════════════════════════════════════════════════════════════ */
+
+tr[class*="cursor-pointer"]:hover {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary) / 0.07) 0%,
+    hsl(var(--primary) / 0.03) 40%,
+    transparent 100%
+  ) !important;
+  transition: background 0.18s ease;
+}
+tr[class*="cursor-pointer"]:hover td:first-child {
+  border-left: 2px solid hsl(var(--primary) / 0.5);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   ROTATING GRADIENT BORDER — for stat cards, @property required
+════════════════════════════════════════════════════════════════════ */
+
+.glow-border {
+  position: relative;
+  isolation: isolate;
+}
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    hsl(239 84% 67% / 0.45),
+    hsl(160 84% 55% / 0.45),
+    hsl(300 80% 65% / 0.35),
+    hsl(38  92% 62% / 0.25)
+  );
+  z-index: -1;
+}
+
+/* Inner fill so the card background covers the conic gradient */
+.glow-border::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(inherit - 1px);
+  background: hsl(var(--card) / 0.95);
+  z-index: -1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   STAT NUMBER GLOW — subtle glow on key positive numbers
+════════════════════════════════════════════════════════════════════ */
+
+.dark .text-emerald-400.tabular-nums {
+  text-shadow: 0 0 18px hsl(160 84% 50% / 0.35);
+}
+.dark .text-primary.tabular-nums {
+  text-shadow: 0 0 18px hsl(239 84% 67% / 0.30);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COMMAND PALETTE (cmdk)
+════════════════════════════════════════════════════════════════════ */
+
+.cmd-palette {
+  background: hsl(222 47% 5% / 0.93);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  animation: cmdSlideIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+:root:not(.dark) .cmd-palette {
+  background: hsl(228 28% 96% / 0.97);
+  box-shadow:
+    0 20px 60px hsl(228 35% 40% / 0.18),
+    0  4px 16px hsl(228 35% 40% / 0.10),
+    inset 0 1px 0 hsl(0 0% 100% / 0.9);
+}
+:root:not(.dark) [cmdk-group-heading] {
+  color: hsl(228 20% 50%);
+}
+:root:not(.dark) .cmd-item {
+  color: hsl(222 30% 30%);
+}
+:root:not(.dark) .cmd-item[aria-selected="true"],
+:root:not(.dark) .cmd-item:hover {
+  background: hsl(228 30% 90%);
+  color: hsl(222 47% 8%);
+}
+
+@keyframes cmdSlideIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)     scale(1); }
+}
+
+/* Group label */
+[cmdk-group-heading] {
+  padding: 0.4rem 0.75rem 0.2rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Items */
+.cmd-item {
+  color: hsl(var(--muted-foreground));
+  outline: none;
+}
+
+.cmd-item[aria-selected="true"],
+.cmd-item:hover {
+  background: hsl(var(--accent) / 0.08);
+  color: hsl(var(--foreground));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CYBERTRUCK SKIN — angular, metallic, electric cyan
+   Layered over liquid glass: sharper corners, cold steel palette,
+   silver metallic borders, electric accent, scanline texture.
+════════════════════════════════════════════════════════════════════ */
+
+/* ── Override dark mode tokens ─────────────────────────────────── */
+.dark {
+  /* Electric cyan replaces warm indigo as the brand primary */
+  --primary:             194 100% 48%;
+  --primary-foreground:  210 40% 5%;
+  --ring:                194 100% 48%;
+
+  /* Cold steel darkness — shift hue from warm navy to steel-blue */
+  --background:          212 28% 3%;
+  --foreground:          210 22% 92%;
+  --card:                212 24% 5%;
+  --card-foreground:     210 22% 92%;
+  --popover:             212 24% 5%;
+  --popover-foreground:  210 22% 92%;
+
+  /* Steel borders */
+  --border:              210 14% 20%;
+  --input:               210 14% 18%;
+
+  /* Cold muted tones */
+  --muted:               212 22% 9%;
+  --muted-foreground:    210 16% 55%;
+  --secondary:           212 22% 9%;
+  --accent:              212 22% 9%;
+
+  /* Sharper corners — signature angular Cybertruck silhouette */
+  --radius: 0.25rem;
+}
+
+/* ── Cold steel orbs ────────────────────────────────────────────── */
+.dark .orb-1 {
+  background: radial-gradient(circle, hsl(194 100% 40%), hsl(210 80% 26%) 50%, transparent 70%);
+  opacity: 0.38;
+}
+.dark .orb-2 {
+  background: radial-gradient(circle, hsl(210 60% 26%), hsl(220 50% 18%) 50%, transparent 70%);
+  opacity: 0.28;
+}
+.dark .orb-3 {
+  background: radial-gradient(circle, hsl(194 80% 33%), hsl(205 65% 25%) 50%, transparent 70%);
+  opacity: 0.20;
+}
+
+/* ── Metallic glass panels ──────────────────────────────────────── */
+.dark .glass {
+  background: hsl(212 26% 5% / 0.38);
+  border-color: hsl(210 20% 32% / 0.28);
+  box-shadow:
+    0 8px 32px hsl(0 0% 0% / 0.60),
+    0 2px 8px  hsl(0 0% 0% / 0.40),
+    inset 0  1.5px 0 hsl(0 0% 88% / 0.16),   /* steel top edge */
+    inset 0 -1px   0 hsl(0 0% 0%   / 0.14),
+    inset  1.5px 0 0 hsl(0 0% 78% / 0.09),
+    inset -1px   0 0 hsl(0 0% 0%   / 0.07);
+}
+
+/* Silver + electric blue metallic border — no rainbow */
+.dark .glass::before {
+  background: linear-gradient(
+    135deg,
+    hsl(0 0% 82% / 0.48) 0%,
+    hsl(194 100% 65% / 0.30) 22%,
+    hsl(0 0% 55% / 0.08) 48%,
+    hsl(194 80% 55% / 0.22) 76%,
+    hsl(0 0% 86% / 0.42) 100%
+  );
+}
+
+/* Cursor spotlight + scanline texture overlay */
+.dark .glass::after {
+  background:
+    radial-gradient(
+      280px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+      hsl(194 100% 80% / 0.07) 0%,
+      transparent 70%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      hsl(0 0% 100% / 0.010) 3px,
+      hsl(0 0% 100% / 0.010) 4px
+    );
+}
+
+/* Hover — subtle electric glow lift */
+.dark .glass:not(:has(table)):hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 20px 52px hsl(0 0% 0% / 0.65),
+    0  6px 18px hsl(0 0% 0% / 0.45),
+    0  0   22px hsl(194 100% 48% / 0.08),
+    inset 0  1.5px 0 hsl(0 0% 90% / 0.24),
+    inset 0 -1px   0 hsl(0 0% 0%   / 0.14),
+    inset  1.5px 0 0 hsl(0 0% 80% / 0.14),
+    inset -1px   0 0 hsl(0 0% 0%   / 0.07);
+}
+
+/* ── Electric aurora — cyan/steel instead of rainbow ────────────── */
+.dark .aurora-line {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(194 100% 48% / 0.0) 5%,
+    hsl(210 80% 62% / 0.75) 22%,
+    hsl(194 100% 56% / 1.0) 50%,
+    hsl(210 80% 62% / 0.75) 78%,
+    hsl(194 100% 48% / 0.0) 95%,
+    transparent 100%
+  );
+}
+
+/* ── Gradient title — steel chrome ──────────────────────────────── */
+.dark .gradient-title {
+  background: linear-gradient(135deg, hsl(194 100% 56%) 0%, hsl(0 0% 82%) 55%, hsl(194 80% 50%) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Table row hover — electric cyan sweep ──────────────────────── */
+.dark tr[class*="cursor-pointer"]:hover {
+  background: linear-gradient(
+    90deg,
+    hsl(194 100% 48% / 0.08) 0%,
+    hsl(194 100% 48% / 0.03) 40%,
+    transparent 100%
+  ) !important;
+}
+.dark tr[class*="cursor-pointer"]:hover td:first-child {
+  border-left: 2px solid hsl(194 100% 48% / 0.55);
+}
+
+/* ── Rotating glow border — electric + steel ────────────────────── */
+.dark .glow-border::before {
+  background: conic-gradient(
+    from var(--glow-angle),
+    transparent          0%,
+    hsl(194 100% 48% / 0.65) 18%,
+    hsl(0   0% 80%  / 0.38) 36%,
+    hsl(210 60% 55% / 0.50) 54%,
+    hsl(194 80% 60% / 0.32) 72%,
+    transparent          90%
+  );
+}
+
+/* ── Scrollbar — electric cyan accent ───────────────────────────── */
+.dark ::-webkit-scrollbar-thumb         { background: hsl(210 28% 20%); }
+.dark ::-webkit-scrollbar-thumb:hover   { background: hsl(194 100% 48% / 0.45); }
+
+/* ── Sticky table headers — steel dark ──────────────────────────── */
+.dark .glass table thead th {
+  background: hsl(212 26% 4%);
+}
+
+/* ── Text selection — electric tint ─────────────────────────────── */
+.dark ::selection {
+  background: hsl(194 100% 48% / 0.20);
+}
+
+/* ── Focus ring — electric cyan ─────────────────────────────────── */
+.dark :focus-visible {
+  outline-color: hsl(194 100% 48% / 0.7);
+  box-shadow:
+    0 0 0 4px hsl(194 100% 48% / 0.12),
+    0 0 12px hsl(194 100% 48% / 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CYBERTRUCK — PHASE 2: Animations, Electric FX, Glitch
+   Entrance animation, scan sweep, logo pulse, glitch title,
+   shimmer chrome, aurora flow, electric nav, HUD glow.
+════════════════════════════════════════════════════════════════════ */
+
+/* CSS Houdini property — lets the browser interpolate --scan-pos */
+@property --scan-pos {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: -2%;
+}
+
+/* ── Keyframes ────────────────────────────────────────────────── */
+
+/* Angular panel entrance — Cybertruck reveal */
+@keyframes cyberFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) skewX(-0.8deg);
+    filter: brightness(1.5);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) skewX(0);
+    filter: brightness(1);
+  }
+}
+
+/* Scan beam travels top → bottom across glass panels */
+@keyframes cyberScan {
+  from { --scan-pos: -2%; }
+  to   { --scan-pos: 102%; }
+}
+
+/* Logo electric glow pulse */
+@keyframes logoPulse {
+  0%, 100% {
+    box-shadow:
+      0 0  6px hsl(194 100% 48% / 0.35),
+      0 0  0   hsl(194 100% 48% / 0);
+  }
+  50% {
+    box-shadow:
+      0 0 20px hsl(194 100% 48% / 0.80),
+      0 0  0 6px hsl(194 100% 48% / 0.07);
+  }
+}
+
+/* Chrome shimmer sweep across gradient text */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* Sidebar "Stock Analyzer" — periodic glitch burst */
+@keyframes cyberGlitch {
+  0%,  87%, 100% { text-shadow: none; transform: translate(0); }
+  89% {
+    text-shadow:
+      -1.5px 0 hsl(0   100% 62% / 0.9),
+       1.5px 0 hsl(194 100% 62% / 0.9);
+    transform: translate(1.5px, 0);
+  }
+  90% {
+    text-shadow:
+       1.5px 0 hsl(0   100% 62% / 0.9),
+      -1.5px 0 hsl(194 100% 62% / 0.9);
+    transform: translate(-1.5px, 0);
+  }
+  91% { text-shadow: none; transform: translate(0, -1px); }
+  92% {
+    text-shadow: -2px 0 hsl(194 100% 68% / 0.7);
+    transform: translate(2px, 1px);
+  }
+  93% {
+    text-shadow:  2px 0 hsl(0 100% 65% / 0.6);
+    transform: translate(-1px, -1px);
+  }
+  94% { text-shadow: none; transform: translate(0); }
+}
+
+/* Aurora line — electric flow */
+@keyframes auroraFlow {
+  from { background-position: 0% center; }
+  to   { background-position: 200% center; }
+}
+
+/* API dot flicker */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  45%, 55% { opacity: 0.25; }
+}
+
+/* ── Glass cards: entrance + scan beam ───────────────────────── */
+.dark .glass {
+  animation:
+    cyberFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards,
+    cyberScan   8s linear 0.6s infinite;
+}
+
+/* Scan beam + cursor spotlight + static scanlines */
+.dark .glass::after {
+  background:
+    /* Electric scan beam */
+    linear-gradient(
+      180deg,
+      transparent                       calc(var(--scan-pos) - 0.8px),
+      hsl(194 100% 72% / 0.18)         var(--scan-pos),
+      transparent                       calc(var(--scan-pos) + 0.8px)
+    ),
+    /* Cursor spotlight */
+    radial-gradient(
+      280px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+      hsl(194 100% 80% / 0.07) 0%, transparent 70%
+    ),
+    /* Static horizontal scanlines */
+    repeating-linear-gradient(
+      0deg,
+      transparent, transparent 3px,
+      hsl(0 0% 100% / 0.010) 3px, hsl(0 0% 100% / 0.010) 4px
+    );
+}
+
+/* ── Sidebar logo — cold steel + electric pulse ──────────────── */
+.dark .sidebar-logo-icon {
+  background: linear-gradient(135deg, hsl(194 100% 30%), hsl(210 80% 20%));
+  animation: logoPulse 2.8s ease-in-out infinite;
+}
+
+/* ── "Stock Analyzer" title — periodic glitch ───────────────── */
+.dark aside h1 {
+  animation: cyberGlitch 8s ease-in-out infinite;
+}
+
+/* ── Gradient titles — chrome shimmer sweep ──────────────────── */
+.dark .gradient-title {
+  background: linear-gradient(
+    90deg,
+    hsl(194 100% 58%)  0%,
+    hsl(0   0%  88%)  18%,
+    hsl(194 100% 70%) 36%,
+    hsl(0   0%  94%)  54%,
+    hsl(194  80% 54%) 72%,
+    hsl(0   0%  88%)  88%,
+    hsl(194 100% 58%) 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+/* ── Aurora top line — electric flow ─────────────────────────── */
+.dark .aurora-line {
+  background: linear-gradient(
+    90deg,
+    transparent               0%,
+    hsl(210 80% 62% / 0.5)  10%,
+    hsl(194 100% 56% / 0.85) 28%,
+    hsl(194 100% 74% / 1.0)  50%,
+    hsl(194 100% 56% / 0.85) 72%,
+    hsl(210 80% 62% / 0.5)  90%,
+    transparent              100%
+  );
+  background-size: 200% 100%;
+  animation: auroraFlow 3s linear infinite;
+}
+
+/* ── Active nav link — electric left stripe + icon glow ─────── */
+.dark .nav-link-active {
+  box-shadow:
+    inset 3px 0 0 hsl(194 100% 48% / 0.95),
+    inset 0 0 24px hsl(194 100% 48% / 0.04);
+}
+.dark .nav-link-active .nav-icon {
+  color: hsl(194 100% 58%);
+  filter: drop-shadow(0 0 7px hsl(194 100% 52% / 0.95));
+}
+.dark .nav-link:not(.nav-link-active):hover .nav-icon {
+  filter: drop-shadow(0 0 5px hsl(194 100% 52% / 0.55));
+  transition: filter 0.2s ease;
+}
+
+/* ── API dot — electric cyan flicker ─────────────────────────── */
+.dark .api-dot {
+  background: hsl(194 100% 52%);
+  box-shadow: 0 0 8px hsl(194 100% 52% / 0.9);
+  animation: blink 2.2s ease-in-out infinite;
+}
+
+/* ── Score bars — electric glow edge ─────────────────────────── */
+.dark [class*="bg-primary"][style*="width"] {
+  box-shadow: 0 0 8px hsl(194 100% 48% / 0.45);
+}
+
+/* ── Number / ticker highlights — cyan instead of indigo ─────── */
+.dark .text-primary { color: hsl(194 100% 56%); }
+.dark .border-primary { border-color: hsl(194 100% 48% / 0.6); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   CYBERTRUCK — PHASE 3: Neon glow, grid, text fx + sticky fix
+   The filter:brightness() in cyberFadeIn created a stacking context
+   that broke position:sticky thead (first row disappeared). Fixed by
+   removing filter from the animation entirely.
+════════════════════════════════════════════════════════════════════ */
+
+/* ── BUG FIX: redefine cyberFadeIn without filter ────────────── */
+/* filter:brightness(x)≠none creates a stacking context → breaks  */
+/* position:sticky inside the panel → first table row invisible.  */
+@keyframes cyberFadeIn {
+  from { opacity: 0; transform: translateY(18px) skewX(-0.8deg); }
+  to   { opacity: 1; transform: translateY(0)    skewX(0); }
+}
+
+/* ── Neon power grid — cyberpunk background texture ─────────── */
+.dark body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(hsl(194 100% 55% / 0.030) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(194 100% 55% / 0.030) 1px, transparent 1px);
+  background-size: 52px 52px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Glass cards: cyan ambient outer neon glow ───────────────── */
+.dark .glass {
+  box-shadow:
+    0 8px 32px hsl(0 0% 0% / 0.60),
+    0 2px  8px hsl(0 0% 0% / 0.40),
+    0 0   35px hsl(194 100% 48% / 0.07),
+    inset 0  1.5px 0 hsl(0 0% 88% / 0.16),
+    inset 0 -1px   0 hsl(0 0% 0%   / 0.14),
+    inset  1.5px 0 0 hsl(0 0% 78% / 0.09),
+    inset -1px   0 0 hsl(0 0% 0%   / 0.07);
+}
+
+/* ── Neon top border on glass panels ─────────────────────────── */
+.dark .glass::before {
+  background: linear-gradient(
+    135deg,
+    hsl(194 100% 70% / 0.65)  0%,
+    hsl(194 100% 55% / 0.40) 20%,
+    hsl(0   0%  80% / 0.12)  48%,
+    hsl(194 100% 55% / 0.30) 76%,
+    hsl(194 100% 72% / 0.55) 100%
+  );
+}
+
+/* Hover: stronger neon halo */
+.dark .glass:not(:has(table)):hover {
+  box-shadow:
+    0 20px 52px hsl(0 0% 0% / 0.65),
+    0  6px 18px hsl(0 0% 0% / 0.45),
+    0  0   55px hsl(194 100% 48% / 0.14),
+    inset 0  1.5px 0 hsl(0 0% 90% / 0.24),
+    inset 0 -1px   0 hsl(0 0% 0%   / 0.14),
+    inset  1.5px 0 0 hsl(0 0% 80% / 0.14),
+    inset -1px   0 0 hsl(0 0% 0%   / 0.07);
+}
+
+/* ── Ticker text — neon cyan glow ────────────────────────────── */
+.dark .glass .text-primary,
+.dark .glass [class*="text-primary"] {
+  text-shadow:
+    0 0  8px hsl(194 100% 55% / 0.70),
+    0 0 18px hsl(194 100% 55% / 0.35);
+}
+
+/* ── Positive percentage gains — neon green ─────────────────── */
+.dark .glass .text-emerald-400,
+.dark .glass [class*="text-emerald"] {
+  text-shadow:
+    0 0  8px hsl(152 100% 45% / 0.65),
+    0 0 18px hsl(152 100% 45% / 0.28);
+}
+
+/* ── Negative/red values — neon red ─────────────────────────── */
+.dark .glass .text-red-400,
+.dark .glass [class*="text-red-4"] {
+  text-shadow:
+    0 0  7px hsl(0 100% 58% / 0.55),
+    0 0 16px hsl(0 100% 58% / 0.22);
+}
+
+/* ── Score bar — glowing fill edge ──────────────────────────── */
+.dark .glass [style*="width"] {
+  box-shadow: 1px 0 8px hsl(194 100% 55% / 0.55), 0 0 4px hsl(194 100% 55% / 0.30);
+}
+
+/* ── Buttons — neon glow on hover ────────────────────────────── */
+.dark button:not([disabled]):hover {
+  box-shadow: 0 0 14px hsl(194 100% 48% / 0.22), 0 0 4px hsl(194 100% 48% / 0.12);
+}
+
+/* ── Nav section labels — electric cyan ──────────────────────── */
+.dark aside nav > div[class*="tracking"] {
+  color: hsl(194 100% 52% / 0.60);
+  text-shadow: 0 0 12px hsl(194 100% 52% / 0.35);
+  letter-spacing: 0.16em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CYBERTRUCK LIGHT — angular steel on bright canvas
+   Matches the dark Cybertruck aesthetic: cyan primary, sharp corners,
+   metallic glass, steel orbs, scanlines, chrome shimmer.
+════════════════════════════════════════════════════════════════════ */
+
+/* ── Override light mode tokens to Cybertruck palette ─────────── */
+:root:not(.dark) {
+  /* Electric cyan — darker for contrast on light backgrounds */
+  --primary:             194 100% 36%;
+  --primary-foreground:  0 0% 100%;
+  --ring:                194 100% 36%;
+
+  /* Cold steel off-white */
+  --background:          210 20% 96%;
+  --foreground:          212 28% 8%;
+  --card:                210 14% 99%;
+  --card-foreground:     212 28% 8%;
+  --popover:             210 14% 99%;
+  --popover-foreground:  212 28% 8%;
+
+  /* Steel borders */
+  --border:              210 15% 86%;
+  --input:               210 15% 88%;
+
+  /* Cool muted */
+  --muted:               210 16% 93%;
+  --muted-foreground:    210 14% 42%;
+  --secondary:           210 16% 93%;
+  --accent:              210 16% 93%;
+
+  /* Angular corners — Cybertruck signature */
+  --radius: 0.25rem;
+}
+
+/* ── Cold steel orbs (light) ──────────────────────────────────── */
+:root:not(.dark) .orb-1 {
+  background: radial-gradient(circle, hsl(194 80% 70%), hsl(210 60% 65%) 50%, transparent 70%);
+  opacity: 0.22;
+}
+:root:not(.dark) .orb-2 {
+  background: radial-gradient(circle, hsl(210 50% 68%), hsl(220 40% 72%) 50%, transparent 70%);
+  opacity: 0.16;
+}
+:root:not(.dark) .orb-3 {
+  background: radial-gradient(circle, hsl(194 60% 66%), hsl(205 50% 70%) 50%, transparent 70%);
+  opacity: 0.12;
+}
+
+/* ── Metallic glass panels (light) ────────────────────────────── */
+:root:not(.dark) .glass {
+  background: hsl(210 20% 100% / 0.62);
+  border-color: hsl(210 20% 80% / 0.50);
+  backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+  -webkit-backdrop-filter: blur(26px) saturate(170%) brightness(1.04);
+  box-shadow:
+    0 4px 20px hsl(210 20% 20% / 0.08),
+    0 1px 4px  hsl(210 20% 20% / 0.04),
+    inset 0  1.5px 0 hsl(0 0% 100% / 0.92),
+    inset 0 -1px   0 hsl(210 20% 60% / 0.08);
+  animation:
+    cyberFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+:root:not(.dark) .glass:not(:has(table)):hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 36px hsl(210 20% 20% / 0.11),
+    0 3px 10px  hsl(210 20% 20% / 0.06),
+    0 0   28px  hsl(194 100% 48% / 0.06),
+    inset 0  1.5px 0 hsl(0 0% 100% / 0.96),
+    inset 0 -1px   0 hsl(210 20% 60% / 0.08);
+}
+
+/* Silver + cyan metallic border (light) */
+:root:not(.dark) .glass::before {
+  background: linear-gradient(
+    135deg,
+    hsl(0 0% 100% / 0.85)     0%,
+    hsl(194 80% 55% / 0.22)  24%,
+    hsl(0 0% 90% / 0.06)     48%,
+    hsl(194 60% 50% / 0.18)  76%,
+    hsl(0 0% 100% / 0.80)   100%
+  );
+}
+
+/* Cursor spotlight — subtle cyan hover (light) */
+:root:not(.dark) .glass::after {
+  background:
+    radial-gradient(
+      280px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+      hsl(194 100% 48% / 0.06) 0%,
+      transparent 70%
+    );
+}
+
+/* ── Sidebar — steel frosted (light) ─────────────────────────── */
+:root:not(.dark) aside {
+  background: hsl(210 22% 97% / 0.78) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  border-right: 1px solid hsl(210 15% 84%) !important;
+  box-shadow: 2px 0 14px hsl(210 20% 20% / 0.05) !important;
+}
+
+/* ── Topbar — steel frosted (light) ──────────────────────────── */
+:root:not(.dark) header {
+  background: hsl(210 20% 99% / 0.78) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+  border-bottom: 1px solid hsl(210 15% 86%) !important;
+  box-shadow: 0 1px 10px hsl(210 20% 20% / 0.05) !important;
+}
+
+/* ── Table rows — cyan sweep on hover (light) ────────────────── */
+:root:not(.dark) .glass table tbody tr:nth-child(even) { background: hsl(210 15% 97% / 0.40); }
+:root:not(.dark) .glass table tbody tr:hover { background: hsl(194 100% 48% / 0.06) !important; }
+:root:not(.dark) .glass table thead th {
+  background: hsl(210 18% 98% / 0.96) !important;
+  backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid hsl(210 15% 86%) !important;
+}
+:root:not(.dark) tr[class*="cursor-pointer"]:hover {
+  background: linear-gradient(
+    90deg,
+    hsl(194 100% 48% / 0.08) 0%,
+    hsl(194 100% 48% / 0.03) 40%,
+    transparent 100%
+  ) !important;
+}
+:root:not(.dark) tr[class*="cursor-pointer"]:hover td:first-child {
+  border-left: 2px solid hsl(194 100% 42% / 0.50);
+}
+
+/* ── Gradient title — dark steel chrome shimmer (light) ──────── */
+:root:not(.dark) .gradient-title {
+  background: linear-gradient(
+    90deg,
+    hsl(194 100% 32%)  0%,
+    hsl(210 20% 28%)  18%,
+    hsl(194 80% 38%)  36%,
+    hsl(210 15% 22%)  54%,
+    hsl(194 70% 34%)  72%,
+    hsl(210 20% 28%)  88%,
+    hsl(194 100% 32%) 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+/* ── Aurora line — cyan flow (light) ─────────────────────────── */
+:root:not(.dark) .aurora-line {
+  background: linear-gradient(
+    90deg,
+    transparent               0%,
+    hsl(210 60% 50% / 0.35) 10%,
+    hsl(194 100% 42% / 0.65) 28%,
+    hsl(194 100% 50% / 0.80) 50%,
+    hsl(194 100% 42% / 0.65) 72%,
+    hsl(210 60% 50% / 0.35) 90%,
+    transparent              100%
+  );
+  background-size: 200% 100%;
+  animation: auroraFlow 3s linear infinite;
+}
+
+/* ── Active nav link — cyan left stripe (light) ──────────────── */
+:root:not(.dark) .nav-link-active {
+  box-shadow:
+    inset 3px 0 0 hsl(194 100% 38% / 0.85),
+    inset 0 0 20px hsl(194 100% 48% / 0.04);
+}
+:root:not(.dark) .nav-link-active .nav-icon {
+  color: hsl(194 100% 34%);
+}
+
+/* ── Sidebar logo — steel cyan (light) ───────────────────────── */
+:root:not(.dark) .sidebar-logo-icon {
+  background: linear-gradient(135deg, hsl(194 80% 40%), hsl(210 60% 50%));
+}
+
+/* ── Nav section labels — cyan (light) ───────────────────────── */
+:root:not(.dark) aside nav > div[class*="tracking"] {
+  color: hsl(194 100% 32% / 0.55);
+  letter-spacing: 0.16em;
+}
+
+/* ── Subtle grid lines (light) ───────────────────────────────── */
+:root:not(.dark) body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(hsl(194 80% 48% / 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(194 80% 48% / 0.018) 1px, transparent 1px);
+  background-size: 52px 52px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Glow-border — subtle cyan ring (light) ──────────────────── */
+:root:not(.dark) .glow-border {
+  animation: none;
+  box-shadow: 0 0 0 1.5px hsl(194 100% 42% / 0.20), 0 6px 20px hsl(210 20% 20% / 0.06);
+}
+
+/* ── Score bar mask (light) ──────────────────────────────────── */
+:root:not(.dark) .score-mask { background: hsl(210 15% 90%); }
+
+/* ── Scrollbar — steel + cyan accent (light) ─────────────────── */
+:root:not(.dark) ::-webkit-scrollbar-thumb         { background: hsl(210 16% 80%); }
+:root:not(.dark) ::-webkit-scrollbar-thumb:hover   { background: hsl(194 80% 42% / 0.50); }
+
+/* ── Text selection — cyan tint (light) ──────────────────────── */
+:root:not(.dark) ::selection {
+  background: hsl(194 100% 48% / 0.16);
+}
+
+/* ── Focus ring — cyan (light) ───────────────────────────────── */
+:root:not(.dark) :focus-visible {
+  outline-color: hsl(194 100% 38% / 0.6);
+}
+
+/* ── Buttons — subtle cyan glow on hover (light) ─────────────── */
+:root:not(.dark) button:not([disabled]):hover {
+  box-shadow: 0 0 12px hsl(194 100% 48% / 0.12), 0 0 3px hsl(194 100% 48% / 0.06);
+}
+
+/* ── "Stock Analyzer" title — subtle glitch (light) ──────────── */
+:root:not(.dark) aside h1 {
+  animation: cyberGlitch 8s ease-in-out infinite;
+}
+
+
+/* ── Semantic status colors — darker variants for light bg contrast ─
+   Tailwind's -400 shades are designed for dark modes.
+   On light backgrounds they lack contrast — override to -600/-700.
+══════════════════════════════════════════════════════════════════════ */
+:root:not(.dark) .text-emerald-400,
+:root:not(.dark) [class*="text-emerald-4"] {
+  color: hsl(152 55% 28%) !important;
+}
+:root:not(.dark) .text-green-400,
+:root:not(.dark) [class*="text-green-4"] {
+  color: hsl(142 55% 28%) !important;
+}
+:root:not(.dark) .text-red-400,
+:root:not(.dark) [class*="text-red-4"] {
+  color: hsl(0 65% 40%) !important;
+}
+:root:not(.dark) .text-red-300 {
+  color: hsl(0 65% 38%) !important;
+}
+:root:not(.dark) .text-amber-400,
+:root:not(.dark) [class*="text-amber-4"] {
+  color: hsl(38 75% 33%) !important;
+}
+:root:not(.dark) .text-yellow-400,
+:root:not(.dark) [class*="text-yellow-4"] {
+  color: hsl(45 75% 30%) !important;
+}
+:root:not(.dark) .text-orange-400,
+:root:not(.dark) [class*="text-orange-4"] {
+  color: hsl(25 75% 38%) !important;
+}
+:root:not(.dark) .text-blue-400,
+:root:not(.dark) [class*="text-blue-4"] {
+  color: hsl(215 70% 38%) !important;
+}
+/* Colored backgrounds — slightly more opaque for light mode */
+:root:not(.dark) [class*="bg-emerald-500/1"],
+:root:not(.dark) [class*="bg-emerald-500/8"] {
+  background-color: hsl(152 55% 28% / 0.08) !important;
+}
+:root:not(.dark) [class*="bg-red-500/1"],
+:root:not(.dark) [class*="bg-red-500/8"] {
+  background-color: hsl(0 65% 40% / 0.08) !important;
+}
+:root:not(.dark) [class*="bg-amber-500/1"],
+:root:not(.dark) [class*="bg-amber-500/8"] {
+  background-color: hsl(38 75% 33% / 0.08) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE / iOS FIXES
+════════════════════════════════════════════════════════════════════ */
+
+/* Smooth touch scrolling in table containers (iOS Safari) */
+.overflow-auto,
+[class*="overflow-x-auto"],
+[class*="overflow-y-auto"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent tap highlight on interactive table rows */
+tr[class*="cursor-pointer"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Staggered table rows ─────────────────────────────────────────────────── */
+@keyframes rowEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+tbody tr {
+  animation: rowEnter 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+tbody tr:nth-child(1)  { animation-delay: 0ms }
+tbody tr:nth-child(2)  { animation-delay: 30ms }
+tbody tr:nth-child(3)  { animation-delay: 60ms }
+tbody tr:nth-child(4)  { animation-delay: 90ms }
+tbody tr:nth-child(5)  { animation-delay: 120ms }
+tbody tr:nth-child(6)  { animation-delay: 150ms }
+tbody tr:nth-child(7)  { animation-delay: 180ms }
+tbody tr:nth-child(8)  { animation-delay: 210ms }
+tbody tr:nth-child(9)  { animation-delay: 240ms }
+tbody tr:nth-child(10) { animation-delay: 270ms }
+
+/* ── Active/press feedback para cards clicables ──────────────────────────── */
+.clickable-card {
+  transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.12s ease;
+}
+.clickable-card:active {
+  transform: scale(0.985);
+}
+
+/* ── Smooth scroll nativo ────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Safe area insets for iPhone notch/home bar */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COLLAPSIBLE PANEL — height animation via grid-template-rows
+   Grid trick: grid-rows can transition unlike height:auto.
+   Usage: <div class="collapsible-panel [open]"><div>content</div></div>
+════════════════════════════════════════════════════════════════════ */
+
+.collapsible-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity             0.28s ease;
+  opacity: 0;
+}
+.collapsible-panel.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.collapsible-panel > * {
+  overflow: hidden;
+  /* Ensure the inner content can still animate children */
+  min-height: 0;
+}
+
+/* Toggle chevron rotation */
+.collapse-chevron {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.collapse-chevron.open {
+  transform: rotate(180deg);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   THESIS / EXPANDED TABLE ROW — slide down from above
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes thesisSlideIn {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0% 0);
+  }
+}
+
+.thesis-row > td > div,
+tr.thesis-row > td > div {
+  animation: thesisSlideIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SKELETON SHIMMER — improved wave effect
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes skeletonWave {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.dark [data-slot="skeleton"],
+.dark [class*="skeleton"] {
+  background: linear-gradient(
+    90deg,
+    hsl(212 20% 10% / 0.8)   0%,
+    hsl(212 20% 14% / 0.9)  40%,
+    hsl(194 60% 30% / 0.12) 55%,
+    hsl(212 20% 14% / 0.9)  70%,
+    hsl(212 20% 10% / 0.8) 100%
+  );
+  background-size: 800px 100%;
+  animation: skeletonWave 1.6s ease-in-out infinite;
+}
+
+:root:not(.dark) [data-slot="skeleton"],
+:root:not(.dark) [class*="skeleton"] {
+  background: linear-gradient(
+    90deg,
+    hsl(210 15% 90% / 0.9)  0%,
+    hsl(210 15% 96% / 1.0) 40%,
+    hsl(194 60% 85% / 0.15) 55%,
+    hsl(210 15% 96% / 1.0) 70%,
+    hsl(210 15% 90% / 0.9) 100%
+  );
+  background-size: 800px 100%;
+  animation: skeletonWave 1.6s ease-in-out infinite;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   BADGE POP-IN MICRO-ANIMATION
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes badgePopIn {
+  0%   { transform: scale(0.55); opacity: 0; }
+  65%  { transform: scale(1.12); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Apply to all small count badges */
+[class*="rounded-full"][class*="font-bold"]:not([class*="w-"]):not([class*="h-"]) {
+  animation: badgePopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   INTERACTIVE LINK ROWS — smooth accent line reveal
+════════════════════════════════════════════════════════════════════ */
+
+/* Ticker links in lists — underline grows from left */
+a[class*="font-mono"] {
+  position: relative;
+  text-decoration: none;
+}
+a[class*="font-mono"]::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -1px;
+  width: 0; height: 1px;
+  background: currentColor;
+  transition: width 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.5;
+}
+a[class*="font-mono"]:hover::after {
+  width: 100%;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   STAGGERED TABLE ROWS — extend to 20 rows
+════════════════════════════════════════════════════════════════════ */
+
+tbody tr:nth-child(11) { animation-delay: 300ms }
+tbody tr:nth-child(12) { animation-delay: 330ms }
+tbody tr:nth-child(13) { animation-delay: 360ms }
+tbody tr:nth-child(14) { animation-delay: 390ms }
+tbody tr:nth-child(15) { animation-delay: 420ms }
+tbody tr:nth-child(16) { animation-delay: 440ms }
+tbody tr:nth-child(17) { animation-delay: 460ms }
+tbody tr:nth-child(18) { animation-delay: 480ms }
+tbody tr:nth-child(19) { animation-delay: 500ms }
+tbody tr:nth-child(20) { animation-delay: 520ms }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE CONTAINER — staggered widget entrance
+════════════════════════════════════════════════════════════════════ */
+
+/* Smooth route change: main content fades in */
+main > * { animation: fadeInUp 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+main > *:nth-child(2)  { animation-delay: 20ms; }
+main > *:nth-child(3)  { animation-delay: 45ms; }
+main > *:nth-child(4)  { animation-delay: 70ms; }
+main > *:nth-child(5)  { animation-delay: 90ms; }
+main > *:nth-child(6)  { animation-delay: 110ms; }
+main > *:nth-child(7)  { animation-delay: 130ms; }
+main > *:nth-child(8)  { animation-delay: 150ms; }
+main > *:nth-child(9)  { animation-delay: 165ms; }
+main > *:nth-child(10) { animation-delay: 180ms; }
+main > *:nth-child(11) { animation-delay: 195ms; }
+main > *:nth-child(12) { animation-delay: 210ms; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SCORE RING
+════════════════════════════════════════════════════════════════════ */
+
+/* Applied via ScoreRing component's SVG circle */
+.score-ring-circle {
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIVE PRICES BAR — number tick animation
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes numTick {
+  0%   { opacity: 0.4; transform: translateY(-3px); }
+  100% { opacity: 1;   transform: translateY(0); }
+}
+
+/* Trigger via JS by toggling a class when value updates */
+.price-tick {
+  animation: numTick 0.22s ease both;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SMOOTH SCROLLBAR — more visible on hover, thinner at rest
+════════════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar         { width: 3px; height: 3px; }
+::-webkit-scrollbar:hover   { width: 6px; height: 6px; }
+::-webkit-scrollbar-track   { background: transparent; }
+
+/* Transition width on hover requires a trick — use pseudo */
+* { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+*:hover { scrollbar-color: hsl(239 30% 25% / 0.5) transparent; }
+.dark *:hover { scrollbar-color: hsl(210 28% 20% / 0.7) transparent; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   CARD SECTION DIVIDERS — subtle scan line between sections
+════════════════════════════════════════════════════════════════════ */
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--border) / 0.5) 20%,
+    hsl(var(--primary) / 0.2) 50%,
+    hsl(var(--border) / 0.5) 80%,
+    transparent 100%
+  );
+  margin: 1.5rem 0;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOOLTIP — fade + lift entrance
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes tooltipIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+[data-radix-popper-content-wrapper],
+[role="tooltip"] {
+  animation: tooltipIn 0.14s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   BADGE POP-IN — inline status badges (TECHO, MF, DIV, etc.)
+════════════════════════════════════════════════════════════════════ */
+
+@keyframes badgePop {
+  0%   { opacity: 0; transform: scale(0.7); }
+  70%  { transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Applied to any badge span rendered inside table rows */
+tbody td span[class*="rounded"] {
+  animation: badgePop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   FILTER / SEARCH INPUTS — glow on focus
+════════════════════════════════════════════════════════════════════ */
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 1.5px hsl(var(--primary) / 0.45),
+              0 0 8px hsl(var(--primary) / 0.15);
+  transition: box-shadow 0.18s ease;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SORT ARROW — smooth rotation when direction changes
+════════════════════════════════════════════════════════════════════ */
+
+.sort-arrow {
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity  0.2s ease;
+}
+
+.sort-arrow.asc  { transform: rotate(0deg);   opacity: 1; }
+.sort-arrow.desc { transform: rotate(180deg); opacity: 1; }
+.sort-arrow.none { opacity: 0.3; }
+
+
+/* Slightly larger tap targets for mobile buttons */
+@media (max-width: 640px) {
+  .nav-link {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
+
+  /* Ensure stat card numbers don't overflow on small screens */
+  .text-3xl.tabular-nums {
+    font-size: 1.5rem;
+  }
+
+  /* Better filter bar scrolling on mobile */
+  .glass .flex.flex-wrap {
+    gap: 0.5rem;
+  }
+}
