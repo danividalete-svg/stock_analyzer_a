@@ -311,7 +311,6 @@ export default function Insiders() {
       {/* Desktop table */}
       <div className="hidden sm:block">
         <Card className="glass animate-fade-in-up">
-          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="border-border/50 hover:bg-transparent">
@@ -406,7 +405,6 @@ export default function Insiders() {
                 })}
               </TableBody>
             </Table>
-          </div>
           {allRows.length === 0 && (
             <CardContent className="py-16 text-center">
               <div className="text-4xl mb-4 opacity-20">👤</div>
