@@ -29,11 +29,9 @@ DOCS     = ROOT / 'docs'
 LOG_PATH = DOCS / 'bounce_trader_log.json'
 
 TICKER_SOURCES = [
-    DOCS / 'value_conviction.csv',
-    DOCS / 'european_value_conviction.csv',
-    DOCS / 'value_opportunities_filtered.csv',
-    DOCS / 'mean_reversion_opportunities.csv',       # era mean_reversion.csv (no existía)
-    DOCS / 'european_value_opportunities_filtered.csv',
+    DOCS / 'value_opportunities.csv',
+    DOCS / 'european_value_opportunities.csv',
+    DOCS / 'mean_reversion_opportunities.csv',
 ]
 CEREBRO_SIGNALS_PATH = DOCS / 'cerebro_entry_signals.json'
 

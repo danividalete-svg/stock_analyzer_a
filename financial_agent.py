@@ -184,8 +184,8 @@ def load_all_signals() -> dict:
                 })
 
     # ── Value picks (top 10 por score) ────────────────────────────────────────
-    for path, key in [('value_opportunities_filtered.csv', 'value_us'),
-                      ('european_value_opportunities_filtered.csv', 'value_eu')]:
+    for path, key in [('value_opportunities.csv', 'value_us'),
+                      ('european_value_opportunities.csv', 'value_eu')]:
         rows = _load_csv_tickers(path, 'value_score', 10)
         for r in rows:
             ticker = str(r.get('ticker', '')).strip()

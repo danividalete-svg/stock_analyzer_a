@@ -63,47 +63,15 @@ CHAT_ID   = os.environ.get('TELEGRAM_CHAT_ID', '')
 # Universe building
 # ─────────────────────────────────────────────────────────────────────────────
 
-def load_ticker_universe(quick: bool = False) -> list[str]:
-    """Carga los tickers a escanear según el modo."""
-    tickers = set()
+def load_ticker_universe() -> list[str]:
+    """Carga el universo curado de ~105 empresas de calidad."""
+    from curated_tickers import get_universe
+    tickers = set(get_universe())
 
-    # Siempre incluir: VALUE picks filtrados (alta calidad)
-    for path in ['value_opportunities_filtered.csv', 'european_value_opportunities_filtered.csv']:
-        f = DOCS / path
-        if f.exists():
-            df = pd.read_csv(f)
-            col = 'ticker' if 'ticker' in df.columns else df.columns[0]
-            tickers.update(df[col].dropna().str.strip().str.upper().tolist())
-
-    # Siempre incluir: bounce setups actuales
-    mr = DOCS / 'mean_reversion_opportunities.json'
-    if mr.exists():
-        data = json.loads(mr.read_text())
-        for opp in data.get('opportunities', []):
-            t = opp.get('ticker', '')
-            if t:
-                tickers.add(t.strip().upper())
-
-    if quick:
-        return sorted(tickers)
-
-    # Modo completo: añadir momentum + insider picks
-    for path in ['momentum_opportunities.csv', 'value_opportunities.csv',
-                 'insider_activity.csv', '5d_opportunities.csv']:
-        f = DOCS / path
-        if f.exists():
-            try:
-                df = pd.read_csv(f)
-                col = 'ticker' if 'ticker' in df.columns else df.columns[0]
-                tickers.update(df[col].dropna().str.strip().str.upper().tolist()[:200])
-            except Exception:
-                pass
-
-    # Índices principales (siempre útil ver dónde va el dinero en SPY/QQQ)
+    # Añadir ETFs de referencia para contexto de mercado
     tickers.update(['SPY', 'QQQ', 'IWM', 'GLD', 'TLT', 'XLF', 'XLE', 'XLK'])
 
-    # Limpiar tickers inválidos
-    clean = [t for t in tickers if t and len(t) <= 5 and t.isalpha()]
+    clean = [t for t in tickers if t and len(t) <= 6]
     return sorted(clean)
 
 
@@ -564,7 +532,7 @@ def main():
         tickers = [t.strip().upper() for t in args.ticker.split(',')]
         print(f'📋 Modo específico: {len(tickers)} tickers')
     else:
-        tickers = load_ticker_universe(quick=args.quick)
+        tickers = load_ticker_universe()
         mode = 'quick' if args.quick else 'completo'
         print(f'📋 Universo {mode}: {len(tickers)} tickers')
 

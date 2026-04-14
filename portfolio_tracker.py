@@ -59,10 +59,7 @@ class PortfolioTracker:
         signals_recorded = 0
 
         # Record VALUE opportunities — only high-conviction signals (score ≥ 55, grade A/B)
-        # Prefer value_conviction.csv (already pre-filtered), fallback to filtered with score gate
-        for value_path in [Path('docs/value_conviction.csv'), Path('docs/value_opportunities_filtered.csv')]:
-            if value_path.exists():
-                break
+        value_path = Path('docs/value_opportunities.csv')
         if value_path.exists():
             vdf = pd.read_csv(value_path)
             if not vdf.empty:

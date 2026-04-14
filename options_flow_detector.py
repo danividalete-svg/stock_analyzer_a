@@ -373,29 +373,21 @@ class OptionsFlowDetector:
 
 
 def load_5d_opportunities() -> Tuple[List[str], Dict[str, str]]:
-    """Carga tickers desde oportunidades 5D para análisis"""
-    csv_path = Path("docs/super_opportunities_5d_complete.csv")
+    """Carga tickers del universo curado (Tier 1+2+3, ~105 empresas de calidad)."""
+    from curated_tickers import get_universe
+    tickers = get_universe()
 
-    if not csv_path.exists():
-        print("⚠️  No hay oportunidades 5D. Usando watchlist por defecto.")
-        # Watchlist de high volume stocks con opciones líquidas
-        default_tickers = [
-            'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX',
-            'AMD', 'INTC', 'CRM', 'ADBE', 'PLTR', 'COIN', 'SQ', 'SHOP',
-            'SPY', 'QQQ', 'IWM', 'DIA'  # ETFs for market sentiment
-        ]
-        return default_tickers, {}
-
-    df = pd.read_csv(csv_path)
-    tickers = df['ticker'].tolist()
-
-    # Cargar nombres de empresas si existen
     company_names = {}
-    if 'company_name' in df.columns:
-        company_names = dict(zip(df['ticker'], df['company_name']))
+    fs_path = Path("docs/fundamental_scores.csv")
+    if fs_path.exists():
+        try:
+            df = pd.read_csv(fs_path)
+            if 'company_name' in df.columns:
+                company_names = dict(zip(df['ticker'], df['company_name']))
+        except Exception:
+            pass
 
-    print(f"📊 Cargados {len(tickers)} tickers desde 5D opportunities")
-
+    print(f"📊 Cargados {len(tickers)} tickers desde universo curado")
     return tickers, company_names
 
 
