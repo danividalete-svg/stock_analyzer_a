@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-14",
-  "scan_time": "13:06",
+  "scan_time": "15:46",
   "tickers": [
     "MSFT",
     "NKE",
@@ -8,10 +8,10 @@
     "UNH",
     "BSX"
   ],
-  "count": 29,
+  "count": 28,
   "alta_count": 6,
-  "media_count": 10,
-  "new_alerts": 8,
+  "media_count": 11,
+  "new_alerts": 5,
   "items": [
     {
       "id": "bc59e823-978d-339d-a637-37f8df95183b",
@@ -29,7 +29,7 @@
       "title": "Will Boston Scientific (BSX) Beat Estimates Again in Its Next Earnings Report?",
       "source": "Zacks",
       "pub_date": "2026-04-13T16:10:03Z",
-      "time_ago": "hace 20h",
+      "time_ago": "hace 23h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/boston-scientific-bsx-beat-estimates-161003564.html",
       "importance": "ALTA"
     },
@@ -39,18 +39,18 @@
       "title": "Analyst Raises Price Target on UnitedHealth Group (UNH), Keeps ‘Neutral’ Rating",
       "source": "Insider Monkey",
       "pub_date": "2026-04-14T02:14:41Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 13h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/analyst-raises-price-target-unitedhealth-021441954.html",
       "importance": "ALTA"
     },
     {
-      "id": "f2c629e4-333f-33c7-8043-6ed03729c8c5",
+      "id": "dd828ea1-8ab3-37b8-9e7d-fbea94ac3095",
       "ticker": "MSFT",
-      "title": "Cloud AI Today - AI-Powered Quest Platform Enhances Identity Security Management",
-      "source": "Simply Wall St.",
-      "pub_date": "2026-04-14T12:38:16Z",
-      "time_ago": "hace 27min",
-      "url": "https://finance.yahoo.com/sectors/technology/articles/cloud-ai-today-ai-powered-123816907.html",
+      "title": "Anthropic Has Wiped Out Trillions From the Software Sector. 2 Things Can Happen Next",
+      "source": "Motley Fool",
+      "pub_date": "2026-04-14T14:20:00Z",
+      "time_ago": "hace 1h",
+      "url": "https://www.fool.com/investing/2026/04/14/anthropic-has-wiped-out-trillions-from-the-softwar/",
       "importance": "ALTA"
     },
     {
@@ -58,7 +58,7 @@
       "ticker": "UNH",
       "title": "⏰ Earnings en 6 días — 21 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-14T13:06:00.229285+00:00",
+      "pub_date": "2026-04-14T15:46:35.599632+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
@@ -68,7 +68,7 @@
       "ticker": "BSX",
       "title": "⏰ Earnings en 7 días — 22 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-14T13:06:00.848042+00:00",
+      "pub_date": "2026-04-14T15:46:36.289955+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
@@ -79,7 +79,7 @@
       "title": "Nike downgraded, Starbucks upgraded: Wall Street's top analyst calls",
       "source": "The Fly",
       "pub_date": "2026-04-13T13:58:26Z",
-      "time_ago": "hace 23h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/news/netflix-resumed-starbucks-downgraded-wall-133343741.html",
       "importance": "MEDIA"
     },
@@ -89,7 +89,7 @@
       "title": "Nike Got Downgraded: Can the Iconic Brand Ever Recover?",
       "source": "Motley Fool",
       "pub_date": "2026-04-13T16:05:00Z",
-      "time_ago": "hace 21h",
+      "time_ago": "hace 23h",
       "url": "https://www.fool.com/investing/2026/04/13/nike-got-downgraded-can-the-iconic-brand-recover/",
       "importance": "MEDIA"
     },
@@ -99,7 +99,7 @@
       "title": "HSBC Downgrades Nike to Hold as Turnaround Becomes a Show-Me Story With No Near-Term Catalysts",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-13T16:13:15Z",
-      "time_ago": "hace 20h",
+      "time_ago": "hace 23h",
       "url": "https://247wallst.com/investing/2026/04/13/hsbc-downgrades-nike-to-hold-as-turnaround-becomes-a-show-me-story-with-no-near-term-catalysts/",
       "importance": "MEDIA"
     },
@@ -109,7 +109,7 @@
       "title": "Is Nike at Risk of Losing Its ‘Superpower’ Status? Here’s Why One Analyst Thinks It’s a Possibility",
       "source": "Footwear News",
       "pub_date": "2026-04-13T21:08:55Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 18h",
       "url": "https://wwd.com/footwear-news/shoe-industry-news/analyst-jay-sole-nike-sportswear-superpower-status-1238913756/",
       "importance": "MEDIA"
     },
@@ -119,7 +119,7 @@
       "title": "NIKE (NKE) Downgraded to Neutral, Price Target Cut by $10",
       "source": "Insider Monkey",
       "pub_date": "2026-04-14T02:06:27Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 13h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-nke-downgraded-neutral-price-020627357.html",
       "importance": "MEDIA"
     },
@@ -129,7 +129,7 @@
       "title": "1 Profitable Stock to Own for Decades and 2 That Underwhelm",
       "source": "StockStory",
       "pub_date": "2026-04-14T08:14:03Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 7h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/1-profitable-stock-own-decades-081403194.html",
       "importance": "MEDIA"
     },
@@ -139,38 +139,48 @@
       "title": "Nike (NKE) Valuation Check After Turnaround Challenges And Analyst Downgrades",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-14T10:04:14Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 5h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-nke-valuation-check-turnaround-100414178.html",
       "importance": "MEDIA"
     },
     {
-      "id": "a50e94da-839d-3c67-bdde-9f992e5e71d9",
+      "id": "71874126-091c-32f5-9716-0fb7c05f2ce8",
       "ticker": "MSFT",
-      "title": "A Look At Wolverine World Wide’s Valuation As New AI Partnership Targets Higher Value Shoppers",
-      "source": "Simply Wall St.",
-      "pub_date": "2026-04-14T11:05:01Z",
-      "time_ago": "hace 2h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/look-wolverine-world-wide-valuation-110501153.html",
-      "importance": "MEDIA"
-    },
-    {
-      "id": "9e851333-8f49-3198-b3ad-e6f37b37329c",
-      "ticker": "MSFT",
-      "title": "Why AI Disruption Is a Short Seller’s Best Friend — Muddy Waters Founder Sees Profits in Market Turmoil",
-      "source": "TipRanks",
-      "pub_date": "2026-04-14T12:44:53Z",
-      "time_ago": "hace 21min",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/why-ai-disruption-short-seller-124453104.html",
-      "importance": "MEDIA"
-    },
-    {
-      "id": "1f83a17f-a712-3ac0-8cd7-849d85ced629",
-      "ticker": "MSFT",
-      "title": "Warning: “Existential Risk” as Mega IPOs Could Trigger $100 Billion Stock Selloff",
+      "title": "Mizuho Trims Microsoft Price Target to $515: How Much Upside Is Left in This AI Titan?",
       "source": "24/7 Wall St.",
-      "pub_date": "2026-04-14T12:46:03Z",
-      "time_ago": "hace 19min",
-      "url": "https://247wallst.com/investing/2026/04/14/warning-existential-risk-as-mega-ipos-could-trigger-100-billion-stock-selloff/",
+      "pub_date": "2026-04-14T13:48:47Z",
+      "time_ago": "hace 1h",
+      "url": "https://247wallst.com/investing/2026/04/14/mizuho-trims-microsoft-price-target-to-515-how-much-upside-is-left-in-this-ai-titan/",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "8900090c-07bf-3415-9336-76264c16e183",
+      "ticker": "MSFT",
+      "title": "Cloudflare Named a Top Q1 Pick by Mizuho Despite Price Target Cut: Is Now the Time to Buy?",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-14T14:06:41Z",
+      "time_ago": "hace 1h",
+      "url": "https://247wallst.com/investing/2026/04/14/cloudflare-named-a-top-q1-pick-by-mizuho-despite-price-target-cut-is-now-the-time-to-buy/",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "32d264a7-684d-3f9e-b16e-17015241cdb0",
+      "ticker": "MSFT",
+      "title": "Palantir Sees Target Cut to $185 by Mizuho: Is the AI Darling Losing Its Luster?",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-14T14:09:24Z",
+      "time_ago": "hace 1h",
+      "url": "https://247wallst.com/investing/2026/04/14/palantir-sees-target-cut-to-185-by-mizuho-is-the-ai-darling-losing-its-luster/",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "25e4766a-ac36-3d22-94d2-3255493cb4ef",
+      "ticker": "MSFT",
+      "title": "Microsoft Expands Enterprise AI Ties As Valuation Sits Below Analyst Targets",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-14T15:04:39Z",
+      "time_ago": "hace 41min",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/microsoft-expands-enterprise-ai-ties-150439980.html",
       "importance": "MEDIA"
     },
     {
@@ -184,22 +194,12 @@
       "importance": "BAJA"
     },
     {
-      "id": "5a982fa4-e19a-4eea-8fd7-cedda3a38c24",
-      "ticker": "MSFT",
-      "title": "Goldman Sachs with a reality check on AI: Fears of disruption will hang over growth stocks for years",
-      "source": "Yahoo Finance",
-      "pub_date": "2026-04-13T13:12:33Z",
-      "time_ago": "hace 23h",
-      "url": "https://finance.yahoo.com/news/goldman-sachs-with-a-reality-check-on-ai-fears-of-disruption-will-hang-over-growth-stocks-for-years-131233368.html",
-      "importance": "BAJA"
-    },
-    {
       "id": "d1966a1e-8694-37d4-a2c9-77c2ffd4ff64",
       "ticker": "UNH",
       "title": "Patient Opportunity Equity Strategy Remains Firm on Its Thesis for UnitedHealth Group (UNH)",
       "source": "Insider Monkey",
       "pub_date": "2026-04-13T13:40:43Z",
-      "time_ago": "hace 23h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/patient-opportunity-equity-strategy-remains-134043001.html",
       "importance": "BAJA"
     },
@@ -209,8 +209,18 @@
       "title": "FDS or VRSK: Which Is the Better Value Stock Right Now?",
       "source": "Zacks",
       "pub_date": "2026-04-13T15:40:02Z",
-      "time_ago": "hace 21h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/fds-vrsk-better-value-stock-154002374.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "00de8b33-de86-42f7-8c1a-677a4f581e8e",
+      "ticker": "MSFT",
+      "title": "Amazon stock leads 9-day Mag 7 performance, Tesla falls behind",
+      "source": "Yahoo Finance Video",
+      "pub_date": "2026-04-13T19:42:26Z",
+      "time_ago": "hace 20h",
+      "url": "https://finance.yahoo.com/video/amazon-stock-leads-9-day-mag-7-performance-tesla-falls-behind-194226931.html",
       "importance": "BAJA"
     },
     {
@@ -219,7 +229,7 @@
       "title": "UnitedHealth Group (UNH) Outperforms Broader Market: What You Need to Know",
       "source": "Zacks",
       "pub_date": "2026-04-13T21:50:05Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 17h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/unitedhealth-group-unh-outperforms-broader-215005111.html",
       "importance": "BAJA"
     },
@@ -229,7 +239,7 @@
       "title": "Nike Leadership Change Puts Focus On Product Reset And Investor Confidence",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-14T09:05:24Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 6h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-leadership-change-puts-focus-090524967.html",
       "importance": "BAJA"
     },
@@ -239,18 +249,8 @@
       "title": "1 Glimmer of Hope for Hard-Hit Nike Stock: Teens Love Nike",
       "source": "Motley Fool",
       "pub_date": "2026-04-14T09:35:00Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 6h",
       "url": "https://www.fool.com/investing/2026/04/14/1-glimmer-of-hope-for-hard-hit-nike-stock-teens-lo/",
-      "importance": "BAJA"
-    },
-    {
-      "id": "71222ea2-886e-4c99-a388-a24c2ef2c11b",
-      "ticker": "MSFT",
-      "title": "AI trade is leading the stock market again: Chart of the Day",
-      "source": "Yahoo Finance",
-      "pub_date": "2026-04-14T10:00:44Z",
-      "time_ago": "hace 3h",
-      "url": "https://finance.yahoo.com/news/ai-trade-is-leading-the-stock-market-again-chart-of-the-day-100044721.html",
       "importance": "BAJA"
     },
     {
@@ -259,48 +259,38 @@
       "title": "Why the Dogs of the Dow Strategy Says Nike Is a Buy Right Now",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-14T10:35:42Z",
-      "time_ago": "hace 2h",
+      "time_ago": "hace 5h",
       "url": "https://247wallst.com/investing/2026/04/14/why-the-dogs-of-the-dow-strategy-says-nike-is-a-buy-right-now/",
       "importance": "BAJA"
     },
     {
-      "id": "886659c3-d9be-3959-b8f8-5500958fd05b",
+      "id": "5a7c5228-bcd9-32e7-a35d-cb151f969a89",
       "ticker": "MSFT",
-      "title": "From Growth Stock to Blue Chip: Is CrowdStrike Ready for the Dow?",
+      "title": "Should You Buy, Sell or Hold Microsoft (MSFT) Stock at $386?",
       "source": "24/7 Wall St.",
-      "pub_date": "2026-04-14T11:35:03Z",
-      "time_ago": "hace 1h",
-      "url": "https://247wallst.com/investing/2026/04/14/from-growth-stock-to-blue-chip-is-crowdstrike-ready-for-the-dow/",
+      "pub_date": "2026-04-14T13:30:03Z",
+      "time_ago": "hace 2h",
+      "url": "https://247wallst.com/investing/2026/04/14/should-you-buy-sell-or-hold-microsoft-msft-stock-at-386/",
       "importance": "BAJA"
     },
     {
-      "id": "db28f958-6ea1-3ae1-a53f-62edc1aae74b",
+      "id": "ba804711-f333-3e16-8393-5bfe286fb590",
       "ticker": "MSFT",
-      "title": "Microsoft Corporation (MSFT) Affirms $10B AI Infrastructure Expansion in Japan",
-      "source": "Insider Monkey",
-      "pub_date": "2026-04-14T11:44:13Z",
+      "title": "Anthropic Adds Novartis CEO to Board",
+      "source": "The Wall Street Journal",
+      "pub_date": "2026-04-14T14:04:00Z",
       "time_ago": "hace 1h",
-      "url": "https://finance.yahoo.com/sectors/technology/articles/microsoft-corporation-msft-affirms-10b-114413330.html",
+      "url": "https://www.wsj.com/tech/ai/anthropic-adds-novartis-ceo-to-board-6e642bf4?siteid=yhoof2&yptr=yahoo",
       "importance": "BAJA"
     },
     {
-      "id": "f9a6b3ed-fe91-314d-b840-55a7069c7ac8",
+      "id": "aaab0702-f5f0-3f03-b805-875751b372d4",
       "ticker": "MSFT",
-      "title": "This Will Be Microsoft’s Price Next Year",
-      "source": "24/7 Wall St.",
-      "pub_date": "2026-04-14T11:54:13Z",
-      "time_ago": "hace 1h",
-      "url": "https://247wallst.com/investing/2026/04/14/this-will-be-microsofts-price-next-year/",
-      "importance": "BAJA"
-    },
-    {
-      "id": "21f6bdb5-ab2a-3e1b-8ffc-3e7a5c747ffd",
-      "ticker": "MSFT",
-      "title": "Update: Market Chatter: Microsoft Developing New Features for Copilot Inspired by OpenClaw",
-      "source": "MT Newswires",
-      "pub_date": "2026-04-14T12:39:24Z",
-      "time_ago": "hace 26min",
-      "url": "https://finance.yahoo.com/sectors/technology/articles/market-chatter-microsoft-developing-features-123924356.html",
+      "title": "What’s Really Fueling The Amazon Stock Rally?",
+      "source": "Trefis",
+      "pub_date": "2026-04-14T15:00:47Z",
+      "time_ago": "hace 45min",
+      "url": "https://www.trefis.com/articles/596546/whats-really-fueling-the-amazon-stock-rally/2026-04-14",
       "importance": "BAJA"
     }
   ]
