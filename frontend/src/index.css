@@ -314,8 +314,8 @@ button:active:not(:disabled) { transform: scale(0.97); }
   inset: 0;
   background: linear-gradient(90deg, transparent 0%, hsl(0 0% 100% / 0.45) 50%, transparent 100%);
   width: 50%;
-  animation: scoreShimmer 3.2s ease-in-out infinite;
-  animation-delay: 1s;
+  animation: scoreShimmer 7s ease-in-out infinite;
+  animation-delay: 2s;
   pointer-events: none;
 }
 @keyframes scoreShimmer {
@@ -386,7 +386,7 @@ button:active:not(:disabled) { transform: scale(0.97); }
 .grade-D { background: #fef2f2; color: #991b1b; border-color: #dc2626; text-shadow: none; }
 
 /* Dark mode — solid dark tints so linter can verify contrast */
-.dark .grade-A { background: #052e16; color: #4ade80; border-color: #166534; animation: gradeAGlow 3.5s ease-in-out infinite; }
+.dark .grade-A { background: #052e16; color: #4ade80; border-color: #166534; box-shadow: 0 0 8px hsl(160 84% 45% / 0.25); }
 .dark .grade-B { background: #172554; color: #93c5fd; border-color: #1e40af; }
 .dark .grade-C { background: #1c1404; color: #fbbf24; border-color: #92400e; }
 .dark .grade-D { background: #1c0505; color: #f87171; border-color: #7f1d1d; }
@@ -646,36 +646,23 @@ tr[class*="cursor-pointer"]:hover td:first-child {
    ROTATING GRADIENT BORDER — for stat cards, @property required
 ════════════════════════════════════════════════════════════════════ */
 
-@property --glow-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
 .glow-border {
   position: relative;
   isolation: isolate;
-  --glow-angle: 0deg;
-  animation: glowRotate 5s linear infinite;
 }
 .glow-border::before {
   content: '';
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  background: conic-gradient(
-    from var(--glow-angle),
-    transparent          0%,
-    hsl(239 84% 67% / 0.55) 18%,
-    hsl(160 84% 55% / 0.55) 36%,
-    hsl(300 80% 65% / 0.45) 54%,
-    hsl(38  92% 62% / 0.35) 72%,
-    transparent          90%
+  background: linear-gradient(
+    135deg,
+    hsl(239 84% 67% / 0.45),
+    hsl(160 84% 55% / 0.45),
+    hsl(300 80% 65% / 0.35),
+    hsl(38  92% 62% / 0.25)
   );
   z-index: -1;
-}
-@keyframes glowRotate {
-  to { --glow-angle: 360deg; }
 }
 
 /* Inner fill so the card background covers the conic gradient */

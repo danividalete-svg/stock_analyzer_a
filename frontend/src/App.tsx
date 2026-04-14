@@ -54,7 +54,6 @@ function NavItem({ item, onClose }: { item: (typeof NAV_PRIMARY)[0]; onClose: ()
     >
       <span className="nav-icon shrink-0"><item.icon size={15} strokeWidth={1.65} /></span>
       <span className="flex-1 truncate">{item.label}</span>
-      {item.tag && <span className="text-sm leading-none opacity-75 shrink-0">{item.tag}</span>}
     </NavLink>
   )
 }
@@ -72,7 +71,6 @@ function SidebarContent({ onClose, onSignOut }: Readonly<{ onClose: () => void; 
           </div>
           <div className="min-w-0">
             <h1 className="text-sm font-bold tracking-tight text-foreground leading-tight">Stock Analyzer</h1>
-            <span className="text-[0.55rem] text-muted-foreground/50 uppercase tracking-widest font-semibold">Pipeline diario</span>
           </div>
         </div>
         <button
@@ -94,10 +92,10 @@ function SidebarContent({ onClose, onSignOut }: Readonly<{ onClose: () => void; 
         <div className="mt-3">
           <button
             onClick={() => setMoreOpen(v => !v)}
-            className="flex w-full items-center gap-2 px-3 py-1.5 rounded-lg text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
+            className="flex w-full items-center gap-2 px-3 py-1.5 rounded-lg text-[0.62rem] font-semibold uppercase tracking-widest text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors"
           >
-            <span className="flex-1 text-left">Más herramientas</span>
-            <ChevronDown size={12} strokeWidth={2} className={cn('transition-transform duration-200', moreOpen ? 'rotate-180' : '')} />
+            <span className="flex-1 text-left">Más</span>
+            <ChevronDown size={11} strokeWidth={1.75} className={cn('transition-transform duration-200', moreOpen ? 'rotate-180' : '')} />
           </button>
 
           <div className={cn('collapsible-panel', moreOpen && 'open')}>
