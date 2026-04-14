@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import TickerLogo from '../components/TickerLogo'
 import PriceChart from '../components/PriceChart'
 import { useCerebroSignals, type CerebroMaps } from '../hooks/useCerebroSignals'
+import { usePortfolioConfluence, type ConfluenceSignals } from '../hooks/usePortfolioConfluence'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -620,12 +621,13 @@ function MetricChip({ label, value, valueClass = 'text-foreground' }: { label: s
   )
 }
 
-function PositionCard({ result, pos, userId, onRemove, cerebro }: {
+function PositionCard({ result, pos, userId, onRemove, cerebro, confluence }: {
   result?: PositionResult
   pos: Position
   userId: string
   onRemove: () => void
   cerebro: CerebroMaps
+  confluence: ConfluenceSignals | null
 }) {
   const [expanded, setExpanded] = useState(false)
   const ticker = pos.ticker
@@ -745,6 +747,32 @@ function PositionCard({ result, pos, userId, onRemove, cerebro }: {
         </div>
       )}
 
+      {/* ── CONFLUENCE SIGNALS ── */}
+      {confluence && (confluence.bounce || confluence.value || confluence.flow) && (
+        <div className="flex flex-wrap gap-1.5 px-4 mb-3">
+          {confluence.bounce && (
+            <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30">
+              🎯 Bounce
+            </span>
+          )}
+          {confluence.value && (
+            <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+              💎 VALUE
+            </span>
+          )}
+          {confluence.flow === 'BULLISH' && (
+            <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              ⚡ Flow alcista
+            </span>
+          )}
+          {confluence.flow === 'PUT_COVERING' && (
+            <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-300 border border-yellow-500/30">
+              🔄 Suelo probable
+            </span>
+          )}
+        </div>
+      )}
+
       {/* ── CHART ── */}
       <div className="mx-3 rounded-xl overflow-hidden border border-border/20 mb-3">
         <PriceChart ticker={ticker} height={58} mini />
@@ -836,7 +864,8 @@ function PositionCard({ result, pos, userId, onRemove, cerebro }: {
 
 export default function PersonalPortfolio() {
   const { user } = useAuth()
-  const cerebro = useCerebroSignals()
+  const cerebro    = useCerebroSignals()
+  const confluence = usePortfolioConfluence()
   const [positions, setPositions] = useState<Position[]>([])
   const [loadingDb, setLoadingDb] = useState(true)
   const [saving, setSaving]       = useState(false)
@@ -1181,6 +1210,7 @@ export default function PersonalPortfolio() {
                         result={result?.positions.find(r => r.ticker === pos.ticker)}
                         onRemove={() => removePosition(pos.id)}
                         cerebro={cerebro}
+                        confluence={confluence[pos.ticker] ?? null}
                       />
                     </div>
                   ))}

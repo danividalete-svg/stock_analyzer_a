@@ -13,7 +13,6 @@ const ROUTE_TITLES: Record<string, string> = {
   '/value':           'Value',
   '/macro-radar':     'Macro',
   '/insiders':        'Insiders',
-  '/confluencia':     'Confluencia',
   '/bounce':          'Bounce',
   '/my-portfolio':    'Mi cartera',
   '/owner-earnings':  'Valoración',

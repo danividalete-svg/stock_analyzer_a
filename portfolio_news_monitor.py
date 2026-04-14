@@ -112,13 +112,115 @@ def _load_portfolio_from_supabase() -> list:
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             rows = json.loads(resp.read().decode())
-            tickers = [{'ticker': r['ticker'], 'notes': f"{r.get('shares', '')}sh @ {r.get('avg_price', '')}"}
-                       for r in rows if r.get('ticker')]
-            print(f"  Supabase: {len(tickers)} positions loaded")
-            return tickers
+            positions = []
+            for r in rows:
+                if not r.get('ticker'):
+                    continue
+                avg = r.get('avg_price')
+                shares = r.get('shares')
+                positions.append({
+                    'ticker': r['ticker'],
+                    'avg_price': float(avg) if avg else None,
+                    'shares': float(shares) if shares else None,
+                    'notes': f"{shares or '?'}sh @ {avg or '?'}",
+                })
+            print(f"  Supabase: {len(positions)} positions loaded")
+            return positions
     except Exception as e:
         print(f"  Supabase load failed: {e}")
         return []
+
+
+# P&L thresholds
+_STOP_LOSS_PCT     = -8.0
+_PROFIT_TARGET_PCT = 12.0
+_NEAR_TARGET_PCT   = 8.0
+
+
+def _check_pl_alerts(portfolio: list) -> tuple[list[dict], dict]:
+    """
+    Fetches current prices via yfinance and calculates P&L per position.
+    Returns (alert_items, summary_dict).
+    Alerts include stop-loss, profit, near-target zones.
+    """
+    alerts   = []
+    total_cost = 0.0
+    total_val  = 0.0
+    positions_pl = []
+
+    for entry in portfolio:
+        ticker    = entry['ticker'].upper()
+        avg_price = entry.get('avg_price')
+        shares    = entry.get('shares')
+
+        if not avg_price or not shares or avg_price <= 0:
+            continue
+
+        try:
+            info      = yf.Ticker(ticker).info
+            cur_price = (info.get('currentPrice') or info.get('regularMarketPrice')
+                         or info.get('previousClose') or 0)
+        except Exception:
+            cur_price = 0
+
+        if not cur_price:
+            continue
+
+        pl_pct   = (cur_price - avg_price) / avg_price * 100
+        cost     = shares * avg_price
+        mkt_val  = shares * cur_price
+        total_cost += cost
+        total_val  += mkt_val
+        positions_pl.append({'ticker': ticker, 'pl_pct': pl_pct, 'mkt_val': mkt_val})
+
+        if pl_pct <= _STOP_LOSS_PCT:
+            alerts.append({
+                'id':         f'pl_stop_{ticker}',
+                'ticker':     ticker,
+                'title':      f'🔴 Stop-loss zone: {pl_pct:+.1f}% — revisar tesis',
+                'source':     'P&L Monitor',
+                'pub_date':   datetime.now(timezone.utc).isoformat(),
+                'time_ago':   '',
+                'url':        '',
+                'importance': 'ALTA',
+                'pl_pct':     pl_pct,
+                'cur_price':  cur_price,
+            })
+        elif pl_pct >= _PROFIT_TARGET_PCT:
+            alerts.append({
+                'id':         f'pl_profit_{ticker}',
+                'ticker':     ticker,
+                'title':      f'🟢 Profit zone: {pl_pct:+.1f}% — considera recoger',
+                'source':     'P&L Monitor',
+                'pub_date':   datetime.now(timezone.utc).isoformat(),
+                'time_ago':   '',
+                'url':        '',
+                'importance': 'MEDIA',
+                'pl_pct':     pl_pct,
+                'cur_price':  cur_price,
+            })
+        elif pl_pct >= _NEAR_TARGET_PCT:
+            alerts.append({
+                'id':         f'pl_near_{ticker}',
+                'ticker':     ticker,
+                'title':      f'🔵 Cerca del objetivo: {pl_pct:+.1f}% — vigilar',
+                'source':     'P&L Monitor',
+                'pub_date':   datetime.now(timezone.utc).isoformat(),
+                'time_ago':   '',
+                'url':        '',
+                'importance': 'MEDIA',
+                'pl_pct':     pl_pct,
+                'cur_price':  cur_price,
+            })
+
+    total_pl_pct = ((total_val - total_cost) / total_cost * 100) if total_cost > 0 else None
+    summary = {
+        'total_cost':    total_cost,
+        'total_val':     total_val,
+        'total_pl_pct':  total_pl_pct,
+        'positions':     sorted(positions_pl, key=lambda x: x['pl_pct']),
+    }
+    return alerts, summary
 
 
 def _load_portfolio() -> list:
@@ -242,39 +344,64 @@ def _fetch_earnings_alert(ticker: str) -> Optional[dict]:
     return None
 
 
-def _send_telegram(alerts: list, portfolio_labels: dict) -> None:
+def _send_telegram(alerts: list, portfolio_labels: dict,
+                   pl_alerts: list, pl_summary: dict) -> None:
     bot_token = os.environ.get('TELEGRAM_BOT_TOKEN', '')
     chat_id   = os.environ.get('TELEGRAM_CHAT_ID', '')
     if not bot_token or not chat_id:
         return
 
-    important = [a for a in alerts if a['importance'] in ('ALTA', 'MEDIA')]
-    if not important:
+    # P&L alerts are always new (point-in-time); news alerts filter by seen cache
+    important_news = [a for a in alerts if a['importance'] in ('ALTA', 'MEDIA')]
+    has_content    = important_news or pl_alerts
+
+    if not has_content:
         return
 
     lines = [
-        f'📰 <b>Noticias Cartera</b> — {datetime.now().strftime("%d %b %Y")}',
+        f'📊 <b>Cartera</b> — {datetime.now().strftime("%d %b %Y %H:%M")}',
         '',
     ]
 
-    # Group by ticker
-    by_ticker: dict = {}
-    for a in important:
-        by_ticker.setdefault(a['ticker'], []).append(a)
-
-    for ticker, items in by_ticker.items():
-        label = portfolio_labels.get(ticker, ticker)
-        lines.append(f'<b>{ticker}</b> <i>({label})</i>')
-        for item in items[:3]:  # Max 3 per ticker
-            icon = '🔴' if item['importance'] == 'ALTA' else '📌'
-            title = item['title'][:120]
-            time_str = f" · {item['time_ago']}" if item['time_ago'] else ''
-            lines.append(f"  {icon} {title}")
-            lines.append(f"  <i>{item['source']}{time_str}</i>")
+    # ── P&L summary ───────────────────────────────────────────────────────────
+    if pl_summary.get('positions'):
+        total_pct = pl_summary.get('total_pl_pct')
+        total_str = f"{total_pct:+.1f}%" if total_pct is not None else '?'
+        lines.append(f'<b>P&L cartera: {total_str}</b>')
+        for p in pl_summary['positions']:
+            icon = '🔴' if p['pl_pct'] <= _STOP_LOSS_PCT else (
+                   '🟢' if p['pl_pct'] >= _PROFIT_TARGET_PCT else (
+                   '🔵' if p['pl_pct'] >= _NEAR_TARGET_PCT else '⚪'))
+            lines.append(f"  {icon} <code>{p['ticker']}</code> {p['pl_pct']:+.1f}%")
         lines.append('')
 
-    lines.append('<i>Portfolio Monitor · Stock Analyzer</i>')
-    text = '\n'.join(lines)
+    # ── P&L zone alerts ───────────────────────────────────────────────────────
+    if pl_alerts:
+        lines.append('⚠️ <b>Alertas de precio:</b>')
+        for a in pl_alerts:
+            lines.append(f"  {a['title']}")
+        lines.append('')
+
+    # ── News alerts ───────────────────────────────────────────────────────────
+    if important_news:
+        lines.append('📰 <b>Noticias relevantes:</b>')
+        by_ticker: dict = {}
+        for a in important_news:
+            by_ticker.setdefault(a['ticker'], []).append(a)
+        for ticker, items in by_ticker.items():
+            label = portfolio_labels.get(ticker, ticker)
+            lines.append(f'<b>{ticker}</b> <i>({label})</i>')
+            for item in items[:3]:
+                icon     = '🔴' if item['importance'] == 'ALTA' else '📌'
+                title    = item['title'][:120]
+                time_str = f" · {item['time_ago']}" if item['time_ago'] else ''
+                lines.append(f"  {icon} {title}")
+                lines.append(f"  <i>{item['source']}{time_str}</i>")
+            lines.append('')
+
+    text = '\n'.join(lines).rstrip()
+    if len(text) > 4000:
+        text = text[:3980] + '\n<i>... (truncado)</i>'
 
     try:
         import requests
@@ -289,7 +416,8 @@ def _send_telegram(alerts: list, portfolio_labels: dict) -> None:
             timeout=10,
         )
         if resp.status_code == 200:
-            print(f"  Telegram: enviadas {len(important)} alertas de cartera")
+            n = len(pl_alerts) + len(important_news)
+            print(f"  Telegram: enviadas {n} alertas de cartera")
         else:
             print(f"  Telegram error: {resp.status_code} {resp.text[:100]}")
     except Exception as e:
@@ -313,11 +441,20 @@ def run_portfolio_news_monitor() -> dict:
         for p in portfolio
     }
 
+    # ── P&L check (uses avg_price from Supabase) ─────────────────────────────
+    print("  Calculando P&L posiciones...", flush=True)
+    pl_alerts, pl_summary = _check_pl_alerts(portfolio)
+    if pl_summary.get('positions'):
+        for p in pl_summary['positions']:
+            print(f"    {p['ticker']}: {p['pl_pct']:+.1f}%")
+    if pl_alerts:
+        print(f"  ⚠️ {len(pl_alerts)} posiciones en zona de alerta")
+
+    # ── News + Earnings ───────────────────────────────────────────────────────
     for entry in portfolio:
         ticker = entry['ticker'].upper()
         print(f"  {ticker}...", end=' ', flush=True)
 
-        # News
         news = _fetch_ticker_news(ticker, lookback_hours=48)
         for item in news:
             all_items.append(item)
@@ -325,7 +462,6 @@ def run_portfolio_news_monitor() -> dict:
                 new_alerts.append(item)
                 seen_ts[item['id']] = datetime.now(timezone.utc).isoformat()
 
-        # Earnings alert
         earn = _fetch_earnings_alert(ticker)
         if earn:
             all_items.insert(0, earn)
@@ -341,12 +477,12 @@ def run_portfolio_news_monitor() -> dict:
     _order = {'ALTA': 0, 'MEDIA': 1, 'BAJA': 2}
     all_items.sort(key=lambda x: (_order.get(x['importance'], 2), x.get('pub_date', '')), reverse=False)
 
-    # Send Telegram for new important alerts
-    if new_alerts:
-        print(f"  Sending {len(new_alerts)} new alerts to Telegram...")
-        _send_telegram(new_alerts, portfolio_labels)
+    # Enviar solo si hay algo accionable (P&L alerts o noticias nuevas)
+    # El resumen P&L completo va en el briefing matutino de financial_agent.py
+    if new_alerts or pl_alerts:
+        _send_telegram(new_alerts, portfolio_labels, pl_alerts, pl_summary)
     else:
-        print("  No new important alerts to send")
+        print("  Cartera OK — sin alertas nuevas")
 
     # Persist seen IDs
     _save_seen_ids(seen_ts)

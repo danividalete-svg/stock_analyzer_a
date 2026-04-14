@@ -1,1 +1,0 @@
-import{j as t,D as s}from"./index-CLVFe0GY.js";function d({dataset:r,label:o,className:e}){return t.jsxs("button",{onClick:()=>s(r),title:`Descargar ${r}.csv`,className:`text-xs px-3 py-1 rounded border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary transition-colors ${e??""}`,children:["↓ ",o??"CSV"]})}export{d as C};

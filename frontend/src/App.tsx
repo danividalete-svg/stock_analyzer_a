@@ -34,7 +34,6 @@ const Comparador       = lazy(() => import('./pages/Comparador'))
 const Cerebro          = lazy(() => import('./pages/Cerebro'))
 const Alerts           = lazy(() => import('./pages/Alerts'))
 const BounceTrader     = lazy(() => import('./pages/BounceTrader'))
-const Confluencia      = lazy(() => import('./pages/Confluencia'))
 const Calibration      = lazy(() => import('./pages/Calibration'))
 const OwnerEarnings    = lazy(() => import('./pages/OwnerEarnings'))
 
@@ -222,7 +221,6 @@ export default function App() {
               <Route path="/momentum"       element={<Navigate to="/entry-setups?tab=momentum" replace />} />
               <Route path="/insiders"       element={<Insiders />} />
               <Route path="/options"        element={<OptionsFlow />} />
-              <Route path="/confluencia"   element={<Confluencia />} />
               <Route path="/mean-reversion" element={<Navigate to="/entry-setups?tab=mean-reversion" replace />} />
               <Route path="/sectors"        element={<SectorRotation />} />
               <Route path="/portfolio"      element={<Navigate to="/my-portfolio?tab=signals" replace />} />

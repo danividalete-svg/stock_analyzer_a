@@ -1,24 +1,24 @@
-name: Agent Orchestrator
+name: System Health Monitor
 
 on:
   schedule:
-    # Corre a las 8, 14, 20, 2 UTC (cada 6h)
-    - cron: '0 8,14,20,2 * * *'
+    # Corre a las 9, 15, 21 UTC (después del pipeline diario a las 5:23)
+    - cron: '0 9,15,21 * * 1-5'
   workflow_dispatch:
     inputs:
       force:
-        description: 'Forzar análisis aunque no haya issue'
+        description: 'Enviar resumen aunque todo esté OK'
         required: false
         default: 'false'
       status_only:
-        description: 'Solo métricas, sin propuesta'
+        description: 'Solo métricas, sin Telegram'
         required: false
         default: 'false'
 
 jobs:
-  orchestrate:
+  monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Run Agent Orchestrator
+      - name: Run System Health Monitor
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -51,6 +51,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-log-${{ github.run_id }}
+          name: health-log-${{ github.run_id }}
           path: docs/agent_orchestrator_log.json
           if-no-files-found: ignore

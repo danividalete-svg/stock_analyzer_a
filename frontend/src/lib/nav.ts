@@ -2,7 +2,7 @@ import {
   TrendingUp, Users, Activity,
   PieChart, FlaskConical, Search, LayoutDashboard, Database,
   Ruler, Star, Radar, CalendarDays, AlertTriangle,
-  DollarSign, Wallet, GitCompare, Bell, Brain,
+  DollarSign, Wallet, Bell, Brain,
   Crosshair, Calculator, Shuffle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -16,7 +16,6 @@ export const NAV_PRIMARY: NavLinkItem[] = [
   { path: '/value',          icon: DollarSign,      label: 'Value',          color: '#10b981', keywords: ['value', 'fundamental', 'us', 'eu', 'europa', 'global', 'acciones'] },
   { path: '/macro-radar',    icon: Radar,           label: 'Macro',          color: '#e11d48', keywords: ['macro', 'radar', 'economía', 'países', 'pib', 'global', 'country'] },
   { path: '/insiders',       icon: Users,           label: 'Insiders',       color: '#8b5cf6', keywords: ['insiders', 'directivos', 'compras'] },
-  { path: '/confluencia',    icon: GitCompare,      label: 'Confluencia',    color: '#22c55e', keywords: ['confluencia', 'convergencia', 'señales', 'alineado', 'conviction'] },
   { path: '/bounce',         icon: Crosshair,       label: 'Bounce',         color: '#f97316', keywords: ['bounce', 'rebote', 'corto plazo', 'oversold', 'rsi extremo'] },
   { path: '/my-portfolio',   icon: Wallet,          label: 'Mi cartera',     color: '#10b981', keywords: ['mis posiciones', 'personal', 'posiciones', 'mi cartera'] },
   { path: '/owner-earnings', icon: Calculator,      label: 'Valoración',     color: '#06b6d4', keywords: ['owner earnings', 'valoracion', 'compra', 'buffett', 'fcf', 'precio objetivo'] },
