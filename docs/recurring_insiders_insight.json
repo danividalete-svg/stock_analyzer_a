@@ -1,6 +1,6 @@
 {
-  "date": "2026-03-24",
-  "timestamp": "2026-03-24T08:30:47.446133",
+  "date": "2026-04-14",
+  "timestamp": "2026-04-14T15:36:24.707665",
   "narrative": null,
   "total_tickers": 16,
   "total_us": 8,
@@ -9,42 +9,42 @@
     {
       "ticker": "TPL",
       "market": "US",
-      "purchase_count": 167,
+      "purchase_count": 163,
       "unique_insiders": 2,
-      "confidence_score": 3360.0,
-      "days_span": 87
+      "confidence_score": 3280.0,
+      "days_span": 85
     },
     {
       "ticker": "WRB",
       "market": "US",
-      "purchase_count": 67,
+      "purchase_count": 65,
       "unique_insiders": 1,
-      "confidence_score": 1350.0,
-      "days_span": 72
+      "confidence_score": 1310.0,
+      "days_span": 70
     },
     {
       "ticker": "MNTR",
       "market": "US",
-      "purchase_count": 52,
+      "purchase_count": 49,
       "unique_insiders": 1,
-      "confidence_score": 1050.0,
-      "days_span": 87
-    },
-    {
-      "ticker": "DLPN",
-      "market": "US",
-      "purchase_count": 46,
-      "unique_insiders": 1,
-      "confidence_score": 930.0,
+      "confidence_score": 990.0,
       "days_span": 85
     },
     {
       "ticker": "ISBA",
       "market": "US",
-      "purchase_count": 40,
+      "purchase_count": 41,
       "unique_insiders": 5,
+      "confidence_score": 870.0,
+      "days_span": 57
+    },
+    {
+      "ticker": "DLPN",
+      "market": "US",
+      "purchase_count": 42,
+      "unique_insiders": 1,
       "confidence_score": 850.0,
-      "days_span": 56
+      "days_span": 82
     }
   ]
 }
