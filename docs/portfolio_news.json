@@ -1,17 +1,17 @@
 {
   "scan_date": "2026-04-14",
-  "scan_time": "07:20",
+  "scan_time": "13:06",
   "tickers": [
-    "ENPH",
+    "MSFT",
     "NKE",
-    "BR",
     "VRSK",
-    "UNH"
+    "UNH",
+    "BSX"
   ],
-  "count": 19,
-  "alta_count": 3,
-  "media_count": 9,
-  "new_alerts": 2,
+  "count": 29,
+  "alta_count": 6,
+  "media_count": 10,
+  "new_alerts": 8,
   "items": [
     {
       "id": "bc59e823-978d-339d-a637-37f8df95183b",
@@ -24,64 +24,54 @@
       "importance": "ALTA"
     },
     {
+      "id": "0140ea9d-3b8e-350a-a907-fac8232cdbc6",
+      "ticker": "BSX",
+      "title": "Will Boston Scientific (BSX) Beat Estimates Again in Its Next Earnings Report?",
+      "source": "Zacks",
+      "pub_date": "2026-04-13T16:10:03Z",
+      "time_ago": "hace 20h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/boston-scientific-bsx-beat-estimates-161003564.html",
+      "importance": "ALTA"
+    },
+    {
       "id": "3d6e83a2-bf4c-3a44-aa82-342c9aaa6037",
       "ticker": "UNH",
       "title": "Analyst Raises Price Target on UnitedHealth Group (UNH), Keeps ‘Neutral’ Rating",
       "source": "Insider Monkey",
       "pub_date": "2026-04-14T02:14:41Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/analyst-raises-price-target-unitedhealth-021441954.html",
+      "importance": "ALTA"
+    },
+    {
+      "id": "f2c629e4-333f-33c7-8043-6ed03729c8c5",
+      "ticker": "MSFT",
+      "title": "Cloud AI Today - AI-Powered Quest Platform Enhances Identity Security Management",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-14T12:38:16Z",
+      "time_ago": "hace 27min",
+      "url": "https://finance.yahoo.com/sectors/technology/articles/cloud-ai-today-ai-powered-123816907.html",
       "importance": "ALTA"
     },
     {
       "id": "earn_UNH_20260421",
       "ticker": "UNH",
-      "title": "⏰ Earnings en 7 días — 21 Apr",
+      "title": "⏰ Earnings en 6 días — 21 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-14T07:20:11.730076+00:00",
+      "pub_date": "2026-04-14T13:06:00.229285+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
     },
     {
-      "id": "a8b0d791-2ee1-38fd-9da2-a0997bc1a46d",
-      "ticker": "UNH",
-      "title": "Market Crash: This Dividend Stock Becomes a No-Brainer Buy at a Discount",
-      "source": "Motley Fool",
-      "pub_date": "2026-04-12T10:15:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://www.fool.com/investing/2026/04/12/market-crash-dividend-stock-no-brainer-discount/",
-      "importance": "MEDIA"
-    },
-    {
-      "id": "85906b34-2718-3080-9d47-c493426e08ec",
-      "ticker": "ENPH",
-      "title": "Enphase Energy (ENPH) Price Target Cut by $4 Ahead of Q1 Report",
-      "source": "Insider Monkey",
-      "pub_date": "2026-04-12T18:48:55Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/sectors/energy/articles/enphase-energy-enph-price-target-184855845.html",
-      "importance": "MEDIA"
-    },
-    {
-      "id": "759531e2-e1d4-3995-b03d-45991e6cd21d",
-      "ticker": "NKE",
-      "title": "Nike To End Adidas' 25-Year Reign As UEFA Champions League Ball Sponsor—Not A 'Silver Bullet' Says Analyst",
-      "source": "Benzinga",
-      "pub_date": "2026-04-12T23:31:20Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/nike-end-adidas-25-reign-233120531.html",
-      "importance": "MEDIA"
-    },
-    {
-      "id": "83ad9b2b-2d58-3815-afc5-8d3b98dcbc0f",
-      "ticker": "NKE",
-      "title": "Here Are Monday’s Top Wall Street Analyst Research Calls: Adobe, Best Buy, Bilibili, Constellation Brands, CoreWeave, Nike, Starbucks, T-Mobile, and More",
-      "source": "24/7 Wall St.",
-      "pub_date": "2026-04-13T10:50:44Z",
-      "time_ago": "hace 20h",
-      "url": "https://247wallst.com/investing/2026/04/13/here-are-mondays-top-wall-street-analyst-research-calls-adobe-best-buy-bilibili-constellation-brands-coreweave-nike-starbucks-t-mobile-and-more/",
-      "importance": "MEDIA"
+      "id": "earn_BSX_20260422",
+      "ticker": "BSX",
+      "title": "⏰ Earnings en 7 días — 22 Apr",
+      "source": "Earnings Calendar",
+      "pub_date": "2026-04-14T13:06:00.848042+00:00",
+      "time_ago": "",
+      "url": "",
+      "importance": "ALTA"
     },
     {
       "id": "8e6a68af-972e-3418-b01b-ee9604d3ea02",
@@ -89,7 +79,7 @@
       "title": "Nike downgraded, Starbucks upgraded: Wall Street's top analyst calls",
       "source": "The Fly",
       "pub_date": "2026-04-13T13:58:26Z",
-      "time_ago": "hace 17h",
+      "time_ago": "hace 23h",
       "url": "https://finance.yahoo.com/news/netflix-resumed-starbucks-downgraded-wall-133343741.html",
       "importance": "MEDIA"
     },
@@ -99,7 +89,7 @@
       "title": "Nike Got Downgraded: Can the Iconic Brand Ever Recover?",
       "source": "Motley Fool",
       "pub_date": "2026-04-13T16:05:00Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 21h",
       "url": "https://www.fool.com/investing/2026/04/13/nike-got-downgraded-can-the-iconic-brand-recover/",
       "importance": "MEDIA"
     },
@@ -109,7 +99,7 @@
       "title": "HSBC Downgrades Nike to Hold as Turnaround Becomes a Show-Me Story With No Near-Term Catalysts",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-13T16:13:15Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 20h",
       "url": "https://247wallst.com/investing/2026/04/13/hsbc-downgrades-nike-to-hold-as-turnaround-becomes-a-show-me-story-with-no-near-term-catalysts/",
       "importance": "MEDIA"
     },
@@ -119,7 +109,7 @@
       "title": "Is Nike at Risk of Losing Its ‘Superpower’ Status? Here’s Why One Analyst Thinks It’s a Possibility",
       "source": "Footwear News",
       "pub_date": "2026-04-13T21:08:55Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 15h",
       "url": "https://wwd.com/footwear-news/shoe-industry-news/analyst-jay-sole-nike-sportswear-superpower-status-1238913756/",
       "importance": "MEDIA"
     },
@@ -129,29 +119,59 @@
       "title": "NIKE (NKE) Downgraded to Neutral, Price Target Cut by $10",
       "source": "Insider Monkey",
       "pub_date": "2026-04-14T02:06:27Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-nke-downgraded-neutral-price-020627357.html",
       "importance": "MEDIA"
     },
     {
-      "id": "2e53dc11-d22a-38d3-a4c9-e78188b882c5",
-      "ticker": "NKE",
-      "title": "With Nike Shares Near a 12-Year Low, Is Now the Time to Be Brave?",
-      "source": "MarketBeat",
-      "pub_date": "2026-04-12T15:10:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://www.marketbeat.com/originals/with-nike-shares-near-a-12-year-low-is-now-the-time-to-be-brave/?utm_source=yahoofinance&utm_medium=yahoofinance",
-      "importance": "BAJA"
+      "id": "b657a085-ec94-3b54-ac34-e708bc6679af",
+      "ticker": "VRSK",
+      "title": "1 Profitable Stock to Own for Decades and 2 That Underwhelm",
+      "source": "StockStory",
+      "pub_date": "2026-04-14T08:14:03Z",
+      "time_ago": "hace 4h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/1-profitable-stock-own-decades-081403194.html",
+      "importance": "MEDIA"
     },
     {
-      "id": "e445b0a4-bf30-38d1-92c4-29b435b8f339",
+      "id": "48256c58-60bf-376b-b1ff-46b8a8c62a79",
       "ticker": "NKE",
-      "title": "3 Cash-Producing Stocks We Keep Off Our Radar",
-      "source": "StockStory",
-      "pub_date": "2026-04-13T07:40:01Z",
-      "time_ago": "hace 23h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/3-cash-producing-stocks-keep-074001683.html",
-      "importance": "BAJA"
+      "title": "Nike (NKE) Valuation Check After Turnaround Challenges And Analyst Downgrades",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-14T10:04:14Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/nike-nke-valuation-check-turnaround-100414178.html",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "a50e94da-839d-3c67-bdde-9f992e5e71d9",
+      "ticker": "MSFT",
+      "title": "A Look At Wolverine World Wide’s Valuation As New AI Partnership Targets Higher Value Shoppers",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-14T11:05:01Z",
+      "time_ago": "hace 2h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/look-wolverine-world-wide-valuation-110501153.html",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "9e851333-8f49-3198-b3ad-e6f37b37329c",
+      "ticker": "MSFT",
+      "title": "Why AI Disruption Is a Short Seller’s Best Friend — Muddy Waters Founder Sees Profits in Market Turmoil",
+      "source": "TipRanks",
+      "pub_date": "2026-04-14T12:44:53Z",
+      "time_ago": "hace 21min",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/why-ai-disruption-short-seller-124453104.html",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "1f83a17f-a712-3ac0-8cd7-849d85ced629",
+      "ticker": "MSFT",
+      "title": "Warning: “Existential Risk” as Mega IPOs Could Trigger $100 Billion Stock Selloff",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-14T12:46:03Z",
+      "time_ago": "hace 19min",
+      "url": "https://247wallst.com/investing/2026/04/14/warning-existential-risk-as-mega-ipos-could-trigger-100-billion-stock-selloff/",
+      "importance": "MEDIA"
     },
     {
       "id": "31a7573e-9051-3dce-ab86-1fb5f027ff7d",
@@ -159,8 +179,18 @@
       "title": "Nike’s innovation chief departs as leadership turnover continues",
       "source": "Retail Dive",
       "pub_date": "2026-04-13T11:45:00Z",
-      "time_ago": "hace 19h",
+      "time_ago": "hace 1d",
       "url": "https://www.retaildive.com/news/nike-innovation-chief-tony-bignell-exits-andy-caine-turnaround/817310/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "5a982fa4-e19a-4eea-8fd7-cedda3a38c24",
+      "ticker": "MSFT",
+      "title": "Goldman Sachs with a reality check on AI: Fears of disruption will hang over growth stocks for years",
+      "source": "Yahoo Finance",
+      "pub_date": "2026-04-13T13:12:33Z",
+      "time_ago": "hace 23h",
+      "url": "https://finance.yahoo.com/news/goldman-sachs-with-a-reality-check-on-ai-fears-of-disruption-will-hang-over-growth-stocks-for-years-131233368.html",
       "importance": "BAJA"
     },
     {
@@ -169,7 +199,7 @@
       "title": "Patient Opportunity Equity Strategy Remains Firm on Its Thesis for UnitedHealth Group (UNH)",
       "source": "Insider Monkey",
       "pub_date": "2026-04-13T13:40:43Z",
-      "time_ago": "hace 17h",
+      "time_ago": "hace 23h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/patient-opportunity-equity-strategy-remains-134043001.html",
       "importance": "BAJA"
     },
@@ -179,7 +209,7 @@
       "title": "FDS or VRSK: Which Is the Better Value Stock Right Now?",
       "source": "Zacks",
       "pub_date": "2026-04-13T15:40:02Z",
-      "time_ago": "hace 15h",
+      "time_ago": "hace 21h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/fds-vrsk-better-value-stock-154002374.html",
       "importance": "BAJA"
     },
@@ -189,18 +219,88 @@
       "title": "UnitedHealth Group (UNH) Outperforms Broader Market: What You Need to Know",
       "source": "Zacks",
       "pub_date": "2026-04-13T21:50:05Z",
-      "time_ago": "hace 9h",
+      "time_ago": "hace 15h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/unitedhealth-group-unh-outperforms-broader-215005111.html",
       "importance": "BAJA"
     },
     {
-      "id": "6fef378b-39cb-37f7-aad2-c7efb2963f1a",
-      "ticker": "BR",
-      "title": "Broadridge Brings Crypto and Tokenized Assets Into One Platform for Canadian Wealth Managers",
-      "source": "CryptoProwl",
-      "pub_date": "2026-04-14T01:15:00Z",
-      "time_ago": "hace 6h",
-      "url": "https://www.cryptoprowl.com/releases/broadridge-brings-crypto-and-tokenized-assets-into-one-platform-for-canadian-wealth-managers-4150",
+      "id": "65f297a7-b0b4-325f-92b7-c3f08c334831",
+      "ticker": "NKE",
+      "title": "Nike Leadership Change Puts Focus On Product Reset And Investor Confidence",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-14T09:05:24Z",
+      "time_ago": "hace 4h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/nike-leadership-change-puts-focus-090524967.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "fd54ed32-3503-3840-9e8e-87d4e68ed260",
+      "ticker": "NKE",
+      "title": "1 Glimmer of Hope for Hard-Hit Nike Stock: Teens Love Nike",
+      "source": "Motley Fool",
+      "pub_date": "2026-04-14T09:35:00Z",
+      "time_ago": "hace 3h",
+      "url": "https://www.fool.com/investing/2026/04/14/1-glimmer-of-hope-for-hard-hit-nike-stock-teens-lo/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "71222ea2-886e-4c99-a388-a24c2ef2c11b",
+      "ticker": "MSFT",
+      "title": "AI trade is leading the stock market again: Chart of the Day",
+      "source": "Yahoo Finance",
+      "pub_date": "2026-04-14T10:00:44Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/news/ai-trade-is-leading-the-stock-market-again-chart-of-the-day-100044721.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "6bd3ffff-d4f7-3704-b79f-94e6c8d2ba23",
+      "ticker": "NKE",
+      "title": "Why the Dogs of the Dow Strategy Says Nike Is a Buy Right Now",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-14T10:35:42Z",
+      "time_ago": "hace 2h",
+      "url": "https://247wallst.com/investing/2026/04/14/why-the-dogs-of-the-dow-strategy-says-nike-is-a-buy-right-now/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "886659c3-d9be-3959-b8f8-5500958fd05b",
+      "ticker": "MSFT",
+      "title": "From Growth Stock to Blue Chip: Is CrowdStrike Ready for the Dow?",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-14T11:35:03Z",
+      "time_ago": "hace 1h",
+      "url": "https://247wallst.com/investing/2026/04/14/from-growth-stock-to-blue-chip-is-crowdstrike-ready-for-the-dow/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "db28f958-6ea1-3ae1-a53f-62edc1aae74b",
+      "ticker": "MSFT",
+      "title": "Microsoft Corporation (MSFT) Affirms $10B AI Infrastructure Expansion in Japan",
+      "source": "Insider Monkey",
+      "pub_date": "2026-04-14T11:44:13Z",
+      "time_ago": "hace 1h",
+      "url": "https://finance.yahoo.com/sectors/technology/articles/microsoft-corporation-msft-affirms-10b-114413330.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "f9a6b3ed-fe91-314d-b840-55a7069c7ac8",
+      "ticker": "MSFT",
+      "title": "This Will Be Microsoft’s Price Next Year",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-14T11:54:13Z",
+      "time_ago": "hace 1h",
+      "url": "https://247wallst.com/investing/2026/04/14/this-will-be-microsofts-price-next-year/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "21f6bdb5-ab2a-3e1b-8ffc-3e7a5c747ffd",
+      "ticker": "MSFT",
+      "title": "Update: Market Chatter: Microsoft Developing New Features for Copilot Inspired by OpenClaw",
+      "source": "MT Newswires",
+      "pub_date": "2026-04-14T12:39:24Z",
+      "time_ago": "hace 26min",
+      "url": "https://finance.yahoo.com/sectors/technology/articles/market-chatter-microsoft-developing-features-123924356.html",
       "importance": "BAJA"
     }
   ]
