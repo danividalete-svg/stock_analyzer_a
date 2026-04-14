@@ -29,34 +29,17 @@ TODAY = date.today()
 HORIZON_DAYS = 90  # cuántos días hacia adelante cubrir
 
 # ─── Universo de tickers a monitorear ────────────────────────────────────────
-# VALUE universe cargado dinámicamente + fallback hardcoded
-PHARMA_TICKERS = [
-    'LLY', 'NVO', 'PFE', 'MRK', 'ABBV', 'BMY', 'AMGN', 'GILD', 'BIIB',
-    'REGN', 'VRTX', 'MRNA', 'BNTX', 'SGEN', 'ALNY', 'RARE', 'SRPT',
-    'IONS', 'ACAD', 'FOLD', 'PTCT', 'NBIX', 'INCY', 'JAZZ', 'EXEL',
-    'AZN', 'GSK', 'SNY', 'NVS', 'RHHBY',
+# Siempre usar el universo curado como fuente de verdad
+from curated_tickers import ALL_TICKERS as _CURATED
+
+# Sector ETFs solo como contexto macro (no se analizan fundamentalmente)
+_MACRO_ETFS = [
+    'SPY', 'QQQ', 'IWM',
+    'XLF', 'XLK', 'XLV', 'XLE', 'XLI', 'XLU', 'XLRE', 'XLY', 'XLP', 'XLB',
+    'TLT', 'HYG', 'GLD',
 ]
 
-BROAD_UNIVERSE = [
-    # Mega caps (alta relevancia macro)
-    'AAPL', 'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'META', 'TSLA', 'BRK-B',
-    'JPM', 'V', 'MA', 'UNH', 'HD', 'PG', 'JNJ', 'XOM', 'CVX', 'BAC',
-    # Value/GARP targets
-    'LMT', 'RTX', 'GD', 'NOC', 'BA', 'CAT', 'DE', 'EMR', 'ETN', 'HON',
-    'WMT', 'COST', 'TGT', 'LOW', 'TJX', 'DIS', 'CMCSA', 'NKE', 'MCD',
-    'KO', 'PEP', 'PM', 'MO', 'BTI', 'DEO', 'SAP', 'ASML', 'TTE', 'SHEL',
-    'BLK', 'GS', 'MS', 'C', 'WFC', 'AXP', 'CB', 'MMC', 'TRV', 'ALL',
-    'MCO', 'SPGI', 'ICE', 'MSCI', 'FDS',
-    # Healthcare / Managed care
-    'CVS', 'HUM', 'ELV', 'CI', 'CNC', 'MOH',
-    # Tech secondary
-    'CRM', 'ORCL', 'SAP', 'IBM', 'ACN', 'INTU', 'ADBE', 'NOW',
-    # Energy
-    'SLB', 'HAL', 'PSX', 'VLO', 'MPC',
-    # Sector ETFs (para eventos macro)
-    'XLF', 'XLK', 'XLV', 'XLE', 'XLI', 'XLU', 'XLRE', 'XLY', 'XLP', 'XLB',
-    'TLT', 'HYG', 'GLD', 'SLV', 'USO',
-] + PHARMA_TICKERS
+BROAD_UNIVERSE = list(dict.fromkeys(_CURATED + _MACRO_ETFS))  # curated + ETFs, sin duplicados
 
 
 # ─── SECTOR IMPACT MAP para eventos macro ────────────────────────────────────
@@ -574,10 +557,8 @@ def main():
     print(f"Fecha: {TODAY}  |  Horizonte: {HORIZON_DAYS} días")
     print("=" * 60)
 
-    # Cargar universo VALUE propio + broad universe
-    value_tickers = load_value_tickers()
-    all_tickers = list(set(BROAD_UNIVERSE + value_tickers))
-    print(f"Universo total: {len(all_tickers)} tickers")
+    all_tickers = BROAD_UNIVERSE
+    print(f"Universo total: {len(all_tickers)} tickers (curado + ETFs macro)")
 
     all_events = []
 
