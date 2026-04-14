@@ -2,6 +2,7 @@
 """
 Script para analizar compras recurrentes de insiders en los últimos meses
 Detecta patrones de múltiples compras que indican alta confianza
+FILTRADO al universo curado (curated_tickers.py) — solo tickers que seguimos.
 """
 import pandas as pd
 import glob
@@ -9,6 +10,12 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from collections import defaultdict
 import json
+
+try:
+    from curated_tickers import ALL_TICKERS
+    UNIVERSE = set(t.upper() for t in ALL_TICKERS)
+except ImportError:
+    UNIVERSE = None  # sin filtro si no está disponible
 
 def load_insider_csvs(days_back=90):
     """Carga todos los CSVs de insider de los últimos N días"""
@@ -75,7 +82,11 @@ def load_insider_csvs(days_back=90):
 
     if all_data:
         combined_df = pd.concat(all_data, ignore_index=True)
-        print(f"   ✅ Total transacciones de compra: {len(combined_df)}")
+        print(f"   ✅ Total transacciones de compra (universo completo): {len(combined_df)}")
+        if UNIVERSE:
+            before = len(combined_df)
+            combined_df = combined_df[combined_df['Ticker'].str.upper().isin(UNIVERSE)]
+            print(f"   🎯 Filtrado a universo curado: {len(combined_df)}/{before} transacciones ({combined_df['Ticker'].nunique()} tickers únicos)")
         return combined_df
     else:
         print("   ❌ No se encontraron datos")
