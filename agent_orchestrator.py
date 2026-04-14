@@ -45,76 +45,8 @@ GITHUB_PAGES_BASE = f'https://raw.githubusercontent.com/{GITHUB_REPO}/main'
 GITHUB_API_BASE   = 'https://api.github.com'
 CONFIRM_TIMEOUT   = None   # None = sin timeout (agent_monitor.py se encarga)
 LOG_PATH          = Path('docs/agent_orchestrator_log.json')
-PROPOSALS_PATH    = Path('docs/agent_proposals.json')
 
 GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
-
-# ─── Archivos candidatos a análisis de código ─────────────────────────────────
-# El agente rota por estos archivos en cada ejecución de --code-review
-CODE_FILES_FRONTEND = [
-    'frontend/src/pages/Dashboard.tsx',
-    'frontend/src/pages/ValueUS.tsx',
-    'frontend/src/pages/ValueEU.tsx',
-    'frontend/src/pages/GlobalValue.tsx',
-    'frontend/src/pages/Cerebro.tsx',
-    'frontend/src/pages/MacroRadar.tsx',
-    'frontend/src/pages/MacroCountries.tsx',
-    'frontend/src/pages/BounceTrader.tsx',
-    'frontend/src/pages/TickerSearch.tsx',
-    'frontend/src/pages/Insiders.tsx',
-    'frontend/src/pages/DividendTraps.tsx',
-    'frontend/src/pages/Portfolio.tsx',
-    'frontend/src/pages/PersonalPortfolio.tsx',
-    'frontend/src/components/CerebroBadges.tsx',
-    'frontend/src/hooks/useCerebroSignals.ts',
-    'frontend/src/api/client.ts',
-]
-
-CODE_FILES_BACKEND = [
-    'super_score_integrator.py',
-    'mean_reversion_detector.py',
-    'fundamental_scorer.py',
-    'ticker_api.py',
-    'unusual_flow_scanner.py',
-]
-
-CODE_REVIEW_PROMPT = """Eres un senior software engineer revisando una app de análisis de bolsa (React + TypeScript + Python Flask).
-
-Analiza este archivo y encuentra UNA mejora concreta y aplicable:
-- Bug real que pueda causar crash o datos incorrectos
-- Problema de rendimiento (re-renders innecesarios, cálculos sin memoizar)
-- Mejora de UX clara y pequeña
-- Código muerto o incorrecto
-
-REGLAS CRÍTICAS:
-1. La mejora debe ser PEQUEÑA (máx 20 líneas cambiadas en total)
-2. `old_string` debe ser texto que exista LITERALMENTE en el archivo (cópialo exacto)
-3. No inventes funcionalidades ni datos
-4. Si el archivo está bien, responde con action: "none"
-5. Para Python: respetar que dividendYield ya viene en %, no decimal; 50.0 = dato ausente
-6. Para React: seguir los patrones del archivo (useMemo, null guards con ??)
-
-Archivo: {filename}
-Contenido:
----
-{content}
----
-
-Responde SOLO con JSON válido (sin markdown):
-{{
-  "action": "improve" | "none",
-  "title": "Título corto (máx 60 chars)",
-  "description": "Qué problema resuelve y por qué (2-3 frases)",
-  "impact": "high" | "medium" | "low",
-  "type": "frontend" | "backend",
-  "changes": [
-    {{
-      "file": "ruta/exacta/del/archivo",
-      "old_string": "código exacto a reemplazar (COPIADO LITERALMENTE del archivo)",
-      "new_string": "código nuevo"
-    }}
-  ]
-}}"""
 
 # Parámetros que el agente puede ajustar (con rangos seguros)
 # NOTA: 'current' es solo el valor por defecto — siempre se lee del archivo real
@@ -185,179 +117,6 @@ def _read_actual_values() -> dict:
         else:
             actual[param] = cfg['current']
     return actual
-
-
-# ─── Proposals (code review) ─────────────────────────────────────────────────
-
-def _load_proposals() -> list:
-    if PROPOSALS_PATH.exists():
-        try:
-            return json.loads(PROPOSALS_PATH.read_text())
-        except Exception:
-            pass
-    return []
-
-
-def _save_proposals(proposals: list):
-    PROPOSALS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    PROPOSALS_PATH.write_text(json.dumps(proposals, indent=2, ensure_ascii=False))
-
-
-def _make_prop_id(title: str) -> str:
-    import hashlib
-    return 'prop_' + hashlib.md5(f'{title}{time.time()}'.encode()).hexdigest()[:8]
-
-
-# ─── Code Analysis (Groq) ────────────────────────────────────────────────────
-
-def analyze_file_with_ai(filepath: str) -> Optional[dict]:
-    """Analiza un archivo con Groq/LLM y devuelve propuesta de mejora."""
-    if not GROQ_API_KEY:
-        return None
-
-    raw_path = f'{GITHUB_PAGES_BASE}/{filepath}'
-    try:
-        r = requests.get(raw_path, timeout=15)
-        if r.status_code != 200:
-            # Try reading locally
-            local = Path(filepath)
-            if local.exists():
-                content = local.read_text(encoding='utf-8')
-            else:
-                print(f'  ⚠ No se pudo obtener {filepath}')
-                return None
-        else:
-            content = r.text
-    except Exception as e:
-        print(f'  ⚠ Error leyendo {filepath}: {e}')
-        return None
-
-    # Truncar para que quepa en contexto
-    if len(content) > 9000:
-        content = content[:9000] + '\n... [truncado]'
-
-    prompt = CODE_REVIEW_PROMPT.format(filename=filepath, content=content)
-
-    try:
-        resp = requests.post(
-            'https://api.groq.com/openai/v1/chat/completions',
-            headers={'Authorization': f'Bearer {GROQ_API_KEY}', 'Content-Type': 'application/json'},
-            json={
-                'model': GROQ_MODEL,
-                'messages': [{'role': 'user', 'content': prompt}],
-                'temperature': 0.15,
-                'max_tokens': 1200,
-                'response_format': {'type': 'json_object'},
-            },
-            timeout=45,
-        )
-        resp.raise_for_status()
-        data = json.loads(resp.json()['choices'][0]['message']['content'])
-        return data
-    except Exception as e:
-        print(f'  ⚠ Groq error para {filepath}: {e}')
-        return None
-
-
-def validate_proposal(prop: dict, filepath: str) -> bool:
-    """Verifica que el old_string exista realmente en el archivo."""
-    for ch in prop.get('changes', []):
-        target = Path(ch.get('file', filepath))
-        if not target.exists():
-            return False
-        if ch.get('old_string', '') not in target.read_text(encoding='utf-8'):
-            return False
-    return bool(prop.get('changes'))
-
-
-def _send_code_proposal(prop: dict) -> Optional[int]:
-    """Envía propuesta de código a Telegram con botones. Devuelve message_id."""
-    impact_e = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(prop['impact'], '⚪')
-    type_e   = '⚛️' if prop['type'] == 'frontend' else '🐍'
-    files    = '\n'.join(f"  • <code>{c['file']}</code>" for c in prop['changes'])
-
-    text = (
-        f"🤖 <b>Mejora de código propuesta</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"{impact_e} Impacto: <b>{prop['impact'].upper()}</b>  {type_e} {prop['type'].upper()}\n\n"
-        f"<b>{prop['title']}</b>\n\n"
-        f"{prop['description']}\n\n"
-        f"📁 Archivos:\n{files}\n\n"
-        f"<i>ID: <code>{prop['id']}</code></i>\n"
-        f"<i>Responde cuando puedas — sin límite de tiempo</i>"
-    )
-    keyboard = {'inline_keyboard': [[
-        {'text': '✅ Aplicar',   'callback_data': f"agent_approve_{prop['id']}"},
-        {'text': '👁 Ver diff',  'callback_data': f"agent_diff_{prop['id']}"},
-        {'text': '❌ Rechazar',  'callback_data': f"agent_reject_{prop['id']}"},
-    ]]}
-
-    try:
-        r = requests.post(
-            f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage',
-            json={'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'HTML',
-                  'reply_markup': keyboard, 'disable_web_page_preview': True},
-            timeout=10,
-        )
-        return r.json().get('result', {}).get('message_id')
-    except Exception:
-        return None
-
-
-def run_code_review(n_files: int = 2):
-    """
-    Analiza N archivos con IA, genera propuestas, las envía a Telegram y las persiste.
-    El agent_monitor.py se encarga de la aprobación (sin timeout).
-    """
-    import random
-
-    proposals = _load_proposals()
-    recently_analyzed = {p.get('source_file') for p in proposals
-                         if p.get('status') in ('pending', 'applied', 'deploying')}
-
-    all_files = CODE_FILES_FRONTEND + CODE_FILES_BACKEND
-    candidates = [f for f in all_files if f not in recently_analyzed]
-    if not candidates:
-        candidates = all_files  # reiniciar rotación
-
-    to_analyze = random.sample(candidates, min(n_files, len(candidates)))
-    new_count = 0
-
-    for filepath in to_analyze:
-        print(f'  🔍 Analizando {filepath}...')
-        result = analyze_file_with_ai(filepath)
-
-        if not result or result.get('action') != 'improve':
-            print('     → Sin mejoras detectadas')
-            continue
-
-        if not validate_proposal(result, filepath):
-            print('     → old_string no encontrado — descartando')
-            continue
-
-        prop = {
-            'id':         _make_prop_id(result['title']),
-            'created_at': datetime.now(timezone.utc).isoformat(),
-            'source_file': filepath,
-            'type':        result.get('type', 'backend'),
-            'title':       result.get('title', 'Mejora sin título')[:80],
-            'description': result.get('description', ''),
-            'impact':      result.get('impact', 'medium'),
-            'changes':     result.get('changes', []),
-            'status':      'pending',
-            'telegram_message_id': None,
-        }
-
-        msg_id = _send_code_proposal(prop)
-        prop['telegram_message_id'] = msg_id
-        proposals.append(prop)
-        _save_proposals(proposals)
-        new_count += 1
-        print(f'     ✅ Propuesta enviada: {prop["title"]} (msg {msg_id})')
-        time.sleep(3)
-
-    print(f'\n  📬 {new_count} propuesta(s) nueva(s) enviadas a Telegram')
-    return new_count
 
 
 # ─── Monitor ──────────────────────────────────────────────────────────────────
@@ -777,35 +536,61 @@ def _log_entry(entry: dict):
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
+def _data_quality_reasons(metrics: dict) -> list[str]:
+    """Devuelve lista de razones por las que no se puede analizar. Vacía = OK."""
+    reasons = []
+    if metrics.get('vix') is None:
+        reasons.append('VIX=None')
+    if metrics.get('market_regime') is None:
+        reasons.append('régimen=None')
+    scan_age = metrics.get('scan_age_hours')
+    if scan_age is not None and scan_age >= 36:
+        reasons.append(f'scan obsoleto ({scan_age:.0f}h)')
+    return reasons
+
+
+def _validate_proposal(proposal: dict, metrics: dict, force: bool) -> bool:
+    """Valida propuesta. Devuelve True si debe enviarse a Telegram."""
+    action = proposal.get('action')
+    if action == 'none':
+        if not force:
+            print('   Sistema OK — sin cambios necesarios')
+            _log_entry({'ts': metrics['timestamp'], 'action': 'none',
+                        'metrics': metrics, 'proposal': proposal})
+        return force
+
+    if action != 'adjust':
+        print(f'   Acción desconocida: {action}')
+        return False
+
+    conf = proposal.get('confidence', 0)
+    if conf < 0.6 and not force:
+        print(f'   Confianza baja ({conf:.0%}) — descartando propuesta')
+        _log_entry({'ts': metrics['timestamp'], 'action': 'low_confidence',
+                    'metrics': metrics, 'proposal': proposal})
+        return False
+
+    return True
+
+
 def main():
     parser = argparse.ArgumentParser(description='Agent Orchestrator')
-    parser.add_argument('--status',       action='store_true', help='Solo métricas')
-    parser.add_argument('--force',        action='store_true', help='Forzar análisis aunque no haya issue')
-    parser.add_argument('--dry-run',      action='store_true', help='Sin cambios reales')
-    parser.add_argument('--code-review',  action='store_true', help='Analiza archivos de código con IA y propone mejoras')
-    parser.add_argument('--n-files',      type=int, default=2, help='Nº de archivos a analizar en --code-review (default: 2)')
+    parser.add_argument('--status',  action='store_true', help='Solo métricas')
+    parser.add_argument('--force',   action='store_true', help='Forzar análisis aunque no haya issue')
+    parser.add_argument('--dry-run', action='store_true', help='Sin cambios reales')
     args = parser.parse_args()
 
     print(f'\n{"="*60}')
     print(f'🤖 AGENT ORCHESTRATOR — {datetime.now().strftime("%Y-%m-%d %H:%M")}')
     print(f'{"="*60}')
 
-    # ── Code review mode ──────────────────────────────────────────────────────
-    if args.code_review:
-        print(f'\n🔍 Modo --code-review: analizando {args.n_files} archivo(s)...')
-        if args.dry_run:
-            print('   [dry-run] No se enviarán propuestas')
-        else:
-            run_code_review(n_files=args.n_files)
-        return
-
     # 1. Monitor
     print('\n📊 [1/3] Recopilando métricas...')
-    metrics = gather_metrics()
-    print(f'   VIX: {metrics.get("vix")} | Régimen: {metrics.get("market_regime")}')
-    print(f'   Setups detectados: {metrics.get("bounce_total_detected")} → pasan filtros: {metrics.get("bounce_passing_filters")}')
-    print(f'   Win rate 7d: {metrics.get("portfolio_win_rate_7d")}')
+    metrics  = gather_metrics()
     scan_age = metrics.get('scan_age_hours')
+    print(f'   VIX: {metrics.get("vix")} | Régimen: {metrics.get("market_regime")}')
+    print(f'   Setups: {metrics.get("bounce_total_detected")} → {metrics.get("bounce_passing_filters")} pasan filtros')
+    print(f'   Win rate 7d: {metrics.get("portfolio_win_rate_7d")}')
     if scan_age is not None:
         print(f'   Scan age: {scan_age:.1f}h')
 
@@ -813,22 +598,15 @@ def main():
         print('\n✅ Modo --status: solo métricas. Done.')
         return
 
-    # Guard: si no hay datos del scan, no tiene sentido analizar
-    vix_ok    = metrics.get('vix') is not None
-    regime_ok = metrics.get('market_regime') is not None
-    scan_age  = metrics.get('scan_age_hours')
-    age_ok    = scan_age is None or scan_age < 36
-
-    if not (vix_ok and regime_ok and age_ok) and not args.force:
-        reason = []
-        if not vix_ok:     reason.append('VIX=None')
-        if not regime_ok:  reason.append('régimen=None')
-        if not age_ok:     reason.append(f'scan obsoleto ({scan_age:.0f}h)')
-        print(f'\n⚠️  Sin datos suficientes ({", ".join(reason)}) — abortando análisis')
-        _log_entry({'ts': metrics['timestamp'], 'action': 'no_data', 'reason': reason, 'metrics': metrics})
+    # Guard: datos insuficientes
+    reasons = _data_quality_reasons(metrics)
+    if reasons and not args.force:
+        print(f'\n⚠️  Sin datos suficientes ({", ".join(reasons)}) — abortando análisis')
+        _log_entry({'ts': metrics['timestamp'], 'action': 'no_data',
+                    'reason': reasons, 'metrics': metrics})
         return
 
-    # 1b. Read actual values from source files (prevents stale proposals)
+    # 1b. Leer valores actuales desde archivos reales
     print('\n🔍 Leyendo valores actuales de archivos...')
     actual_values = _read_actual_values()
     for param, val in actual_values.items():
@@ -845,21 +623,10 @@ def main():
         return
 
     print(f'   Acción: {proposal.get("action")}')
-    if proposal.get('action') == 'none' and not args.force:
-        print('   Sistema OK — sin cambios necesarios')
-        _log_entry({'ts': metrics['timestamp'], 'action': 'none', 'metrics': metrics, 'proposal': proposal})
-        return
-
-    if proposal.get('action') != 'adjust':
-        print(f'   Acción desconocida: {proposal.get("action")}')
+    if not _validate_proposal(proposal, metrics, args.force):
         return
 
     conf = proposal.get('confidence', 0)
-    if conf < 0.6 and not args.force:
-        print(f'   Confianza baja ({conf:.0%}) — descartando propuesta')
-        _log_entry({'ts': metrics['timestamp'], 'action': 'low_confidence', 'metrics': metrics, 'proposal': proposal})
-        return
-
     print(f'   Propuesta: {proposal.get("param")} {proposal.get("current_value")} → {proposal.get("proposed_value")} (conf: {conf:.0%})')
     print(f'   Issue: {proposal.get("issue")}')
 
@@ -870,16 +637,14 @@ def main():
         print(f'   Propuesta: {json.dumps(proposal, indent=2, ensure_ascii=False)}')
         return
 
-    # 3. Send to Telegram and exit — monitor handles the callback and applies
     telegram_propose(proposal, metrics)
-
     _log_entry({
-        'ts':       metrics['timestamp'],
-        'action':   'proposed',
-        'param':    proposal.get('param'),
-        'cur_val':  proposal.get('current_value'),
-        'new_val':  proposal.get('proposed_value'),
-        'metrics':  metrics,
+        'ts':      metrics['timestamp'],
+        'action':  'proposed',
+        'param':   proposal.get('param'),
+        'cur_val': proposal.get('current_value'),
+        'new_val': proposal.get('proposed_value'),
+        'metrics': metrics,
     })
 
     print('\n✅ Propuesta enviada. El monitor aplicará cuando el usuario apruebe.')

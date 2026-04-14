@@ -29,13 +29,16 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install pandas numpy yfinance requests
+        run: pip install pandas requests
 
       - name: Run Financial Agent
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          TELEGRAM_BOT_TOKEN:          ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:            ${{ secrets.TELEGRAM_CHAT_ID }}
+          GROQ_API_KEY:                ${{ secrets.GROQ_API_KEY }}
+          SUPABASE_URL:                ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY:   ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_MONITOR_USER_ID:    ${{ secrets.SUPABASE_MONITOR_USER_ID }}
         run: |
           FLAGS=""
           if [ "${{ github.event.inputs.flow_only }}" = "true" ]; then
