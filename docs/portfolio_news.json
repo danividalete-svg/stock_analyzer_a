@@ -1,6 +1,6 @@
 {
   "scan_date": "2026-04-15",
-  "scan_time": "07:20",
+  "scan_time": "13:05",
   "tickers": [
     "MSFT",
     "NKE",
@@ -8,10 +8,10 @@
     "UNH",
     "BSX"
   ],
-  "count": 30,
-  "alta_count": 8,
-  "media_count": 2,
-  "new_alerts": 0,
+  "count": 31,
+  "alta_count": 10,
+  "media_count": 3,
+  "new_alerts": 5,
   "items": [
     {
       "id": "0140ea9d-3b8e-350a-a907-fac8232cdbc6",
@@ -39,46 +39,66 @@
       "title": "UnitedHealth Group (UNH) Expected to Beat Earnings Estimates: Should You Buy?",
       "source": "Zacks",
       "pub_date": "2026-04-14T14:00:05Z",
-      "time_ago": "hace 17h",
+      "time_ago": "hace 23h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/unitedhealth-group-unh-expected-beat-140005253.html",
       "importance": "ALTA"
     },
     {
       "id": "3837f80f-d681-3bbc-bb96-12b54ef274ab",
       "ticker": "NKE",
-      "title": "Nike and Adidas Will Battle It Out With Dueling Flagships at Bustling SoHo Intersection",
+      "title": "Nike and Adidas Will Battle It Out With Dueling Storefronts at Bustling SoHo Intersection",
       "source": "Footwear News",
       "pub_date": "2026-04-14T19:32:10Z",
-      "time_ago": "hace 11h",
+      "time_ago": "hace 17h",
       "url": "https://wwd.com/footwear-news/shoe-industry-news/nike-soho-flagship-611-broadway-adidas-1238915682/",
       "importance": "ALTA"
     },
     {
-      "id": "deaf70ec-f0d0-3dd8-b1a7-a34727f0be32",
+      "id": "c3933101-2344-4ab8-bb99-c01b705c868b",
       "ticker": "MSFT",
-      "title": "Sector Update: Tech Stocks Climb Late Afternoon",
-      "source": "MT Newswires",
-      "pub_date": "2026-04-14T19:49:37Z",
-      "time_ago": "hace 11h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/sector-tech-stocks-climb-afternoon-194937257.html",
+      "title": "Why this earnings season can change the software narrative",
+      "source": "Yahoo Finance Video",
+      "pub_date": "2026-04-15T10:00:00Z",
+      "time_ago": "hace 3h",
+      "url": "https://finance.yahoo.com/video/why-this-earnings-season-can-change-the-software-narrative-100000350.html",
       "importance": "ALTA"
     },
     {
-      "id": "9eff4527-4a7f-37fa-aa8a-380b24ebf837",
+      "id": "5f676606-9370-3a1a-9d67-398c0cb07f80",
       "ticker": "MSFT",
-      "title": "Stock Market Today, April 14: Oracle Jumps on Expanded Bloom Energy Deal",
+      "title": "Microsoft Doubles Down on AI, Secures 30,000 Nvidia GPUs in Bold Bet",
+      "source": "GuruFocus.com",
+      "pub_date": "2026-04-15T12:15:34Z",
+      "time_ago": "hace 48min",
+      "url": "https://finance.yahoo.com/sectors/technology/articles/microsoft-doubles-down-ai-secures-121534808.html",
+      "importance": "ALTA"
+    },
+    {
+      "id": "2a918144-dc73-3669-819d-b63a0a3d1b13",
+      "ticker": "NKE",
+      "title": "After the Sell-Off, Is Buying Nike a Smart Move or a Missed Boat?",
       "source": "Motley Fool",
-      "pub_date": "2026-04-14T22:55:07Z",
-      "time_ago": "hace 8h",
-      "url": "https://www.fool.com/coverage/stock-market-today/2026/04/14/stock-market-today-april-14-oracle-jumps-on-expanded-bloom-energy-deal/",
+      "pub_date": "2026-04-15T12:22:00Z",
+      "time_ago": "hace 42min",
+      "url": "https://www.fool.com/investing/2026/04/15/after-sell-off-buying-nike-smart-move-missed-boat/",
+      "importance": "ALTA"
+    },
+    {
+      "id": "e4af691f-37b2-3a47-9f37-6166299cfe08",
+      "ticker": "MSFT",
+      "title": "Stock Market Today: Dow Wavers After Trump's Latest Iran Comments; ASML Falls On Earnings (Live Coverage)",
+      "source": "Investor's Business Daily",
+      "pub_date": "2026-04-15T12:52:25Z",
+      "time_ago": "hace 12min",
+      "url": "https://www.investors.com/market-trend/stock-market-today/dow-jones-sp500-nasdaq-trump-us-iran-peace-talks/?src=A00220&yptr=yahoo",
       "importance": "ALTA"
     },
     {
       "id": "earn_UNH_20260421",
       "ticker": "UNH",
-      "title": "⏰ Earnings en 6 días — 21 Apr",
+      "title": "⏰ Earnings en 5 días — 21 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-15T07:20:31.518920+00:00",
+      "pub_date": "2026-04-15T13:05:24.528646+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
@@ -86,9 +106,9 @@
     {
       "id": "earn_BSX_20260422",
       "ticker": "BSX",
-      "title": "⏰ Earnings en 7 días — 22 Apr",
+      "title": "⏰ Earnings en 6 días — 22 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-15T07:20:32.185685+00:00",
+      "pub_date": "2026-04-15T13:05:33.984337+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
@@ -99,7 +119,7 @@
       "title": "1 Profitable Stock to Own for Decades and 2 That Underwhelm",
       "source": "StockStory",
       "pub_date": "2026-04-14T08:14:03Z",
-      "time_ago": "hace 23h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/1-profitable-stock-own-decades-081403194.html",
       "importance": "MEDIA"
     },
@@ -109,8 +129,18 @@
       "title": "Citi Reiterates Buy rating for Boston Scientific (BSX)",
       "source": "Insider Monkey",
       "pub_date": "2026-04-14T18:24:30Z",
-      "time_ago": "hace 12h",
+      "time_ago": "hace 18h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/citi-reiterates-buy-rating-boston-182430318.html",
+      "importance": "MEDIA"
+    },
+    {
+      "id": "3d53f383-81c7-3738-820b-2b2764bf7305",
+      "ticker": "UNH",
+      "title": "Falling Stock Price, Rising Dividend: UnitedHealth Fits the Dogs of the Dow Profile",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-15T11:50:30Z",
+      "time_ago": "hace 1h",
+      "url": "https://247wallst.com/investing/2026/04/15/falling-stock-price-rising-dividend-unitedhealth-fits-the-dogs-of-the-dow-profile/",
       "importance": "MEDIA"
     },
     {
@@ -144,93 +174,13 @@
       "importance": "BAJA"
     },
     {
-      "id": "6bd3ffff-d4f7-3704-b79f-94e6c8d2ba23",
-      "ticker": "NKE",
-      "title": "Why the Dogs of the Dow Strategy Says Nike Is a Buy Right Now",
-      "source": "24/7 Wall St.",
-      "pub_date": "2026-04-14T10:35:42Z",
-      "time_ago": "hace 20h",
-      "url": "https://247wallst.com/investing/2026/04/14/why-the-dogs-of-the-dow-strategy-says-nike-is-a-buy-right-now/",
-      "importance": "BAJA"
-    },
-    {
-      "id": "6f72a000-56f3-3e62-a5ba-987ba9415de3",
-      "ticker": "NKE",
-      "title": "NIKE's Sales Mix Shift: Wholesale Gains vs. Digital Decline",
-      "source": "Zacks",
-      "pub_date": "2026-04-14T14:28:00Z",
-      "time_ago": "hace 16h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/nikes-sales-mix-shift-wholesale-142800394.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "4d7fca51-e204-4f60-8696-b74b3803f426",
-      "ticker": "MSFT",
-      "title": "Software stocks are finally joining the tech rally",
-      "source": "Yahoo Finance",
-      "pub_date": "2026-04-14T16:23:47Z",
-      "time_ago": "hace 14h",
-      "url": "https://finance.yahoo.com/news/software-stocks-are-finally-joining-the-tech-rally-162347655.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "54c29708-3d6f-3daf-9eb6-a09c66d5910c",
-      "ticker": "NKE",
-      "title": "Jim Cramer Says NIKE CEO “Inherited a Company With Many More Problems Than Anyone Realized”",
-      "source": "Insider Monkey",
-      "pub_date": "2026-04-14T18:14:17Z",
-      "time_ago": "hace 13h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-says-nike-ceo-181417259.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "32b82114-4d3a-39a5-8edc-c1f96dbd01a1",
-      "ticker": "NKE",
-      "title": "Can lululemon Restore Pricing Power Against Increasing Discounts?",
-      "source": "Zacks",
-      "pub_date": "2026-04-14T19:06:00Z",
-      "time_ago": "hace 12h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/lululemon-restore-pricing-power-against-190600194.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "e870b4cc-9cbf-3093-babe-f92d35d1e871",
-      "ticker": "MSFT",
-      "title": "OpenAI Releases Cyber Model to Limited Group in Race With Mythos",
-      "source": "Bloomberg",
-      "pub_date": "2026-04-14T20:00:22Z",
-      "time_ago": "hace 11h",
-      "url": "https://finance.yahoo.com/sectors/technology/articles/openai-releases-cyber-model-limited-200022590.html",
-      "importance": "BAJA"
-    },
-    {
       "id": "2698635e-5b2f-3729-80a4-b79f9f06995f",
       "ticker": "NKE",
       "title": "Nike shares rise 2% as Apple’s Tim Cook and CEO Elliott Hill increase stakes",
       "source": "Investing.com",
       "pub_date": "2026-04-14T21:10:05Z",
-      "time_ago": "hace 10h",
+      "time_ago": "hace 15h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-shares-rise-2-apple-211005602.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "ad7406e9-e709-3be7-89a3-56fdd0cadc0b",
-      "ticker": "MSFT",
-      "title": "Is CoreWeave the Best AI Buildout Play?",
-      "source": "Motley Fool",
-      "pub_date": "2026-04-14T21:12:00Z",
-      "time_ago": "hace 10h",
-      "url": "https://www.fool.com/investing/2026/04/14/is-coreweave-the-best-ai-buildout-play/",
-      "importance": "BAJA"
-    },
-    {
-      "id": "062452d5-dab5-38cc-94bc-801b8a02dbb9",
-      "ticker": "MSFT",
-      "title": "Microsoft (MSFT) Outperforms Broader Market: What You Need to Know",
-      "source": "Zacks",
-      "pub_date": "2026-04-14T21:45:02Z",
-      "time_ago": "hace 9h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/microsoft-msft-outperforms-broader-market-214502667.html",
       "importance": "BAJA"
     },
     {
@@ -239,18 +189,8 @@
       "title": "Rethinking Nike: Is the Iconic Brand Still a Buy Based on its Turnaround Story?",
       "source": "Motley Fool",
       "pub_date": "2026-04-14T22:45:00Z",
-      "time_ago": "hace 8h",
+      "time_ago": "hace 14h",
       "url": "https://www.fool.com/investing/2026/04/14/rethinking-nike-is-the-iconic-brand-still-a-buy-af/",
-      "importance": "BAJA"
-    },
-    {
-      "id": "e6ed727f-e5b5-3360-8494-ce3dc6aa7e9a",
-      "ticker": "MSFT",
-      "title": "“Every Chip Is Getting Used Instantly” — Here’s Why Google’s AI Dominance May Be Unstoppable",
-      "source": "24/7 Wall St.",
-      "pub_date": "2026-04-14T22:47:09Z",
-      "time_ago": "hace 8h",
-      "url": "https://247wallst.com/investing/2026/04/14/every-chip-is-getting-used-instantly-heres-why-googles-ai-dominance-may-be-unstoppable/",
       "importance": "BAJA"
     },
     {
@@ -259,48 +199,8 @@
       "title": "Nike Shares Get a Lift After Tim Cook and Elliott Hill Buy More Stock",
       "source": "The Wall Street Journal",
       "pub_date": "2026-04-14T23:06:51Z",
-      "time_ago": "hace 8h",
+      "time_ago": "hace 13h",
       "url": "https://www.wsj.com/livecoverage/stock-market-today-dow-sp-500-nasdaq-04-14-2026/card/nike-shares-get-a-lift-after-tim-cook-and-elliott-hill-buy-more-stock-EDFVeJKblllDOQYRwD90?siteid=yhoof2&yptr=yahoo",
-      "importance": "BAJA"
-    },
-    {
-      "id": "0efc8629-46f3-3a6b-8f17-6f473749762d",
-      "ticker": "MSFT",
-      "title": "MAGS ETF faces its ultimate millionaire test",
-      "source": "TheStreet",
-      "pub_date": "2026-04-14T23:37:00Z",
-      "time_ago": "hace 7h",
-      "url": "https://www.thestreet.com/investing/stocks/mags-etf-faces-its-ultimate-millionaire-test",
-      "importance": "BAJA"
-    },
-    {
-      "id": "1c6862a8-49eb-37ae-beae-ac102610213a",
-      "ticker": "MSFT",
-      "title": "Microsoft’s 3,200 Acres Data Center Land Purchase—and the Utility Stock That Benefits",
-      "source": "Barrons.com",
-      "pub_date": "2026-04-15T00:12:00Z",
-      "time_ago": "hace 7h",
-      "url": "https://www.barrons.com/articles/microsoft-data-center-land-purchase-wyoming-black-hills-utility-b7d5fd83?siteid=yhoof2&yptr=yahoo",
-      "importance": "BAJA"
-    },
-    {
-      "id": "dccf6e49-6d51-3d12-af5e-a9833089111b",
-      "ticker": "NKE",
-      "title": "Apple CEO Tim Cook Just Bought Nike Stock. His Last Purchase Didn’t Go So Well.",
-      "source": "Barrons.com",
-      "pub_date": "2026-04-15T00:17:00Z",
-      "time_ago": "hace 7h",
-      "url": "https://www.barrons.com/articles/apple-ceo-tim-cook-buys-nike-stock-55609a97?siteid=yhoof2&yptr=yahoo",
-      "importance": "BAJA"
-    },
-    {
-      "id": "8ff69b98-d6ad-38ac-8917-35b6b42757e3",
-      "ticker": "MSFT",
-      "title": "Heading Into the Heart of Q2, These Are the 3 Artificial Intelligence (AI) Stocks I Want to Own",
-      "source": "Motley Fool",
-      "pub_date": "2026-04-15T00:20:00Z",
-      "time_ago": "hace 7h",
-      "url": "https://www.fool.com/investing/2026/04/14/heading-into-the-heart-of-q2-these-are-the-3-artif/",
       "importance": "BAJA"
     },
     {
@@ -309,8 +209,118 @@
       "title": "Nike Stock Is Down 76% From Its High. Is It Too Late to Buy, or Right on Time?",
       "source": "Motley Fool",
       "pub_date": "2026-04-15T06:35:00Z",
-      "time_ago": "hace 45min",
+      "time_ago": "hace 6h",
       "url": "https://www.fool.com/investing/2026/04/15/nike-stock-is-down-76-from-its-high-is-it-too-late/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "325ea719-9e51-3cc2-8906-287c8c924dd5",
+      "ticker": "NKE",
+      "title": "Prediction: Women's Sports Won't Save Nike Stock",
+      "source": "Motley Fool",
+      "pub_date": "2026-04-15T09:35:00Z",
+      "time_ago": "hace 3h",
+      "url": "https://www.fool.com/investing/2026/04/15/prediction-womens-sports-wont-save-nike-stock/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "77abb2da-3acc-3c30-8daf-8707e40d9924",
+      "ticker": "NKE",
+      "title": "These Stocks Are Today’s Movers: Broadcom, Nike, ASML, Bank of America, Morgan Stanley, GitLab, and More",
+      "source": "Barrons.com",
+      "pub_date": "2026-04-15T10:08:00Z",
+      "time_ago": "hace 2h",
+      "url": "https://www.barrons.com/articles/stock-movers-28f9870b?siteid=yhoof2&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "da4ca51e-c733-3e2b-b9b5-99a3cdbba349",
+      "ticker": "MSFT",
+      "title": "Social Buzz: Wallstreetbets Stocks Mixed Pre-Bell Wednesday; Robinhood Markets to Advance, Micron Technology to Decline",
+      "source": "MT Newswires",
+      "pub_date": "2026-04-15T10:35:51Z",
+      "time_ago": "hace 2h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/social-buzz-wallstreetbets-stocks-mixed-103551959.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "3f95a9c0-6965-3ad1-8bad-f5b9916fc923",
+      "ticker": "MSFT",
+      "title": "VOO vs. QQQ vs. SPY — Which ETF Is the Best Buy Right Now?",
+      "source": "TipRanks",
+      "pub_date": "2026-04-15T10:41:38Z",
+      "time_ago": "hace 2h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/voo-vs-qqq-vs-spy-104138064.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "d34dbc1a-d270-3ffe-bce1-54ab69328d4e",
+      "ticker": "MSFT",
+      "title": "Marvell Stock Is Up 150% in a Year. 2 Reasons the Rally Can Keep Going.",
+      "source": "Barrons.com",
+      "pub_date": "2026-04-15T11:07:00Z",
+      "time_ago": "hace 1h",
+      "url": "https://www.barrons.com/articles/marvell-stock-ai-chips-af8623e9?siteid=yhoof2&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "24d501d1-d279-3cc0-9bb3-dcfecaa8519b",
+      "ticker": "MSFT",
+      "title": "Microsoft Jumps To Key Level In Bearish Chart; Is The Stock A Buy Or Sell Now?",
+      "source": "Investor's Business Daily",
+      "pub_date": "2026-04-15T12:00:21Z",
+      "time_ago": "hace 1h",
+      "url": "https://www.investors.com/research/microsoft-msft-stock-april-2026-buy-now/?src=A00220&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "69acddef-b8e0-342f-be03-17c97ea53521",
+      "ticker": "MSFT",
+      "title": "Nvidia Rival Flashes Telltale Clues As Breakout Nears",
+      "source": "Investor's Business Daily",
+      "pub_date": "2026-04-15T12:00:39Z",
+      "time_ago": "hace 1h",
+      "url": "https://www.investors.com/research/breakout-stocks-technical-analysis/broadcom-stock-nvidia-rival-avgo-nvda-tech-flashes-telltale-clues-markets/?src=A00220&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "dccf6e49-6d51-3d12-af5e-a9833089111b",
+      "ticker": "NKE",
+      "title": "Apple CEO Tim Cook Buys Nike Stock. His Last Purchase Didn’t Go So Well.",
+      "source": "Barrons.com",
+      "pub_date": "2026-04-15T12:03:00Z",
+      "time_ago": "hace 1h",
+      "url": "https://www.barrons.com/articles/apple-ceo-tim-cook-buys-nike-stock-55609a97?siteid=yhoof2&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "276e6414-3607-30d6-a000-4c3b7ecedeb3",
+      "ticker": "MSFT",
+      "title": "Microsoft Takes Over Stargate Norway Data Center From OpenAI",
+      "source": "Bloomberg",
+      "pub_date": "2026-04-15T12:05:16Z",
+      "time_ago": "hace 59min",
+      "url": "https://finance.yahoo.com/sectors/technology/articles/microsoft-takes-over-stargate-norway-185117974.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "19b1055b-57db-300f-8193-3f61e2eb8297",
+      "ticker": "NKE",
+      "title": "Tim Cook and Nike CEO Drop $2.1 Million on Shares — Bold Bet or Wishful Thinking?",
+      "source": "24/7 Wall St.",
+      "pub_date": "2026-04-15T12:34:15Z",
+      "time_ago": "hace 30min",
+      "url": "https://247wallst.com/investing/2026/04/15/tim-cook-and-nike-ceo-drop-2-1-million-on-shares-bold-bet-or-wishful-thinking/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "d1675d2f-156d-3e91-a3f2-3edfd5f5392d",
+      "ticker": "MSFT",
+      "title": "Will AI Disruption Crush Microsoft (MSFT)?",
+      "source": "Insider Monkey",
+      "pub_date": "2026-04-15T12:35:33Z",
+      "time_ago": "hace 28min",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/ai-disruption-crush-microsoft-msft-123533138.html",
       "importance": "BAJA"
     }
   ]
