@@ -476,26 +476,42 @@ function DetailView({
       <div>
         <div className="flex items-center gap-3 mb-2">
           <p className="text-xs font-semibold">Modelo forward</p>
-          <button
-            onClick={() => setFwdMode(m => !m)}
-            className={cn(
-              'text-[0.65rem] px-2.5 py-0.5 rounded-full border font-semibold transition-all',
-              fwdMode
-                ? 'bg-orange-500/20 text-orange-400 border-orange-500/40'
-                : 'border-border/30 text-muted-foreground/50 hover:border-border/60 hover:text-muted-foreground'
-            )}
-          >
-            {fwdMode ? '● Modelo propio' : '○ Consenso TIKR'}
-          </button>
+          {/* Toggle: two explicit options, always visible */}
+          <div className="flex rounded-md border border-border/30 overflow-clip text-[0.65rem] font-semibold">
+            <button
+              onClick={() => setFwdMode(false)}
+              className={cn(
+                'px-3 py-1 transition-colors',
+                !fwdMode
+                  ? 'bg-white/10 text-foreground'
+                  : 'text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/5'
+              )}
+            >
+              Consenso TIKR
+            </button>
+            <button
+              onClick={() => setFwdMode(true)}
+              className={cn(
+                'px-3 py-1 border-l border-border/30 transition-colors',
+                fwdMode
+                  ? 'bg-orange-500/20 text-orange-400'
+                  : 'text-muted-foreground/50 hover:text-muted-foreground hover:bg-white/5'
+              )}
+            >
+              Modelo propio
+            </button>
+          </div>
           {fwdMode && (
             <button onClick={() => setFwdInputs(initFwdInputs(data, Object.keys(data.forward_fcf ?? {}).sort()))}
               className="text-[0.6rem] text-muted-foreground/40 hover:text-muted-foreground transition-colors">
               ↺ reset
             </button>
           )}
-          <span className="text-[0.6rem] text-muted-foreground/35 ml-auto">
-            {fwdMode ? 'Casillas naranjas = supuestos editables → recalcula precio compra' : 'Usando estimaciones consenso de TIKR/analistas'}
-          </span>
+          {fwdMode && (
+            <span className="text-[0.6rem] text-orange-400/50 ml-auto">
+              Casillas naranjas = supuestos editables
+            </span>
+          )}
         </div>
 
         {fwdMode && fwdYears.length > 0 && (
