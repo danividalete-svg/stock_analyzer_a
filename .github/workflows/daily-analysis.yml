@@ -108,13 +108,13 @@ jobs:
 
       - name: European Value Scanner
         continue-on-error: true
-        run: python3 european_value_scanner.py || echo "European scanner failed"
+        run: python3 european_value_scanner.py --curated || echo "European scanner failed"
 
       - name: Global Market Scanner (BR/KR/JP/HK)
         continue-on-error: true
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python3 global_market_scanner.py || echo "Global market scanner failed"
+        run: python3 global_market_scanner.py --curated || echo "Global market scanner failed"
 
       - name: Macro Radar (Early Warning System)
         continue-on-error: true

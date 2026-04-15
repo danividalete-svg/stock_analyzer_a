@@ -32,7 +32,7 @@ TIER_1 = [
     'AI.PA',   # Air Liquide (Euronext Paris)
     'CME',     # CME Group
     'RSG',     # Republic Services
-    'HESAY',   # Heineken (ADR)
+    'HESAY',   # Hermès International (ADR)
     'VRSN',    # VeriSign
 ]
 
@@ -95,11 +95,11 @@ TIER_3 = [
     'OTIS',    # Otis Worldwide
     'EXPN.L',  # Experian (LSE)
     'HEI',     # HEICO
-    'SXYAY',   # Sysco? No — likely SXYAY = Sodexo ADR (actually Sodexo is SDXAY)
+    'SXYAY',   # Sika AG (ADR)
     'ITW',     # Illinois Tool Works
     'CDNS',    # Cadence Design Systems
     'CHD',     # Church & Dwight
-    'ASAZY',   # ASA Gold? Or Asahi Group (ASAZY) — Japanese beverages ADR
+    'ASAZY',   # Assa Abloy AB (ADR)
     'ETN',     # Eaton Corporation
     'ABT',     # Abbott Laboratories
     'IT',      # Gartner
@@ -150,7 +150,7 @@ TIER_4 = [
     'TLC.AX',  # The Lottery Corporation (ASX)
     'MANH',    # Manhattan Associates
     'UNP',     # Union Pacific
-    'VCISY',   # Victrex (ADR)
+    'VCISY',   # Vinci SA (ADR)
     'SGSOY',   # SGS SA (ADR)
     'FERG',    # Ferguson Enterprises
     'ORCL',    # Oracle
