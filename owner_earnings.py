@@ -222,62 +222,76 @@ def calculate(
         wc_change_tikr = _metric(metrics, "wc_change", yr)
         total_debt_yr  = _metric(metrics, "total_debt", yr)
 
-        if None in (ni, ebitda, ebit, capex, shares) or shares == 0:
+        # Hard requirement: need shares and at least one FCF path
+        has_full = None not in (ebitda, ebit, capex)
+        has_cfo  = cfo is not None
+        if shares is None or shares == 0:
+            continue
+        if not has_full and not has_cfo and not est_actuals_fcf.get(yr):
             continue
 
-        dna = ebitda - ebit
-        capex_maint = _capex_maintenance(ebitda, ebit, capex)
         est_fcf = est_actuals_fcf.get(yr)
 
-        # Template formula components
-        interest, income_tax, delta_wc, interest_src, tax_src, wc_src = _template_components(
-            ni, ebitda, ebit, cfo, total_debt_yr,
-            interest_tikr, tax_tikr, wc_change_tikr,
-        )
-        pre_tax_income = ebit - interest
+        if has_full:
+            dna = ebitda - ebit
+            capex_maint = _capex_maintenance(ebitda, ebit, capex)
+            interest, income_tax, delta_wc, interest_src, tax_src, wc_src = _template_components(
+                ni, ebitda, ebit, cfo, total_debt_yr,
+                interest_tikr, tax_tikr, wc_change_tikr,
+            )
+            pre_tax_income = ebit - interest
+            template_fcf = ebitda - capex_maint - interest - income_tax + delta_wc
+        else:
+            # Partial data: no ebitda/ebit/capex — use NI-derived estimates
+            dna = None
+            # Estimate maintenance capex from net_income margin heuristic (10% of NI as placeholder)
+            capex_maint = abs(ni) * 0.15 if ni else 0
+            interest, income_tax, delta_wc = 0.0, 0.0, 0.0
+            interest_src = tax_src = wc_src = "estimated"
+            pre_tax_income = None
+            template_fcf = None
 
-        # Template FCF (for display; equals CFO-based when components are derived)
-        template_fcf = ebitda - capex_maint - interest - income_tax + delta_wc
-
-        # Best FCF estimate for valuation (priority: TIKR actuals > CFO-based > template)
+        # Best FCF estimate (priority: TIKR actuals > CFO-based > template)
         if est_fcf:
             oe = est_fcf
             source = "tikr_actuals"
-        elif cfo:
+        elif has_cfo:
             oe = cfo - capex_maint
             source = "cfo_based"
-        else:
+        elif template_fcf is not None:
             oe = template_fcf
             source = "template"
+        else:
+            continue
 
         historical_fcf[yr] = round(oe, 2)
         historical_fcf_ps[yr] = round(oe / shares, 4)
 
         fcf_breakdown[yr] = {
             "revenue":        round(rev, 2) if rev else None,
-            "ebitda":         round(ebitda, 2),
-            "ebitda_margin":  round(ebitda / rev * 100, 1) if rev and rev > 0 else None,
-            "dna":            round(dna, 2),
-            "ebit":           round(ebit, 2),
-            "ebit_margin":    round(ebit / rev * 100, 1) if rev and rev > 0 else None,
+            "ebitda":         round(ebitda, 2) if ebitda is not None else None,
+            "ebitda_margin":  round(ebitda / rev * 100, 1) if ebitda is not None and rev and rev > 0 else None,
+            "dna":            round(dna, 2) if dna is not None else None,
+            "ebit":           round(ebit, 2) if ebit is not None else None,
+            "ebit_margin":    round(ebit / rev * 100, 1) if ebit is not None and rev and rev > 0 else None,
             "interest":       round(interest, 2),
             "interest_src":   interest_src,
             "income_tax":     round(income_tax, 2),
             "tax_src":        tax_src,
-            "pre_tax_income": round(pre_tax_income, 2),
-            "net_income":     round(ni, 2),
-            "net_margin":     round(ni / rev * 100, 1) if rev and rev > 0 else None,
+            "pre_tax_income": round(pre_tax_income, 2) if pre_tax_income is not None else None,
+            "net_income":     round(ni, 2) if ni is not None else None,
+            "net_margin":     round(ni / rev * 100, 1) if ni is not None and rev and rev > 0 else None,
             "delta_wc":       round(delta_wc, 2),
             "wc_src":         wc_src,
             "cfo":            round(cfo, 2) if cfo else None,
-            "capex":          round(capex, 2),
+            "capex":          round(capex, 2) if capex is not None else None,
             "capex_maint":    round(capex_maint, 2),
-            "template_fcf":   round(template_fcf, 2),
+            "template_fcf":   round(template_fcf, 2) if template_fcf is not None else None,
             "owner_earnings": round(oe, 2),
             "source":         source,
         }
 
-        if rev and rev > 0:
+        if has_full and rev and rev > 0:
             capex_pct_sales.append(capex_maint / rev)
 
     capex_pct_median = statistics.median(capex_pct_sales) if capex_pct_sales else 0.10

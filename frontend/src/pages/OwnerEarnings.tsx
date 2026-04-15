@@ -607,11 +607,68 @@ function DetailView({
         )}
       </div>
 
-      {/* Tables row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        {/* FCF Breakdown — template style */}
-        <div className="xl:col-span-2">
-          <p className="text-xs font-semibold mb-1.5">Desglose FCF histórico — fórmula plantilla</p>
+      {/* Price targets — directly after inputs so edits are immediately visible */}
+      <div>
+        <p className="text-xs font-semibold mb-1.5">Objetivos de precio por año</p>
+        <p className="text-[0.65rem] text-muted-foreground mb-2">
+          Precio compra = objetivo_{data.exit_year}E ÷ (1+{returnT}%)^n · CAGR = retorno anual comprando hoy
+        </p>
+        <Card className="glass">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-border/40">
+                <TableHead>Año</TableHead>
+                <TableHead className="text-right text-muted-foreground/70">FCF/sh</TableHead>
+                <TableHead className="text-right">EV/FCF</TableHead>
+                <TableHead className="text-right text-muted-foreground/70">P/E</TableHead>
+                <TableHead className="text-right text-muted-foreground/70">EV/EBITDA</TableHead>
+                <TableHead className="text-right text-muted-foreground/70">EV/EBIT</TableHead>
+                <TableHead className="text-right font-semibold">Promedio</TableHead>
+                <TableHead className="text-right text-emerald-400/80">CAGR</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {fwdYears.map((yr, i) => {
+                const fwd  = activeData.forward_fcf[yr]
+                const pt   = computed.priceTargets[yr]
+                if (!fwd || !pt) return null
+                const isExit = String(data.exit_year) === yr
+                const isProj = fwd.projected === true
+                const yearsN = i + 1
+                const avgP   = pt.average
+                const cagr   = avgP && data.current_price && data.current_price > 0
+                  ? (Math.pow(avgP / data.current_price, 1 / yearsN) - 1) * 100
+                  : null
+                return (
+                  <TableRow key={yr} className={cn(isExit && 'bg-cyan-500/5', isProj && 'opacity-75')}>
+                    <TableCell className="font-medium">
+                      {yr}E
+                      {isExit && <span className="ml-1 text-[0.6rem] text-cyan-400/70">←</span>}
+                      {isProj && <span className="ml-1 text-[0.5rem] text-amber-400/60 font-normal">~</span>}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground/60">{fmt(fwd.fcf_per_share, '$')}</TableCell>
+                    <TableCell className="text-right">{fmt(pt.ev_fcf, '$')}</TableCell>
+                    <TableCell className="text-right text-muted-foreground/60">{fmt(pt.per, '$')}</TableCell>
+                    <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebitda, '$')}</TableCell>
+                    <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebit, '$')}</TableCell>
+                    <TableCell className={cn('text-right font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(avgP, '$')}</TableCell>
+                    <TableCell className={cn('text-right font-semibold text-sm', cagr == null ? 'text-muted-foreground' : cagr >= returnT ? 'text-emerald-400' : cagr >= 0 ? 'text-amber-400' : 'text-red-400')}>
+                      {cagr != null ? `${cagr > 0 ? '+' : ''}${cagr.toFixed(1)}%` : '—'}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+              {fwdYears.length === 0 && (
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sin estimaciones forward</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+      </div>
+
+      {/* FCF Breakdown — template style */}
+      <div>
+        <p className="text-xs font-semibold mb-1.5">Desglose FCF histórico — fórmula plantilla</p>
           <p className="text-[0.65rem] text-muted-foreground mb-2">
             FCF = EBITDA − CapEx<sub>mant</sub> − Interés − Impuestos + ΔCT
             <span className="ml-2 opacity-50">· interés/impuestos estimados hasta próxima actualización TIKR</span>
@@ -690,66 +747,6 @@ function DetailView({
               </TableBody>
             </Table>
           </Card>
-        </div>
-
-        {/* Price targets */}
-        <div>
-          <p className="text-xs font-semibold mb-1.5">Objetivos de precio por año</p>
-          <p className="text-[0.65rem] text-muted-foreground mb-2">
-            Precio compra = objetivo_{data.exit_year}E ÷ (1+{returnT}%)^n · CAGR = retorno anual comprando hoy
-          </p>
-          <Card className="glass">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent border-border/40">
-                  <TableHead>Año</TableHead>
-                  <TableHead className="text-right text-muted-foreground/70">FCF/sh</TableHead>
-                  <TableHead className="text-right">EV/FCF</TableHead>
-                  <TableHead className="text-right text-muted-foreground/70">P/E</TableHead>
-                  <TableHead className="text-right text-muted-foreground/70">EV/EBITDA</TableHead>
-                  <TableHead className="text-right text-muted-foreground/70">EV/EBIT</TableHead>
-                  <TableHead className="text-right font-semibold">Promedio</TableHead>
-                  <TableHead className="text-right text-emerald-400/80">CAGR</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fwdYears.map((yr, i) => {
-                  const fwd  = activeData.forward_fcf[yr]
-                  const pt   = computed.priceTargets[yr]
-                  if (!fwd || !pt) return null
-                  const isExit    = String(data.exit_year) === yr
-                  const isProj    = fwd.projected === true
-                  const yearsN    = i + 1  // years from now (approx)
-                  const avgP    = pt.average
-                  const cagr    = avgP && data.current_price && data.current_price > 0
-                    ? (Math.pow(avgP / data.current_price, 1 / yearsN) - 1) * 100
-                    : null
-                  return (
-                    <TableRow key={yr} className={cn(isExit && 'bg-cyan-500/5', isProj && 'opacity-75')}>
-                      <TableCell className="font-medium">
-                        {yr}E
-                        {isExit && <span className="ml-1 text-[0.6rem] text-cyan-400/70">←</span>}
-                        {isProj && <span className="ml-1 text-[0.5rem] text-amber-400/60 font-normal">~</span>}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground/60">{fmt(fwd.fcf_per_share, '$')}</TableCell>
-                      <TableCell className="text-right">{fmt(pt.ev_fcf, '$')}</TableCell>
-                      <TableCell className="text-right text-muted-foreground/60">{fmt(pt.per, '$')}</TableCell>
-                      <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebitda, '$')}</TableCell>
-                      <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebit, '$')}</TableCell>
-                      <TableCell className={cn('text-right font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(avgP, '$')}</TableCell>
-                      <TableCell className={cn('text-right font-semibold text-sm', cagr == null ? 'text-muted-foreground' : cagr >= returnT ? 'text-emerald-400' : cagr >= 0 ? 'text-amber-400' : 'text-red-400')}>
-                        {cagr != null ? `${cagr > 0 ? '+' : ''}${cagr.toFixed(1)}%` : '—'}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-                {fwdYears.length === 0 && (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sin estimaciones forward</TableCell></TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Card>
-        </div>
       </div>
     </div>
   )
