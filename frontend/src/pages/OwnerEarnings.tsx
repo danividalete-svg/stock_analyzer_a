@@ -452,11 +452,11 @@ function DetailView({
         </div>
 
         {fwdMode && fwdYears.length > 0 && (
-          <Card className="glass overflow-clip">
+          <Card className="border border-orange-500/15 bg-orange-500/3 overflow-clip">
             <div className="overflow-x-auto">
               <table className="w-full text-[0.7rem]">
                 <thead>
-                  <tr className="border-b border-border/30">
+                  <tr className="border-b border-orange-500/20">
                     <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-36">Supuesto</th>
                     {fwdYears.map(yr => (
                       <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}E</th>
