@@ -913,8 +913,26 @@ export interface CorrelationData {
 export const fetchCorrelationMatrix = () =>
   api.get<CorrelationData>('/api/correlation-matrix')
 
-export const fetchThesis = (ticker: string) =>
-  api.get<{ ticker: string; thesis: string | null }>(`/api/theses/${ticker}`)
+// Theses are served as a static JSON from GitHub Pages (always fresh from pipeline)
+let _thesesCache: Record<string, unknown> | null = null
+let _thesesCachePromise: Promise<Record<string, unknown>> | null = null
+
+const _loadTheses = (): Promise<Record<string, unknown>> => {
+  if (_thesesCache) return Promise.resolve(_thesesCache)
+  if (_thesesCachePromise) return _thesesCachePromise
+  const csvBase = (import.meta.env.VITE_CSV_BASE as string | undefined) || ''
+  _thesesCachePromise = fetch(`${csvBase}/theses.json`, { cache: 'default' })
+    .then(r => r.ok ? r.json() : {})
+    .then(data => { _thesesCache = data; _thesesCachePromise = null; return data })
+    .catch(() => { _thesesCachePromise = null; return {} })
+  return _thesesCachePromise
+}
+
+export const fetchThesis = async (ticker: string): Promise<{ data: { ticker: string; thesis: unknown } }> => {
+  const data = await _loadTheses()
+  const thesis = data[`${ticker}__value`] ?? data[`${ticker}__momentum`] ?? data[ticker] ?? null
+  return { data: { ticker, thesis } }
+}
 
 export const analyzeTicker = (ticker: string) =>
   api.get(`/api/analyze/${ticker}`)
