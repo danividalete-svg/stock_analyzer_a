@@ -202,8 +202,7 @@ export interface MarketRegime {
 export const fetchValueOpportunities = () =>
   api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/value-opportunities')
 
-export const fetchEUValueOpportunities = () =>
-  api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/eu-value-opportunities')
+const STATIC_DATA_BASE = (import.meta.env.VITE_CSV_BASE as string | undefined) || 'https://tantancansado.github.io/stock_analyzer_a'
 
 // Simple quoted-CSV parser (handles commas inside "..." fields)
 function parseCsvRows(text: string): Record<string, string>[] {
@@ -230,38 +229,73 @@ function parseCsvRows(text: string): Record<string, string>[] {
   })
 }
 
-const GLOBAL_NUMERIC = new Set([
+const VALUE_NUMERIC = new Set([
   'current_price','value_score','conviction_score','conviction_positives','conviction_red_flags',
-  'market_cape','target_price_analyst','analyst_upside_pct','analyst_count',
-  'fcf_yield_pct','risk_reward_ratio','dividend_yield_pct','roe_pct',
-  'pe_forward','pe_trailing','profit_margin_pct','revenue_growth_pct','pct_from_52w_high',
+  'target_price_analyst','target_price_analyst_high','target_price_analyst_low','analyst_upside_pct',
+  'analyst_count','fcf_yield_pct','risk_reward_ratio','dividend_yield_pct','days_to_earnings',
+  'entry_price','stop_loss','target_price','proximity_to_52w_high','piotroski_score',
+  'ebit_ev_yield','roic_greenblatt','peg_ratio','roe_pct','profit_margin_pct',
+  'revenue_growth_pct','pe_forward','pe_trailing','market_cap','payout_ratio_pct',
+  'dividend_rate','five_yr_avg_dividend_yield_pct','shares_change_pct','interest_coverage',
+  'analyst_revision_momentum','fundamental_score','earnings_quality_score','growth_acceleration_score',
+  'relative_strength_score','financial_health_score','catalyst_timing_score','rs_line_score',
+  'rs_line_percentile','eps_growth_yoy','eps_accel_quarters','rev_growth_yoy','rev_accel_quarters',
+  'fifty_two_week_high','trend_template_score','target_price_dcf','target_price_dcf_upside_pct',
+  'target_price_pe','target_price_pe_upside_pct','fcf_per_share','short_percent_float',
+  'short_ratio','market_cape','pct_from_52w_high',
 ])
+
+const VALUE_BOOLEAN = new Set([
+  'buyback_active','earnings_warning','earnings_catalyst','trend_template_pass',
+  'eps_accelerating','rev_accelerating','rs_line_at_new_high','short_squeeze_potential',
+])
+
+function parseValueRows(text: string): ValueOpportunity[] {
+  return parseCsvRows(text).map(row => {
+    const obj: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(row)) {
+      if (VALUE_NUMERIC.has(k)) {
+        const n = v === '' ? null : Number(v)
+        obj[k] = (n !== null && Number.isNaN(n)) ? null : n
+      } else if (VALUE_BOOLEAN.has(k)) {
+        obj[k] = v.toLowerCase() === 'true'
+      } else {
+        obj[k] = v === '' ? undefined : v
+      }
+    }
+    return obj as unknown as ValueOpportunity
+  })
+}
+
+async function fetchValueCsv(filename: string): Promise<{ data: ValueOpportunity[]; count: number; source: string }> {
+  const res = await fetch(`${STATIC_DATA_BASE}/${filename}`, { cache: 'no-store' })
+  if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`)
+  const data = parseValueRows(await res.text())
+  return { data, count: data.length, source: 'github-pages' }
+}
+
+export const fetchEUValueOpportunities = async (): Promise<{
+  data: { data: ValueOpportunity[]; count: number; source: string }
+}> => {
+  try {
+    const data = await fetchValueCsv('european_value_opportunities.csv')
+    return { data }
+  } catch {
+    const res = await api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/eu-value-opportunities')
+    return { data: res.data }
+  }
+}
 
 export const fetchGlobalValueOpportunities = async (): Promise<{
   data: { data: ValueOpportunity[]; count: number; source: string }
 }> => {
-  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
-  if (csvBase) {
-    // Production: read CSV directly from GitHub Pages (always up-to-date)
-    const url = `${csvBase}/global_value_opportunities.csv`
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`)
-    const text = await res.text()
-    const rawRows = parseCsvRows(text)
-    const data = rawRows.map(row => {
-      const obj: Record<string, unknown> = {}
-      for (const [k, v] of Object.entries(row)) {
-        if (GLOBAL_NUMERIC.has(k)) { const n = v === '' ? null : Number(v); obj[k] = (n !== null && isNaN(n)) ? null : n }
-        else if (k === 'buyback_active') obj[k] = v.toLowerCase() === 'true'
-        else obj[k] = v === '' ? undefined : v
-      }
-      return obj as unknown as ValueOpportunity
-    })
-    return { data: { data, count: data.length, source: 'github-pages' } }
+  try {
+    const data = await fetchValueCsv('global_value_opportunities.csv')
+    return { data }
+  } catch {
+    const res = await api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/global-value')
+    return { data: res.data }
   }
-  // Development: Railway API reads local docs/ folder
-  const res = await api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/global-value')
-  return { data: res.data }
 }
 
 export const fetchMomentumOpportunities = () =>
