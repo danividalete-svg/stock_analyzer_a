@@ -24,6 +24,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from datetime import date, datetime
+from curated_tickers import get_universe as _get_curated_tickers
 
 try:
     from groq import Groq
@@ -1943,10 +1944,11 @@ def generate_ticker_signals_csv(
     decay_map:      dict[str, dict] = {d["ticker"]: d for d in quality_decay.get("decays", [])}
     sector_map:     dict[str, dict] = {s["ticker"]: s for s in sector_rv.get("standouts", [])}
 
+    _curated = set(_get_curated_tickers())
     all_tickers = (
         set(exit_sig_map) | set(trap_sig_map) | set(sm_map) | set(div_map) | set(piotr_map)
         | set(squeeze_map) | set(decay_map) | set(sector_map)
-    )
+    ) & _curated  # strict: only curated universe, no leaked EU broad or stale tickers
 
     rows = []
     for ticker in sorted(all_tickers):
