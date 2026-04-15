@@ -994,10 +994,28 @@ export default function OwnerEarnings() {
     setPendingReturn(targetReturn)
   }
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setSelected(null)
     setDetailError(null)
-  }
+  }, [])
+
+  // Push a history entry when entering detail so browser back returns to list
+  useEffect(() => {
+    if (selected) {
+      window.history.pushState({ oeDetail: selected.ticker }, '')
+    }
+  }, [selected?.ticker]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Intercept browser back button while in detail view
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      if (e.state?.oeDetail) return // navigating between details — ignore
+      setSelected(null)
+      setDetailError(null)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
