@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import api from '../api/client'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card } from '@/components/ui/card'
@@ -11,8 +11,8 @@ import { nlValuation } from '@/lib/nl'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface FcfEntry { fcf: number; fcf_per_share: number; projected?: boolean }
-interface PriceTarget { ev_fcf?: number; per?: number; ev_ebitda?: number; average?: number }
+interface FcfEntry { fcf: number; fcf_per_share: number; ebit_per_share?: number | null; projected?: boolean }
+interface PriceTarget { ev_fcf?: number; per?: number; ev_ebitda?: number; ev_ebit?: number; average?: number }
 interface FcfBreakdownRow {
   revenue?: number | null
   ebitda?: number | null; ebitda_margin?: number | null
@@ -78,6 +78,8 @@ function recompute(
   evFcfT: number,
   perT: number,
   evEbitdaT: number,
+  evEbitT: number,
+  ebitFracOfEbitda: number,
   returnT: number,
 ): ComputedTargets {
   const fwdYears = Object.keys(data.forward_fcf).sort()
@@ -103,6 +105,15 @@ function recompute(
     if (ebitda && sh > 0) {
       const mc = ebitda * evEbitdaT - nd
       if (mc > 0) targets.ev_ebitda = Math.round(mc / sh * 100) / 100
+    }
+
+    // EV/EBIT — use fwd model ebit_per_share if available; else derive from EBITDA × ebitFrac
+    const ebitPs = fwd.ebit_per_share != null
+      ? fwd.ebit_per_share
+      : (ebitda && sh > 0 && ebitFracOfEbitda > 0 ? ebitda * ebitFracOfEbitda / sh : null)
+    if (ebitPs && ebitPs > 0) {
+      const evEbitPrice = ebitPs * evEbitT - ndPs
+      if (evEbitPrice > 0) targets.ev_ebit = Math.round(evEbitPrice * 100) / 100
     }
 
     const valid = Object.values(targets).filter((v): v is number => v != null && v > 0)
@@ -227,9 +238,10 @@ function OrangeCell({
 
 interface FwdYearInput {
   rev_growth_pct: number
-  ebitda_margin_pct: number
+  ebit_margin_pct: number
   tax_rate_pct: number
   capex_pct: number
+  wc_pct: number
   interest_m: number
 }
 
@@ -243,27 +255,36 @@ function _arrMedian(nums: number[]): number {
 function initFwdInputs(data: OeResult, fwdYears: string[]): Record<string, FwdYearInput> {
   const brows = Object.entries(data.fcf_breakdown ?? {})
     .sort(([a], [b]) => a.localeCompare(b)).slice(-5).map(([, b]) => b).filter(Boolean)
-  const medEbitda = _arrMedian(brows.filter(b => b.ebitda_margin != null).map(b => b.ebitda_margin as number)) || 25
+  const medEbit = _arrMedian(brows.filter(b => b.ebit_margin != null).map(b => b.ebit_margin as number)) || 20
   const medTax = _arrMedian(
     brows.filter(b => (b.pre_tax_income ?? 0) > 0 && b.income_tax != null)
       .map(b => (b.income_tax as number) / (b.pre_tax_income as number) * 100)
   ) || 22
   const medInterest = _arrMedian(brows.filter(b => b.interest != null).map(b => b.interest as number)) || 0
   const capexPct = data.capex_pct_sales_median || 10
+  const medWc = _arrMedian(
+    brows.filter(b => b.delta_wc != null && b.revenue != null && (b.revenue as number) > 0)
+      .map(b => -(b.delta_wc as number) / (b.revenue as number) * 100)
+  )
   const result: Record<string, FwdYearInput> = {}
   for (const yr of fwdYears) {
     result[yr] = {
       rev_growth_pct: 6,
-      ebitda_margin_pct: Math.round(medEbitda * 10) / 10,
+      ebit_margin_pct: Math.round(medEbit * 10) / 10,
       tax_rate_pct: Math.round(medTax * 10) / 10,
       capex_pct: Math.round(capexPct * 10) / 10,
+      wc_pct: Math.round(medWc * 10) / 10,
       interest_m: Math.round(medInterest),
     }
   }
   return result
 }
 
-function computeFwdFromModel(data: OeResult, inputs: Record<string, FwdYearInput>): Record<string, FcfEntry> {
+function computeFwdFromModel(
+  data: OeResult,
+  inputs: Record<string, FwdYearInput>,
+  daPctRev: number,
+): Record<string, FcfEntry> {
   const histYears = Object.keys(data.fcf_breakdown ?? {}).sort()
   const lastHist = histYears[histYears.length - 1]
   const lastRev = data.fcf_breakdown?.[lastHist]?.revenue ?? 0
@@ -274,12 +295,20 @@ function computeFwdFromModel(data: OeResult, inputs: Record<string, FwdYearInput
     const inp = inputs[yr]
     const shares = (data.forward_shares?.[yr] ?? 1)
     const rev = prevRev * (1 + inp.rev_growth_pct / 100)
-    const ebitda = rev * inp.ebitda_margin_pct / 100
+    const ebit = rev * inp.ebit_margin_pct / 100
+    const da = rev * daPctRev / 100
+    const ebitda = ebit + da
     const capex = rev * inp.capex_pct / 100
-    const preTax = Math.max(0, ebitda - capex - inp.interest_m)
+    const deltaWc = -(rev - prevRev) * inp.wc_pct / 100  // WC growth = cash outflow
+    const preTax = Math.max(0, ebit - inp.interest_m)
     const tax = preTax * inp.tax_rate_pct / 100
-    const fcf = ebitda - capex - inp.interest_m - tax
-    result[yr] = { fcf: Math.round(fcf * 10) / 10, fcf_per_share: shares > 0 ? Math.round(fcf / shares * 100) / 100 : 0, projected: true }
+    const fcf = ebitda - capex - inp.interest_m - tax + deltaWc
+    result[yr] = {
+      fcf: Math.round(fcf * 10) / 10,
+      fcf_per_share: shares > 0 ? Math.round(fcf / shares * 100) / 100 : 0,
+      ebit_per_share: shares > 0 ? Math.round(ebit / shares * 100) / 100 : 0,
+      projected: true,
+    }
     prevRev = rev
   }
   return result
@@ -297,6 +326,7 @@ function DetailView({
   const [evFcfT,   setEvFcfT]   = useState(data.ev_fcf_target)
   const [perT,     setPerT]     = useState(data.per_target)
   const [evEbT,    setEvEbT]    = useState(data.ev_ebitda_target)
+  const [evEbitT,  setEvEbitT]  = useState(25)
   const [returnT,  setReturnT]  = useState(data.target_return_pct)
   const [apiPending, setApiPending] = useState(false)
   const [fwdMode, setFwdMode] = useState(false)
@@ -307,13 +337,28 @@ function DetailView({
   const setFwdField = (yr: string, field: keyof FwdYearInput, val: number) =>
     setFwdInputs(prev => ({ ...prev, [yr]: { ...prev[yr], [field]: val } }))
 
+  // Historical medians needed for forward model and consensus EV/EBIT
+  const { daPctRev, ebitFracOfEbitda } = useMemo(() => {
+    const brows = Object.entries(data.fcf_breakdown ?? {})
+      .sort(([a], [b]) => a.localeCompare(b)).slice(-5).map(([, b]) => b).filter(Boolean)
+    const daPct = _arrMedian(
+      brows.filter(b => b.dna != null && b.revenue != null && (b.revenue as number) > 0)
+        .map(b => -(b.dna as number) / (b.revenue as number) * 100)
+    ) || 0
+    const frac = _arrMedian(
+      brows.filter(b => b.ebitda && b.ebit && (b.ebitda as number) !== 0)
+        .map(b => (b.ebit as number) / (b.ebitda as number))
+    ) || 0.6
+    return { daPctRev: daPct, ebitFracOfEbitda: frac }
+  }, [data.fcf_breakdown])
+
   // When in fwdMode, replace consensus FCF with locally-computed FCF
   const activeData = fwdMode
-    ? { ...data, forward_fcf: computeFwdFromModel(data, fwdInputs) }
+    ? { ...data, forward_fcf: computeFwdFromModel(data, fwdInputs, daPctRev) }
     : data
 
   // All price targets and buy price recomputed locally on every param change
-  const computed = recompute(activeData, evFcfT, perT, evEbT, returnT)
+  const computed = recompute(activeData, evFcfT, perT, evEbT, evEbitT, ebitFracOfEbitda, returnT)
 
   const histYears   = Object.keys(data.historical_fcf).map(Number).sort((a, b) => b - a)
   const fwdYears    = Object.keys(data.forward_fcf).sort()
@@ -414,12 +459,14 @@ function DetailView({
               <span className="ml-2 text-[0.5rem] text-muted-foreground/30 normal-case tracking-normal">(TIKR = mediana histórica / consenso NTM)</span>
             </p>
             <div className="flex flex-wrap gap-5">
-              <StepperInput label="EV/FCF"   value={evFcfT} onChange={setEvFcfT}
+              <StepperInput label="EV/FCF"   value={evFcfT}  onChange={setEvFcfT}
                 tikrRef={data.median_ev_fcf} suffix="x" step={0.5} min={5} max={80} />
-              <StepperInput label="P/E"      value={perT}   onChange={setPerT}
+              <StepperInput label="P/E"      value={perT}    onChange={setPerT}
                 tikrRef={data.ntm_pe}        suffix="x" step={0.5} min={5} max={80} />
-              <StepperInput label="EV/EBITDA" value={evEbT} onChange={setEvEbT}
+              <StepperInput label="EV/EBITDA" value={evEbT}  onChange={setEvEbT}
                 tikrRef={data.ntm_ev_ebitda} suffix="x" step={0.5} min={3} max={50} />
+              <StepperInput label="EV/EBIT"  value={evEbitT} onChange={setEvEbitT}
+                suffix="x" step={0.5} min={3} max={80} />
             </div>
           </div>
         </div>
@@ -474,13 +521,13 @@ function DetailView({
                       </td>
                     ))}
                   </tr>
-                  {/* EBITDA margin */}
+                  {/* EBIT margin */}
                   <tr className="hover:bg-white/2">
-                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Margen EBITDA %</td>
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Margen EBIT %</td>
                     {fwdYears.map(yr => (
                       <td key={yr} className="px-2 py-1 text-center">
-                        <OrangeCell value={fwdInputs[yr]?.ebitda_margin_pct ?? 25}
-                          onChange={v => setFwdField(yr, 'ebitda_margin_pct', v)} step={0.5} min={0} max={80} />
+                        <OrangeCell value={fwdInputs[yr]?.ebit_margin_pct ?? 20}
+                          onChange={v => setFwdField(yr, 'ebit_margin_pct', v)} step={0.5} min={0} max={80} />
                       </td>
                     ))}
                   </tr>
@@ -504,6 +551,16 @@ function DetailView({
                       </td>
                     ))}
                   </tr>
+                  {/* Working capital */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Capital Trabajo / Ventas %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.wc_pct ?? 0}
+                          onChange={v => setFwdField(yr, 'wc_pct', v)} step={0.5} min={-20} max={30} />
+                      </td>
+                    ))}
+                  </tr>
                   {/* Interest */}
                   <tr className="hover:bg-white/2">
                     <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Intereses ($M)</td>
@@ -518,7 +575,7 @@ function DetailView({
                   <tr className="bg-cyan-500/5 border-t border-cyan-500/20">
                     <td className="px-3 py-1.5 font-semibold text-cyan-400/80 whitespace-nowrap">FCF/sh (calculado)</td>
                     {fwdYears.map(yr => {
-                      const localFcf = computeFwdFromModel(data, fwdInputs)
+                      const localFcf = computeFwdFromModel(data, fwdInputs, daPctRev)
                       const fcfPs = localFcf[yr]?.fcf_per_share
                       return (
                         <td key={yr} className="px-2 py-1.5 text-center font-bold tabular-nums text-cyan-400">
@@ -634,13 +691,14 @@ function DetailView({
                   <TableHead className="text-right">EV/FCF</TableHead>
                   <TableHead className="text-right text-muted-foreground/70">P/E</TableHead>
                   <TableHead className="text-right text-muted-foreground/70">EV/EBITDA</TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">EV/EBIT</TableHead>
                   <TableHead className="text-right font-semibold">Promedio</TableHead>
                   <TableHead className="text-right text-emerald-400/80">CAGR</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {fwdYears.map((yr, i) => {
-                  const fwd  = data.forward_fcf[yr]
+                  const fwd  = activeData.forward_fcf[yr]
                   const pt   = computed.priceTargets[yr]
                   if (!fwd || !pt) return null
                   const isExit    = String(data.exit_year) === yr
@@ -661,6 +719,7 @@ function DetailView({
                       <TableCell className="text-right">{fmt(pt.ev_fcf, '$')}</TableCell>
                       <TableCell className="text-right text-muted-foreground/60">{fmt(pt.per, '$')}</TableCell>
                       <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebitda, '$')}</TableCell>
+                      <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebit, '$')}</TableCell>
                       <TableCell className={cn('text-right font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(avgP, '$')}</TableCell>
                       <TableCell className={cn('text-right font-semibold text-sm', cagr == null ? 'text-muted-foreground' : cagr >= returnT ? 'text-emerald-400' : cagr >= 0 ? 'text-amber-400' : 'text-red-400')}>
                         {cagr != null ? `${cagr > 0 ? '+' : ''}${cagr.toFixed(1)}%` : '—'}
@@ -669,7 +728,7 @@ function DetailView({
                   )
                 })}
                 {fwdYears.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Sin estimaciones forward</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sin estimaciones forward</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
