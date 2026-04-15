@@ -277,13 +277,15 @@ async function fetchValueCsv(filename: string): Promise<{ data: ValueOpportunity
 export const fetchEUValueOpportunities = async (): Promise<{
   data: { data: ValueOpportunity[]; count: number; source: string }
 }> => {
-  try {
-    const data = await fetchValueCsv('european_value_opportunities.csv')
-    return { data }
-  } catch {
-    const res = await api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/eu-value-opportunities')
-    return { data: res.data }
+  // Try conviction file first (has grades for all curated EU tickers), then raw scanner output
+  for (const filename of ['european_value_conviction.csv', 'european_value_opportunities.csv']) {
+    try {
+      const data = await fetchValueCsv(filename)
+      if (data.data.length > 0) return { data }
+    } catch { /* try next */ }
   }
+  const res = await api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/eu-value-opportunities')
+  return { data: res.data }
 }
 
 export const fetchGlobalValueOpportunities = async (): Promise<{

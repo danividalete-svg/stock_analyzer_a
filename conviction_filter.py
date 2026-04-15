@@ -469,11 +469,17 @@ def main():
             total += us_result
 
     if not args.us_only:
-        # European VALUE
+        # European VALUE — use fresh curated output (fallback to filtered if missing)
+        eu_input = (
+            'docs/european_value_opportunities.csv'
+            if Path('docs/european_value_opportunities.csv').exists()
+            else 'docs/european_value_opportunities_filtered.csv'
+        )
+        # EU: use grade D to keep all curated tickers with grades (table displays A/B/C/D)
         eu_result = filter_by_conviction(
-            'docs/european_value_opportunities_filtered.csv',
+            eu_input,
             output_path='docs/european_value_conviction.csv',
-            min_grade=args.min_grade
+            min_grade='D'
         )
         if eu_result:
             total += eu_result
