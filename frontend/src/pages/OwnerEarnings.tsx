@@ -171,27 +171,118 @@ function upsideColor(pct: number | null) {
   return 'text-red-400'
 }
 
-// ── Small editable number input ───────────────────────────────────────────────
+// ── Stepper input with TIKR reference ─────────────────────────────────────────
 
-function ParamInput({
-  label, value, onChange, suffix = 'x', min = 1, max = 100, step = 0.5,
+function StepperInput({
+  label, value, onChange, tikrRef, suffix = 'x', step = 0.5, min = 1, max = 100,
 }: {
   label: string; value: number; onChange: (v: number) => void
-  suffix?: string; min?: number; max?: number; step?: number
+  tikrRef?: number | null; suffix?: string; step?: number; min?: number; max?: number
 }) {
+  const dec = step < 1 ? 1 : 0
+  const clamp = (v: number) => Math.max(min, Math.min(max, parseFloat(v.toFixed(dec))))
+  const adj = (delta: number) => onChange(clamp(parseFloat((value + delta).toFixed(dec))))
   return (
-    <div className="flex flex-col gap-1 min-w-0">
+    <div className="flex flex-col gap-0.5 min-w-0">
       <span className="text-[0.55rem] uppercase tracking-widest text-muted-foreground/50 font-semibold leading-none">{label}</span>
-      <div className="flex items-center gap-1">
-        <input
-          type="number" min={min} max={max} step={step} value={value}
-          onChange={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(v) }}
-          className="w-16 bg-white/5 border border-white/10 rounded-md px-2 py-1 text-sm font-bold tabular-nums text-cyan-400 text-right focus:outline-none focus:border-cyan-500/50 focus:bg-white/8 transition-colors"
-        />
-        <span className="text-xs text-muted-foreground/50 shrink-0">{suffix}</span>
+      {tikrRef != null && (
+        <span className="text-[0.5rem] text-muted-foreground/35 leading-none">
+          TIKR: <span className="font-mono text-muted-foreground/55">{tikrRef.toFixed(dec)}{suffix}</span>
+        </span>
+      )}
+      <div className="flex items-center gap-0.5 mt-0.5">
+        <button onClick={() => adj(-step)}
+          className="w-5 h-5 rounded bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-500/30 text-muted-foreground hover:text-amber-400 flex items-center justify-center text-[0.6rem] transition-colors">▼</button>
+        <span className="w-14 text-center font-bold tabular-nums text-sm text-amber-400">{value.toFixed(dec)}{suffix}</span>
+        <button onClick={() => adj(+step)}
+          className="w-5 h-5 rounded bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-500/30 text-muted-foreground hover:text-amber-400 flex items-center justify-center text-[0.6rem] transition-colors">▲</button>
       </div>
     </div>
   )
+}
+
+// ── Orange editable cell (forward assumptions) ─────────────────────────────────
+
+function OrangeCell({
+  value, onChange, suffix = '%', step = 0.5, min = -50, max = 100,
+}: {
+  value: number; onChange: (v: number) => void
+  suffix?: string; step?: number; min?: number; max?: number
+}) {
+  const dec = step < 1 ? 1 : 0
+  const clamp = (v: number) => Math.max(min, Math.min(max, parseFloat(v.toFixed(dec))))
+  const adj = (delta: number) => onChange(clamp(parseFloat((value + delta).toFixed(dec))))
+  return (
+    <div className="flex items-center justify-center gap-0.5">
+      <button onClick={() => adj(-step)}
+        className="w-4 h-4 rounded bg-orange-500/10 hover:bg-orange-500/25 border border-orange-500/20 text-orange-400/60 hover:text-orange-400 flex items-center justify-center text-[0.5rem] transition-colors">▼</button>
+      <span className="w-12 text-center font-bold tabular-nums text-[0.72rem] text-orange-400">{value.toFixed(dec)}{suffix}</span>
+      <button onClick={() => adj(+step)}
+        className="w-4 h-4 rounded bg-orange-500/10 hover:bg-orange-500/25 border border-orange-500/20 text-orange-400/60 hover:text-orange-400 flex items-center justify-center text-[0.5rem] transition-colors">▲</button>
+    </div>
+  )
+}
+
+// ── Forward model helpers ──────────────────────────────────────────────────────
+
+interface FwdYearInput {
+  rev_growth_pct: number
+  ebitda_margin_pct: number
+  tax_rate_pct: number
+  capex_pct: number
+  interest_m: number
+}
+
+function _arrMedian(nums: number[]): number {
+  if (!nums.length) return 0
+  const s = [...nums].sort((a, b) => a - b)
+  const m = Math.floor(s.length / 2)
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
+}
+
+function initFwdInputs(data: OeResult, fwdYears: string[]): Record<string, FwdYearInput> {
+  const brows = Object.entries(data.fcf_breakdown ?? {})
+    .sort(([a], [b]) => a.localeCompare(b)).slice(-5).map(([, b]) => b).filter(Boolean)
+  const medEbitda = _arrMedian(brows.filter(b => b.ebitda_margin != null).map(b => b.ebitda_margin as number)) || 25
+  const medTax = _arrMedian(
+    brows.filter(b => (b.pre_tax_income ?? 0) > 0 && b.income_tax != null)
+      .map(b => (b.income_tax as number) / (b.pre_tax_income as number) * 100)
+  ) || 22
+  const medInterest = _arrMedian(brows.filter(b => b.interest != null).map(b => b.interest as number)) || 0
+  const capexPct = data.capex_pct_sales_median || 10
+  const result: Record<string, FwdYearInput> = {}
+  for (const yr of fwdYears) {
+    result[yr] = {
+      rev_growth_pct: 6,
+      ebitda_margin_pct: Math.round(medEbitda * 10) / 10,
+      tax_rate_pct: Math.round(medTax * 10) / 10,
+      capex_pct: Math.round(capexPct * 10) / 10,
+      interest_m: Math.round(medInterest),
+    }
+  }
+  return result
+}
+
+function computeFwdFromModel(data: OeResult, inputs: Record<string, FwdYearInput>): Record<string, FcfEntry> {
+  const histYears = Object.keys(data.fcf_breakdown ?? {}).sort()
+  const lastHist = histYears[histYears.length - 1]
+  const lastRev = data.fcf_breakdown?.[lastHist]?.revenue ?? 0
+  const fwdYears = Object.keys(inputs).sort()
+  const result: Record<string, FcfEntry> = {}
+  let prevRev = lastRev
+  for (const yr of fwdYears) {
+    const inp = inputs[yr]
+    const shares = (data.forward_shares?.[yr] ?? 1)
+    const rev = prevRev * (1 + inp.rev_growth_pct / 100)
+    const ebitda = rev * inp.ebitda_margin_pct / 100
+    const capex = rev * inp.capex_pct / 100
+    const preTax = Math.max(0, ebitda - capex - inp.interest_m)
+    const tax = preTax * inp.tax_rate_pct / 100
+    const fcf = ebitda - capex - inp.interest_m - tax
+    result[yr] = { fcf: Math.round(fcf * 10) / 10, fcf_per_share: shares > 0 ? Math.round(fcf / shares * 100) / 100 : 0, projected: true }
+    prevRev = rev
+  }
+  return result
 }
 
 // ── Detail view ───────────────────────────────────────────────────────────────
@@ -208,9 +299,21 @@ function DetailView({
   const [evEbT,    setEvEbT]    = useState(data.ev_ebitda_target)
   const [returnT,  setReturnT]  = useState(data.target_return_pct)
   const [apiPending, setApiPending] = useState(false)
+  const [fwdMode, setFwdMode] = useState(false)
+  const [fwdInputs, setFwdInputs] = useState<Record<string, FwdYearInput>>(() =>
+    initFwdInputs(data, Object.keys(data.forward_fcf ?? {}).sort())
+  )
+
+  const setFwdField = (yr: string, field: keyof FwdYearInput, val: number) =>
+    setFwdInputs(prev => ({ ...prev, [yr]: { ...prev[yr], [field]: val } }))
+
+  // When in fwdMode, replace consensus FCF with locally-computed FCF
+  const activeData = fwdMode
+    ? { ...data, forward_fcf: computeFwdFromModel(data, fwdInputs) }
+    : data
 
   // All price targets and buy price recomputed locally on every param change
-  const computed = recompute(data, evFcfT, perT, evEbT, returnT)
+  const computed = recompute(activeData, evFcfT, perT, evEbT, returnT)
 
   const histYears   = Object.keys(data.historical_fcf).map(Number).sort((a, b) => b - a)
   const fwdYears    = Object.keys(data.forward_fcf).sort()
@@ -287,52 +390,148 @@ function DetailView({
           })}
         </p>
 
-        {/* Parameters row — editable */}
-        <div className="mt-4 pt-4 border-t border-white/6">
-          <div className="flex flex-wrap items-end gap-5">
-            {/* Return % — slider */}
-            <div className="flex flex-col gap-1 flex-1 min-w-36">
-              <span className="text-[0.55rem] uppercase tracking-widest text-muted-foreground/50 font-semibold">Retorno objetivo</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range" min={8} max={25} step={1} value={returnT}
-                  onChange={e => setReturnT(Number(e.target.value))}
-                  className="flex-1 accent-cyan-400 h-1"
-                />
-                <span className="text-sm font-bold tabular-nums w-9 text-right text-cyan-400 shrink-0">{returnT}%</span>
-              </div>
-            </div>
-
-            <div className="h-8 w-px bg-white/8 hidden sm:block" />
-
-            {/* Multiples — inputs */}
-            <div className="flex flex-wrap gap-4">
-              <ParamInput label="EV/FCF objetivo" value={evFcfT} onChange={setEvFcfT} min={5} max={80} step={0.5} />
-              <ParamInput label="P/E objetivo"    value={perT}   onChange={setPerT}   min={5} max={80} step={0.5} />
-              <ParamInput label="EV/EBITDA obj."  value={evEbT}  onChange={setEvEbT}  min={3} max={50} step={0.5} />
-            </div>
-
-            <div className="h-8 w-px bg-white/8 hidden sm:block" />
-
-            {/* Reference (read-only) */}
-            <div className="flex flex-wrap gap-3 text-[0.65rem] text-muted-foreground/50">
-              <span>Mediana hist.: <span className="text-muted-foreground">{fmt(data.median_ev_fcf, '', 'x', 1)}</span></span>
-              <span>FCF Yield NTM: <span className="text-muted-foreground">{fmt(data.ntm_fcf_yield_pct, '', '%', 1)}</span></span>
-              <span>P/E NTM: <span className="text-muted-foreground">{fmt(data.ntm_pe, '', 'x', 1)}</span></span>
-            </div>
-
-            {/* API recalc button for return change */}
+        {/* Parameters — retorno + múltiplos de valoración */}
+        <div className="mt-4 pt-4 border-t border-white/6 space-y-3">
+          {/* Return slider */}
+          <div className="flex items-center gap-3">
+            <span className="text-[0.55rem] uppercase tracking-widest text-muted-foreground/50 font-semibold shrink-0">Retorno objetivo</span>
+            <input type="range" min={8} max={25} step={1} value={returnT}
+              onChange={e => setReturnT(Number(e.target.value))}
+              className="flex-1 accent-cyan-400 h-1" />
+            <span className="text-sm font-bold tabular-nums w-9 text-right text-cyan-400 shrink-0">{returnT}%</span>
             {returnT !== data.target_return_pct && !apiPending && (
-              <button
-                onClick={() => { setApiPending(true); onRecalculate(returnT) }}
-                className="px-3 py-1 rounded-md bg-white/8 hover:bg-white/12 border border-white/10 text-xs text-muted-foreground transition-colors shrink-0"
-                title="Recalcular FCF forward con este retorno"
-              >
+              <button onClick={() => { setApiPending(true); onRecalculate(returnT) }}
+                className="px-2.5 py-1 rounded-md bg-white/8 hover:bg-white/12 border border-white/10 text-xs text-muted-foreground transition-colors shrink-0">
                 Actualizar FCF →
               </button>
             )}
           </div>
+
+          {/* Múltiplos de valoración — stepper con referencia TIKR */}
+          <div>
+            <p className="text-[0.55rem] uppercase tracking-widest text-muted-foreground/40 font-semibold mb-2">
+              Múltiplos de valoración objetivo
+              <span className="ml-2 text-[0.5rem] text-muted-foreground/30 normal-case tracking-normal">(TIKR = mediana histórica / consenso NTM)</span>
+            </p>
+            <div className="flex flex-wrap gap-5">
+              <StepperInput label="EV/FCF"   value={evFcfT} onChange={setEvFcfT}
+                tikrRef={data.median_ev_fcf} suffix="x" step={0.5} min={5} max={80} />
+              <StepperInput label="P/E"      value={perT}   onChange={setPerT}
+                tikrRef={data.ntm_pe}        suffix="x" step={0.5} min={5} max={80} />
+              <StepperInput label="EV/EBITDA" value={evEbT} onChange={setEvEbT}
+                tikrRef={data.ntm_ev_ebitda} suffix="x" step={0.5} min={3} max={50} />
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Forward Model — orange editable assumptions */}
+      <div>
+        <div className="flex items-center gap-3 mb-2">
+          <p className="text-xs font-semibold">Modelo forward</p>
+          <button
+            onClick={() => setFwdMode(m => !m)}
+            className={cn(
+              'text-[0.65rem] px-2.5 py-0.5 rounded-full border font-semibold transition-all',
+              fwdMode
+                ? 'bg-orange-500/20 text-orange-400 border-orange-500/40'
+                : 'border-border/30 text-muted-foreground/50 hover:border-border/60 hover:text-muted-foreground'
+            )}
+          >
+            {fwdMode ? '● Modelo propio' : '○ Consenso TIKR'}
+          </button>
+          {fwdMode && (
+            <button onClick={() => setFwdInputs(initFwdInputs(data, Object.keys(data.forward_fcf ?? {}).sort()))}
+              className="text-[0.6rem] text-muted-foreground/40 hover:text-muted-foreground transition-colors">
+              ↺ reset
+            </button>
+          )}
+          <span className="text-[0.6rem] text-muted-foreground/35 ml-auto">
+            {fwdMode ? 'Casillas naranjas = supuestos editables → recalcula precio compra' : 'Usando estimaciones consenso de TIKR/analistas'}
+          </span>
+        </div>
+
+        {fwdMode && fwdYears.length > 0 && (
+          <Card className="glass overflow-clip">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.7rem]">
+                <thead>
+                  <tr className="border-b border-border/30">
+                    <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-36">Supuesto</th>
+                    {fwdYears.map(yr => (
+                      <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}E</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/20">
+                  {/* Revenue growth */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Crec. Ingresos %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.rev_growth_pct ?? 6}
+                          onChange={v => setFwdField(yr, 'rev_growth_pct', v)} step={0.5} min={-30} max={50} />
+                      </td>
+                    ))}
+                  </tr>
+                  {/* EBITDA margin */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Margen EBITDA %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.ebitda_margin_pct ?? 25}
+                          onChange={v => setFwdField(yr, 'ebitda_margin_pct', v)} step={0.5} min={0} max={80} />
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Tax rate */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Tasa impositiva %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.tax_rate_pct ?? 22}
+                          onChange={v => setFwdField(yr, 'tax_rate_pct', v)} step={0.5} min={0} max={50} />
+                      </td>
+                    ))}
+                  </tr>
+                  {/* CapEx % */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">CapEx mant / Ventas %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.capex_pct ?? 10}
+                          onChange={v => setFwdField(yr, 'capex_pct', v)} step={0.5} min={0} max={40} />
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Interest */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Intereses ($M)</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.interest_m ?? 0}
+                          onChange={v => setFwdField(yr, 'interest_m', v)} suffix="M" step={10} min={0} max={50000} />
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Computed FCF row */}
+                  <tr className="bg-cyan-500/5 border-t border-cyan-500/20">
+                    <td className="px-3 py-1.5 font-semibold text-cyan-400/80 whitespace-nowrap">FCF/sh (calculado)</td>
+                    {fwdYears.map(yr => {
+                      const localFcf = computeFwdFromModel(data, fwdInputs)
+                      const fcfPs = localFcf[yr]?.fcf_per_share
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center font-bold tabular-nums text-cyan-400">
+                          {fcfPs != null ? `$${fcfPs.toFixed(2)}` : '—'}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Tables row */}
