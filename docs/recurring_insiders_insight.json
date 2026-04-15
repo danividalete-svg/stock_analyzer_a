@@ -1,50 +1,50 @@
 {
-  "date": "2026-04-14",
-  "timestamp": "2026-04-14T15:36:24.707665",
-  "narrative": null,
+  "date": "2026-04-15",
+  "timestamp": "2026-04-15T07:38:21.220449",
+  "narrative": "Se observa un patr\u00f3n de compra recurrente en tickers de tecnolog\u00eda y servicios financieros, como VRSK, NDAQ y SPGI. La participaci\u00f3n de m\u00faltiples insiders en un mismo ticker sugiere una confianza significativa en el desempe\u00f1o futuro de la empresa. Para un inversor value/GARP, esta informaci\u00f3n puede ser una se\u00f1al adicional para considerar en su an\u00e1lisis, aunque no debe ser la \u00fanica base para tomar decisiones de inversi\u00f3n.",
   "total_tickers": 16,
   "total_us": 8,
   "total_eu": 8,
   "top_picks": [
     {
-      "ticker": "TPL",
+      "ticker": "VRSK",
       "market": "US",
-      "purchase_count": 163,
+      "purchase_count": 9,
+      "unique_insiders": 1,
+      "confidence_score": 190.0,
+      "days_span": 2
+    },
+    {
+      "ticker": "NDAQ",
+      "market": "US",
+      "purchase_count": 7,
       "unique_insiders": 2,
-      "confidence_score": 3280.0,
-      "days_span": 85
+      "confidence_score": 160.0,
+      "days_span": 8
     },
     {
-      "ticker": "WRB",
+      "ticker": "SPGI",
       "market": "US",
-      "purchase_count": 65,
+      "purchase_count": 7,
+      "unique_insiders": 2,
+      "confidence_score": 160.0,
+      "days_span": 32
+    },
+    {
+      "ticker": "FAST",
+      "market": "US",
+      "purchase_count": 7,
       "unique_insiders": 1,
-      "confidence_score": 1310.0,
-      "days_span": 70
+      "confidence_score": 150.0,
+      "days_span": 16
     },
     {
-      "ticker": "MNTR",
+      "ticker": "TYL",
       "market": "US",
-      "purchase_count": 49,
-      "unique_insiders": 1,
-      "confidence_score": 990.0,
-      "days_span": 85
-    },
-    {
-      "ticker": "ISBA",
-      "market": "US",
-      "purchase_count": 41,
-      "unique_insiders": 5,
-      "confidence_score": 870.0,
-      "days_span": 57
-    },
-    {
-      "ticker": "DLPN",
-      "market": "US",
-      "purchase_count": 42,
-      "unique_insiders": 1,
-      "confidence_score": 850.0,
-      "days_span": 82
+      "purchase_count": 6,
+      "unique_insiders": 2,
+      "confidence_score": 140.0,
+      "days_span": 5
     }
   ]
 }
