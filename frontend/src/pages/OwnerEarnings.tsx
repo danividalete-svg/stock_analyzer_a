@@ -237,10 +237,13 @@ function OrangeCell({
 
 // ── Forward model helpers ──────────────────────────────────────────────────────
 
-// Modelo propio: edita el FCF de TIKR mediante ajustes relativos por año.
-// Por defecto ajuste = 0 → FCF idéntico al Consenso TIKR → precio de compra idéntico.
 interface FwdYearInput {
-  fcf_adj_pct: number   // % de ajuste sobre el FCF consenso TIKR (0 = sin cambio)
+  rev_growth_pct: number
+  ebit_margin_pct: number
+  tax_rate_pct: number
+  capex_pct: number
+  wc_pct: number
+  interest_m: number
 }
 
 function _arrMedian(nums: number[]): number {
@@ -250,10 +253,73 @@ function _arrMedian(nums: number[]): number {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-function initFwdInputs(_data: OeResult, fwdYears: string[]): Record<string, FwdYearInput> {
+// Inicializa los inputs del modelo propio desde los datos TIKR, de forma que
+// computeFwdFromModel() produzca exactamente el mismo FCF que el Consenso TIKR.
+// Estrategia: Revenue y EBIT margin de TIKR directos; CapEx de mediana histórica;
+// Tax se despeja algebraicamente para cuadrar el FCF: Tax = EBITDA − CapEx − Interest − FCF_TIKR.
+function initFwdInputs(data: OeResult, fwdYears: string[]): Record<string, FwdYearInput> {
+  const sortedYrs = [...fwdYears].sort()
+
+  // Historical medians for fallbacks
+  const brows = Object.entries(data.fcf_breakdown ?? {})
+    .sort(([a], [b]) => a.localeCompare(b)).slice(-5).map(([, b]) => b).filter(Boolean)
+  const medInterest = _arrMedian(brows.filter(b => b.interest != null).map(b => b.interest as number)) || 0
+  const capexPct = data.capex_pct_sales_median || 5
+
+  // D&A % of revenue: from TIKR forward (EBITDA−EBIT)/Revenue
+  const daPctVals = sortedYrs.map(yr => {
+    const est = data.forward_estimates?.[yr]
+    if (est?.ebitda != null && est?.ebit != null && est?.revenue && est.revenue > 0)
+      return (est.ebitda - est.ebit) / est.revenue * 100
+    return null
+  }).filter((v): v is number => v != null)
+  const daPct = daPctVals.length > 0 ? _arrMedian(daPctVals) : (data.da_pct_sales_median ?? 5)
+
+  // Last historical revenue for first-year growth calc
+  const histRevs = brows.filter(b => b.revenue != null && (b.revenue as number) > 0).map(b => b.revenue as number)
+  const lastHistRev = histRevs.length > 0 ? histRevs[histRevs.length - 1] : null
+
   const result: Record<string, FwdYearInput> = {}
-  for (const yr of fwdYears) {
-    result[yr] = { fcf_adj_pct: 0 }
+  for (let i = 0; i < sortedYrs.length; i++) {
+    const yr = sortedYrs[i]
+    const est = data.forward_estimates?.[yr] ?? {}
+    const tikrFcf = data.forward_fcf[yr]?.fcf ?? null
+
+    // Revenue growth from TIKR
+    const curRev = est.revenue ?? null
+    const prevRev = i === 0 ? lastHistRev : (data.forward_estimates?.[sortedYrs[i - 1]]?.revenue ?? null)
+    const revGrowth = curRev && prevRev && prevRev > 0
+      ? Math.round((curRev / prevRev - 1) * 1000) / 10
+      : 10
+
+    // EBIT margin from TIKR
+    const ebitMargin = est.ebit != null && curRev && curRev > 0
+      ? Math.round(est.ebit / curRev * 1000) / 10
+      : 20
+
+    // Derive implied tax rate to exactly match TIKR FCF
+    // FCF = EBITDA − CapEx − Interest − Tax  (WC=0 default)
+    // Tax = EBITDA − CapEx − Interest − FCF_TIKR
+    let taxRate = 21  // default
+    if (tikrFcf != null && curRev && curRev > 0) {
+      const ebit = curRev * ebitMargin / 100
+      const da = curRev * daPct / 100
+      const ebitda = ebit + da
+      const capex = curRev * capexPct / 100
+      const interest = medInterest
+      const impliedTax = ebitda - capex - interest - tikrFcf
+      const preTax = Math.max(1, ebit - interest)
+      taxRate = Math.max(0, Math.min(45, Math.round(impliedTax / preTax * 1000) / 10))
+    }
+
+    result[yr] = {
+      rev_growth_pct: revGrowth,
+      ebit_margin_pct: ebitMargin,
+      tax_rate_pct: taxRate,
+      capex_pct: Math.round(capexPct * 10) / 10,
+      wc_pct: 0,
+      interest_m: Math.round(medInterest),
+    }
   }
   return result
 }
@@ -261,20 +327,33 @@ function initFwdInputs(_data: OeResult, fwdYears: string[]): Record<string, FwdY
 function computeFwdFromModel(
   data: OeResult,
   inputs: Record<string, FwdYearInput>,
+  daPctRev: number,
 ): Record<string, FcfEntry> {
+  const histYears = Object.keys(data.fcf_breakdown ?? {}).sort()
+  const lastHist = histYears[histYears.length - 1]
+  const lastRev = data.fcf_breakdown?.[lastHist]?.revenue ?? 0
   const fwdYears = Object.keys(inputs).sort()
   const result: Record<string, FcfEntry> = {}
+  let prevRev = lastRev
   for (const yr of fwdYears) {
-    const tikrEntry = data.forward_fcf[yr]
-    if (!tikrEntry) continue
-    const adj = (inputs[yr]?.fcf_adj_pct ?? 0) / 100
-    const fcf = tikrEntry.fcf * (1 + adj)
-    const shares = data.forward_shares?.[yr] ?? 1
+    const inp = inputs[yr]
+    const shares = (data.forward_shares?.[yr] ?? 1)
+    const rev = prevRev * (1 + inp.rev_growth_pct / 100)
+    const ebit = rev * inp.ebit_margin_pct / 100
+    const da = rev * daPctRev / 100
+    const ebitda = ebit + da
+    const capex = rev * inp.capex_pct / 100
+    const deltaWc = -(rev - prevRev) * inp.wc_pct / 100
+    const preTax = Math.max(0, ebit - inp.interest_m)
+    const tax = preTax * inp.tax_rate_pct / 100
+    const fcf = ebitda - capex - inp.interest_m - tax + deltaWc
     result[yr] = {
       fcf: Math.round(fcf * 10) / 10,
       fcf_per_share: shares > 0 ? Math.round(fcf / shares * 100) / 100 : 0,
-      projected: tikrEntry.projected,
+      ebit_per_share: shares > 0 ? Math.round(ebit / shares * 100) / 100 : 0,
+      projected: true,
     }
+    prevRev = rev
   }
   return result
 }
@@ -302,19 +381,32 @@ function DetailView({
   const setFwdField = (yr: string, field: keyof FwdYearInput, val: number) =>
     setFwdInputs(prev => ({ ...prev, [yr]: { ...prev[yr], [field]: val } }))
 
-  // EV/EBIT fraction: EBIT / EBITDA median from historical data
-  const ebitFracOfEbitda = useMemo(() => {
+  // D&A% and EBIT/EBITDA fraction — needed for computeFwdFromModel
+  const { daPctRev, ebitFracOfEbitda } = useMemo(() => {
     const brows = Object.entries(data.fcf_breakdown ?? {})
       .sort(([a], [b]) => a.localeCompare(b)).slice(-5).map(([, b]) => b).filter(Boolean)
-    return _arrMedian(
+    const fwdDaVals = Object.values(data.forward_estimates ?? {})
+      .map(est => {
+        if (est?.ebitda != null && est?.ebit != null && est?.revenue && est.revenue > 0)
+          return (est.ebitda - est.ebit) / est.revenue * 100
+        return null
+      }).filter((v): v is number => v != null)
+    const daPct = fwdDaVals.length > 0
+      ? _arrMedian(fwdDaVals)
+      : data.da_pct_sales_median != null
+      ? data.da_pct_sales_median
+      : (_arrMedian(brows.filter(b => b.dna != null && b.revenue != null && (b.revenue as number) > 0)
+          .map(b => (b.dna as number) / (b.revenue as number) * 100)) || 12)
+    const frac = _arrMedian(
       brows.filter(b => b.ebitda && b.ebit && (b.ebitda as number) !== 0)
         .map(b => (b.ebit as number) / (b.ebitda as number))
     ) || 0.6
-  }, [data.fcf_breakdown])
+    return { daPctRev: daPct, ebitFracOfEbitda: frac }
+  }, [data.fcf_breakdown, data.da_pct_sales_median, data.forward_estimates])
 
-  // When in fwdMode, replace consensus FCF with locally-adjusted FCF
+  // When in fwdMode, replace consensus FCF with locally-computed FCF
   const activeData = fwdMode
-    ? { ...data, forward_fcf: computeFwdFromModel(data, fwdInputs) }
+    ? { ...data, forward_fcf: computeFwdFromModel(data, fwdInputs, daPctRev) }
     : data
 
   // All price targets and buy price recomputed locally on every param change
@@ -577,51 +669,86 @@ function DetailView({
 
         {fwdMode && fwdYears.length > 0 && (
           <Card className="border border-orange-500/15 bg-orange-500/3 overflow-clip">
-            <div className="px-3 py-2 border-b border-orange-500/20 text-[0.65rem] text-orange-400/70">
-              Parte del FCF consenso TIKR · ajusta el % para ser más conservador o optimista por año
-            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[0.7rem]">
                 <thead>
                   <tr className="border-b border-orange-500/20">
-                    <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-36">Modelo propio</th>
+                    <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-40">Supuesto</th>
                     {fwdYears.map(yr => (
                       <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}E</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/20">
-                  {/* TIKR FCF base reference */}
                   <tr className="hover:bg-white/2">
-                    <td className="px-3 py-1.5 text-muted-foreground/50 whitespace-nowrap text-[0.65rem]">FCF base TIKR ($M)</td>
-                    {fwdYears.map(yr => {
-                      const fcf = data.forward_fcf[yr]?.fcf
-                      return (
-                        <td key={yr} className="px-2 py-1.5 text-center text-muted-foreground/50 font-mono">
-                          {fcf != null ? (fcf / 1000).toFixed(1) + 'B' : '—'}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                  {/* FCF adjustment */}
-                  <tr className="hover:bg-white/2">
-                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Ajuste FCF %</td>
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Crec. Ingresos %</td>
                     {fwdYears.map(yr => (
                       <td key={yr} className="px-2 py-1 text-center">
-                        <OrangeCell value={fwdInputs[yr]?.fcf_adj_pct ?? 0}
-                          onChange={v => setFwdField(yr, 'fcf_adj_pct', v)} step={1} min={-50} max={50} />
+                        <OrangeCell value={fwdInputs[yr]?.rev_growth_pct ?? 10}
+                          onChange={v => setFwdField(yr, 'rev_growth_pct', v)} step={0.5} min={-30} max={50} />
                       </td>
                     ))}
                   </tr>
-                  {/* Adjusted FCF row */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Margen EBIT %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.ebit_margin_pct ?? 20}
+                          onChange={v => setFwdField(yr, 'ebit_margin_pct', v)} step={0.5} min={0} max={80} />
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Tasa impositiva %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.tax_rate_pct ?? 21}
+                          onChange={v => setFwdField(yr, 'tax_rate_pct', v)} step={0.5} min={0} max={50} />
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">CapEx mant / Ventas %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.capex_pct ?? 5}
+                          onChange={v => setFwdField(yr, 'capex_pct', v)} step={0.5} min={0} max={40} />
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Capital Trabajo / Ventas %</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.wc_pct ?? 0}
+                          onChange={v => setFwdField(yr, 'wc_pct', v)} step={0.5} min={-20} max={30} />
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Intereses ($M)</td>
+                    {fwdYears.map(yr => (
+                      <td key={yr} className="px-2 py-1 text-center">
+                        <OrangeCell value={fwdInputs[yr]?.interest_m ?? 0}
+                          onChange={v => setFwdField(yr, 'interest_m', v)} suffix="M" step={10} min={0} max={50000} />
+                      </td>
+                    ))}
+                  </tr>
                   <tr className="bg-cyan-500/5 border-t border-cyan-500/20">
-                    <td className="px-3 py-1.5 font-semibold text-cyan-400/80 whitespace-nowrap">FCF/sh ajustado</td>
+                    <td className="px-3 py-1.5 font-semibold text-cyan-400/80 whitespace-nowrap">FCF/sh (modelo)</td>
                     {fwdYears.map(yr => {
-                      const localFcf = computeFwdFromModel(data, fwdInputs)
+                      const localFcf = computeFwdFromModel(data, fwdInputs, daPctRev)
                       const fcfPs = localFcf[yr]?.fcf_per_share
+                      const tikrPs = data.forward_fcf[yr]?.fcf_per_share
+                      const diff = fcfPs != null && tikrPs != null ? ((fcfPs / tikrPs - 1) * 100) : null
                       return (
                         <td key={yr} className="px-2 py-1.5 text-center font-bold tabular-nums text-cyan-400">
                           {fcfPs != null ? `$${fcfPs.toFixed(2)}` : '—'}
+                          {diff != null && Math.abs(diff) > 0.5 && (
+                            <span className={`ml-1 text-[0.55rem] ${diff > 0 ? 'text-emerald-400/60' : 'text-red-400/60'}`}>
+                              {diff > 0 ? '+' : ''}{diff.toFixed(0)}%
+                            </span>
+                          )}
                         </td>
                       )
                     })}
