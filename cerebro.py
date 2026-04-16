@@ -1897,40 +1897,1143 @@ def scan_sector_relative_value() -> dict:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 18. EARNINGS REVISION MONITOR
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_earnings_revisions() -> dict:
+    """
+    Compares current NTM analyst estimates (from TIKR) vs. the previous week's
+    snapshot stored in cerebro_tikr_baseline.json.
+
+    Detects week-over-week EPS / revenue estimate momentum:
+      STRONG_UP   EPS +5%+  → +8 score adj
+      UP          EPS +2%+  → +4
+      FLAT        <±2%      → 0
+      DOWN        EPS -2%+  → -4
+      STRONG_DOWN EPS -5%+  → -8
+      Revenue ±3%+          → ±2 extra
+      Analyst coverage ±2   → ±3 extra
+
+    Baseline management:
+      - First run: saves baseline from current TIKR data, returns no revisions.
+      - Subsequent runs: if TIKR generated_at unchanged → returns cached revisions.
+      - When TIKR refreshes (generated_at changes) → compares, updates baseline,
+        caches output in cerebro_earnings_revisions_cached.json.
+    """
+    print("[18] Earnings revision monitor...")
+    tikr = load_json(DOCS / "tikr_earnings_data.json")
+    if not tikr.get("data"):
+        return dict(generated_at=TODAY, total=0, upgrades=0, downgrades=0,
+                    revisions=[], note="no_tikr_data")
+
+    baseline_path = DOCS / "cerebro_tikr_baseline.json"
+    baseline      = load_json(baseline_path)
+    tikr_gen      = tikr.get("generated_at", "")
+    base_gen      = baseline.get("tikr_generated_at", "")
+    base_data     = baseline.get("data", {})
+
+    def _extract(td: dict) -> dict:
+        ntm = td.get("ntm", {})
+        ae  = td.get("analyst_estimates", {})
+        fwd = ae.get("forward", {})
+        cur_yr = str(ae.get("current_year", ""))
+        cy = fwd.get(cur_yr, {})
+        return {
+            "eps_consensus": sf(ntm.get("ntm_eps_consensus")),
+            "revenue":       sf(ntm.get("ntm_revenue")),
+            "ebitda":        sf(ntm.get("ntm_ebitda")),
+            "ntm_eps":       sf(ntm.get("ntm_eps")),
+            "n_analysts":    sf(cy.get("n_analysts")),
+        }
+
+    # ── First run: initialise baseline ────────────────────────────────────────
+    if not base_data:
+        new_base = dict(
+            created_at=TODAY,
+            tikr_generated_at=tikr_gen,
+            data={t: _extract(td) for t, td in tikr["data"].items()},
+        )
+        save_json(baseline_path, new_base)
+        print(f"  ✓ Baseline inicializada ({len(new_base['data'])} tickers). Revisiones en la próxima ejecución.")
+        return dict(generated_at=TODAY, total=0, upgrades=0, downgrades=0,
+                    revisions=[], note="baseline_initialized")
+
+    # ── TIKR not refreshed yet: return cached output ──────────────────────────
+    tikr_refreshed = bool(tikr_gen and base_gen and tikr_gen != base_gen)
+    if not tikr_refreshed:
+        cached = load_json(DOCS / "cerebro_earnings_revisions_cached.json")
+        if cached:
+            print(f"  ✓ TIKR sin cambios — revisiones cacheadas ({cached.get('tikr_date','?')}): "
+                  f"{cached.get('upgrades',0)} up / {cached.get('downgrades',0)} down")
+            return cached
+        return dict(generated_at=TODAY, total=0, upgrades=0, downgrades=0,
+                    revisions=[], note="awaiting_tikr_refresh")
+
+    # ── TIKR refreshed: compute revisions ────────────────────────────────────
+    print(f"  TIKR actualizado: {base_gen[:10]} → {tikr_gen[:10]}")
+    revisions: list[dict] = []
+
+    for ticker, td in tikr["data"].items():
+        curr = _extract(td)
+        prev = base_data.get(ticker)
+        if not prev:
+            continue
+
+        eps_c = curr["eps_consensus"] or curr["ntm_eps"]
+        eps_p = prev.get("eps_consensus") or prev.get("ntm_eps")
+        rev_c = curr["revenue"]
+        rev_p = prev.get("revenue")
+        na_c  = curr["n_analysts"]
+        na_p  = prev.get("n_analysts")
+
+        if not eps_c or not eps_p or eps_p == 0:
+            continue
+
+        # Skip data quality issues (model vs consensus too far apart)
+        if curr["ntm_eps"] and curr["ntm_eps"] != 0:
+            if abs(eps_c - curr["ntm_eps"]) / max(abs(curr["ntm_eps"]), 0.01) > 2.5:
+                continue
+
+        eps_chg_pct = (eps_c - eps_p) / abs(eps_p) * 100
+        rev_chg_pct = (
+            (rev_c - rev_p) / abs(rev_p) * 100
+            if rev_c and rev_p and rev_p != 0 else 0.0
+        )
+        analysts_delta = int((na_c or 0) - (na_p or 0))
+
+        if eps_chg_pct >= 5:
+            direction = "STRONG_UP"
+        elif eps_chg_pct >= 2:
+            direction = "UP"
+        elif eps_chg_pct <= -5:
+            direction = "STRONG_DOWN"
+        elif eps_chg_pct <= -2:
+            direction = "DOWN"
+        else:
+            direction = "FLAT"
+
+        if direction == "FLAT" and abs(rev_chg_pct) < 1.5 and abs(analysts_delta) < 2:
+            continue
+
+        score_adj = 0
+        if direction == "STRONG_UP":    score_adj += 8
+        elif direction == "UP":         score_adj += 4
+        elif direction == "DOWN":       score_adj -= 4
+        elif direction == "STRONG_DOWN":score_adj -= 8
+        if rev_chg_pct >= 3:            score_adj += 2
+        elif rev_chg_pct <= -3:         score_adj -= 2
+        if analysts_delta >= 2:         score_adj += 3
+        elif analysts_delta <= -2:      score_adj -= 3
+
+        flags: list[str] = []
+        if abs(eps_chg_pct) >= 2:
+            arrow = "↑" if eps_chg_pct > 0 else "↓"
+            flags.append(f"EPS consensus {arrow}{abs(eps_chg_pct):.1f}% ({eps_p:.2f}→{eps_c:.2f})")
+        if abs(rev_chg_pct) >= 1.5:
+            arrow = "↑" if rev_chg_pct > 0 else "↓"
+            flags.append(f"Revenue estimate {arrow}{abs(rev_chg_pct):.1f}%")
+        if abs(analysts_delta) >= 2:
+            arrow = "+" if analysts_delta > 0 else ""
+            flags.append(f"Analistas: {arrow}{analysts_delta} ({int(na_p or 0)}→{int(na_c or 0)})")
+
+        revisions.append(dict(
+            ticker=ticker,
+            company_name=td.get("company_name", ticker),
+            direction=direction,
+            eps_prev=round(eps_p, 3),
+            eps_curr=round(eps_c, 3),
+            eps_chg_pct=round(eps_chg_pct, 2),
+            rev_chg_pct=round(rev_chg_pct, 2),
+            analysts_prev=int(na_p or 0),
+            analysts_curr=int(na_c or 0),
+            analysts_delta=analysts_delta,
+            score_adj=score_adj,
+            flags=flags,
+        ))
+
+    revisions.sort(key=lambda x: -abs(x["score_adj"]))
+    upgrades   = sum(1 for r in revisions if r["direction"] in ("STRONG_UP", "UP"))
+    downgrades = sum(1 for r in revisions if r["direction"] in ("STRONG_DOWN", "DOWN"))
+
+    narrative = ai(
+        f"Monitor de revisiones de estimaciones (semana anterior vs actual): "
+        f"{upgrades} upgrades y {downgrades} downgrades.\n"
+        + "\n".join(
+            f"- {r['ticker']}: EPS {'+' if r['eps_chg_pct']>0 else ''}{r['eps_chg_pct']:.1f}%"
+            f" ({r['direction']}) | {'; '.join(r['flags'][:2])}"
+            for r in revisions[:5]
+        )
+        + "\n\n2 frases en español: qué implican estas revisiones para un inversor VALUE.", 200
+    ) if revisions else None
+
+    output = dict(
+        generated_at=TODAY,
+        tikr_date=tikr_gen[:10] if tikr_gen else "",
+        prev_date=base_gen[:10] if base_gen else "",
+        total=len(revisions),
+        upgrades=upgrades,
+        downgrades=downgrades,
+        narrative=narrative,
+        revisions=revisions,
+    )
+
+    # Update baseline → now holds THIS week's data for next comparison
+    new_base = dict(
+        created_at=TODAY,
+        tikr_generated_at=tikr_gen,
+        data={t: _extract(td) for t, td in tikr["data"].items()},
+    )
+    save_json(baseline_path, new_base)
+    save_json(DOCS / "cerebro_earnings_revisions_cached.json", output)
+
+    print(f"  ✓ {len(revisions)} revisiones: {upgrades} upgrades · {downgrades} downgrades · baseline actualizada")
+    return output
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 19. MACRO REGIME TRANSITION DETECTOR
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_regime_transition() -> dict:
+    """
+    Detects early-warning signals that the macro regime is about to shift.
+    Tracks VELOCITY of change in 6 key indicators across the last 5 and 20 days.
+
+    Each signal that is "turning" adds to the transition probability:
+      1 signal  → WATCH  (~20%)
+      2 signals → WATCH  (~35%)
+      3 signals → ALERT  (~55%)
+      4+ signals→ IMMINENT (~70-80%)
+
+    Direction: BEAR_TRANSITION | BULL_TRANSITION | DEEPENING_BEAR |
+               DEEPENING_BULL | STABLE
+    """
+    print("[19] Regime transition detector...")
+    macro = load_json(DOCS / "macro_radar.json")
+    if not macro:
+        return dict(generated_at=TODAY, transition_probability=0,
+                    direction="STABLE", alert_level="CLEAR", note="no_macro_data")
+
+    # Load historical snapshots for velocity
+    history_dir = DOCS / "history"
+    hist_macros: list[tuple[str, dict]] = []
+    if history_dir.exists():
+        past_dirs = sorted([d for d in history_dir.iterdir() if d.is_dir()], reverse=True)
+        for pd_ in past_dirs[:25]:
+            mp = pd_ / "macro_radar.json"
+            if mp.exists():
+                try:
+                    hist_macros.append((pd_.name, json.loads(mp.read_text())))
+                except Exception:
+                    pass
+
+    def _sigs(m: dict) -> dict:
+        s = m.get("signals", {})
+        def sv(k, f="percentile"):
+            v = s.get(k, {})
+            return sf(v.get(f)) if isinstance(v, dict) else None
+        return dict(
+            composite   = sf(m.get("composite_score")),
+            vix_pct     = sv("vix"),
+            credit_pct  = sv("credit"),
+            ycurve_pct  = sv("yield_curve"),
+            gold_pct    = sv("gold_spy"),
+            breadth_pct = sv("breadth") or sv("small_cap"),
+        )
+
+    curr = _sigs(macro)
+    # Find snapshots ~5 and ~20 trading days back
+    prev5  = _sigs(hist_macros[0][1])  if len(hist_macros) >= 1 else {}
+    prev20 = _sigs(hist_macros[-1][1]) if len(hist_macros) >= 5 else {}
+
+    regime_now = str(macro.get("regime", {}).get("name", "WATCH")).upper()
+    comp_now   = curr.get("composite") or 0
+    comp_5d    = prev5.get("composite") or comp_now
+    comp_20d   = prev20.get("composite") or comp_now
+    d5  = comp_now - comp_5d
+    d20 = comp_now - comp_20d
+
+    turning_bearish: list[dict] = []
+    turning_bullish: list[dict] = []
+
+    def _check(name: str, now, old, thr_bear: float, thr_bull: float, label_b: str, label_u: str):
+        if now is None or old is None:
+            return
+        delta = now - old
+        if delta <= thr_bear:
+            turning_bearish.append(dict(signal=name,
+                detail=f"{label_b} ({old:.0f}→{now:.0f}, Δ{delta:+.0f})",
+                severity="HIGH" if delta <= thr_bear * 1.6 else "MEDIUM"))
+        elif delta >= thr_bull:
+            turning_bullish.append(dict(signal=name,
+                detail=f"{label_u} ({old:.0f}→{now:.0f}, Δ{delta:+.0f})",
+                severity="HIGH" if delta >= thr_bull * 1.6 else "MEDIUM"))
+
+    # Composite score
+    if abs(d5) >= 3:
+        if d5 <= -3:
+            turning_bearish.append(dict(signal="Composite score",
+                detail=f"Cayó {abs(d5):.1f}pts en 5d ({comp_5d:.1f}→{comp_now:.1f})",
+                severity="HIGH" if d5 <= -5 else "MEDIUM"))
+        else:
+            turning_bullish.append(dict(signal="Composite score",
+                detail=f"Subió {d5:.1f}pts en 5d ({comp_5d:.1f}→{comp_now:.1f})",
+                severity="HIGH" if d5 >= 5 else "MEDIUM"))
+
+    # VIX percentile rising = stress building
+    _check("VIX", curr.get("vix_pct"), prev5.get("vix_pct"),
+           thr_bear=-20, thr_bull=20,
+           label_b="Percentil VIX cayó → estrés aliviándose",
+           label_u="Percentil VIX subió → stress creciente")
+    # (note: VIX rising = bearish for equities)
+    if curr.get("vix_pct") and prev5.get("vix_pct"):
+        delta_vix = (curr["vix_pct"] or 0) - (prev5["vix_pct"] or 0)
+        # undo the check above (vix rising = bear, not bull)
+        if turning_bullish and turning_bullish[-1]["signal"] == "VIX":
+            t = turning_bullish.pop()
+            turning_bearish.append(dict(signal="VIX",
+                detail=f"Percentil VIX subió {delta_vix:.0f}pp → stress creciente",
+                severity=t["severity"]))
+        elif turning_bearish and turning_bearish[-1]["signal"] == "VIX":
+            t = turning_bearish.pop()
+            turning_bullish.append(dict(signal="VIX",
+                detail=f"Percentil VIX cayó {abs(delta_vix):.0f}pp → estrés aliviándose",
+                severity=t["severity"]))
+
+    # Credit ratio: dropping = spreads widening = risk-off
+    _check("Crédito HY/IG", curr.get("credit_pct"), prev5.get("credit_pct"),
+           thr_bear=-15, thr_bull=15,
+           label_b="Spreads ampliándose — riesgo sistémico emergiendo",
+           label_u="Spreads comprimiéndose — risk-on")
+    # credit dropping is bearish: flip the assignments
+    if turning_bullish and turning_bullish[-1]["signal"] == "Crédito HY/IG":
+        t = turning_bullish.pop()
+        turning_bearish.append(dict(signal="Crédito HY/IG",
+            detail=t["detail"].replace("Spreads ampliándose", "Ratio crédito cayó"),
+            severity=t["severity"]))
+    elif turning_bearish and turning_bearish[-1]["signal"] == "Crédito HY/IG":
+        t = turning_bearish.pop()
+        turning_bullish.append(dict(signal="Crédito HY/IG",
+            detail=t["detail"], severity=t["severity"]))
+
+    # Gold/SPY rising = flight to safety = bearish equities
+    if curr.get("gold_pct") and prev5.get("gold_pct"):
+        dg = (curr["gold_pct"] or 0) - (prev5["gold_pct"] or 0)
+        if dg >= 15:
+            turning_bearish.append(dict(signal="Gold/SPY",
+                detail=f"Percentil Gold/SPY subió {dg:.0f}pp → huida hacia calidad activa",
+                severity="HIGH" if dg >= 25 else "MEDIUM"))
+        elif dg <= -15:
+            turning_bullish.append(dict(signal="Gold/SPY",
+                detail=f"Gold/SPY percentil cayó {abs(dg):.0f}pp → retorno al riesgo",
+                severity="MEDIUM"))
+
+    # Breadth / small-cap
+    _check("Breadth/Small caps", curr.get("breadth_pct"), prev5.get("breadth_pct"),
+           thr_bear=-20, thr_bull=20,
+           label_b="Deterioro de breadth — mercado estrechándose",
+           label_u="Mejora de breadth — participación ampliándose")
+
+    # Yield curve: rapid flattening = recession risk
+    if curr.get("ycurve_pct") and prev5.get("ycurve_pct"):
+        dy = (curr["ycurve_pct"] or 0) - (prev5["ycurve_pct"] or 0)
+        if dy <= -20:
+            turning_bearish.append(dict(signal="Curva tipos 2s10s",
+                detail=f"Aplanamiento rápido: percentil cayó {abs(dy):.0f}pp",
+                severity="MEDIUM"))
+        elif dy >= 20:
+            turning_bullish.append(dict(signal="Curva tipos 2s10s",
+                detail=f"Normalización curva: percentil subió {dy:.0f}pp",
+                severity="MEDIUM"))
+
+    n_bear = len(turning_bearish)
+    n_bull = len(turning_bullish)
+
+    if n_bear > n_bull:
+        direction = "BEAR_TRANSITION" if regime_now in ("CALM", "CONFIRMED_UPTREND") else "DEEPENING_BEAR"
+        n_sig = n_bear
+    elif n_bull > n_bear:
+        direction = "BULL_TRANSITION" if regime_now in ("CORRECTION", "BEAR", "ALERT") else "DEEPENING_BULL"
+        n_sig = n_bull
+    else:
+        direction = "STABLE"
+        n_sig = 0
+
+    if n_sig == 0:   prob, level = 10, "CLEAR"
+    elif n_sig == 1: prob, level = 20, "WATCH"
+    elif n_sig == 2: prob, level = 35, "WATCH"
+    elif n_sig == 3: prob, level = 55, "ALERT"
+    else:            prob, level = min(80, 55 + (n_sig - 3) * 10), "IMMINENT"
+
+    if macro.get("historical_analogs") and prob >= 35:
+        prob = min(85, prob + 10)
+        level = "ALERT" if level == "WATCH" else level
+
+    traj = ("IMPROVING" if d20 > 0 and d5 > 0 else
+            "DETERIORATING" if d20 < 0 and d5 < 0 else "MIXED")
+
+    signals_turning = turning_bearish if n_bear >= n_bull else turning_bullish
+
+    narrative = ai(
+        f"Detector de transición de régimen. Actual: {regime_now}, composite {comp_now:.1f} "
+        f"(Δ5d {d5:+.1f}, Δ20d {d20:+.1f}). {n_sig} señales girando → {direction} (prob {prob}%).\n"
+        + "\n".join(f"- {s['signal']}: {s['detail']}" for s in signals_turning[:4])
+        + "\n\n2 frases en español: qué hacer como VALUE investor cuando el régimen amenaza con cambiar.", 200
+    ) if signals_turning else None
+
+    print(f"  ✓ Transición: {direction} · prob {prob}% · {level} · {n_sig} señales girando")
+    return dict(
+        generated_at=TODAY,
+        regime_current=regime_now,
+        composite_now=round(comp_now, 2),
+        composite_delta_5d=round(d5, 2),
+        composite_delta_20d=round(d20, 2),
+        composite_trajectory=traj,
+        direction=direction,
+        transition_probability=prob,
+        alert_level=level,
+        signals_turning=signals_turning,
+        turning_bearish=turning_bearish,
+        turning_bullish=turning_bullish,
+        narrative=narrative,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 20. THESIS DRIFT TRACKER
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_thesis_drift() -> dict:
+    """
+    Long-term thesis integrity tracker (structural drift, not week-over-week).
+    Compares current VALUE picks vs their state 15-45 days ago (oldest snapshot).
+
+    Unlike quality_decay (recent week), this detects CUMULATIVE deterioration
+    that is slowly invalidating the investment thesis. Tracks:
+      - Value score trajectory (system conviction over time)
+      - FCF yield (core VALUE metric)
+      - Analyst upside (consensus view evolution)
+      - Operating margin trend (business quality)
+      - Leverage increase (debt creep)
+      - Piotroski cumulative change
+
+    Severity: HIGH ≥6pts drift_score · MEDIUM 3-5pts · LOW <3pts
+    """
+    print("[20] Thesis drift tracker...")
+    value_df  = load_csv(DOCS / "value_opportunities.csv")
+    eu_df     = load_csv(DOCS / "european_value_opportunities.csv")
+    all_curr  = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+
+    if all_curr.empty:
+        return dict(generated_at=TODAY, total=0, high_count=0, drifts=[],
+                    note="no_value_data")
+
+    # Find oldest snapshot ≥15 days ago (long-term comparison)
+    history_dir = DOCS / "history"
+    prev_map: dict[str, dict] = {}
+    oldest_date = ""
+
+    if history_dir.exists():
+        from datetime import timedelta
+        today_dt  = date.fromisoformat(TODAY)
+        threshold = today_dt - timedelta(days=15)
+        past_dirs = sorted([d for d in history_dir.iterdir() if d.is_dir()])
+        for pd_ in past_dirs:
+            try:
+                dir_dt = date.fromisoformat(pd_.name)
+            except ValueError:
+                continue
+            if dir_dt > threshold:
+                continue
+            for fname in ["value_opportunities.csv", "european_value_opportunities.csv"]:
+                fpath = pd_ / fname
+                if not fpath.exists():
+                    continue
+                try:
+                    old = pd.read_csv(fpath)
+                    if "ticker" not in old.columns:
+                        continue
+                    for _, row in old.iterrows():
+                        t = str(row.get("ticker", "")).upper()
+                        if t not in prev_map:
+                            h = _parse_health(row)
+                            prev_map[t] = dict(
+                                value_score = sf(row.get("value_score")),
+                                fcf_yield   = sf(row.get("fcf_yield_pct")),
+                                upside      = sf(row.get("analyst_upside_pct")),
+                                roe         = sf(h.get("roe_pct")),
+                                op_margin   = sf(h.get("operating_margin_pct")),
+                                debt_eq     = sf(h.get("debt_to_equity")),
+                                piotroski   = sf(row.get("piotroski_score")),
+                            )
+                except Exception:
+                    pass
+            if prev_map and not oldest_date:
+                oldest_date = pd_.name
+
+    if not prev_map:
+        return dict(generated_at=TODAY, total=0, high_count=0, drifts=[],
+                    note="insufficient_history")
+
+    days_elapsed = 0
+    try:
+        days_elapsed = (date.fromisoformat(TODAY) - date.fromisoformat(oldest_date)).days
+    except Exception:
+        pass
+
+    print(f"  Comparando vs {oldest_date} ({days_elapsed}d atrás · {len(prev_map)} tickers)")
+
+    drifts: list[dict] = []
+    for _, row in all_curr.iterrows():
+        t    = str(row.get("ticker", "")).upper()
+        prev = prev_map.get(t)
+        if not prev:
+            continue
+
+        h           = _parse_health(row)
+        curr_vs     = sf(row.get("value_score")) or 0
+        curr_fcf    = sf(row.get("fcf_yield_pct"))
+        curr_up     = sf(row.get("analyst_upside_pct"))
+        curr_marg   = sf(h.get("operating_margin_pct"))
+        curr_debt   = sf(h.get("debt_to_equity"))
+        curr_piotr  = sf(row.get("piotroski_score"))
+        prev_vs     = prev.get("value_score") or 0
+        company     = str(row.get("company_name", t))
+
+        drift_score = 0
+        drift_flags: list[str] = []
+        improvements: list[str] = []
+
+        # 1. Value score trajectory
+        if prev_vs > 0 and curr_vs > 0:
+            chg = curr_vs - prev_vs
+            if chg <= -10:
+                drift_score += 3
+                drift_flags.append(f"Score cayó {abs(chg):.0f}pts en {days_elapsed}d ({prev_vs:.0f}→{curr_vs:.0f})")
+            elif chg >= 8:
+                improvements.append(f"Score mejoró {chg:.0f}pts ({prev_vs:.0f}→{curr_vs:.0f})")
+
+        # 2. FCF yield — core VALUE metric
+        if curr_fcf is not None and prev.get("fcf_yield") is not None:
+            chg = curr_fcf - prev["fcf_yield"]
+            if chg <= -3:
+                drift_score += 3
+                drift_flags.append(f"FCF yield cayó {abs(chg):.1f}pp ({prev['fcf_yield']:.1f}%→{curr_fcf:.1f}%)")
+            elif chg >= 2:
+                improvements.append(f"FCF yield mejoró {chg:.1f}pp")
+
+        # 3. Analyst upside — consensus conviction
+        if curr_up is not None and prev.get("upside") is not None:
+            chg = curr_up - prev["upside"]
+            if chg <= -8:
+                drift_score += 2
+                drift_flags.append(f"Upside analistas cayó {abs(chg):.0f}pp ({prev['upside']:.0f}%→{curr_up:.0f}%)")
+            elif chg >= 6:
+                improvements.append(f"Upside analistas subió {chg:.0f}pp")
+
+        # 4. Operating margin — business quality
+        if curr_marg is not None and prev.get("op_margin") is not None:
+            chg = curr_marg - prev["op_margin"]
+            if chg <= -4:
+                drift_score += 2
+                drift_flags.append(f"Margen op. cayó {abs(chg):.1f}pp ({prev['op_margin']:.1f}%→{curr_marg:.1f}%)")
+            elif chg >= 3:
+                improvements.append(f"Margen op. mejoró {chg:.1f}pp")
+
+        # 5. Leverage creep
+        if curr_debt is not None and prev.get("debt_eq") and prev["debt_eq"] > 0:
+            chg_pct = (curr_debt - prev["debt_eq"]) / prev["debt_eq"] * 100
+            if chg_pct >= 30:
+                drift_score += 2
+                drift_flags.append(f"Deuda/equity subió {chg_pct:.0f}% ({prev['debt_eq']:.1f}→{curr_debt:.1f}x)")
+
+        # 6. Piotroski cumulative
+        if curr_piotr is not None and prev.get("piotroski") is not None:
+            chg = curr_piotr - prev["piotroski"]
+            if chg <= -2:
+                drift_score += 2
+                drift_flags.append(f"Piotroski cayó {abs(chg):.0f}pts en {days_elapsed}d")
+            elif chg >= 2:
+                improvements.append(f"Piotroski mejoró {chg:.0f}pts")
+
+        if drift_score <= 0:
+            continue
+
+        severity = "HIGH" if drift_score >= 6 else "MEDIUM" if drift_score >= 3 else "LOW"
+
+        drifts.append(dict(
+            ticker=t,
+            company_name=company,
+            sector=str(row.get("sector", "")),
+            severity=severity,
+            drift_score=drift_score,
+            days_tracked=days_elapsed,
+            baseline_date=oldest_date,
+            value_score_now=round(curr_vs, 1),
+            value_score_prev=round(prev_vs, 1) if prev_vs else None,
+            drift_flags=drift_flags,
+            improvements=improvements,
+        ))
+
+    drifts.sort(key=lambda x: -x["drift_score"])
+    high_count = sum(1 for d in drifts if d["severity"] == "HIGH")
+
+    narrative = ai(
+        f"Deriva de tesis a largo plazo ({days_elapsed}d): {len(drifts)} tickers con deterioro "
+        f"estructural, {high_count} graves.\n"
+        + "\n".join(
+            f"- {d['ticker']}: {'; '.join(d['drift_flags'][:2])}"
+            for d in drifts[:4]
+        )
+        + "\n\n2 frases en español: diferencia clave entre ruido temporal y deterioro estructural "
+        "real de una tesis VALUE.", 200
+    ) if drifts else None
+
+    print(f"  ✓ {len(drifts)} drifts · {high_count} HIGH · periodo {days_elapsed}d")
+    return dict(
+        generated_at=TODAY,
+        baseline_date=oldest_date,
+        days_tracked=days_elapsed,
+        total=len(drifts),
+        high_count=high_count,
+        narrative=narrative,
+        drifts=drifts,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 21. SYSTEMIC CORRELATION BREAKDOWN MONITOR
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_correlation_breakdown(exit_sigs: dict, decay_data: dict) -> dict:
+    """
+    Monitors systemic correlation risk within the VALUE universe.
+    When multiple uncorrelated sectors show simultaneous deterioration,
+    it suggests a macro-driven contagion rather than idiosyncratic issues.
+
+    Signals scored:
+      Universe breadth collapse (% scoring >65 falling fast)
+      Multi-sector quality decay (3+ sectors simultaneously)
+      Exit signal surge (5+ HIGH exits at once)
+      Elevated systemic macro risks
+      VIX >30 with breadth decline
+
+    Risk levels: LOW · MODERATE · HIGH · CRITICAL
+    """
+    print("[21] Systemic correlation breakdown scan...")
+    value_df  = load_csv(DOCS / "value_opportunities.csv")
+    eu_df     = load_csv(DOCS / "european_value_opportunities.csv")
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    macro     = load_json(DOCS / "macro_radar.json")
+
+    if all_value.empty:
+        return dict(generated_at=TODAY, systemic_risk="LOW",
+                    correlation_score=0, signals=[], universe_breadth_pct=0)
+
+    corr_score = 0
+    signals: list[dict] = []
+
+    # 1. Universe breadth: % of picks scoring >65 (high conviction)
+    total = len(all_value)
+    high_conv = int((all_value.get("value_score", pd.Series(dtype=float))
+                     .fillna(0) >= 65).sum()) if "value_score" in all_value.columns else 0
+    breadth_pct = high_conv / total * 100 if total > 0 else 50.0
+
+    prev_breadth: float | None = None
+    history_dir = DOCS / "history"
+    if history_dir.exists():
+        past_dirs = sorted([d for d in history_dir.iterdir() if d.is_dir()], reverse=True)
+        for pd_ in past_dirs[:7]:
+            fpath = pd_ / "value_opportunities.csv"
+            if fpath.exists():
+                try:
+                    old = pd.read_csv(fpath)
+                    if "value_score" in old.columns and len(old) > 10:
+                        oh = int((old["value_score"].fillna(0) >= 65).sum())
+                        prev_breadth = oh / len(old) * 100
+                        break
+                except Exception:
+                    pass
+
+    breadth_chg = (breadth_pct - prev_breadth) if prev_breadth is not None else 0.0
+    if breadth_chg <= -15:
+        corr_score += 4
+        signals.append(dict(type="BREADTH_COLLAPSE", severity="HIGH",
+            detail=f"Universo VALUE: picks >65pts cayó {abs(breadth_chg):.0f}pp "
+                   f"({prev_breadth:.0f}%→{breadth_pct:.0f}%)"))
+    elif breadth_chg <= -8:
+        corr_score += 2
+        signals.append(dict(type="BREADTH_DECLINE", severity="MEDIUM",
+            detail=f"Breadth VALUE estrecho: {breadth_pct:.0f}% alta convicción "
+                   f"(vs {prev_breadth:.0f}% anterior)"))
+
+    # 2. Cross-sector quality decay
+    decays = decay_data.get("decays", [])
+    if decays and "sector" in all_value.columns:
+        decay_tickers = {d["ticker"] for d in decays}
+        sectors_decaying = (all_value[all_value["ticker"].isin(decay_tickers)]
+                            ["sector"].dropna().unique().tolist())
+        n_sec = len(sectors_decaying)
+        if n_sec >= 4:
+            corr_score += 4
+            signals.append(dict(type="MULTI_SECTOR_DECAY", severity="HIGH",
+                detail=f"Quality decay en {n_sec} sectores: {', '.join(str(s) for s in sectors_decaying[:5])}"))
+        elif n_sec >= 2:
+            corr_score += 2
+            signals.append(dict(type="MULTI_SECTOR_DECAY", severity="MEDIUM",
+                detail=f"Quality decay en {n_sec} sectores simultáneamente"))
+
+    # 3. Exit signal accumulation
+    exits      = exit_sigs.get("exits", [])
+    high_exits = [e for e in exits if e.get("severity") == "HIGH"]
+    if len(high_exits) >= 8:
+        corr_score += 4
+        signals.append(dict(type="EXIT_SIGNAL_SURGE", severity="HIGH",
+            detail=f"{len(high_exits)} señales salida HIGH simultáneas → deterioro sistémico"))
+    elif len(high_exits) >= 5:
+        corr_score += 2
+        signals.append(dict(type="EXIT_SIGNAL_SURGE", severity="MEDIUM",
+            detail=f"{len(high_exits)} señales salida HIGH → posible contagio"))
+
+    # 4. Macro systemic risks
+    sys_risks = macro.get("systemic_risks", [])
+    high_sys  = [r for r in sys_risks
+                 if isinstance(r, dict) and str(r.get("severity","")).upper() in ("HIGH","CRITICAL")]
+    if high_sys:
+        corr_score += len(high_sys) * 2
+        signals.append(dict(type="SYSTEMIC_MACRO_RISK",
+            severity="HIGH" if len(high_sys) >= 2 else "MEDIUM",
+            detail=f"{len(high_sys)} riesgos sistémicos macro: "
+                   f"{', '.join(str(r.get('name', r.get('type',''))) for r in high_sys[:3])}"))
+
+    # 5. VIX elevated + breadth declining
+    vix_val = sf((macro.get("signals", {}).get("vix", {}) or {}).get("current")) or 0
+    if vix_val >= 30 and breadth_chg <= -5:
+        corr_score += 3
+        signals.append(dict(type="VIX_BREADTH_DIVERGENCE", severity="HIGH",
+            detail=f"VIX {vix_val:.1f} (estrés) + breadth cayendo {breadth_chg:.0f}pp → sell-off sistémico"))
+
+    systemic_risk = (
+        "CRITICAL" if corr_score >= 10 else
+        "HIGH"     if corr_score >= 6  else
+        "MODERATE" if corr_score >= 3  else
+        "LOW"
+    )
+
+    narrative = ai(
+        f"Riesgo de correlación sistémica del universo VALUE: {systemic_risk} (score {corr_score}).\n"
+        f"Breadth actual: {breadth_pct:.0f}% (Δ {breadth_chg:+.0f}pp). "
+        f"{len(signals)} señales activas.\n"
+        + "\n".join(f"- {s['type']}: {s['detail']}" for s in signals[:3])
+        + "\n\n2 frases en español: qué significa para VALUE cuando todos los picks se mueven juntos.", 180
+    ) if signals else None
+
+    print(f"  ✓ Riesgo sistémico: {systemic_risk} (score {corr_score}) · {len(signals)} señales")
+    return dict(
+        generated_at=TODAY,
+        systemic_risk=systemic_risk,
+        correlation_score=corr_score,
+        universe_breadth_pct=round(breadth_pct, 1),
+        breadth_change=round(breadth_chg, 1),
+        signals=signals,
+        narrative=narrative,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 22. COMPETITOR DISPLACEMENT ANALYZER
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_competitor_displacement() -> dict:
+    """
+    Sector-level rotation and displacement intelligence:
+
+    1. SECTOR_TAILWIND — sector in leading rotation + VALUE picks within it
+    2. COMPETITOR_RISE — ticker dropped from VALUE; which sector peers rose?
+    3. EXIT_TO_PEER    — exit signal active + better peer available same sector
+
+    Uses sector_rotation/latest_scan.json for sector momentum scores
+    and history/ snapshots to detect which tickers left the VALUE universe.
+    """
+    print("[22] Competitor displacement analyzer...")
+    value_df  = load_csv(DOCS / "value_opportunities.csv")
+    eu_df     = load_csv(DOCS / "european_value_opportunities.csv")
+    all_curr  = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+    exit_data = load_json(DOCS / "cerebro_exit_signals.json")
+
+    if all_curr.empty:
+        return dict(generated_at=TODAY, total=0, displacements=[])
+
+    # Sector rotation scores from latest scan
+    sector_scores: dict[str, float] = {}
+    sr_path = DOCS / "sector_rotation" / "latest_scan.json"
+    if sr_path.exists():
+        sr = load_json(sr_path)
+        for item in sr.get("results", []):
+            sec = str(item.get("sector", ""))
+            rs  = sf(item.get("relative_strength"))
+            sig = str(item.get("signal", "")).upper()
+            # Use signal quality as score: BUY=80, ACCUMULATE=60, HOLD=40, AVOID/SELL=10
+            score = rs if rs is not None else {"BUY": 80, "ACCUMULATE": 60,
+                                               "HOLD": 40, "AVOID": 20, "SELL": 10}.get(sig, 40)
+            if sec:
+                sector_scores[sec] = float(score)
+
+    # Current VALUE map by sector
+    sector_value_map: dict[str, list[dict]] = {}
+    if "sector" in all_curr.columns:
+        for _, row in all_curr.iterrows():
+            sec = str(row.get("sector", "Unknown"))
+            t   = str(row.get("ticker", "")).upper()
+            vs  = sf(row.get("value_score")) or 0
+            if vs >= 50:
+                sector_value_map.setdefault(sec, []).append(dict(
+                    ticker=t,
+                    company=str(row.get("company_name", t)),
+                    value_score=vs,
+                    fcf_yield=sf(row.get("fcf_yield_pct")),
+                    grade=str(row.get("conviction_grade", "")),
+                ))
+
+    # Historical tickers (to find dropped ones)
+    prev_tickers: dict[str, dict] = {}
+    history_dir = DOCS / "history"
+    if history_dir.exists():
+        past_dirs = sorted([d for d in history_dir.iterdir() if d.is_dir()], reverse=True)
+        for pd_ in past_dirs[:7]:
+            for fname in ["value_opportunities.csv", "european_value_opportunities.csv"]:
+                fpath = pd_ / fname
+                if not fpath.exists():
+                    continue
+                try:
+                    old = pd.read_csv(fpath)
+                    if "ticker" not in old.columns:
+                        continue
+                    for _, row in old.iterrows():
+                        t = str(row.get("ticker", "")).upper()
+                        vs = sf(row.get("value_score")) or 0
+                        if t not in prev_tickers and vs >= 55:
+                            prev_tickers[t] = dict(
+                                value_score=vs,
+                                sector=str(row.get("sector", "")),
+                            )
+                except Exception:
+                    pass
+            if prev_tickers:
+                break
+
+    curr_tickers = {str(r.get("ticker", "")).upper()
+                    for _, r in all_curr.iterrows()
+                    if (sf(r.get("value_score")) or 0) >= 55}
+
+    displacements: list[dict] = []
+
+    # 1. SECTOR_TAILWIND: strong sectors + VALUE picks
+    for sec, peers in sector_value_map.items():
+        rot = sector_scores.get(sec, 0)
+        if rot >= 70:
+            best = sorted(peers, key=lambda x: -x["value_score"])[:3]
+            if best:
+                displacements.append(dict(
+                    type="SECTOR_TAILWIND",
+                    sector=sec,
+                    rotation_score=round(rot, 1),
+                    beneficiaries=[p["ticker"] for p in best],
+                    top_ticker=best[0]["ticker"],
+                    top_score=best[0]["value_score"],
+                    detail=f"Sector {sec} líder (RS {rot:.0f}) — "
+                           f"{', '.join(p['ticker'] for p in best)} son los picks VALUE",
+                ))
+
+    # 2. COMPETITOR_RISE: dropped tickers + rising sector peers
+    dropped = set(prev_tickers.keys()) - curr_tickers
+    for t in dropped:
+        sec = prev_tickers[t]["sector"]
+        if not sec:
+            continue
+        replacements = sorted(
+            [p for p in sector_value_map.get(sec, []) if p["ticker"] != t],
+            key=lambda x: -x["value_score"],
+        )
+        if replacements:
+            displacements.append(dict(
+                type="COMPETITOR_RISE",
+                dropped_ticker=t,
+                sector=sec,
+                prev_score=prev_tickers[t]["value_score"],
+                replacements=[r["ticker"] for r in replacements[:3]],
+                top_replacement=replacements[0]["ticker"],
+                top_replacement_score=replacements[0]["value_score"],
+                detail=f"{t} salió de VALUE ({prev_tickers[t]['value_score']:.0f}pts); "
+                       f"peers en {sec}: {', '.join(r['ticker'] for r in replacements[:2])}",
+            ))
+
+    # 3. EXIT_TO_PEER: exit signal + better peer available
+    exits = exit_data.get("exits", [])
+    seen_exit_pairs: set[str] = set()
+    for ex in exits:
+        if ex.get("severity") != "HIGH":
+            continue
+        t = str(ex.get("ticker", "")).upper()
+        sec = ""
+        for _, row in all_curr.iterrows():
+            if str(row.get("ticker", "")).upper() == t:
+                sec = str(row.get("sector", ""))
+                break
+        if not sec:
+            continue
+        peers = sorted(
+            [p for p in sector_value_map.get(sec, [])
+             if p["ticker"] != t and p["value_score"] >= 60],
+            key=lambda x: -x["value_score"],
+        )
+        pair_key = f"{t}|{sec}"
+        if peers and pair_key not in seen_exit_pairs:
+            seen_exit_pairs.add(pair_key)
+            displacements.append(dict(
+                type="EXIT_TO_PEER",
+                exiting_ticker=t,
+                sector=sec,
+                replacement=peers[0]["ticker"],
+                replacement_score=peers[0]["value_score"],
+                detail=f"Exit {t} ({sec}) → rotar a peer {peers[0]['ticker']} "
+                       f"({peers[0]['value_score']:.0f}pts)",
+            ))
+
+    # Deduplicate by (sector, type)
+    seen: set[str] = set()
+    unique: list[dict] = []
+    for d in displacements:
+        k = f"{d['type']}|{d.get('sector','')}|{d.get('dropped_ticker','')}|{d.get('exiting_ticker','')}"
+        if k not in seen:
+            seen.add(k)
+            unique.append(d)
+
+    unique.sort(key=lambda x: x["type"])
+
+    narrative = ai(
+        f"Desplazamiento competitivo: {len(unique)} eventos sectoriales.\n"
+        + "\n".join(f"- {d['type']}: {d['detail']}" for d in unique[:4])
+        + "\n\n2 frases en español: cuándo rotar dentro de un sector tiene más sentido que esperar.", 180
+    ) if unique else None
+
+    dropped_count = sum(1 for d in unique if d["type"] == "COMPETITOR_RISE")
+    print(f"  ✓ {len(unique)} desplazamientos: "
+          f"{sum(1 for d in unique if d['type']=='SECTOR_TAILWIND')} tailwinds · "
+          f"{dropped_count} competidores · "
+          f"{sum(1 for d in unique if d['type']=='EXIT_TO_PEER')} peer-rotations")
+    return dict(
+        generated_at=TODAY,
+        total=len(unique),
+        dropped_count=dropped_count,
+        narrative=narrative,
+        displacements=unique,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 23. OPTIONS SIGNAL QUALITY SCORER
+# ══════════════════════════════════════════════════════════════════════════════
+
+def scan_options_signal_quality() -> dict:
+    """
+    Re-scores every options flow signal on 5 quality dimensions:
+      1. VALUE PRESENCE  — ticker in VALUE universe (+20, +15 bonus for score≥70)
+      2. FCF QUALITY     — FCF yield ≥5% (+10)
+      3. INSIDER CONF.   — options + insider buying same ticker (+20)
+      4. DIRECTIONALITY  — call/put split >70% one-way (+15)
+      5. GRADE BONUS     — conviction grade A/EXCELLENT (+10)
+
+    Tiers:
+      TIER1  ≥60pts + VALUE + INSIDER  → Highest conviction, multi-factor
+      TIER2  ≥45pts + VALUE            → Strong directional + fundamentals
+      TIER3  ≥25pts + VALUE            → Moderate quality
+      NOISE  <25pts or not in VALUE    → Likely speculative, filter out
+
+    Output surfaces only TIER1/TIER2 as actionable.
+    """
+    print("[23] Options signal quality scorer...")
+    options_df  = load_csv(DOCS / "options_flow.csv")
+    value_df    = load_csv(DOCS / "value_opportunities.csv")
+    eu_df       = load_csv(DOCS / "european_value_opportunities.csv")
+    insiders_df = load_csv(DOCS / "recurring_insiders.csv")
+
+    if options_df.empty or "ticker" not in options_df.columns:
+        return dict(generated_at=TODAY, total=0, tier1=0, tier2=0,
+                    tier3=0, noise_filtered=0, actionable=[], narrative=None)
+
+    all_value = pd.concat([value_df, eu_df], ignore_index=True) if not value_df.empty else eu_df
+
+    value_map: dict[str, dict] = {}
+    if not all_value.empty and "ticker" in all_value.columns:
+        for _, row in all_value.iterrows():
+            t = str(row.get("ticker", "")).upper()
+            value_map[t] = dict(
+                value_score = sf(row.get("value_score")),
+                fcf_yield   = sf(row.get("fcf_yield_pct")),
+                grade       = str(row.get("conviction_grade", "")),
+            )
+
+    insider_tickers: set[str] = set()
+    if not insiders_df.empty and "ticker" in insiders_df.columns:
+        insider_tickers = set(insiders_df["ticker"].str.upper().dropna())
+
+    scored: list[dict] = []
+    for _, row in options_df.iterrows():
+        t         = str(row.get("ticker", "")).upper()
+        sentiment = str(row.get("sentiment", "")).upper()
+        if sentiment not in ("BULLISH", "BEARISH", "NEUTRAL"):
+            continue
+
+        vm       = value_map.get(t, {})
+        vs       = vm.get("value_score") or 0
+        fcf      = vm.get("fcf_yield") or 0
+        grade    = vm.get("grade", "")
+        in_value = t in value_map
+        in_ins   = t in insider_tickers
+
+        q = 0
+        factors: list[str] = []
+
+        if in_value:
+            q += 20
+            if vs >= 70:
+                q += 15; factors.append(f"VALUE strong ({vs:.0f}pts)")
+            elif vs >= 60:
+                q += 8;  factors.append(f"VALUE ({vs:.0f}pts)")
+            else:
+                factors.append(f"VALUE weak ({vs:.0f}pts)")
+        else:
+            factors.append("NO VALUE")
+
+        if fcf >= 5:
+            q += 10; factors.append(f"FCF {fcf:.1f}%")
+
+        if in_ins:
+            q += 20; factors.append("INSIDER CONF")
+
+        # Directionality from put/call split
+        uc = sf(row.get("unusual_calls")) or 0
+        up_ = sf(row.get("unusual_puts")) or 0
+        cp = sf(row.get("put_call_ratio"))
+        total_u = uc + up_
+        if total_u > 0:
+            bull_pct = uc / total_u * 100
+            if sentiment == "BULLISH" and bull_pct >= 70:
+                q += 15; factors.append(f"DIRECTIONAL ({bull_pct:.0f}% calls)")
+            elif sentiment == "BEARISH" and bull_pct <= 30:
+                q += 15; factors.append(f"DIRECTIONAL ({100-bull_pct:.0f}% puts)")
+            elif 40 <= bull_pct <= 60:
+                q -= 5; factors.append("AMBIGUOUS (split 50/50)")
+        elif cp is not None:
+            # put_call_ratio < 0.7 = bullish skew
+            if sentiment == "BULLISH" and cp < 0.7:
+                q += 10; factors.append(f"P/C ratio {cp:.2f} (bullish skew)")
+            elif sentiment == "BEARISH" and cp > 1.5:
+                q += 10; factors.append(f"P/C ratio {cp:.2f} (bearish skew)")
+
+        if grade in ("A", "EXCELLENT"):
+            q += 10; factors.append(f"Grade {grade}")
+
+        tier = (
+            "TIER1" if q >= 60 and in_value and in_ins else
+            "TIER2" if q >= 45 and in_value else
+            "TIER3" if q >= 25 and in_value else
+            "NOISE"
+        )
+
+        scored.append(dict(
+            ticker=t,
+            company_name=str(row.get("company_name", t)),
+            sentiment=sentiment,
+            tier=tier,
+            quality_score=q,
+            value_score=round(vs, 1) if vs else None,
+            fcf_yield=round(fcf, 2) if fcf else None,
+            insider_confirmation=in_ins,
+            in_value=in_value,
+            quality_factors=factors,
+            flow_score=sf(row.get("flow_score")),
+            total_premium=sf(row.get("total_premium")),
+            detected_date=str(row.get("detected_date", "")),
+        ))
+
+    scored.sort(key=lambda x: -x["quality_score"])
+    tier1      = [s for s in scored if s["tier"] == "TIER1"]
+    tier2      = [s for s in scored if s["tier"] == "TIER2"]
+    tier3      = [s for s in scored if s["tier"] == "TIER3"]
+    noise      = [s for s in scored if s["tier"] == "NOISE"]
+    actionable = [s for s in scored if s["tier"] in ("TIER1", "TIER2")]
+
+    narrative = ai(
+        f"Calidad de opciones: {len(tier1)} TIER1, {len(tier2)} TIER2, "
+        f"{len(noise)} ruido filtrado.\n"
+        + "\n".join(
+            f"- {s['ticker']}: {s['tier']} q={s['quality_score']} | "
+            f"{', '.join(s['quality_factors'][:3])}"
+            for s in actionable[:4]
+        )
+        + "\n\n2 frases en español: por qué las opciones solo confirman cuando hay alineación "
+        "con fundamentales.", 180
+    ) if actionable else None
+
+    print(f"  ✓ {len(scored)} señales opciones: T1={len(tier1)} T2={len(tier2)} "
+          f"T3={len(tier3)} NOISE={len(noise)}")
+    return dict(
+        generated_at=TODAY,
+        total=len(scored),
+        tier1=len(tier1),
+        tier2=len(tier2),
+        tier3=len(tier3),
+        noise_filtered=len(noise),
+        actionable=actionable,
+        narrative=narrative,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SYNTHESIZER — produce one row per ticker for pipeline integration
 # ══════════════════════════════════════════════════════════════════════════════
 
 def generate_ticker_signals_csv(
-    exit_sigs:    dict,
-    value_traps:  dict,
-    smart_money:  dict,
-    div_safety:   dict,
-    piotroski:    dict,
-    short_squeeze: dict,
-    quality_decay: dict,
-    sector_rv:    dict,
+    exit_sigs:      dict,
+    value_traps:    dict,
+    smart_money:    dict,
+    div_safety:     dict,
+    piotroski:      dict,
+    short_squeeze:  dict,
+    quality_decay:  dict,
+    sector_rv:      dict,
+    earnings_rev    = None,
+    thesis_drift    = None,
+    options_quality = None,
 ) -> pd.DataFrame:
     """
     Synthesizes all agent module outputs into one row per ticker.
     Columns: ticker, cerebro_signal, cerebro_score_adj, cerebro_reason, updated_at
 
     Priority (most severe wins):
-      AVOID   — value trap HIGH or quality decay HIGH
-      EXIT    — exit signal HIGH
-      SQUEEZE — short squeeze HIGH (asymmetric upside signal)
-      CAUTION — exit/trap/decay MEDIUM or dividend AT_RISK
-      CONFIRM — smart money + no warnings
-      BEST    — best in sector by FCF (no negatives)
-      WATCH   — piotroski improving / piotroski strong
+      AVOID        — value trap HIGH or quality decay HIGH or thesis drift HIGH
+      EXIT         — exit signal HIGH
+      SQUEEZE      — short squeeze HIGH (asymmetric upside signal)
+      CAUTION      — exit/trap/decay MEDIUM or dividend AT_RISK
+      REVISION_UP  — EPS upgrade STRONG_UP + no negatives
+      CONFIRM      — smart money + no warnings
+      BEST         — best in sector by FCF (no negatives)
+      WATCH        — piotroski improving / tier1 options
 
     Score adjustments (additive):
-      trap HIGH       : -20   quality decay HIGH  : -15
-      trap MEDIUM     : -8    quality decay MED   : -8
-      exit HIGH       : -15   exit MEDIUM         : -8
-      div AT_RISK     : -5    pricey vs peers     : -3
-      smart money     : +8    squeeze HIGH        : +10
-      piotroski impr  : +5    piotroski strong ≥7 : +3
-      best in sector  : +5    sector re-rating    : +3
+      trap HIGH         : -20   quality decay HIGH   : -15
+      trap MEDIUM       : -8    quality decay MED    : -8
+      exit HIGH         : -15   exit MEDIUM          : -8
+      thesis drift HIGH : -12   thesis drift MEDIUM  : -6
+      div AT_RISK       : -5    pricey vs peers      : -3
+      EPS STRONG_UP     : +8    EPS UP               : +4
+      EPS STRONG_DOWN   : -8    EPS DOWN             : -4
+      smart money       : +8    squeeze HIGH         : +10
+      options TIER1     : +12   options TIER2        : +6
+      piotroski impr    : +5    piotroski strong ≥7  : +3
+      best in sector    : +5    sector re-rating     : +3
     """
     print("[synthesis] Generando cerebro_ticker_signals.csv...")
 
@@ -1944,11 +3047,24 @@ def generate_ticker_signals_csv(
     decay_map:      dict[str, dict] = {d["ticker"]: d for d in quality_decay.get("decays", [])}
     sector_map:     dict[str, dict] = {s["ticker"]: s for s in sector_rv.get("standouts", [])}
 
+    # New agent maps
+    rev_map:   dict[str, dict] = {
+        r["ticker"]: r for r in (earnings_rev or {}).get("revisions", [])
+    } if earnings_rev else {}
+    drift_map: dict[str, dict] = {
+        d["ticker"]: d for d in (thesis_drift or {}).get("drifts", [])
+    } if thesis_drift else {}
+    opts_map:  dict[str, dict] = {
+        s["ticker"]: s for s in (options_quality or {}).get("actionable", [])
+        if s.get("tier") in ("TIER1", "TIER2")
+    } if options_quality else {}
+
     _curated = set(_get_curated_tickers())
     all_tickers = (
         set(exit_sig_map) | set(trap_sig_map) | set(sm_map) | set(div_map) | set(piotr_map)
         | set(squeeze_map) | set(decay_map) | set(sector_map)
-    ) & _curated  # strict: only curated universe, no leaked EU broad or stale tickers
+        | set(rev_map) | set(drift_map) | set(opts_map)
+    ) & _curated  # strict: only curated universe
 
     rows = []
     for ticker in sorted(all_tickers):
@@ -1960,6 +3076,9 @@ def generate_ticker_signals_csv(
         squeeze      = squeeze_map.get(ticker)
         decay        = decay_map.get(ticker)
         sector_st    = sector_map.get(ticker)
+        rev          = rev_map.get(ticker)
+        drift        = drift_map.get(ticker)
+        opts         = opts_map.get(ticker)
 
         score_adj = 0
         reasons   = []
@@ -1983,6 +3102,15 @@ def generate_ticker_signals_csv(
                 score_adj -= 8
                 reasons.append(f"Quality decay MEDIUM: {decay.get('flags',[''])[0]}")
 
+        if drift:
+            sev = drift.get("severity", "MEDIUM")
+            if sev == "HIGH":
+                score_adj -= 12
+                reasons.append(f"Thesis drift HIGH ({drift.get('days_tracked',0)}d): {drift.get('drift_flags',[''])[0]}")
+            elif sev == "MEDIUM":
+                score_adj -= 6
+                reasons.append(f"Thesis drift MEDIUM: {drift.get('drift_flags',[''])[0]}")
+
         if exit_signal:
             sev = exit_signal.get("severity", "MEDIUM")
             if sev == "HIGH":
@@ -2000,6 +3128,16 @@ def generate_ticker_signals_csv(
             score_adj -= 3
             reasons.append(f"Caro vs peers en {sector_st.get('sector','')} (FCF rank {sector_st.get('fcf_rank','?')}/{sector_st.get('fcf_rank_of','?')})")
 
+        # Earnings revision — negative
+        if rev:
+            direction = rev.get("direction", "FLAT")
+            if direction == "STRONG_DOWN":
+                score_adj -= 8
+                reasons.append(f"EPS revision STRONG_DOWN: {'; '.join(rev.get('flags',[''])[:2])}")
+            elif direction == "DOWN":
+                score_adj -= 4
+                reasons.append(f"EPS revision DOWN: {'; '.join(rev.get('flags',[''])[:2])}")
+
         # ── Positive signals ──────────────────────────────────────────────────
         if squeeze:
             sev = squeeze.get("severity", "MEDIUM")
@@ -2010,6 +3148,17 @@ def generate_ticker_signals_csv(
         if sm:
             score_adj += 8
             reasons.append(f"Smart money: {sm.get('n_hedge_funds',0)} HF + {sm.get('n_insiders',0)} insiders (conv {sm.get('convergence_score',0)})")
+
+        # Options quality
+        if opts:
+            tier = opts.get("tier", "")
+            qs   = opts.get("quality_score", 0)
+            if tier == "TIER1":
+                score_adj += 12
+                reasons.append(f"Opciones TIER1 (q={qs}): {', '.join(opts.get('quality_factors',[''])[:2])}")
+            elif tier == "TIER2":
+                score_adj += 6
+                reasons.append(f"Opciones TIER2 (q={qs}): {', '.join(opts.get('quality_factors',[''])[:2])}")
 
         if piotr:
             trend = piotr.get("trend", "STABLE")
@@ -2029,6 +3178,16 @@ def generate_ticker_signals_csv(
                 f"({sector_st.get('fcf_yield_pct',0):.1f}% vs media sector {sector_st.get('sector_avg_fcf',0):.1f}%)"
             )
 
+        # Earnings revision — positive
+        if rev:
+            direction = rev.get("direction", "FLAT")
+            if direction == "STRONG_UP":
+                score_adj += 8
+                reasons.append(f"EPS revision STRONG_UP: {'; '.join(rev.get('flags',[''])[:2])}")
+            elif direction == "UP":
+                score_adj += 4
+                reasons.append(f"EPS revision UP: {'; '.join(rev.get('flags',[''])[:2])}")
+
         if not reasons:
             continue
 
@@ -2036,12 +3195,17 @@ def generate_ticker_signals_csv(
         has_high_negative = (
             (trap_signal and trap_signal.get("severity") == "HIGH")
             or (decay and decay.get("severity") == "HIGH")
+            or (drift and drift.get("severity") == "HIGH")
         )
         has_medium_negative = (
             (trap_signal and trap_signal.get("severity") == "MEDIUM")
             or (decay and decay.get("severity") == "MEDIUM")
+            or (drift and drift.get("severity") == "MEDIUM")
             or (exit_signal and exit_signal.get("severity") == "MEDIUM")
             or (div and div.get("rating") == "AT_RISK")
+        )
+        is_strong_revision_up = bool(
+            rev and rev.get("direction") == "STRONG_UP" and not has_high_negative
         )
 
         if has_high_negative:
@@ -2052,10 +3216,16 @@ def generate_ticker_signals_csv(
             signal = "SQUEEZE"
         elif has_medium_negative:
             signal = "CAUTION"
+        elif is_strong_revision_up and sm:
+            signal = "CONFIRM"   # revision up + smart money = strong
+        elif is_strong_revision_up:
+            signal = "REVISION_UP"
         elif sm:
             signal = "CONFIRM"
         elif sector_st and sector_st.get("label") == "BEST_IN_SECTOR":
             signal = "BEST"
+        elif opts and opts.get("tier") == "TIER1":
+            signal = "WATCH"
         else:
             signal = "WATCH"
 
@@ -2630,6 +3800,15 @@ def main():
     squeeze     = scan_short_squeeze()
     decay       = scan_quality_decay()
     sector_rv   = scan_sector_relative_value()
+
+    # ── New agents (6) ────────────────────────────────────────────────────────
+    earnings_rev  = scan_earnings_revisions()
+    regime_trans  = scan_regime_transition()
+    thesis_drift  = scan_thesis_drift()
+    corr_bd       = scan_correlation_breakdown(exit_sigs, decay)
+    comp_disp     = scan_competitor_displacement()
+    opts_quality  = scan_options_signal_quality()
+
     briefing    = generate_personal_briefing(entry_sigs, convergence, alerts, value_traps, exit_sigs, smart_money)
     daily_plan  = scan_daily_plan(exit_sigs, value_traps, smart_money, squeeze)
 
@@ -2651,11 +3830,19 @@ def main():
     save_json(DOCS / "cerebro_quality_decay.json",       decay)
     save_json(DOCS / "cerebro_sector_rv.json",           sector_rv)
     save_json(DOCS / "cerebro_daily_plan.json",          daily_plan)
+    # New agent outputs
+    save_json(DOCS / "cerebro_earnings_revisions.json",      earnings_rev)
+    save_json(DOCS / "cerebro_regime_transition.json",       regime_trans)
+    save_json(DOCS / "cerebro_thesis_drift.json",            thesis_drift)
+    save_json(DOCS / "cerebro_correlation_breakdown.json",   corr_bd)
+    save_json(DOCS / "cerebro_competitor_displacement.json", comp_disp)
+    save_json(DOCS / "cerebro_options_quality.json",         opts_quality)
 
     # Synthesize per-ticker CSV for pipeline integration
     generate_ticker_signals_csv(
         exit_sigs, value_traps, smart_money, div_safety, piotroski,
         squeeze, decay, sector_rv,
+        earnings_rev, thesis_drift, opts_quality,
     )
 
     print("\n" + "=" * 60)
@@ -2677,6 +3864,13 @@ def main():
     print(f"  Calibration recs : {calibration.get('total_recommendations',0)}")
     print(f"  Weight proposals : {len(tuning.get('adjustments',[]))}")
     print(f"  Daily plan       : {daily_plan.get('sesgo','?')} · {len(daily_plan.get('acciones_inmediatas',[]))} acciones · {len(daily_plan.get('macro_plays',[]))} plays macro")
+    print(f"  ── New agents ──────────────────────────────────────")
+    print(f"  EPS revisions    : {earnings_rev.get('upgrades',0)} up · {earnings_rev.get('downgrades',0)} down  ({earnings_rev.get('note','') or earnings_rev.get('tikr_date','')})")
+    print(f"  Regime transition: {regime_trans.get('direction','?')} · prob {regime_trans.get('transition_probability',0)}% · {regime_trans.get('alert_level','?')}")
+    print(f"  Thesis drift     : {thesis_drift.get('total',0)} ({thesis_drift.get('high_count',0)} HIGH · {thesis_drift.get('days_tracked',0)}d window)")
+    print(f"  Correlation risk : {corr_bd.get('systemic_risk','?')} (score {corr_bd.get('correlation_score',0)}) · breadth {corr_bd.get('universe_breadth_pct',0):.0f}%")
+    print(f"  Competitor disp. : {comp_disp.get('total',0)} eventos · {comp_disp.get('dropped_count',0)} replaced")
+    print(f"  Options quality  : T1={opts_quality.get('tier1',0)} T2={opts_quality.get('tier2',0)} T3={opts_quality.get('tier3',0)} noise={opts_quality.get('noise_filtered',0)}")
     print("=" * 60)
 
 if __name__ == "__main__":

@@ -1467,6 +1467,30 @@ def cerebro_sector_rv():
 def cerebro_daily_plan():
     return jsonify(_load_json(DOCS / 'cerebro_daily_plan.json'))
 
+@app.route('/api/cerebro/earnings-revisions')
+def cerebro_earnings_revisions():
+    return jsonify(_load_json(DOCS / 'cerebro_earnings_revisions.json'))
+
+@app.route('/api/cerebro/regime-transition')
+def cerebro_regime_transition():
+    return jsonify(_load_json(DOCS / 'cerebro_regime_transition.json'))
+
+@app.route('/api/cerebro/thesis-drift')
+def cerebro_thesis_drift():
+    return jsonify(_load_json(DOCS / 'cerebro_thesis_drift.json'))
+
+@app.route('/api/cerebro/correlation-breakdown')
+def cerebro_correlation_breakdown():
+    return jsonify(_load_json(DOCS / 'cerebro_correlation_breakdown.json'))
+
+@app.route('/api/cerebro/competitor-displacement')
+def cerebro_competitor_displacement():
+    return jsonify(_load_json(DOCS / 'cerebro_competitor_displacement.json'))
+
+@app.route('/api/cerebro/options-quality')
+def cerebro_options_quality():
+    return jsonify(_load_json(DOCS / 'cerebro_options_quality.json'))
+
 
 @app.route('/api/market-breadth')
 def market_breadth():
