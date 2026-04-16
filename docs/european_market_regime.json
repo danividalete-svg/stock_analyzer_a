@@ -1,8 +1,8 @@
 {
   "regime": "CONFIRMED_UPTREND",
   "recommendation": "TRADE",
-  "stoxx50_price": 5974.94,
-  "ma50": 5858.99,
-  "ma200": 5827.84,
+  "stoxx50_price": 5958.19,
+  "ma50": 5857.55,
+  "ma200": 5830.67,
   "ma200_slope": 1.01
 }

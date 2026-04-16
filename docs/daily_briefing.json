@@ -1,6 +1,6 @@
 {
-  "date": "2026-04-15",
-  "timestamp": "2026-04-15T07:38:16.561383",
+  "date": "2026-04-16",
+  "timestamp": "2026-04-16T07:35:05.269940",
   "narrative": null,
   "macro_regime": "CALM",
   "picks_count": 8,
@@ -8,36 +8,36 @@
     {
       "ticker": "BR",
       "sector": "Technology",
-      "value_score": 63.2,
-      "analyst_upside_pct": 55.1,
+      "value_score": 66.2,
+      "analyst_upside_pct": 52.9,
+      "conviction_grade": null
+    },
+    {
+      "ticker": "JKHY",
+      "sector": "Technology",
+      "value_score": 65.38,
+      "analyst_upside_pct": 30.4,
+      "conviction_grade": null
+    },
+    {
+      "ticker": "V",
+      "sector": "Financial Services",
+      "value_score": 63.6,
+      "analyst_upside_pct": 24.5,
+      "conviction_grade": null
+    },
+    {
+      "ticker": "MA",
+      "sector": "Financial Services",
+      "value_score": 62.6,
+      "analyst_upside_pct": 25.9,
       "conviction_grade": null
     },
     {
       "ticker": "EXPN.L",
       "sector": "Industrials",
       "value_score": 62.22,
-      "analyst_upside_pct": 53.5,
-      "conviction_grade": null
-    },
-    {
-      "ticker": "JKHY",
-      "sector": "Technology",
-      "value_score": 60.1,
-      "analyst_upside_pct": 32.8,
-      "conviction_grade": null
-    },
-    {
-      "ticker": "MA",
-      "sector": "Financial Services",
-      "value_score": 59.6,
-      "analyst_upside_pct": 28.2,
-      "conviction_grade": null
-    },
-    {
-      "ticker": "AON",
-      "sector": "Financial Services",
-      "value_score": 56.18,
-      "analyst_upside_pct": 21.9,
+      "analyst_upside_pct": 48.2,
       "conviction_grade": null
     }
   ]
