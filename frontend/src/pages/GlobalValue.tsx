@@ -117,12 +117,14 @@ export default function GlobalValue() {
   const [focusedIdx, setFocusedIdx] = useState(-1)
   const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
 
-  // Sync filterMarket + filterGrade to URL params
+  // Sync filterMarket + filterGrade to URL params (functional form preserves region=global)
   useEffect(() => {
-    const params: Record<string, string> = {}
-    if (filterMarket !== 'ALL') params.market = filterMarket
-    if (filterGrade !== 'ALL') params.grade = filterGrade
-    setSearchParams(params, { replace: true })
+    setSearchParams(p => {
+      const n = new URLSearchParams(p)
+      filterMarket !== 'ALL' ? n.set('market', filterMarket) : n.delete('market')
+      filterGrade !== 'ALL' ? n.set('grade', filterGrade) : n.delete('grade')
+      return n
+    }, { replace: true })
   }, [filterMarket, filterGrade, setSearchParams])
 
   // pagedRef must be declared before early returns (React Rules of Hooks)
