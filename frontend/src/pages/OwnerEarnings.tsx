@@ -830,7 +830,7 @@ function DetailView({
         <p className="text-xs font-semibold mb-1.5">Desglose FCF histórico — fórmula plantilla</p>
           <p className="text-[0.65rem] text-muted-foreground mb-2">
             FCF = EBITDA − CapEx<sub>mant</sub> − Interés − Impuestos + ΔCT
-            <span className="ml-2 opacity-50">· interés/impuestos estimados hasta próxima actualización TIKR</span>
+            <span className="ml-2 opacity-50">· TIKR = dato real de TIKR Pro · CFO = CFO − CapEx<sub>mant</sub> · —  = no disponible en TIKR</span>
           </p>
           <Card className="glass">
             <Table>
@@ -854,9 +854,6 @@ function DetailView({
                 {histYears.map(yr => {
                   const b = data.fcf_breakdown?.[yr]
                   if (!b) return null
-                  const estInterest = b.interest_src !== 'tikr'
-                  const estTax     = b.tax_src !== 'tikr'
-                  const estWc      = b.wc_src !== 'tikr'
                   return (
                     <TableRow key={yr}>
                       <TableCell className="font-medium">{yr}</TableCell>
@@ -870,31 +867,29 @@ function DetailView({
                         <span>{fmtM(b.ebit)}</span>
                         {b.ebit_margin != null && <span className="ml-1 text-[0.6rem] text-muted-foreground/50">{b.ebit_margin.toFixed(0)}%</span>}
                       </TableCell>
-                      <TableCell className={cn('text-right', estInterest ? 'text-amber-400/60' : 'text-amber-400')}>
-                        <span>{fmtM(b.interest)}</span>
-                        {estInterest && <span className="ml-0.5 text-[0.5rem] opacity-60">~</span>}
+                      <TableCell className={cn('text-right', b.interest == null ? 'text-muted-foreground/30' : 'text-amber-400')}>
+                        {fmtM(b.interest)}
                       </TableCell>
-                      <TableCell className={cn('text-right', estTax ? 'text-amber-400/60' : 'text-amber-400')}>
-                        <span>{fmtM(b.income_tax)}</span>
-                        {estTax && <span className="ml-0.5 text-[0.5rem] opacity-60">~</span>}
+                      <TableCell className={cn('text-right', b.income_tax == null ? 'text-muted-foreground/30' : 'text-amber-400')}>
+                        {fmtM(b.income_tax)}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground/60">
                         <span>{fmtM(b.net_income)}</span>
                         {b.net_margin != null && <span className="ml-1 text-[0.6rem] text-muted-foreground/40">{b.net_margin.toFixed(0)}%</span>}
                       </TableCell>
-                      <TableCell className={cn('text-right', estWc ? 'text-sky-400/60' : 'text-sky-400')}>
-                        <span>{b.delta_wc != null ? fmtM(b.delta_wc) : '—'}</span>
-                        {estWc && <span className="ml-0.5 text-[0.5rem] opacity-60">~</span>}
+                      <TableCell className={cn('text-right', b.delta_wc == null ? 'text-muted-foreground/30' : 'text-sky-400')}>
+                        {b.delta_wc != null ? fmtM(b.delta_wc) : '—'}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground/60">{fmtM(b.capex_maint)}</TableCell>
                       <TableCell className="text-right font-bold text-cyan-400">{fmtM(b.owner_earnings)}</TableCell>
                       <TableCell className="text-right">
                         <span className={cn('text-[0.6rem] px-1.5 py-0.5 rounded font-medium',
-                          b.source === 'tikr_actuals' ? 'bg-emerald-500/10 text-emerald-400' :
-                          b.source === 'cfo_based'    ? 'bg-sky-500/10 text-sky-400' :
-                                                        'bg-amber-500/10 text-amber-400'
+                          b.source === 'tikr_est'  ? 'bg-emerald-500/10 text-emerald-400' :
+                          b.source === 'cfo_based' ? 'bg-sky-500/10 text-sky-400' :
+                          b.source === 'template'  ? 'bg-amber-500/10 text-amber-400' :
+                                                     'bg-muted/20 text-muted-foreground'
                         )}>
-                          {b.source === 'tikr_actuals' ? 'TIKR' : b.source === 'cfo_based' ? 'CFO' : 'Tmpl'}
+                          {b.source === 'tikr_est' ? 'TIKR' : b.source === 'cfo_based' ? 'CFO' : b.source === 'template' ? 'Tmpl' : b.source ?? '—'}
                         </span>
                       </TableCell>
                     </TableRow>

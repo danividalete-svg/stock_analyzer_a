@@ -58,54 +58,21 @@ def _capex_maintenance(ebitda: float, ebit: float, capex: float) -> float:
 
 
 def _template_components(
-    ni: float, ebitda: float, ebit: float,
-    cfo: Optional[float],
-    total_debt: Optional[float],
     interest_tikr: Optional[float],
     income_tax_tikr: Optional[float],
     wc_change_tikr: Optional[float],
-) -> tuple[float, float, float, str, str, str]:
+) -> tuple[Optional[float], Optional[float], Optional[float], str, str, str]:
     """
-    Deriva los componentes de la fórmula template:
-      FCF = EBITDA − CapEx_maint − Interest − Taxes + ΔWC
-
-    Retorna: (interest, income_tax, delta_wc, interest_src, tax_src, wc_src)
-    Fuentes: 'tikr' = dato exacto TIKR | 'derived' = derivado de datos disponibles
+    Extrae los componentes de la fórmula template EXCLUSIVAMENTE de datos TIKR.
+    Retorna None cuando el dato no está disponible en TIKR — sin estimaciones.
     """
-    dna = ebitda - ebit  # D&A = EBITDA - EBIT
+    interest   = abs(interest_tikr)   if interest_tikr   is not None else None
+    income_tax = abs(income_tax_tikr) if income_tax_tikr is not None else None
+    delta_wc   = wc_change_tikr       if wc_change_tikr  is not None else None
 
-    # 1. Interest expense (positive = coste financiero)
-    if interest_tikr is not None:
-        interest = abs(interest_tikr)
-        interest_src = "tikr"
-    elif total_debt and total_debt > 0:
-        # Estimación: deuda total × tasa media 4% (compañías IG con bonos a 10Y ~4%)
-        interest = total_debt * 0.04
-        interest_src = "estimated"
-    else:
-        interest = max(0.0, (ebit - ni) * 0.35)  # 35% del gap EBIT-NI como intereses
-        interest_src = "estimated"
-
-    # 2. Tax expense (positive = impuesto pagado)
-    if income_tax_tikr is not None:
-        income_tax = abs(income_tax_tikr)
-        tax_src = "tikr"
-    else:
-        # Derivado: EBIT − interés − NI ≈ impuestos + interés minoritario
-        income_tax = max(0.0, ebit - interest - ni)
-        tax_src = "derived"
-
-    # 3. Cambio en capital circulante (ΔWC > 0 = liberación de caja; < 0 = consumo)
-    if wc_change_tikr is not None:
-        delta_wc = wc_change_tikr
-        wc_src = "tikr"
-    elif cfo is not None:
-        # Residual: CFO − NI − D&A (incluye SBC y diferidos — aproximación)
-        delta_wc = cfo - ni - dna
-        wc_src = "derived"
-    else:
-        delta_wc = 0.0
-        wc_src = "zero"
+    interest_src = "tikr"  if interest   is not None else "n/d"
+    tax_src      = "tikr"  if income_tax is not None else "n/d"
+    wc_src       = "tikr"  if delta_wc   is not None else "n/d"
 
     return interest, income_tax, delta_wc, interest_src, tax_src, wc_src
 
@@ -195,10 +162,16 @@ def calculate(
     tev = _fv(price_data.get("tev"))
 
     # ── Histórico Owner Earnings ──────────────────────────────────────────────
+    # Fuentes TIKR (sin estimaciones):
+    #   1. /est actuals (recent.fcf) — FCF que TIKR Pro muestra en tabla de estimaciones
+    #   2. Fórmula template (EBITDA−CapEx_mant−Interest−Tax+ΔWC) — solo si TIKR tiene los 3
+    #   3. CFO − CapEx_mant — ambos datos GAAP de /tf, fallback sin estimación
+    est_actuals = ae_raw.get("recent", {})
+
     historical_fcf: dict = {}
     historical_fcf_ps: dict = {}
     capex_pct_sales: list = []
-    fcf_breakdown: dict = {}   # desglose paso a paso para verificación
+    fcf_breakdown: dict = {}
 
     for yr in years:
         ni     = _metric(metrics, "net_income", yr)
@@ -209,43 +182,46 @@ def calculate(
         cfo    = _metric(metrics, "cash_from_operations", yr)
         rev    = _metric(metrics, "total_revenue", yr)
 
-        # Template formula components
         interest_tikr  = _metric(metrics, "interest_expense", yr)
         tax_tikr       = _metric(metrics, "income_tax_expense", yr)
         wc_change_tikr = _metric(metrics, "wc_change", yr)
-        total_debt_yr  = _metric(metrics, "total_debt", yr)
 
-        # Hard requirement: need shares and at least one FCF path
-        has_full = None not in (ebitda, ebit, capex)
-        has_cfo  = cfo is not None
         if shares is None or shares == 0:
             continue
+
+        has_full = None not in (ebitda, ebit, capex)
+        has_cfo  = cfo is not None
         if not has_full and not has_cfo:
             continue
 
+        # CapEx mant = min(|CapEx|, D&A) — solo con datos TIKR /tf
         if has_full:
             dna = ebitda - ebit
             capex_maint = _capex_maintenance(ebitda, ebit, capex)
-            interest, income_tax, delta_wc, interest_src, tax_src, wc_src = _template_components(
-                ni, ebitda, ebit, cfo, total_debt_yr,
-                interest_tikr, tax_tikr, wc_change_tikr,
-            )
-            pre_tax_income = ebit - interest
-            template_fcf = ebitda - capex_maint - interest - income_tax + delta_wc
         else:
-            # Partial data: no ebitda/ebit/capex — use NI-derived estimates
             dna = None
-            capex_maint = abs(ni) * 0.15 if ni else 0
-            interest, income_tax, delta_wc = 0.0, 0.0, 0.0
-            interest_src = tax_src = wc_src = "estimated"
-            pre_tax_income = None
-            template_fcf = None
+            capex_maint = abs(capex) if capex is not None else 0
 
-        # Owner Earnings priority: template formula (EBITDA−CapEx_mant−Interest−Tax+ΔWC)
-        # is the correct formula per the Buffett/plantilla approach.
-        # CFO-based is a fallback when IS data (EBITDA/EBIT/CapEx) is unavailable.
-        # TIKR actuals (FCF = CFO − total CapEx) is NOT used — it mixes maint+expansion capex.
-        if has_full and template_fcf is not None:
+        # Componentes template — solo si TIKR /tf los tiene (sin estimación)
+        interest, income_tax, delta_wc, interest_src, tax_src, wc_src = _template_components(
+            interest_tikr, tax_tikr, wc_change_tikr,
+        )
+        has_tikr_full = None not in (interest, income_tax, delta_wc) and has_full
+        template_fcf = (
+            ebitda - capex_maint - interest - income_tax + delta_wc
+            if has_tikr_full else None
+        )
+        pre_tax_income = (ebit - interest) if (ebit is not None and interest is not None) else None
+
+        # Prioridad FCF — todo TIKR, cero inventado:
+        #   1. /est actuals FCF (non-GAAP, igual al número que muestra TIKR Pro)
+        #   2. Template exacto (solo si interest+tax+WC de /tf disponibles)
+        #   3. CFO − CapEx_mant (GAAP de /tf)
+        act_fcf = _fv(est_actuals.get(str(yr), {}).get("fcf"))
+        if act_fcf is not None:
+            oe = act_fcf
+            source = "tikr_est"
+        elif has_tikr_full and template_fcf is not None:
             oe = template_fcf
             source = "template"
         elif has_cfo:
@@ -264,14 +240,14 @@ def calculate(
             "dna":            round(dna, 2) if dna is not None else None,
             "ebit":           round(ebit, 2) if ebit is not None else None,
             "ebit_margin":    round(ebit / rev * 100, 1) if ebit is not None and rev and rev > 0 else None,
-            "interest":       round(interest, 2),
+            "interest":       round(interest, 2) if interest is not None else None,
             "interest_src":   interest_src,
-            "income_tax":     round(income_tax, 2),
+            "income_tax":     round(income_tax, 2) if income_tax is not None else None,
             "tax_src":        tax_src,
             "pre_tax_income": round(pre_tax_income, 2) if pre_tax_income is not None else None,
             "net_income":     round(ni, 2) if ni is not None else None,
             "net_margin":     round(ni / rev * 100, 1) if ni is not None and rev and rev > 0 else None,
-            "delta_wc":       round(delta_wc, 2),
+            "delta_wc":       round(delta_wc, 2) if delta_wc is not None else None,
             "wc_src":         wc_src,
             "cfo":            round(cfo, 2) if cfo else None,
             "capex":          round(capex, 2) if capex is not None else None,
