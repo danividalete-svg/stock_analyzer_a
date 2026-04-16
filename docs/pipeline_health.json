@@ -1,57 +1,57 @@
 {
-  "generated_at": "2026-04-15T07:48:50Z",
-  "pipeline_date": "2026-04-15",
+  "generated_at": "2026-04-16T07:44:20Z",
+  "pipeline_date": "2026-04-16",
   "ok_count": 11,
   "total": 14,
   "modules": {
     "value_us": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "value_eu": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "value_global": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "fundamental": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "technical": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "cerebro": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "mean_reversion": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "macro": {
       "status": "ok",
-      "date": "2026-04-14",
+      "date": "2026-04-15",
       "days_ago": 1
     },
     "insiders": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "portfolio": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "earnings": {
@@ -61,11 +61,11 @@
     "catalysts": {
       "status": "stale",
       "date": "2026-04-07",
-      "days_ago": 8
+      "days_ago": 9
     },
     "options_flow": {
       "status": "ok",
-      "date": "2026-04-15",
+      "date": "2026-04-16",
       "days_ago": 0
     },
     "bounce": {
