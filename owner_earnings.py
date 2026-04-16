@@ -200,13 +200,6 @@ def calculate(
     capex_pct_sales: list = []
     fcf_breakdown: dict = {}   # desglose paso a paso para verificación
 
-    # Actuals FCF de /est (más preciso — cubre últimos 3 años)
-    est_actuals_fcf = {
-        int(yr): _fv(v.get("fcf"))
-        for yr, v in ae_raw.get("recent", {}).items()
-        if _fv(v.get("fcf"))
-    }
-
     for yr in years:
         ni     = _metric(metrics, "net_income", yr)
         ebitda = _metric(metrics, "ebitda", yr)
@@ -216,7 +209,7 @@ def calculate(
         cfo    = _metric(metrics, "cash_from_operations", yr)
         rev    = _metric(metrics, "total_revenue", yr)
 
-        # Template formula components (available after next scraper run)
+        # Template formula components
         interest_tikr  = _metric(metrics, "interest_expense", yr)
         tax_tikr       = _metric(metrics, "income_tax_expense", yr)
         wc_change_tikr = _metric(metrics, "wc_change", yr)
@@ -227,10 +220,8 @@ def calculate(
         has_cfo  = cfo is not None
         if shares is None or shares == 0:
             continue
-        if not has_full and not has_cfo and not est_actuals_fcf.get(yr):
+        if not has_full and not has_cfo:
             continue
-
-        est_fcf = est_actuals_fcf.get(yr)
 
         if has_full:
             dna = ebitda - ebit
@@ -244,23 +235,22 @@ def calculate(
         else:
             # Partial data: no ebitda/ebit/capex — use NI-derived estimates
             dna = None
-            # Estimate maintenance capex from net_income margin heuristic (10% of NI as placeholder)
             capex_maint = abs(ni) * 0.15 if ni else 0
             interest, income_tax, delta_wc = 0.0, 0.0, 0.0
             interest_src = tax_src = wc_src = "estimated"
             pre_tax_income = None
             template_fcf = None
 
-        # Best FCF estimate (priority: TIKR actuals > CFO-based > template)
-        if est_fcf:
-            oe = est_fcf
-            source = "tikr_actuals"
+        # Owner Earnings priority: template formula (EBITDA−CapEx_mant−Interest−Tax+ΔWC)
+        # is the correct formula per the Buffett/plantilla approach.
+        # CFO-based is a fallback when IS data (EBITDA/EBIT/CapEx) is unavailable.
+        # TIKR actuals (FCF = CFO − total CapEx) is NOT used — it mixes maint+expansion capex.
+        if has_full and template_fcf is not None:
+            oe = template_fcf
+            source = "template"
         elif has_cfo:
             oe = cfo - capex_maint
             source = "cfo_based"
-        elif template_fcf is not None:
-            oe = template_fcf
-            source = "template"
         else:
             continue
 
@@ -295,6 +285,16 @@ def calculate(
             capex_pct_sales.append(capex_maint / rev)
 
     capex_pct_median = statistics.median(capex_pct_sales) if capex_pct_sales else 0.10
+
+    # D&A % of revenue median — for "Modelo propio" default daPctRev
+    da_pct_sales = []
+    for yr in years:
+        ebitda_yr = _metric(metrics, "ebitda", yr)
+        ebit_yr   = _metric(metrics, "ebit", yr)
+        rev_yr    = _metric(metrics, "total_revenue", yr)
+        if ebitda_yr is not None and ebit_yr is not None and rev_yr and rev_yr > 0:
+            da_pct_sales.append((ebitda_yr - ebit_yr) / rev_yr * 100)
+    da_pct_sales_median = statistics.median(da_pct_sales) if da_pct_sales else 12.0
 
     # ── Múltiplos de referencia ───────────────────────────────────────────────
     multiples = td.get("multiples", {})
@@ -457,6 +457,7 @@ def calculate(
         "historical_fcf_per_share": historical_fcf_ps,
         "fcf_breakdown": fcf_breakdown,
         "capex_pct_sales_median": round(capex_pct_median * 100, 2),
+        "da_pct_sales_median": round(da_pct_sales_median, 2),
         "median_ev_fcf": round(median_ev_fcf, 1),
         "ntm_fcf_yield_pct": ntm_fcf_yield,
         "ntm_pe": ntm_pe,
@@ -472,6 +473,8 @@ def calculate(
             yr_str: {
                 "eps_norm": _fv(forward_est.get(yr_str, {}).get("eps_norm")),
                 "ebitda":   _fv(forward_est.get(yr_str, {}).get("ebitda")),
+                "revenue":  _fv(forward_est.get(yr_str, {}).get("revenue")),
+                "ebit":     _fv(forward_est.get(yr_str, {}).get("ebit")),
             }
             for yr_str in forward_fcf
         },
@@ -502,12 +505,30 @@ def batch_calculate(target_return: float = 0.15) -> dict:
     return {t: calculate(t, target_return=target_return) for t in _load_tikr()}
 
 
+def save_batch_json(target_return: float = 0.15, output_path: str = "docs/owner_earnings_batch.json") -> None:
+    """Pre-compute batch results and save to JSON for GitHub Pages serving."""
+    import json as _json
+    results_raw = batch_calculate(target_return=target_return)
+    valid = [v for v in results_raw.values() if "error" not in v]
+    output = {
+        "target_return_pct": round(target_return * 100, 1),
+        "total": len(valid),
+        "results": valid,
+    }
+    Path(output_path).write_text(_json.dumps(output))
+    print(f"Owner earnings batch: {len(valid)}/{len(results_raw)} tickers → {output_path}")
+
+
 if __name__ == "__main__":
     import sys
-    tickers = sys.argv[1:] if len(sys.argv) > 1 else ["WCN", "MSFT", "V", "VRSK"]
+    tickers = sys.argv[1:] if len(sys.argv) > 1 else []
     if not _load_tikr():
         print("ERROR: docs/tikr_earnings_data.json not found or empty")
         sys.exit(1)
+
+    if not tickers:
+        save_batch_json()
+        sys.exit(0)
 
     for t in tickers:
         r = calculate(t)

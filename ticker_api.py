@@ -1492,6 +1492,68 @@ def cerebro_options_quality():
     return jsonify(_load_json(DOCS / 'cerebro_options_quality.json'))
 
 
+# ── Chart analysis endpoints ───────────────────────────────────────────────────
+
+@app.route('/api/technical-signals')
+def technical_signals_endpoint():
+    """Stage 2 MA + ATR + Volume signals from technical_filter.py."""
+    return jsonify(_load_json(DOCS / 'technical_signals.json'))
+
+
+@app.route('/api/technical-signals/<ticker>')
+def technical_signals_ticker(ticker):
+    data = _load_json(DOCS / 'technical_signals.json')
+    sig = data.get('signals', {}).get(ticker.upper())
+    if not sig:
+        return jsonify({'error': f'{ticker} not found'}), 404
+    return jsonify(sig)
+
+
+@app.route('/api/chart-signals')
+def chart_signals_endpoint():
+    """Claude Vision chart analysis signals from chart_analyzer.py."""
+    return jsonify(_load_json(DOCS / 'chart_signals.json'))
+
+
+@app.route('/api/chart-signals/<ticker>')
+def chart_signals_ticker(ticker):
+    data = _load_json(DOCS / 'chart_signals.json')
+    sig = data.get('signals', {}).get(ticker.upper())
+    if not sig:
+        return jsonify({'error': f'{ticker} not found'}), 404
+    return jsonify(sig)
+
+
+@app.route('/api/chart-signals/<ticker>/analyze')
+def chart_analyze_on_demand(ticker):
+    """On-demand chart analysis for a single ticker (synchronous, slower)."""
+    ticker = ticker.upper().strip()
+    try:
+        from chart_analyzer import generate_chart_bytes, analyze_single
+        img = generate_chart_bytes(ticker)
+        if not img:
+            return jsonify({'error': 'chart generation failed'}), 500
+        result = analyze_single(ticker, img)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/pattern-signals')
+def pattern_signals_endpoint():
+    """VCP + TA-Lib candlestick pattern signals from pattern_detector.py."""
+    return jsonify(_load_json(DOCS / 'pattern_signals.json'))
+
+
+@app.route('/api/pattern-signals/<ticker>')
+def pattern_signals_ticker(ticker):
+    data = _load_json(DOCS / 'pattern_signals.json')
+    sig = data.get('signals', {}).get(ticker.upper())
+    if not sig:
+        return jsonify({'error': f'{ticker} not found'}), 404
+    return jsonify(sig)
+
+
 @app.route('/api/market-breadth')
 def market_breadth():
     """Market breadth from fundamental_scores: % in uptrend, % with positive upside, etc."""

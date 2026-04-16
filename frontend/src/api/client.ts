@@ -199,8 +199,18 @@ export interface MarketRegime {
   eu: Record<string, unknown>
 }
 
-export const fetchValueOpportunities = () =>
-  api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/value-opportunities')
+export const fetchValueOpportunities = async (): Promise<{
+  data: { data: ValueOpportunity[]; count: number; source: string }
+}> => {
+  for (const filename of ['value_opportunities_filtered.csv', 'value_opportunities.csv']) {
+    try {
+      const data = await fetchValueCsv(filename)
+      if (data.data.length > 0) return { data }
+    } catch { /* try next */ }
+  }
+  const res = await api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/value-opportunities')
+  return { data: res.data }
+}
 
 const STATIC_DATA_BASE = (import.meta.env.VITE_CSV_BASE as string | undefined) || 'https://tantancansado.github.io/stock_analyzer_a'
 
@@ -300,8 +310,25 @@ export const fetchGlobalValueOpportunities = async (): Promise<{
   }
 }
 
-export const fetchMomentumOpportunities = () =>
-  api.get<{ data: MomentumOpportunity[]; count: number; source: string }>('/api/momentum-opportunities')
+export const fetchMomentumOpportunities = async (): Promise<{
+  data: { data: MomentumOpportunity[]; count: number; source: string }
+}> => {
+  for (const filename of ['momentum_opportunities_filtered.csv', 'momentum_opportunities.csv']) {
+    try {
+      const res = await fetch(`${STATIC_DATA_BASE}/${filename}`, { cache: 'no-store' })
+      if (res.ok) {
+        const text = await res.text()
+        const rows = parseCsvRows(text)
+        if (rows.length > 0) {
+          const data = rows.map(r => ({ ...r } as unknown as MomentumOpportunity))
+          return { data: { data, count: data.length, source: 'github-pages' } }
+        }
+      }
+    } catch { /* try next */ }
+  }
+  const res = await api.get<{ data: MomentumOpportunity[]; count: number; source: string }>('/api/momentum-opportunities')
+  return { data: res.data }
+}
 
 export interface PortfolioNewsItem {
   id: string
@@ -363,6 +390,18 @@ export const fetchMeanReversion = async () => {
   }
   // Development: use local API
   return api.get('/api/mean-reversion')
+}
+
+export const fetchOwnerEarningsBatch = async (targetReturn = 15) => {
+  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
+  if (csvBase) {
+    // Production: pre-computed JSON from GitHub Pages (fast, always fresh)
+    const url = `${csvBase}/owner_earnings_batch.json`
+    const res = await api.get(url, { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] })
+    return { data: res.data }
+  }
+  // Development: compute on-demand via Railway API
+  return api.get(`/api/owner-earnings-batch?target_return=${targetReturn / 100}`)
 }
 
 export const fetchRecurringInsiders = () =>
@@ -1128,6 +1167,41 @@ export const fetchTechnicalSignals = async (): Promise<{ signals: TechnicalSigna
     return obj as unknown as TechnicalSummary
   })
   return { signals, summary }
+}
+
+export interface ChartSignal {
+  ticker: string
+  entry_quality: 'ideal' | 'acceptable' | 'wait' | 'avoid'
+  trend_direction: 'uptrend' | 'downtrend' | 'sideways'
+  above_200ma: boolean
+  above_150ma: boolean
+  base_forming: boolean
+  base_type: string
+  base_weeks: number | null
+  volume_dryup_visible: boolean
+  volume_breakout: boolean
+  extended_from_base: boolean
+  distribution_signs: boolean
+  risk_level: 'low' | 'medium' | 'high'
+  confidence: 'high' | 'medium' | 'low'
+  entry_rationale: string | null
+  notes: string | null
+  analyzed_at: string
+  model: string
+  error?: string
+}
+
+export const fetchChartSignals = async (): Promise<Record<string, ChartSignal>> => {
+  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
+  if (csvBase) {
+    const res = await api.get<{ signals: Record<string, ChartSignal> }>(
+      `${csvBase}/chart_signals.json`,
+      { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] }
+    )
+    return res.data?.signals ?? {}
+  }
+  const res = await api.get<{ signals: Record<string, ChartSignal> }>('/api/chart-signals')
+  return res.data?.signals ?? {}
 }
 
 export async function fetchPortfolioPrices(tickers: string[]): Promise<Record<string, number>> {

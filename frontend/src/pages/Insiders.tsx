@@ -1,8 +1,11 @@
 import StaleDataBanner from '../components/StaleDataBanner'
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { fetchRecurringInsiders, fetchInsidersInsight, downloadCsv, type InsiderData } from '../api/client'
 import { useApi } from '../hooks/useApi'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
+import { useKeyboardNav } from '../hooks/useKeyboardNav'
+import { useSortedData } from '../hooks/useSortedData'
+import { usePaginatedData } from '../hooks/usePaginatedData'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
@@ -38,53 +41,10 @@ export default function Insiders() {
   const { data, loading, error } = useApi(() => fetchRecurringInsiders(), [])
   const { data: insightRaw } = useApi(() => fetchInsidersInsight(), [])
   const { positions: myPositions } = usePersonalPortfolio()
-  const [sortKey, setSortKey] = useState<SortKey>('confidence_score')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [filterMarket, setFilterMarket] = useState<'ALL' | 'US' | 'EU'>('ALL')
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
-  const [focusedIdx, setFocusedIdx] = useState(-1)
   const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
   const PAGE_SIZE = 30
-  const pagedRef = useRef<InsiderRow[]>([])
-
-  useEffect(() => { setPage(1) }, [filterMarket, sortKey])
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const tag = (document.activeElement as HTMLElement)?.tagName
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
-      if (e.key === 'Escape') { setFocusedIdx(-1); return }
-      if (e.key === 'j' || e.key === 'ArrowDown') {
-        e.preventDefault()
-        setFocusedIdx(i => {
-          const next = Math.min(i + 1, pagedRef.current.length - 1)
-          setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
-          return next
-        })
-      } else if (e.key === 'k' || e.key === 'ArrowUp') {
-        e.preventDefault()
-        setFocusedIdx(i => {
-          const prev = Math.max(i - 1, 0)
-          setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0)
-          return prev
-        })
-      } else if (e.key === 'Enter') {
-        setFocusedIdx(i => {
-          if (i >= 0 && pagedRef.current[i]) {
-            const d = pagedRef.current[i]
-            setExpanded(prev => prev === d.ticker ? null : d.ticker)
-          }
-          return i
-        })
-      }
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [])
-
-  if (loading) return <Loading />
-  if (error) return <ErrorState message={error} />
 
   const allRows = (data?.data ?? []) as InsiderRow[]
   const maxScore = allRows.length ? Math.max(...allRows.map(r => r.confidence_score || 0)) : 100
@@ -93,20 +53,15 @@ export default function Insiders() {
     : filterMarket === 'US' ? allRows.filter(r => !r.market || r.market === 'US')
     : allRows.filter(r => r.market && r.market !== 'US')
 
-  const sorted = [...filtered].sort((a, b) => {
-    const av = (a[sortKey] ?? 0) as number
-    const bv = (b[sortKey] ?? 0) as number
-    if (typeof av === 'string' || typeof bv === 'string') return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av))
-    return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
+  const { sorted, sortKey, onSort } = useSortedData<InsiderRow, SortKey>(filtered, 'confidence_score', 'desc')
+  const { paged, page, setPage, totalPages } = usePaginatedData(sorted, PAGE_SIZE)
+  const { focused: focusedIdx, setFocused: setFocusedIdx } = useKeyboardNav(paged, {
+    onEnter: (d) => setExpanded(prev => prev === d.ticker ? null : d.ticker),
+    onEscape: () => setExpanded(null),
   })
 
-  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  pagedRef.current = paged
-
-  const onSort = (key: SortKey) => {
-    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    else { setSortKey(key); setSortDir('desc') }
-  }
+  if (loading) return <Loading />
+  if (error) return <ErrorState message={error} />
 
   const thCls = (key: SortKey) =>
     `cursor-pointer select-none whitespace-nowrap transition-colors hover:text-foreground ${sortKey === key ? 'text-primary' : ''}`
@@ -418,7 +373,7 @@ export default function Insiders() {
           )}
         </Card>
       </div>
-      <PaginationBar page={page} totalPages={Math.ceil(sorted.length / PAGE_SIZE)} onPage={setPage} />
+      <PaginationBar page={page} totalPages={totalPages} onPage={setPage} />
     </>
   )
 }

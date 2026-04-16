@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import api from '../api/client'
+import api, { fetchOwnerEarningsBatch } from '../api/client'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -30,7 +30,7 @@ interface FcfBreakdownRow {
   source?: string
 }
 
-interface ForwardEstimate { eps_norm?: number | null; ebitda?: number | null }
+interface ForwardEstimate { eps_norm?: number | null; ebitda?: number | null; revenue?: number | null; ebit?: number | null }
 
 interface OeResult {
   ticker: string
@@ -52,6 +52,7 @@ interface OeResult {
   ntm_pe: number | null
   ntm_ev_ebitda: number | null
   capex_pct_sales_median: number
+  da_pct_sales_median?: number
   historical_fcf: Record<string, number>
   historical_fcf_per_share: Record<string, number>
   fcf_breakdown: Record<string, FcfBreakdownRow>
@@ -262,18 +263,62 @@ function initFwdInputs(data: OeResult, fwdYears: string[]): Record<string, FwdYe
   ) || 22
   const medInterest = _arrMedian(brows.filter(b => b.interest != null).map(b => b.interest as number)) || 0
   const capexPct = data.capex_pct_sales_median || 10
-  const medWc = _arrMedian(
-    brows.filter(b => b.delta_wc != null && b.revenue != null && (b.revenue as number) > 0)
-      .map(b => -(b.delta_wc as number) / (b.revenue as number) * 100)
-  )
+  // Template uses WC_level/Revenue (stock, not delta/revenue). WC level not available → default 0.
+  const medWc = 0
+
+  // Revenue growth: prefer TIKR forward revenue consensus (most accurate, matches template)
+  const sortedYrs = [...fwdYears].sort()
+  const histRevs = brows.filter(b => b.revenue != null && (b.revenue as number) > 0).map(b => b.revenue as number)
+  const lastHistRev = histRevs.length > 0 ? histRevs[histRevs.length - 1] : null
+
+  // Per-year revenue growth from TIKR forward_estimates.revenue
+  const fwdRevGrowths: Record<string, number> = {}
+  for (let i = 0; i < sortedYrs.length; i++) {
+    const yr = sortedYrs[i]
+    const curRev = data.forward_estimates?.[yr]?.revenue
+    const prevRev = i === 0 ? lastHistRev : data.forward_estimates?.[sortedYrs[i - 1]]?.revenue
+    if (curRev && prevRev && prevRev > 0) {
+      fwdRevGrowths[yr] = Math.round((curRev / prevRev - 1) * 200) / 2  // nearest 0.5%
+    }
+  }
+
+  // Fallback: EBITDA growth as proxy, then historical revenue CAGR
+  const tikrEbitdaGrowths: number[] = []
+  for (let i = 1; i < sortedYrs.length; i++) {
+    const cur = data.forward_estimates?.[sortedYrs[i]]?.ebitda
+    const prev = data.forward_estimates?.[sortedYrs[i-1]]?.ebitda
+    if (cur && prev && prev > 0) tikrEbitdaGrowths.push((cur / prev - 1) * 100)
+  }
+  const histRevGrowth = histRevs.length >= 2
+    ? (Math.pow(histRevs[histRevs.length - 1] / histRevs[0], 1 / (histRevs.length - 1)) - 1) * 100
+    : 6
+  const fwdRevGrowthVals = Object.values(fwdRevGrowths)
+  const defaultGrowth = fwdRevGrowthVals.length > 0
+    ? Math.round(_arrMedian(fwdRevGrowthVals) * 2) / 2
+    : tikrEbitdaGrowths.length > 0
+    ? Math.round(_arrMedian(tikrEbitdaGrowths) * 2) / 2
+    : Math.min(25, Math.max(3, Math.round(histRevGrowth * 2) / 2))
+
+  // Per-year EBIT margin from TIKR forward estimates (ebit/revenue)
+  const fwdEbitMargins: Record<string, number> = {}
+  for (const yr of sortedYrs) {
+    const est = data.forward_estimates?.[yr]
+    if (est?.ebit != null && est?.revenue && est.revenue > 0) {
+      fwdEbitMargins[yr] = Math.round(est.ebit / est.revenue * 1000) / 10  // 1 decimal %
+    }
+  }
+  const defaultEbitMargin = Object.keys(fwdEbitMargins).length > 0
+    ? Math.round(_arrMedian(Object.values(fwdEbitMargins)) * 10) / 10
+    : Math.round(medEbit * 10) / 10
+
   const result: Record<string, FwdYearInput> = {}
   for (const yr of fwdYears) {
     result[yr] = {
-      rev_growth_pct: 6,
-      ebit_margin_pct: Math.round(medEbit * 10) / 10,
+      rev_growth_pct: fwdRevGrowths[yr] ?? defaultGrowth,
+      ebit_margin_pct: fwdEbitMargins[yr] ?? defaultEbitMargin,
       tax_rate_pct: Math.round(medTax * 10) / 10,
       capex_pct: Math.round(capexPct * 10) / 10,
-      wc_pct: Math.round(medWc * 10) / 10,
+      wc_pct: medWc,
       interest_m: Math.round(medInterest),
     }
   }
@@ -341,16 +386,29 @@ function DetailView({
   const { daPctRev, ebitFracOfEbitda } = useMemo(() => {
     const brows = Object.entries(data.fcf_breakdown ?? {})
       .sort(([a], [b]) => a.localeCompare(b)).slice(-5).map(([, b]) => b).filter(Boolean)
-    const daPct = _arrMedian(
-      brows.filter(b => b.dna != null && b.revenue != null && (b.revenue as number) > 0)
-        .map(b => -(b.dna as number) / (b.revenue as number) * 100)
-    ) || 0
+    // Priority 1: TIKR forward (ebitda−ebit)/revenue — aligns Modelo propio with Consenso TIKR
+    const fwdDaVals = Object.values(data.forward_estimates ?? {})
+      .map(est => {
+        if (est?.ebitda != null && est?.ebit != null && est?.revenue && est.revenue > 0)
+          return (est.ebitda - est.ebit) / est.revenue * 100
+        return null
+      })
+      .filter((v): v is number => v != null)
+    // Priority 2: backend historical median; Priority 3: local historical computation
+    const daPct = fwdDaVals.length > 0
+      ? _arrMedian(fwdDaVals)
+      : data.da_pct_sales_median != null
+      ? data.da_pct_sales_median
+      : (_arrMedian(
+          brows.filter(b => b.dna != null && b.revenue != null && (b.revenue as number) > 0)
+            .map(b => (b.dna as number) / (b.revenue as number) * 100)
+        ) || 12)
     const frac = _arrMedian(
       brows.filter(b => b.ebitda && b.ebit && (b.ebitda as number) !== 0)
         .map(b => (b.ebit as number) / (b.ebitda as number))
     ) || 0.6
     return { daPctRev: daPct, ebitFracOfEbitda: frac }
-  }, [data.fcf_breakdown])
+  }, [data.fcf_breakdown, data.da_pct_sales_median, data.forward_estimates])
 
   // When in fwdMode, replace consensus FCF with locally-computed FCF
   const activeData = fwdMode
@@ -513,6 +571,107 @@ function DetailView({
             </span>
           )}
         </div>
+
+        {/* Consenso TIKR — read-only table of underlying data */}
+        {!fwdMode && fwdYears.length > 0 && (
+          <Card className={cn('overflow-clip', isProjected ? 'border border-amber-500/20 bg-amber-500/3' : 'border border-border/20')}>
+            {isProjected && (
+              <div className="px-3 py-2 border-b border-amber-500/20 text-[0.65rem] text-amber-400/80 flex items-center gap-2">
+                <span className="font-bold">~ PROYECTADO</span>
+                <span className="text-muted-foreground/60">Sin estimaciones de analistas en TIKR — FCF proyectado desde NTM × CAGR histórico. Datos pueden diferir del consenso real.</span>
+              </div>
+            )}
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.7rem]">
+                <thead>
+                  <tr className="border-b border-border/20">
+                    <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-36">Consenso TIKR</th>
+                    {fwdYears.map(yr => (
+                      <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}E</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/15">
+                  {fwdYears.some(yr => data.forward_estimates?.[yr]?.revenue != null) && (
+                    <tr className="hover:bg-white/2">
+                      <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Revenue ($M)</td>
+                      {fwdYears.map((yr, i) => {
+                        const cur = data.forward_estimates?.[yr]?.revenue
+                        const prev = i > 0 ? data.forward_estimates?.[fwdYears[i-1]]?.revenue : null
+                        const growth = cur && prev && prev > 0 ? (cur / prev - 1) * 100 : null
+                        return (
+                          <td key={yr} className="px-2 py-1.5 text-center">
+                            {cur != null
+                              ? <span className="font-mono">{(cur / 1000).toFixed(1)}B{growth != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/50">{growth > 0 ? '+' : ''}{growth.toFixed(0)}%</span>}</span>
+                              : <span className="text-muted-foreground/30">—</span>}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">EBITDA ($M)</td>
+                    {fwdYears.map((yr, i) => {
+                      const est = data.forward_estimates?.[yr]
+                      const prev = i > 0 ? data.forward_estimates?.[fwdYears[i-1]]?.ebitda : null
+                      const cur = est?.ebitda
+                      const growth = cur && prev && prev > 0 ? (cur / prev - 1) * 100 : null
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center">
+                          {cur != null
+                            ? <span className="font-mono">{(cur / 1000).toFixed(1)}B{growth != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/50">{growth > 0 ? '+' : ''}{growth.toFixed(0)}%</span>}</span>
+                            : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">FCF ($M)</td>
+                    {fwdYears.map((yr, i) => {
+                      const fcfM = data.forward_fcf[yr]?.fcf
+                      const prevFcf = i > 0 ? data.forward_fcf[fwdYears[i-1]]?.fcf : null
+                      const growth = fcfM && prevFcf && prevFcf > 0 ? (fcfM / prevFcf - 1) * 100 : null
+                      const isProj = data.forward_fcf[yr]?.projected === true
+                      return (
+                        <td key={yr} className={cn('px-2 py-1.5 text-center', isProj && 'text-amber-400/70')}>
+                          {fcfM != null
+                            ? <span className="font-mono">{(fcfM / 1000).toFixed(1)}B{growth != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/50">{growth > 0 ? '+' : ''}{growth.toFixed(0)}%</span>}</span>
+                            : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">FCF/sh</td>
+                    {fwdYears.map((yr, i) => {
+                      const fcfPs = data.forward_fcf[yr]?.fcf_per_share
+                      const prevPs = i > 0 ? data.forward_fcf[fwdYears[i-1]]?.fcf_per_share : null
+                      const growth = fcfPs && prevPs && prevPs > 0 ? (fcfPs / prevPs - 1) * 100 : null
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center font-mono text-cyan-400/80">
+                          {fcfPs != null ? `$${fcfPs.toFixed(2)}${growth != null ? ` (${growth > 0 ? '+' : ''}${growth.toFixed(0)}%)` : ''}` : '—'}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {fwdYears.some(yr => data.forward_estimates?.[yr]?.eps_norm != null) && (
+                    <tr className="hover:bg-white/2">
+                      <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">EPS normalizado</td>
+                      {fwdYears.map(yr => {
+                        const eps = data.forward_estimates?.[yr]?.eps_norm
+                        return (
+                          <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/70">
+                            {eps != null ? `$${eps.toFixed(2)}` : '—'}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
 
         {fwdMode && fwdYears.length > 0 && (
           <Card className="border border-orange-500/15 bg-orange-500/3 overflow-clip">
@@ -937,24 +1096,45 @@ function BatchView({
   )
 }
 
+// ── Batch return recomputation (client-side, no API call needed) ──────────────
+
+function applyBatchReturn(batch: BatchResult, ret: number): BatchResult {
+  return {
+    ...batch,
+    target_return_pct: ret,
+    results: batch.results.map(row => {
+      if (!row.exit_price || !row.years_to_exit || !row.current_price) return row
+      const buyPrice = Math.round(row.exit_price / Math.pow(1 + ret / 100, row.years_to_exit) * 100) / 100
+      const upsidePct = Math.round((buyPrice / row.current_price - 1) * 1000) / 10
+      const signal = upsidePct >= 15 ? 'BUY' : upsidePct >= 0 ? 'WATCH' : upsidePct >= -20 ? 'HOLD' : 'OVERVALUED'
+      return { ...row, buy_price: buyPrice, upside_pct: upsidePct, signal }
+    }),
+  }
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function OwnerEarnings() {
   const [targetReturn, setTargetReturn] = useState(15)
-  const [batchData, setBatchData] = useState<BatchResult | null>(null)
+  const [rawBatch, setRawBatch] = useState<BatchResult | null>(null)
   const [loadingBatch, setLoadingBatch] = useState(false)
   const [batchError, setBatchError] = useState<string | null>(null)
   const [selected, setSelected] = useState<OeResult | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState<string | null>(null)
   const [pendingReturn, setPendingReturn] = useState(15) // slider value before apply
+  // Derive displayed batch by applying current targetReturn locally — no API call on slider change
+  const batchData = useMemo(
+    () => rawBatch ? applyBatchReturn(rawBatch, targetReturn) : null,
+    [rawBatch, targetReturn],
+  )
 
-  const fetchBatch = useCallback(async (ret: number) => {
+  const fetchBatch = useCallback(async () => {
     setLoadingBatch(true)
     setBatchError(null)
     try {
-      const res = await api.get<BatchResult>(`/api/owner-earnings-batch?target_return=${ret / 100}`)
-      setBatchData(res.data)
+      const res = await fetchOwnerEarningsBatch()
+      setRawBatch(res.data as BatchResult)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error al cargar datos'
       setBatchError(msg)
@@ -977,15 +1157,14 @@ export default function OwnerEarnings() {
     }
   }, [])
 
-  // Load batch on mount
-  useEffect(() => { fetchBatch(targetReturn) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // Load batch once on mount — served from GitHub Pages (fast)
+  useEffect(() => { fetchBatch() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleApplyReturn = () => {
     setTargetReturn(pendingReturn)
+    // Batch recomputes via useMemo — no re-fetch needed
     if (selected) {
       fetchDetail(selected.ticker, pendingReturn)
-    } else {
-      fetchBatch(pendingReturn)
     }
   }
 
@@ -1035,7 +1214,7 @@ export default function OwnerEarnings() {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => selected ? fetchDetail(selected.ticker, targetReturn) : fetchBatch(targetReturn)}
+          onClick={() => selected ? fetchDetail(selected.ticker, targetReturn) : fetchBatch()}
           disabled={loadingBatch || detailLoading}
           className="gap-2 border-white/10 bg-white/4 hover:bg-white/8 text-xs"
         >

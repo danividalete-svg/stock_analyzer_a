@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import api from '../api/client'
 import { useApi } from '../hooks/useApi'
+import { useKeyboardNav } from '../hooks/useKeyboardNav'
+import { useSortedData } from '../hooks/useSortedData'
 import Loading, { ErrorState } from '../components/Loading'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
@@ -37,6 +39,12 @@ function parseMultipliers(m: string | Record<string, number> | undefined): Recor
   }
 }
 
+function riskColor(pct: number) {
+  if (pct > 4) return 'text-red-400'
+  if (pct > 2) return 'text-amber-400'
+  return 'text-emerald-400'
+}
+
 const BASE_PORTFOLIO = 100_000
 
 export default function PositionSizing() {
@@ -45,104 +53,23 @@ export default function PositionSizing() {
     []
   )
   const [portfolioSize, setPortfolioSize] = useState(BASE_PORTFOLIO)
-  const [sortKey, setSortKey] = useState<keyof PositionRow>('position_size_pct')
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [focusedIdx, setFocusedIdx] = useState(-1)
   const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1280)
-
-  if (loading) return <Loading />
-  if (error) return <ErrorState message={error} />
 
   const rows = data?.data ?? []
   const scale = portfolioSize / BASE_PORTFOLIO
 
-  const sorted = [...rows].sort((a, b) => {
-    const av = Number(a[sortKey] ?? 0)
-    const bv = Number(b[sortKey] ?? 0)
-    if (av < bv) return sortDir === 'asc' ? -1 : 1
-    if (av > bv) return sortDir === 'asc' ? 1 : -1
-    return 0
-  })
-
-  const onSort = (key: keyof PositionRow) => {
-    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    else { setSortKey(key); setSortDir('desc') }
-  }
+  const { sorted, sortKey, onSort } = useSortedData<PositionRow, keyof PositionRow>(rows, 'position_size_pct', 'desc')
+  const { focused: focusedIdx, setFocused: setFocusedIdx } = useKeyboardNav(sorted)
 
   const thCls = (key: keyof PositionRow) =>
     `cursor-pointer select-none whitespace-nowrap transition-colors hover:text-foreground ${sortKey === key ? 'text-primary' : ''}`
 
+  if (loading) return <Loading />
+  if (error) return <ErrorState message={error} />
+
   const totalRisk = rows.reduce((s, r) => s + (r.risk_pct_portfolio ?? 0), 0)
   const totalValue = rows.reduce((s, r) => s + (r.position_value ?? 0), 0) * scale
   const avgSize = rows.length ? rows.reduce((s, r) => s + (r.position_size_pct ?? 0), 0) / rows.length : 0
-
-  function riskColor(pct: number) {
-    if (pct > 4) return 'text-red-400'
-    if (pct > 2) return 'text-amber-400'
-    return 'text-emerald-400'
-  }
-
-  return (
-    <PositionSizingInner
-      rows={rows}
-      sorted={sorted}
-      scale={scale}
-      portfolioSize={portfolioSize}
-      setPortfolioSize={setPortfolioSize}
-      onSort={onSort}
-      thCls={thCls}
-      totalRisk={totalRisk}
-      totalValue={totalValue}
-      avgSize={avgSize}
-      riskColor={riskColor}
-      focusedIdx={focusedIdx}
-      setFocusedIdx={setFocusedIdx}
-      compact={compact}
-      setCompact={setCompact}
-    />
-  )
-}
-
-function PositionSizingInner({
-  rows, sorted, scale, portfolioSize, setPortfolioSize,
-  onSort, thCls, totalRisk, totalValue, avgSize,
-  riskColor, focusedIdx, setFocusedIdx, compact, setCompact,
-}: {
-  rows: PositionRow[]
-  sorted: PositionRow[]
-  scale: number
-  portfolioSize: number
-  setPortfolioSize: (v: number) => void
-  onSort: (k: keyof PositionRow) => void
-  thCls: (k: keyof PositionRow) => string
-  totalRisk: number
-  totalValue: number
-  avgSize: number
-  riskColor: (pct: number) => string
-  focusedIdx: number
-  setFocusedIdx: (fn: ((i: number) => number) | number) => void
-  compact: boolean
-  setCompact: (v: boolean) => void
-}) {
-  const pagedRef = useRef(sorted)
-  pagedRef.current = sorted
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const tag = (document.activeElement as HTMLElement)?.tagName
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
-      if (e.key === 'Escape') { setFocusedIdx(-1); return }
-      if (e.key === 'j' || e.key === 'ArrowDown') {
-        e.preventDefault()
-        setFocusedIdx(i => { const next = Math.min(i + 1, pagedRef.current.length - 1); setTimeout(() => document.querySelector(`[data-row-idx="${next}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0); return next })
-      } else if (e.key === 'k' || e.key === 'ArrowUp') {
-        e.preventDefault()
-        setFocusedIdx(i => { const prev = Math.max(i - 1, 0); setTimeout(() => document.querySelector(`[data-row-idx="${prev}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0); return prev })
-      }
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [pagedRef, setFocusedIdx])
 
   return (
     <>

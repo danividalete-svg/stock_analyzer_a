@@ -154,9 +154,27 @@ jobs:
         continue-on-error: true
         run: python3 portfolio_tracker.py --all
 
+      - name: Owner Earnings Batch (pre-compute for GitHub Pages)
+        continue-on-error: true
+        run: python3 owner_earnings.py || echo "Owner earnings batch failed"
+
       - name: Technical Signal Analyzer
         continue-on-error: true
         run: python3 technical_signal_analyzer.py || echo "Technical signal analyzer failed"
+
+      - name: Technical Filter (Stage 2 MA + ATR + Volume)
+        continue-on-error: true
+        run: python3 technical_filter.py || echo "Technical filter failed"
+
+      - name: Pattern Detector (VCP + TA-Lib candlesticks)
+        continue-on-error: true
+        run: pip install TA-Lib 2>/dev/null || true; python3 pattern_detector.py || echo "Pattern detector failed"
+
+      - name: Chart Analyzer (Groq Vision — Llama 4)
+        continue-on-error: true
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: pip install mplfinance 2>/dev/null || true; python3 chart_analyzer.py --batch || echo "Chart analyzer failed"
 
       # ── Commit core outputs para que scanners los lea en su checkout ────────
       - name: Commit Core Outputs
