@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import api, { fetchOwnerEarningsBatch } from '../api/client'
 import Loading, { ErrorState } from '../components/Loading'
 import TickerLogo from '../components/TickerLogo'
+import PaginationBar from '../components/PaginationBar'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -908,6 +909,28 @@ function DetailView({
 
 type SortKey = 'ticker' | 'upside_pct' | 'current_price' | 'buy_price' | 'median_ev_fcf' | 'ntm_fcf_yield_pct'
 
+const PAGE_SIZE = 20
+
+function UpsideBar({ pct }: { pct: number | null }) {
+  if (pct == null) return <span className="text-muted-foreground/40">—</span>
+  const capped = Math.max(-100, Math.min(200, pct))
+  const barPct = Math.abs(capped) / 2  // 200% max → 100% bar
+  const isPos  = pct >= 0
+  return (
+    <div className="flex items-center gap-2 justify-end">
+      <span className={cn('font-bold tabular-nums text-sm', upsideColor(pct))}>
+        {pct > 0 ? '+' : ''}{pct.toFixed(1)}%
+      </span>
+      <div className="w-14 h-1.5 rounded-full bg-white/5 overflow-clip shrink-0">
+        <div
+          className={cn('h-full rounded-full transition-all', isPos ? 'bg-emerald-500/60' : 'bg-red-500/60')}
+          style={{ width: `${Math.min(100, barPct)}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
 function BatchView({
   results,
   onSelect,
@@ -923,11 +946,16 @@ function BatchView({
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [filter, setFilter] = useState('')
   const [signalFilter, setSignalFilter] = useState<string>('ALL')
+  const [page, setPage] = useState(1)
 
   const onSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortKey(k); setSortDir('desc') }
+    setPage(1)
   }
+
+  // Reset to page 1 when filters/search change
+  useEffect(() => { setPage(1) }, [filter, signalFilter])
 
   const SortIcon = ({ k }: { k: SortKey }) => {
     if (sortKey !== k) return null
@@ -953,6 +981,11 @@ function BatchView({
       const bv = (b[sortKey] as number | null) ?? (sortDir === 'asc' ? Infinity : -Infinity)
       return sortDir === 'asc' ? av - bv : bv - av
     })
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const start      = filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
+  const end        = Math.min(page * PAGE_SIZE, filtered.length)
 
   const counts = results.reduce<Record<string, number>>((acc, r) => {
     if (!r.error) { acc[r.signal] = (acc[r.signal] ?? 0) + 1 }
@@ -1021,6 +1054,20 @@ function BatchView({
         </div>
       </div>
 
+      {/* Results count + page info */}
+      {filtered.length > 0 && (
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs text-muted-foreground/50">
+            Mostrando <span className="text-muted-foreground font-semibold">{start}–{end}</span> de <span className="text-muted-foreground font-semibold">{filtered.length}</span> empresas
+          </span>
+          {totalPages > 1 && (
+            <span className="text-xs text-muted-foreground/40">
+              Página {page} / {totalPages}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Table */}
       <Card className="glass">
         <Table>
@@ -1050,8 +1097,8 @@ function BatchView({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map(row => (
-              <TableRow key={row.ticker} onClick={() => onSelect(row)} className="cursor-pointer">
+            {paginated.map(row => (
+              <TableRow key={row.ticker} onClick={() => { onSelect(row); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="cursor-pointer">
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <TickerLogo ticker={row.ticker} size="sm" />
@@ -1061,21 +1108,21 @@ function BatchView({
                 <TableCell className="text-muted-foreground/60 max-w-[160px] truncate text-xs">
                   {row.company_name || '—'}
                 </TableCell>
-                <TableCell className="text-right">{fmt(row.current_price, '$')}</TableCell>
-                <TableCell className="text-right font-semibold">{fmt(row.buy_price, '$')}</TableCell>
-                <TableCell className={cn('text-right font-bold', upsideColor(row.upside_pct))}>
-                  {row.upside_pct != null ? `${row.upside_pct > 0 ? '+' : ''}${row.upside_pct.toFixed(1)}%` : '—'}
+                <TableCell className="text-right tabular-nums">{fmt(row.current_price, '$')}</TableCell>
+                <TableCell className="text-right font-semibold tabular-nums">{fmt(row.buy_price, '$')}</TableCell>
+                <TableCell className="text-right">
+                  <UpsideBar pct={row.upside_pct} />
                 </TableCell>
                 <TableCell className="text-right">
                   <SignalBadge signal={row.signal} />
                 </TableCell>
-                <TableCell className="text-right text-muted-foreground/70">
+                <TableCell className="text-right text-muted-foreground/70 tabular-nums">
                   {fmt(row.median_ev_fcf, '', 'x', 1)}
                 </TableCell>
-                <TableCell className="text-right text-muted-foreground/70">
+                <TableCell className="text-right text-muted-foreground/70 tabular-nums">
                   {fmt(row.ntm_fcf_yield_pct, '', '%', 1)}
                 </TableCell>
-                <TableCell className="text-right text-muted-foreground/50 text-xs">
+                <TableCell className="text-right text-muted-foreground/50 text-xs tabular-nums">
                   {row.exit_year ?? '—'}E
                 </TableCell>
               </TableRow>
@@ -1089,6 +1136,7 @@ function BatchView({
             )}
           </TableBody>
         </Table>
+        <PaginationBar page={page} totalPages={totalPages} onPage={setPage} />
       </Card>
     </div>
   )
