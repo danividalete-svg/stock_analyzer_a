@@ -69,7 +69,7 @@ limiter = Limiter(
 )
 
 _CORS_ORIGINS = _RUNTIME.cors_origins
-CORS(app, origins=_CORS_ORIGINS)
+CORS(app, origins=_CORS_ORIGINS, supports_credentials=True)
 
 if _RATE_LIMIT_STORAGE_URI == "memory://" and _IS_PRODUCTION:
     _logger.warning(
