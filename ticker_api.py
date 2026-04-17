@@ -85,30 +85,44 @@ if _AUTH_BYPASS_ENABLED:
 
 SUPABASE_URL = _RUNTIME.supabase_url
 _jwks_client = _RUNTIME.jwks_client
+_SUPABASE_JWT_SECRET = os.environ.get('SUPABASE_JWT_SECRET', '')
 
 @app.before_request
 def _check_auth():
-    """Verify Supabase JWT via JWKS (supports ECC P-256 and HS256).
+    """Verify Supabase JWT — tries JWKS (ES256) first, falls back to JWT secret (HS256).
     Local bypass requires AUTH_BYPASS=true; production fails closed by default.
     """
     if request.path in _PUBLIC_PATHS or request.method == "OPTIONS":
         return
     if _AUTH_BYPASS_ENABLED:
         return
-    if not _jwks_client:
+    if not _jwks_client and not _SUPABASE_JWT_SECRET:
         if _REQUIRE_SUPABASE_AUTH:
-            _logger.error("Auth requerida pero SUPABASE_URL no esta configurada.")
+            _logger.error("Auth requerida pero SUPABASE_URL/SUPABASE_JWT_SECRET no configurados.")
             return jsonify({'error': 'Auth misconfigured'}), 503
         return
     token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
     if not token:
         return jsonify({'error': 'Unauthorized'}), 401
-    try:
-        signing_key = _jwks_client.get_signing_key_from_jwt(token)
-        pyjwt.decode(token, signing_key.key,
-                     algorithms=['ES256', 'RS256', 'HS256'],
-                     audience='authenticated')
-    except Exception:
+    verified = False
+    if _jwks_client:
+        try:
+            signing_key = _jwks_client.get_signing_key_from_jwt(token)
+            pyjwt.decode(token, signing_key.key,
+                         algorithms=['ES256', 'RS256'],
+                         audience='authenticated')
+            verified = True
+        except Exception:
+            pass
+    if not verified and _SUPABASE_JWT_SECRET:
+        try:
+            pyjwt.decode(token, _SUPABASE_JWT_SECRET,
+                         algorithms=['HS256'],
+                         audience='authenticated')
+            verified = True
+        except Exception:
+            pass
+    if not verified:
         return jsonify({'error': 'Invalid token'}), 401
 
 # ─────────────────────────────────────────────────────────────────────────────
