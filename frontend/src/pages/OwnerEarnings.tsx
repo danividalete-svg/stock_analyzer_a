@@ -417,7 +417,7 @@ function DetailView({
   // All price targets and buy price recomputed locally on every param change
   const computed = recompute(activeData, evFcfT, perT, evEbT, evEbitT, ebitFracOfEbitda, returnT)
 
-  const histYears   = Object.keys(data.historical_fcf).map(Number).sort((a, b) => b - a)
+  const bdownYears  = Object.keys(data.fcf_breakdown ?? {}).map(Number).sort((a, b) => b - a)
   const fwdYears    = Object.keys(data.forward_fcf).sort()
   const isProjected = fwdYears.length > 0 && data.forward_fcf[fwdYears[0]]?.projected === true
 
@@ -767,36 +767,31 @@ function DetailView({
       </div>
 
       {/* ── Tabs: IS · FCF · Ratios · Valoración · Detalle ─────────────── */}
-      {histYears.length > 0 && (
-        <div>
-          {/* Tab bar */}
-          <div className="flex gap-0 border-b border-border/30 mb-4 overflow-x-auto">
-            {([
-              { id: 'is',         label: '1. IS' },
-              { id: 'fcf',        label: '2. FCF' },
-              { id: 'ratios',     label: '3. Ratios' },
-              { id: 'valoracion', label: '4. Valoración' },
-              { id: 'detalle',    label: '5. Detalle FCF' },
-            ] as const).map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  'px-4 py-2 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors',
-                  activeTab === tab.id
-                    ? 'border-cyan-400 text-cyan-400'
-                    : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground hover:border-border/60'
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="flex gap-0 border-b border-border/30 overflow-x-auto">
+        {([
+          { id: 'is',         label: '1. IS',          show: bdownYears.length > 0 },
+          { id: 'fcf',        label: '2. FCF',         show: bdownYears.length > 0 },
+          { id: 'ratios',     label: '3. Ratios',      show: true },
+          { id: 'valoracion', label: '4. Valoración',  show: true },
+          { id: 'detalle',    label: '5. Detalle FCF', show: bdownYears.length > 0 },
+        ] as const).filter(t => t.show).map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              'px-4 py-2 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors',
+              activeTab === tab.id
+                ? 'border-cyan-400 text-cyan-400'
+                : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground hover:border-border/60'
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       {/* ── 1. Income Statement histórico ─────────────────────────────── */}
-      {histYears.length > 0 && activeTab === 'is' && (
+      {bdownYears.length > 0 && activeTab === 'is' && (
         <div>
           <p className="text-xs font-semibold mb-2">1. Income Statement</p>
           <Card className="glass overflow-clip">
@@ -805,7 +800,7 @@ function DetailView({
                 <thead>
                   <tr className="border-b border-border/30">
                     <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-44">(millones)</th>
-                    {[...histYears].reverse().map(yr => (
+                    {[...bdownYears].reverse().map(yr => (
                       <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
                     ))}
                   </tr>
@@ -814,7 +809,7 @@ function DetailView({
                   {/* Revenue */}
                   <tr className="hover:bg-white/2">
                     <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap font-medium">Revenue</td>
-                    {[...histYears].reverse().map((yr, i, arr) => {
+                    {[...bdownYears].reverse().map((yr, i, arr) => {
                       const b = data.fcf_breakdown?.[yr]
                       const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
                       const yoy = b?.revenue && prev?.revenue ? (b.revenue / prev.revenue - 1) * 100 : null
@@ -828,7 +823,7 @@ function DetailView({
                   {/* EBITDA */}
                   <tr className="hover:bg-white/2">
                     <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">EBITDA</td>
-                    {[...histYears].reverse().map((yr, i, arr) => {
+                    {[...bdownYears].reverse().map((yr, i, arr) => {
                       const b = data.fcf_breakdown?.[yr]
                       const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
                       const yoy = b?.ebitda && prev?.ebitda ? (b.ebitda / prev.ebitda - 1) * 100 : null
@@ -842,7 +837,7 @@ function DetailView({
                   {/* D&A */}
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 whitespace-nowrap pl-6">D&A</td>
-                    {[...histYears].reverse().map(yr => {
+                    {[...bdownYears].reverse().map(yr => {
                       const b = data.fcf_breakdown?.[yr]
                       return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/50">{b?.dna != null ? fmtM(b.dna) : <span className="text-muted-foreground/25">—</span>}</td>
                     })}
@@ -850,7 +845,7 @@ function DetailView({
                   {/* EBIT */}
                   <tr className="hover:bg-white/2">
                     <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">EBIT</td>
-                    {[...histYears].reverse().map((yr, i, arr) => {
+                    {[...bdownYears].reverse().map((yr, i, arr) => {
                       const b = data.fcf_breakdown?.[yr]
                       const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
                       const yoy = b?.ebit && prev?.ebit ? (b.ebit / prev.ebit - 1) * 100 : null
@@ -864,7 +859,7 @@ function DetailView({
                   {/* Interest */}
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 whitespace-nowrap pl-6">Intereses</td>
-                    {[...histYears].reverse().map(yr => {
+                    {[...bdownYears].reverse().map(yr => {
                       const b = data.fcf_breakdown?.[yr]
                       return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.interest != null ? fmtM(b.interest) : <span className="text-muted-foreground/25">—</span>}</td>
                     })}
@@ -872,7 +867,7 @@ function DetailView({
                   {/* Net Income */}
                   <tr className="hover:bg-white/2">
                     <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Beneficio Neto</td>
-                    {[...histYears].reverse().map((yr, i, arr) => {
+                    {[...bdownYears].reverse().map((yr, i, arr) => {
                       const b = data.fcf_breakdown?.[yr]
                       const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
                       const yoy = b?.net_income && prev?.net_income ? (b.net_income / prev.net_income - 1) * 100 : null
@@ -891,7 +886,7 @@ function DetailView({
       )}
 
       {/* ── 2. FCF Statement histórico ────────────────────────────────── */}
-      {histYears.length > 0 && activeTab === 'fcf' && (
+      {bdownYears.length > 0 && activeTab === 'fcf' && (
         <div>
           <p className="text-xs font-semibold mb-2">2. Cash Flow — FCF = EBITDA − CapEx<sub>m</sub> − Interés − Impuestos + ΔCT</p>
           <Card className="glass overflow-clip">
@@ -900,7 +895,7 @@ function DetailView({
                 <thead>
                   <tr className="border-b border-border/30">
                     <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-44">(millones)</th>
-                    {[...histYears].reverse().map(yr => (
+                    {[...bdownYears].reverse().map(yr => (
                       <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
                     ))}
                   </tr>
@@ -908,27 +903,27 @@ function DetailView({
                 <tbody className="divide-y divide-border/15">
                   <tr className="hover:bg-white/2">
                     <td className="px-3 py-1.5 text-muted-foreground/70">EBITDA</td>
-                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono">{b?.ebitda != null ? fmtM(b.ebitda) : '—'}</td> })}
+                    {[...bdownYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono">{b?.ebitda != null ? fmtM(b.ebitda) : '—'}</td> })}
                   </tr>
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">− CapEx mant.</td>
-                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.capex_maint != null ? fmtM(b.capex_maint) : '—'}</td> })}
+                    {[...bdownYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.capex_maint != null ? fmtM(b.capex_maint) : '—'}</td> })}
                   </tr>
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">− Intereses</td>
-                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.interest != null ? fmtM(b.interest) : '—'}</td> })}
+                    {[...bdownYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.interest != null ? fmtM(b.interest) : '—'}</td> })}
                   </tr>
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">− Impuestos</td>
-                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.income_tax != null ? fmtM(b.income_tax) : '—'}</td> })}
+                    {[...bdownYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.income_tax != null ? fmtM(b.income_tax) : '—'}</td> })}
                   </tr>
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">+ ΔCap. Trabajo</td>
-                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-sky-400/70">{b?.delta_wc != null ? fmtM(b.delta_wc) : '—'}</td> })}
+                    {[...bdownYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-sky-400/70">{b?.delta_wc != null ? fmtM(b.delta_wc) : '—'}</td> })}
                   </tr>
                   <tr className="hover:bg-white/2 border-t border-border/30">
                     <td className="px-3 py-1.5 font-semibold text-cyan-400">FCF</td>
-                    {[...histYears].reverse().map((yr, i, arr) => {
+                    {[...bdownYears].reverse().map((yr, i, arr) => {
                       const b = data.fcf_breakdown?.[yr]
                       const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
                       const fcf = b?.owner_earnings ?? b?.template_fcf
@@ -943,7 +938,7 @@ function DetailView({
                   </tr>
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">FCF Margin %</td>
-                    {[...histYears].reverse().map(yr => {
+                    {[...bdownYears].reverse().map(yr => {
                       const b = data.fcf_breakdown?.[yr]
                       const fcf = b?.owner_earnings ?? b?.template_fcf
                       const margin = fcf && b?.revenue ? fcf / b.revenue * 100 : null
@@ -952,14 +947,14 @@ function DetailView({
                   </tr>
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">FCF/share</td>
-                    {[...histYears].reverse().map(yr => {
+                    {[...bdownYears].reverse().map(yr => {
                       const fcfPs = data.historical_fcf_per_share?.[yr]
                       return <td key={yr} className="px-2 py-1.5 text-center font-mono text-cyan-400/70">{fcfPs != null ? `$${fcfPs.toFixed(2)}` : '—'}</td>
                     })}
                   </tr>
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">CapEx/Ventas</td>
-                    {[...histYears].reverse().map(yr => {
+                    {[...bdownYears].reverse().map(yr => {
                       const b = data.fcf_breakdown?.[yr]
                       const ratio = b?.capex_maint && b?.revenue ? Math.abs(b.capex_maint) / b.revenue * 100 : null
                       return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/50">{ratio != null ? `${ratio.toFixed(1)}%` : '—'}</td>
@@ -967,7 +962,7 @@ function DetailView({
                   </tr>
                   <tr className="hover:bg-white/2 bg-white/1">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">Conversión EBITDA→FCF</td>
-                    {[...histYears].reverse().map(yr => {
+                    {[...bdownYears].reverse().map(yr => {
                       const b = data.fcf_breakdown?.[yr]
                       const fcf = b?.owner_earnings ?? b?.template_fcf
                       const conv = fcf && b?.ebitda ? fcf / b.ebitda * 100 : null
@@ -976,7 +971,7 @@ function DetailView({
                   </tr>
                   <tr className="hover:bg-white/2">
                     <td className="px-3 py-1.5 text-muted-foreground/50 pl-6 text-[0.6rem]">Fuente</td>
-                    {[...histYears].reverse().map(yr => {
+                    {[...bdownYears].reverse().map(yr => {
                       const b = data.fcf_breakdown?.[yr]
                       return (
                         <td key={yr} className="px-2 py-1.5 text-center">
@@ -1000,12 +995,8 @@ function DetailView({
       )}
 
       {/* ── 3. Múltiplos históricos ───────────────────────────────────── */}
-      {histYears.length > 0 && activeTab === 'ratios' && (() => {
-        // Compute median EV/FCF from historical data (need shares + net debt from forward)
-        const histBrows = [...histYears].reverse()
-        // Check if we have enough data to show multiples
-        const hasMultiples = histBrows.some(yr => data.historical_fcf?.[yr] != null)
-        if (!hasMultiples) return null
+      {activeTab === 'ratios' && (() => {
+        const histBrows = [...bdownYears].reverse()
         return (
           <div>
             <p className="text-xs font-semibold mb-2">3. Ratios de valoración históricos</p>
@@ -1144,7 +1135,7 @@ function DetailView({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {histYears.map(yr => {
+                {[...bdownYears].reverse().map(yr => {
                   const b = data.fcf_breakdown?.[yr]
                   if (!b) return null
                   return (
@@ -1188,7 +1179,7 @@ function DetailView({
                     </TableRow>
                   )
                 })}
-                {histYears.length === 0 && (
+                {bdownYears.length === 0 && (
                   <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-6">Sin datos históricos</TableCell></TableRow>
                 )}
               </TableBody>
