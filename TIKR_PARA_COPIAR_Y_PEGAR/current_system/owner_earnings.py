@@ -1,0 +1,715 @@
+#!/usr/bin/env python3
+"""
+Owner Earnings Calculator — basado en la plantilla de valoración profesional.
+
+FCF = net_income + D&A - CapEx_mantenimiento
+D&A = EBITDA - EBIT
+CapEx_mant = min(|CapEx|, D&A)  ← exceso sobre D&A = inversión en crecimiento
+
+Salida principal: precio de compra para conseguir X% de retorno anual.
+  exit_price = FCF_per_share_5y × EV_FCF_target − net_debt_per_share_5y
+  buy_price  = exit_price / (1 + target_return)^years
+"""
+
+from __future__ import annotations
+
+import json
+import statistics
+from pathlib import Path
+from typing import Optional
+
+try:
+    import yfinance as yf
+    _YF_AVAILABLE = True
+except ImportError:
+    _YF_AVAILABLE = False
+
+
+TIKR_PATH = Path("docs/tikr_earnings_data.json")
+_cache: dict = {}
+_price_cache: dict = {}  # ticker → {year: annual_close_price}
+
+
+def _load_tikr() -> dict:
+    global _cache
+    if _cache:
+        return _cache
+    if TIKR_PATH.exists():
+        _cache = json.loads(TIKR_PATH.read_text()).get("data", {})
+    return _cache
+
+
+def _fv(v) -> Optional[float]:
+    try:
+        return float(v) if v is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _metric(metrics: dict, key: str, year) -> Optional[float]:
+    series = metrics.get(key, {})
+    return _fv(series.get(str(year), series.get(year)))
+
+
+def _metric_series(metrics: dict, key: str) -> Optional[dict]:
+    """Devuelve la serie completa {year_int: float|None} para una métrica."""
+    series = metrics.get(key)
+    if not series:
+        return None
+    result = {}
+    for k, v in series.items():
+        try:
+            result[int(k)] = _fv(v)
+        except (ValueError, TypeError):
+            pass
+    return result if result else None
+
+
+def _capex_maintenance(ebitda: float, ebit: float, capex: float) -> float:
+    """CapEx mantenimiento = min(|CapEx|, D&A). El exceso es inversión en crecimiento."""
+    dna = ebitda - ebit
+    return min(abs(capex), dna)
+
+
+def _template_components(
+    interest_tikr: Optional[float],
+    income_tax_tikr: Optional[float],
+    wc_change_tikr: Optional[float],
+) -> tuple[Optional[float], Optional[float], Optional[float], str, str, str]:
+    """
+    Extrae los componentes de la fórmula template EXCLUSIVAMENTE de datos TIKR.
+    Retorna None cuando el dato no está disponible en TIKR — sin estimaciones.
+    """
+    interest   = abs(interest_tikr)   if interest_tikr   is not None else None
+    income_tax = abs(income_tax_tikr) if income_tax_tikr is not None else None
+    delta_wc   = wc_change_tikr       if wc_change_tikr  is not None else None
+
+    interest_src = "tikr"  if interest   is not None else "n/d"
+    tax_src      = "tikr"  if income_tax is not None else "n/d"
+    wc_src       = "tikr"  if delta_wc   is not None else "n/d"
+
+    return interest, income_tax, delta_wc, interest_src, tax_src, wc_src
+
+
+def _fcf_conversion_median(historical_fcf: dict, metrics: dict, years: list) -> float:
+    """Ratio mediano FCF/EBITDA histórico para proyecciones."""
+    ratios = []
+    for yr in years:
+        fcf = historical_fcf.get(yr)
+        ebitda = _metric(metrics, "ebitda", yr)
+        if fcf and ebitda and ebitda > 0:
+            ratios.append(fcf / ebitda)
+    return statistics.median(ratios) if ratios else 0.45
+
+
+def _historical_annual_prices(ticker: str, years: list) -> dict:
+    """Precios de cierre anuales (último día del año fiscal) via yfinance.
+
+    yfinance devuelve precios en GBX (peniques) para tickers .L (mercado LSE).
+    TIKR almacena financieros en GBP (millones). Factor de corrección: ÷100.
+    """
+    if not _YF_AVAILABLE or not years:
+        return {}
+    t = ticker.upper()
+    if t in _price_cache:
+        return _price_cache[t]
+    # Tickers LSE: yfinance usa GBX (pence), TIKR usa GBP — corregir ÷100
+    gbx_to_gbp = t.endswith('.L')
+    try:
+        oldest = min(years)
+        hist = yf.Ticker(t).history(start=f"{oldest - 1}-01-01", end=f"{max(years) + 1}-01-01",
+                                     interval="1mo", timeout=10)
+        if hist.empty:
+            return {}
+        hist.index = hist.index.tz_localize(None) if hist.index.tz else hist.index
+        result = {}
+        for yr in years:
+            # Precio de cierre en diciembre del año fiscal
+            yr_data = hist[hist.index.year == yr]
+            if not yr_data.empty:
+                price = float(yr_data["Close"].iloc[-1])
+                result[yr] = price / 100.0 if gbx_to_gbp else price
+        _price_cache[t] = result
+        return result
+    except Exception:
+        return {}
+
+
+def _shares_change_median(metrics: dict, years: list) -> float:
+    changes = []
+    for i in range(1, min(len(years), 5)):
+        s_new = _metric(metrics, "shares_diluted", years[i - 1])
+        s_old = _metric(metrics, "shares_diluted", years[i])
+        if s_new and s_old and s_old > 0:
+            changes.append((s_new - s_old) / s_old)
+    return statistics.median(changes) if changes else -0.003
+
+
+def calculate(
+    ticker: str,
+    target_return: float = 0.15,
+    ev_fcf_target: Optional[float] = None,
+    per_target: Optional[float] = None,
+    ev_ebitda_target: Optional[float] = None,
+) -> dict:
+    """
+    Calcula el modelo Owner Earnings para un ticker.
+
+    Returns dict con:
+      historical_fcf, historical_fcf_per_share, capex_pct_sales_median,
+      median_ev_fcf, forward_fcf, price_targets,
+      buy_price, exit_price, exit_year, upside_pct, signal
+    """
+    data = _load_tikr()
+    td = data.get(ticker.upper()) or data.get(ticker)
+    if not td:
+        return {"error": f"Ticker {ticker} not in TIKR data"}
+
+    fh = td.get("financials_history", {})
+    metrics = fh.get("metrics", {})
+    years = sorted(fh.get("annual_years", []), reverse=True)[:7]
+    ae_raw = td.get("analyst_estimates", {})
+
+    price_data = td.get("price", {})
+    current_price = _fv(price_data.get("c"))
+    market_cap = _fv(price_data.get("mc"))
+    tev = _fv(price_data.get("tev"))
+
+    # ── Histórico Owner Earnings ──────────────────────────────────────────────
+    # Fuentes TIKR (sin estimaciones):
+    #   1. /est actuals (recent.fcf) — FCF que TIKR Pro muestra en tabla de estimaciones
+    #   2. Fórmula template (EBITDA−CapEx_mant−Interest−Tax+ΔWC) — solo si TIKR tiene los 3
+    #   3. CFO − CapEx_mant — ambos datos GAAP de /tf, fallback sin estimación
+    est_actuals = ae_raw.get("recent", {})
+
+    historical_fcf: dict = {}
+    historical_fcf_ps: dict = {}
+    capex_pct_sales: list = []
+    fcf_breakdown: dict = {}
+
+    for yr in years:
+        ni     = _metric(metrics, "net_income", yr)
+        ebitda = _metric(metrics, "ebitda", yr)
+        ebit   = _metric(metrics, "ebit", yr)
+        capex  = _metric(metrics, "capex", yr)
+        shares = _metric(metrics, "shares_diluted", yr)
+        cfo    = _metric(metrics, "cash_from_operations", yr)
+        rev    = _metric(metrics, "total_revenue", yr)
+
+        interest_tikr  = _metric(metrics, "interest_expense", yr)
+        tax_tikr       = _metric(metrics, "income_tax_expense", yr)
+        wc_change_tikr = _metric(metrics, "wc_change", yr)
+
+        if shares is None or shares == 0:
+            continue
+
+        has_full = None not in (ebitda, ebit, capex)
+        has_cfo  = cfo is not None
+        if not has_full and not has_cfo:
+            continue
+
+        # CapEx mant = min(|CapEx|, D&A) — solo con datos TIKR /tf
+        if has_full:
+            dna = ebitda - ebit
+            capex_maint = _capex_maintenance(ebitda, ebit, capex)
+        else:
+            dna = None
+            capex_maint = abs(capex) if capex is not None else 0
+
+        # Componentes template — solo si TIKR /tf los tiene (sin estimación)
+        interest, income_tax, delta_wc, interest_src, tax_src, wc_src = _template_components(
+            interest_tikr, tax_tikr, wc_change_tikr,
+        )
+        has_tikr_full = None not in (interest, income_tax, delta_wc) and has_full
+        template_fcf = (
+            ebitda - capex_maint - interest - income_tax + delta_wc
+            if has_tikr_full else None
+        )
+        pre_tax_income = (ebit - interest) if (ebit is not None and interest is not None) else None
+
+        # Prioridad FCF — todo TIKR, cero inventado:
+        #   1. /est actuals FCF (non-GAAP, igual al número que muestra TIKR Pro)
+        #   2. Template exacto (solo si interest+tax+WC de /tf disponibles)
+        #   3. CFO − CapEx_mant (GAAP de /tf)
+        act_fcf = _fv(est_actuals.get(str(yr), {}).get("fcf"))
+        if act_fcf is not None:
+            oe = act_fcf
+            source = "tikr_est"
+        elif has_tikr_full and template_fcf is not None:
+            oe = template_fcf
+            source = "template"
+        elif has_cfo:
+            oe = cfo - capex_maint
+            source = "cfo_based"
+        else:
+            continue
+
+        historical_fcf[yr] = round(oe, 2)
+        historical_fcf_ps[yr] = round(oe / shares, 4)
+
+        fcf_breakdown[yr] = {
+            "revenue":        round(rev, 2) if rev else None,
+            "ebitda":         round(ebitda, 2) if ebitda is not None else None,
+            "ebitda_margin":  round(ebitda / rev * 100, 1) if ebitda is not None and rev and rev > 0 else None,
+            "dna":            round(dna, 2) if dna is not None else None,
+            "ebit":           round(ebit, 2) if ebit is not None else None,
+            "ebit_margin":    round(ebit / rev * 100, 1) if ebit is not None and rev and rev > 0 else None,
+            "interest":       round(interest, 2) if interest is not None else None,
+            "interest_src":   interest_src,
+            "income_tax":     round(income_tax, 2) if income_tax is not None else None,
+            "tax_src":        tax_src,
+            "pre_tax_income": round(pre_tax_income, 2) if pre_tax_income is not None else None,
+            "net_income":     round(ni, 2) if ni is not None else None,
+            "net_margin":     round(ni / rev * 100, 1) if ni is not None and rev and rev > 0 else None,
+            "delta_wc":       round(delta_wc, 2) if delta_wc is not None else None,
+            "wc_src":         wc_src,
+            "cfo":            round(cfo, 2) if cfo else None,
+            "capex":          round(capex, 2) if capex is not None else None,
+            "capex_maint":    round(capex_maint, 2),
+            "template_fcf":   round(template_fcf, 2) if template_fcf is not None else None,
+            "owner_earnings": round(oe, 2),
+            "source":         source,
+        }
+
+        if has_full and rev and rev > 0:
+            capex_pct_sales.append(capex_maint / rev)
+
+    capex_pct_median = statistics.median(capex_pct_sales) if capex_pct_sales else 0.10
+
+    # D&A % of revenue median — for "Modelo propio" default daPctRev
+    da_pct_sales = []
+    for yr in years:
+        ebitda_yr = _metric(metrics, "ebitda", yr)
+        ebit_yr   = _metric(metrics, "ebit", yr)
+        rev_yr    = _metric(metrics, "total_revenue", yr)
+        if ebitda_yr is not None and ebit_yr is not None and rev_yr and rev_yr > 0:
+            da_pct_sales.append((ebitda_yr - ebit_yr) / rev_yr * 100)
+    da_pct_sales_median = statistics.median(da_pct_sales) if da_pct_sales else 12.0
+
+    # ── Múltiplos de referencia ───────────────────────────────────────────────
+    multiples = td.get("multiples", {})
+    ntm = td.get("ntm", {})
+
+    ntm_fcf_yield = _fv(multiples.get("ntm_fcf_yield_pct"))
+    ntm_pe = _fv(multiples.get("ntm_pe"))
+    ntm_ev_ebitda = _fv(multiples.get("ntm_ev_ebitda"))
+    ntm_fcf_m = _fv(ntm.get("ntm_fcf") or ntm.get("fcf"))
+
+    # Precios históricos: solo TIKR price_close — sin yfinance
+    tikr_prices = _metric_series(metrics, "price_close")  # dict {yr: float|None}
+    annual_prices = {yr: v for yr, v in tikr_prices.items() if v is not None} if tikr_prices else {}
+
+    # Múltiplos históricos por año — para tab 3. Ratios en el frontend
+    historical_multiples: dict[str, dict] = {}
+    hist_ev_fcf_multiples = []
+    for yr in years:
+        price_yr = annual_prices.get(yr)
+        sh = _metric(metrics, "shares_diluted", yr)
+        oe = historical_fcf.get(yr)
+        ebitda_yr = _metric(metrics, "ebitda", yr)
+        ebit_yr = _metric(metrics, "ebit", yr)
+        eps_yr = _metric(metrics, "eps_diluted", yr)
+        debt = _metric(metrics, "total_debt", yr)
+        cash = _metric(metrics, "cash", yr)
+        if price_yr and sh and sh > 0 and debt is not None and cash is not None:
+            mc_yr = price_yr * sh
+            nd_yr = debt - cash
+            ev_yr = mc_yr + nd_yr
+            row: dict = {"price": round(price_yr, 2), "mc": round(mc_yr, 0), "ev": round(ev_yr, 0)}
+            if oe and oe > 0:
+                ev_fcf = round(ev_yr / oe, 1)
+                row["ev_fcf"] = ev_fcf
+                hist_ev_fcf_multiples.append(ev_fcf)
+            if ebitda_yr and ebitda_yr > 0:
+                row["ev_ebitda"] = round(ev_yr / ebitda_yr, 1)
+            if ebit_yr and ebit_yr > 0:
+                row["ev_ebit"] = round(ev_yr / ebit_yr, 1)
+            if eps_yr and eps_yr > 0:
+                row["pe"] = round(price_yr / eps_yr, 1)
+            if oe and mc_yr > 0:
+                row["fcf_yield"] = round(oe / mc_yr * 100, 1)
+            historical_multiples[str(yr)] = row
+
+    if hist_ev_fcf_multiples:
+        median_ev_fcf = statistics.median(hist_ev_fcf_multiples)
+    elif ntm_fcf_yield and ntm_fcf_yield > 0:
+        median_ev_fcf = 100 / ntm_fcf_yield
+    elif ntm_fcf_m and tev and ntm_fcf_m > 0:
+        median_ev_fcf = tev / ntm_fcf_m
+    else:
+        median_ev_fcf = 25.0
+
+    if ev_fcf_target is None:
+        ev_fcf_target = round(median_ev_fcf * 0.90, 1)
+    if per_target is None:
+        per_target = round((ntm_pe or 25) * 0.85, 1)
+    if ev_ebitda_target is None:
+        ev_ebitda_target = round((ntm_ev_ebitda or 15) * 0.85, 1)
+
+    # ── Forward FCF ───────────────────────────────────────────────────────────
+    forward_est = ae_raw.get("forward", {})
+    current_year = ae_raw.get("current_year", 2026)
+
+    latest_yr = years[0] if years else None
+    shares_proj = _metric(metrics, "shares_diluted", latest_yr) or 250.0
+    net_debt_proj = (
+        (_metric(metrics, "total_debt", latest_yr) or 0)
+        - (_metric(metrics, "cash", latest_yr) or 0)
+    )
+
+    median_shares_change = _shares_change_median(metrics, years)
+    conv_median = _fcf_conversion_median(historical_fcf, metrics, years)
+
+    forward_fcf: dict = {}
+    forward_net_debt: dict = {}
+    forward_shares: dict = {}
+
+    for yr_str in sorted(forward_est.keys()):
+        est = forward_est[yr_str]
+        fcf_m = _fv(est.get("fcf"))
+
+        if not (fcf_m and fcf_m > 0):
+            ebitda_fwd = _fv(est.get("ebitda"))
+            fcf_m = (ebitda_fwd * conv_median) if ebitda_fwd else None
+
+        if not (fcf_m and fcf_m > 0):
+            continue
+
+        shares_proj *= (1 + median_shares_change)
+        net_debt_proj = max(0.0, net_debt_proj - fcf_m * 0.30)
+
+        forward_fcf[yr_str] = {
+            "fcf": round(fcf_m, 2),
+            "fcf_per_share": round(fcf_m / shares_proj, 4),
+        }
+        forward_net_debt[yr_str] = round(net_debt_proj, 2)
+        forward_shares[yr_str] = round(shares_proj, 4)
+
+    # ── Fallback: proyección desde NTM FCF cuando no hay estimaciones anuales ──
+    # Aplica a tickers con ntm_fcf disponible pero sin forward consensus (e.g. V, MCD)
+    if not forward_fcf and ntm_fcf_m and ntm_fcf_m > 0:
+        # Tasa de crecimiento histórica de FCF (últimos 3 años, si disponible)
+        hist_years_sorted = sorted(historical_fcf.keys(), reverse=True)
+        fcf_growth = 0.07  # default conservador 7%
+        if len(hist_years_sorted) >= 4:
+            fcf_new = historical_fcf[hist_years_sorted[0]]
+            fcf_old = historical_fcf[hist_years_sorted[3]]
+            if fcf_old and fcf_old > 0 and fcf_new > 0:
+                cagr = (fcf_new / fcf_old) ** (1 / 3) - 1
+                fcf_growth = max(-0.05, min(0.25, cagr))  # clamp [-5%, 25%]
+
+        ntm_shares = shares_proj
+        ntm_nd = net_debt_proj
+        for i in range(4):
+            yr_str = str(current_year + i)
+            proj_fcf = ntm_fcf_m * ((1 + fcf_growth) ** i)
+            ntm_shares *= (1 + median_shares_change)
+            ntm_nd = max(0.0, ntm_nd - proj_fcf * 0.30)
+            forward_fcf[yr_str] = {
+                "fcf": round(proj_fcf, 2),
+                "fcf_per_share": round(proj_fcf / ntm_shares, 4),
+                "projected": True,   # flag: no analyst consensus
+            }
+            forward_net_debt[yr_str] = round(ntm_nd, 2)
+            forward_shares[yr_str] = round(ntm_shares, 4)
+
+    # ── Precio objetivo por múltiplo por año ──────────────────────────────────
+    price_targets: dict = {}
+
+    for yr_str, fcf_data in forward_fcf.items():
+        fcf_ps = fcf_data["fcf_per_share"]
+        nd = forward_net_debt.get(yr_str, 0)
+        sh = forward_shares.get(yr_str, 1)
+        nd_ps = nd / sh if sh else 0
+        est = forward_est.get(yr_str, {})
+        targets: dict = {}
+
+        targets["ev_fcf"] = round(fcf_ps * ev_fcf_target - nd_ps, 2)
+
+        eps = _fv(est.get("eps_norm"))
+        if eps and eps > 0:
+            targets["per"] = round(eps * per_target, 2)
+
+        ebitda_fwd = _fv(est.get("ebitda"))
+        if ebitda_fwd and sh:
+            mc_implied = ebitda_fwd * ev_ebitda_target - nd
+            targets["ev_ebitda"] = round(mc_implied / sh, 2)
+
+        valid = [v for v in targets.values() if v and v > 0]
+        if valid:
+            targets["average"] = round(sum(valid) / len(valid), 2)
+
+        price_targets[yr_str] = targets
+
+    # ── Precio de compra para target_return ───────────────────────────────────
+    buy_price = exit_price = exit_year = years_to_exit = None
+
+    if price_targets:
+        exit_yr_str = sorted(price_targets.keys())[-1]
+        exit_year = int(exit_yr_str)
+        years_to_exit = max(1, min(exit_year - (current_year - 1), 10))
+        exit_price = price_targets[exit_yr_str].get("ev_fcf") or price_targets[exit_yr_str].get("average")
+
+        if exit_price and exit_price > 0 and current_price:
+            buy_price = round(exit_price / ((1 + target_return) ** years_to_exit), 2)
+
+    upside_pct = safety_margin_pct = None
+    if buy_price and current_price and current_price > 0:
+        upside_pct = round((buy_price / current_price - 1) * 100, 1)
+        safety_margin_pct = round((1 - current_price / buy_price) * 100, 1)
+
+    # ── Balance Sheet histórico ───────────────────────────────────────────────
+    historical_bs: dict[str, dict] = {}
+    for yr in years:
+        debt  = _metric(metrics, "total_debt", yr)
+        cash  = _metric(metrics, "cash", yr)
+        eq    = _metric(metrics, "total_equity", yr)
+        sh    = _metric(metrics, "shares_diluted", yr)
+        eps   = _metric(metrics, "eps_diluted", yr)
+        bb    = _metric(metrics, "buybacks", yr)
+        roe   = _metric(metrics, "roe_pct", yr)
+        row: dict = {}
+        if debt is not None:    row["total_debt"]   = round(debt, 0)
+        if cash is not None:    row["cash"]         = round(cash, 0)
+        if debt is not None and cash is not None:
+            row["net_debt"]     = round(debt - cash, 0)
+        if eq is not None:      row["total_equity"] = round(eq, 0)
+        if sh is not None:      row["shares"]       = round(sh, 4)
+        if eps is not None:     row["eps"]          = round(eps, 2)
+        if bb is not None:      row["buybacks"]     = round(bb, 0)   # negativo = recompra
+        if roe is not None:     row["roe_pct"]      = round(roe * 100, 1) if abs(roe) < 10 else round(roe, 1)
+        if row:
+            historical_bs[str(yr)] = row
+
+    # ── ROIC histórico ────────────────────────────────────────────────────────
+    # ROIC = NOPAT / Capital Invertido
+    # NOPAT = EBIT × (1 − tax_rate)  — solo con datos TIKR reales
+    # Capital Invertido = Equity + Net Debt  — balance sheet
+    # Tax rate: |income_tax| / max(1, EBIT − interest)  (media últimos años)
+    historical_roic: dict[str, dict] = {}
+    # Calcular tax rate media histórica
+    tax_rates_roic = []
+    for yr in years:
+        ebit_r = _metric(metrics, "ebit", yr)
+        tax_r  = _metric(metrics, "income_tax_expense", yr)
+        int_r  = _metric(metrics, "interest_expense", yr)
+        if ebit_r and tax_r is not None and ebit_r > 0:
+            pre_tax = max(1.0, ebit_r - abs(int_r or 0))
+            tr = abs(tax_r) / pre_tax
+            if 0 < tr < 0.65:
+                tax_rates_roic.append(tr)
+    med_tax_roic = statistics.median(tax_rates_roic) if tax_rates_roic else 0.21
+
+    prev_eq = prev_nd = None
+    for yr in sorted(years):
+        ebit_r = _metric(metrics, "ebit", yr)
+        eq_r   = _metric(metrics, "total_equity", yr)
+        debt_r = _metric(metrics, "total_debt", yr)
+        cash_r = _metric(metrics, "cash", yr)
+        if ebit_r is None or eq_r is None or debt_r is None or cash_r is None:
+            prev_eq, prev_nd = eq_r, (debt_r - cash_r) if debt_r is not None and cash_r is not None else None
+            continue
+        nd_r = debt_r - cash_r
+        # Capital invertido = promedio inicio/fin del año (más preciso)
+        ic = eq_r + nd_r
+        ic_avg = ((prev_eq or eq_r) + eq_r) / 2 + ((prev_nd or nd_r) + nd_r) / 2 if prev_eq is not None else ic
+        if ic_avg > 0:
+            nopat = ebit_r * (1 - med_tax_roic)
+            roic = round(nopat / ic_avg * 100, 1)
+            historical_roic[str(yr)] = {
+                "roic_pct":  roic,
+                "nopat":     round(nopat, 0),
+                "ic":        round(ic_avg, 0),
+                "ebit":      round(ebit_r, 0),
+                "net_debt":  round(nd_r, 0),
+                "equity":    round(eq_r, 0),
+            }
+        prev_eq, prev_nd = eq_r, nd_r
+
+    # ── Red Flags ─────────────────────────────────────────────────────────────
+    # Solo señales basadas en datos TIKR reales — sin inventar
+    red_flags: list[dict] = []
+
+    # 1. Deterioro FCF — FCF cayendo 2 años consecutivos
+    fcf_years = sorted(historical_fcf.keys(), reverse=True)
+    if len(fcf_years) >= 3:
+        fcf_vals = [historical_fcf[y] for y in fcf_years[:3]]
+        if fcf_vals[0] < fcf_vals[1] < fcf_vals[2]:
+            red_flags.append({"code": "FCF_DECLINING", "severity": "high",
+                "msg": f"FCF cayendo 3 años consecutivos: {fcf_years[2]}→{fcf_years[1]}→{fcf_years[0]}"})
+        elif fcf_vals[0] < fcf_vals[1]:
+            red_flags.append({"code": "FCF_DECLINING_1Y", "severity": "medium",
+                "msg": f"FCF cayó en el último año ({fcf_years[1]}→{fcf_years[0]})"})
+
+    # 2. Deuda neta / EBITDA > 4x (apalancamiento excesivo)
+    last_yr = years[0] if years else None
+    if last_yr:
+        nd_last   = _metric(metrics, "net_debt_ebitda", last_yr)
+        if nd_last is not None and nd_last > 4:
+            red_flags.append({"code": "HIGH_LEVERAGE", "severity": "high",
+                "msg": f"Deuda Neta/EBITDA = {nd_last:.1f}x — apalancamiento elevado"})
+        elif nd_last is not None and nd_last > 3:
+            red_flags.append({"code": "MODERATE_LEVERAGE", "severity": "medium",
+                "msg": f"Deuda Neta/EBITDA = {nd_last:.1f}x — apalancamiento moderado"})
+
+    # 3. ROE negativo o deteriorándose
+    roe_last = _metric(metrics, "roe_pct", last_yr) if last_yr else None
+    if roe_last is not None:
+        roe_pct_val = roe_last * 100 if abs(roe_last) < 10 else roe_last
+        if roe_pct_val < 0:
+            red_flags.append({"code": "NEGATIVE_ROE", "severity": "high",
+                "msg": f"ROE negativo: {roe_pct_val:.1f}%"})
+        elif roe_pct_val < 8:
+            red_flags.append({"code": "LOW_ROE", "severity": "medium",
+                "msg": f"ROE bajo: {roe_pct_val:.1f}% (umbral calidad: 8%)"})
+
+    # 4. ROIC < coste capital (estimado 8%)
+    if historical_roic:
+        last_roic_yr = sorted(historical_roic.keys())[-1]
+        roic_last = historical_roic[last_roic_yr].get("roic_pct")
+        if roic_last is not None and roic_last < 8:
+            red_flags.append({"code": "LOW_ROIC", "severity": "high" if roic_last < 0 else "medium",
+                "msg": f"ROIC {roic_last:.1f}% < coste capital estimado 8%"})
+
+    # 5. Dilución de acciones (shares creciendo > 2% anual)
+    sh_old = _metric(metrics, "shares_diluted", years[-1]) if len(years) >= 3 else None
+    sh_new = _metric(metrics, "shares_diluted", years[0]) if years else None
+    if sh_old and sh_new and sh_old > 0 and len(years) >= 3:
+        dil_cagr = (sh_new / sh_old) ** (1 / max(1, len(years) - 1)) - 1
+        if dil_cagr > 0.02:
+            red_flags.append({"code": "DILUTION", "severity": "medium",
+                "msg": f"Dilución de acciones: +{dil_cagr*100:.1f}% anual ({years[-1]}→{years[0]})"})
+
+    # 6. Conversión FCF/EBITDA < 40% últimos 2 años
+    low_conv_years = []
+    for yr in years[:3]:
+        b = fcf_breakdown.get(yr, {})
+        fcf_b = b.get("owner_earnings") or b.get("template_fcf")
+        ebitda_b = b.get("ebitda")
+        if fcf_b is not None and ebitda_b and ebitda_b > 0:
+            conv = fcf_b / ebitda_b
+            if conv < 0.40:
+                low_conv_years.append(yr)
+    if len(low_conv_years) >= 2:
+        red_flags.append({"code": "LOW_FCF_CONVERSION", "severity": "medium",
+            "msg": f"Conversión FCF/EBITDA < 40% en {len(low_conv_years)} de los últimos 3 años"})
+
+    # 7. CapEx / Ventas > 15% (negocio muy intensivo en capital)
+    if capex_pct_median > 0.15:
+        red_flags.append({"code": "HIGH_CAPEX", "severity": "low",
+            "msg": f"CapEx/Ventas mediana = {capex_pct_median*100:.1f}% — negocio intensivo en capital"})
+
+    # 8. Sin cobertura de analistas (precio compra muy incierto)
+    n_analysts = _fv(ae_raw.get("forward", {}).get(str(years[0] + 1) if years else "", {}).get("n_analysts"))
+    if n_analysts is not None and n_analysts < 3:
+        red_flags.append({"code": "LOW_COVERAGE", "severity": "low",
+            "msg": f"Cobertura de analistas baja: {int(n_analysts)} analistas"})
+
+    return {
+        "ticker": ticker.upper(),
+        "company_name": td.get("company_name", ""),
+        "current_price": current_price,
+        "market_cap": market_cap,
+        "tev": tev,
+        "historical_fcf": historical_fcf,
+        "historical_fcf_per_share": historical_fcf_ps,
+        "historical_multiples": historical_multiples,
+        "historical_bs": historical_bs,
+        "historical_roic": historical_roic,
+        "red_flags": red_flags,
+        "fcf_breakdown": fcf_breakdown,
+        "capex_pct_sales_median": round(capex_pct_median * 100, 2),
+        "da_pct_sales_median": round(da_pct_sales_median, 2),
+        "median_ev_fcf": round(median_ev_fcf, 1),
+        "ntm_fcf_yield_pct": ntm_fcf_yield,
+        "ntm_pe": ntm_pe,
+        "ntm_ev_ebitda": ntm_ev_ebitda,
+        "ev_fcf_target": ev_fcf_target,
+        "per_target": per_target,
+        "ev_ebitda_target": ev_ebitda_target,
+        "target_return_pct": round(target_return * 100, 1),
+        "forward_fcf": forward_fcf,
+        "forward_net_debt": forward_net_debt,
+        "forward_shares": {yr: round(v, 4) for yr, v in forward_shares.items()},
+        "forward_estimates": {
+            yr_str: {
+                "eps_norm": _fv(forward_est.get(yr_str, {}).get("eps_norm")),
+                "ebitda":   _fv(forward_est.get(yr_str, {}).get("ebitda")),
+                "revenue":  _fv(forward_est.get(yr_str, {}).get("revenue")),
+                "ebit":     _fv(forward_est.get(yr_str, {}).get("ebit")),
+            }
+            for yr_str in forward_fcf
+        },
+        "price_targets": price_targets,
+        "buy_price": buy_price,
+        "exit_price": exit_price,
+        "exit_year": exit_year,
+        "years_to_exit": years_to_exit,
+        "upside_pct": upside_pct,
+        "safety_margin_pct": safety_margin_pct,
+        "signal": _signal(upside_pct),
+    }
+
+
+def _signal(upside_pct: Optional[float]) -> str:
+    if upside_pct is None:
+        return "NO_DATA"
+    if upside_pct >= 15:
+        return "BUY"
+    if upside_pct >= 0:
+        return "WATCH"
+    if upside_pct >= -20:
+        return "HOLD"
+    return "OVERVALUED"
+
+
+def batch_calculate(target_return: float = 0.15) -> dict:
+    return {t: calculate(t, target_return=target_return) for t in _load_tikr()}
+
+
+def save_batch_json(target_return: float = 0.15, output_path: str = "docs/owner_earnings_batch.json") -> None:
+    """Pre-compute batch results and save to JSON for GitHub Pages serving."""
+    import json as _json
+    results_raw = batch_calculate(target_return=target_return)
+    valid = [v for v in results_raw.values() if "error" not in v]
+    output = {
+        "target_return_pct": round(target_return * 100, 1),
+        "total": len(valid),
+        "results": valid,
+    }
+    Path(output_path).write_text(_json.dumps(output))
+    print(f"Owner earnings batch: {len(valid)}/{len(results_raw)} tickers → {output_path}")
+
+
+if __name__ == "__main__":
+    import sys
+    tickers = sys.argv[1:] if len(sys.argv) > 1 else []
+    if not _load_tikr():
+        print("ERROR: docs/tikr_earnings_data.json not found or empty")
+        sys.exit(1)
+
+    if not tickers:
+        save_batch_json()
+        sys.exit(0)
+
+    for t in tickers:
+        r = calculate(t)
+        if "error" in r:
+            print(f"{t}: {r['error']}")
+            continue
+        bp = r.get("buy_price")
+        cp = r.get("current_price")
+        up = r.get("upside_pct")
+        print(f"\n{'='*60}")
+        print(f"  {t}  |  Actual: ${cp}  |  Señal: {r['signal']}")
+        print(f"  Precio compra {r['target_return_pct']}%: ${bp}  ({up:+.1f}% vs actual)")
+        print(f"  Exit {r['exit_year']}E: ${r['exit_price']}  |  EV/FCF target: {r['ev_fcf_target']}x")
+        print(f"  Mediana EV/FCF: {r['median_ev_fcf']}x  |  FCF Yield NTM: {r.get('ntm_fcf_yield_pct')}%")
+        print(f"  Owner Earnings ($M): { {k: v for k, v in list(r['historical_fcf'].items())[:4]} }")
+        fwd = r.get("forward_fcf", {})
+        if fwd:
+            fwd_str = " | ".join(f"{yr}: ${v['fcf']:.0f}M (${v['fcf_per_share']:.2f}/sh)"
+                                  for yr, v in sorted(fwd.items()))
+            print(f"  FCF forward: {fwd_str}")
+        for yr, pt in sorted(r.get("price_targets", {}).items()):
+            print(f"  {yr}E: EV/FCF=${pt.get('ev_fcf')} | P/E=${pt.get('per')} | avg=${pt.get('average')}")

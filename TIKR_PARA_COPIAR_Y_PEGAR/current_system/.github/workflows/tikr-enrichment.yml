@@ -1,0 +1,90 @@
+name: TIKR Weekly Enrichment
+
+on:
+  schedule:
+    # Sundays 05:23 UTC — irregular time to reduce API fingerprint
+    - cron: '23 5 * * 0'
+  workflow_dispatch:  # Manual trigger for on-demand runs
+
+jobs:
+  tikr-scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180  # Phase 3 takes ~90 min for 105 tickers
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pycognito boto3 botocore
+
+      - name: Run TIKR Scraper — Full Universe (~105 tickers)
+        env:
+          TIKR_EMAIL: ${{ secrets.TIKR_EMAIL }}
+          TIKR_PASSWORD: ${{ secrets.TIKR_PASSWORD }}
+        run: |
+          python3 tikr_scraper.py --run
+          echo "Exit code: $?"
+
+      - name: Verify output
+        run: |
+          python3 -c "
+          import json, sys
+          from pathlib import Path
+          p = Path('docs/tikr_earnings_data.json')
+          if not p.exists():
+              print('ERROR: tikr_earnings_data.json not found')
+              sys.exit(1)
+          data = json.loads(p.read_text())
+          total = data.get('total', 0)
+          errors = data.get('errors', [])
+          generated = data.get('generated_at', 'unknown')
+          print(f'Generated: {generated}')
+          print(f'Tickers enriched: {total}')
+          print(f'Errors: {len(errors)}')
+          if errors:
+              for e in errors[:10]:
+                  print(f'  - {e}')
+          if total < 50:
+              print('WARNING: fewer than 50 tickers — check run')
+          "
+
+      - name: Commit enriched data
+        if: always()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions Bot"
+
+          git add docs/tikr_earnings_data.json docs/tikr_id_cache.json || true
+
+          RUN_DATE=$(date +%Y-%m-%d)
+          git diff --cached --quiet && echo "No changes to commit" || \
+            git commit -m "chore: TIKR weekly enrichment - ${RUN_DATE}" \
+                       -m "Automated via GitHub Actions (tikr-enrichment.yml)"
+
+          # Push with retry: fetch + rebase before each attempt
+          push_with_retry() {
+            for i in 1 2 3; do
+              git fetch origin main
+              git rebase origin/main && git push && echo "Push OK (attempt $i)" && return 0
+              git rebase --abort 2>/dev/null || true
+              echo "Attempt $i failed, retrying..."
+              sleep $((i * 5))
+            done
+            echo "All push attempts failed — data committed locally but not pushed"
+            return 1
+          }
+          push_with_retry || true
+
+env:
+  PYTHONUNBUFFERED: 1

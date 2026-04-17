@@ -1,0 +1,27 @@
+# Flask Web Framework
+flask==3.1.2
+flask-cors==6.0.2
+flask-limiter>=3.5.0
+
+# Stock Data & Analysis
+yfinance>=1.2.0
+pandas==2.2.3
+numpy==1.26.4
+
+# HTTP Requests & Web Scraping
+requests==2.32.3
+beautifulsoup4==4.12.3
+
+# AI-powered thesis generation (Groq - free tier)
+groq>=0.4.0
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# Production WSGI Server
+gunicorn==23.0.0
+
+# JWT verification for Supabase Auth
+PyJWT[crypto]>=2.8.0
+cryptography>=42.0.0
+# es256-support
