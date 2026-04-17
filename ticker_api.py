@@ -110,7 +110,7 @@ def _check_auth():
             signing_key = _jwks_client.get_signing_key_from_jwt(token)
             pyjwt.decode(token, signing_key.key,
                          algorithms=['ES256', 'RS256'],
-                         audience='authenticated')
+                         options={"verify_aud": False})
             verified = True
         except Exception:
             pass
@@ -118,7 +118,7 @@ def _check_auth():
         try:
             pyjwt.decode(token, _SUPABASE_JWT_SECRET,
                          algorithms=['HS256'],
-                         audience='authenticated')
+                         options={"verify_aud": False})
             verified = True
         except Exception:
             pass
