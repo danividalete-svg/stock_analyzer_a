@@ -51,6 +51,20 @@ def _metric(metrics: dict, key: str, year) -> Optional[float]:
     return _fv(series.get(str(year), series.get(year)))
 
 
+def _metric_series(metrics: dict, key: str) -> Optional[dict]:
+    """Devuelve la serie completa {year_int: float|None} para una métrica."""
+    series = metrics.get(key)
+    if not series:
+        return None
+    result = {}
+    for k, v in series.items():
+        try:
+            result[int(k)] = _fv(v)
+        except (ValueError, TypeError):
+            pass
+    return result if result else None
+
+
 def _capex_maintenance(ebitda: float, ebit: float, capex: float) -> float:
     """CapEx mantenimiento = min(|CapEx|, D&A). El exceso es inversión en crecimiento."""
     dna = ebitda - ebit
@@ -281,19 +295,40 @@ def calculate(
     ntm_ev_ebitda = _fv(multiples.get("ntm_ev_ebitda"))
     ntm_fcf_m = _fv(ntm.get("ntm_fcf") or ntm.get("fcf"))
 
-    # Mediana EV/FCF histórica: usamos precios anuales reales vía yfinance
-    annual_prices = _historical_annual_prices(ticker, years)
+    # Precios históricos: solo TIKR price_close — sin yfinance
+    tikr_prices = _metric_series(metrics, "price_close")  # dict {yr: float|None}
+    annual_prices = {yr: v for yr, v in tikr_prices.items() if v is not None} if tikr_prices else {}
+
+    # Múltiplos históricos por año — para tab 3. Ratios en el frontend
+    historical_multiples: dict[str, dict] = {}
     hist_ev_fcf_multiples = []
     for yr in years:
         price_yr = annual_prices.get(yr)
         sh = _metric(metrics, "shares_diluted", yr)
         oe = historical_fcf.get(yr)
+        ebitda_yr = _metric(metrics, "ebitda", yr)
+        ebit_yr = _metric(metrics, "ebit", yr)
+        eps_yr = _metric(metrics, "eps_diluted", yr)
         debt = _metric(metrics, "total_debt", yr)
         cash = _metric(metrics, "cash", yr)
-        if price_yr and sh and oe and oe > 0 and debt is not None and cash is not None:
+        if price_yr and sh and sh > 0 and debt is not None and cash is not None:
             mc_yr = price_yr * sh
-            ev_yr = mc_yr + (debt - cash)
-            hist_ev_fcf_multiples.append(ev_yr / oe)
+            nd_yr = debt - cash
+            ev_yr = mc_yr + nd_yr
+            row: dict = {"price": round(price_yr, 2), "mc": round(mc_yr, 0), "ev": round(ev_yr, 0)}
+            if oe and oe > 0:
+                ev_fcf = round(ev_yr / oe, 1)
+                row["ev_fcf"] = ev_fcf
+                hist_ev_fcf_multiples.append(ev_fcf)
+            if ebitda_yr and ebitda_yr > 0:
+                row["ev_ebitda"] = round(ev_yr / ebitda_yr, 1)
+            if ebit_yr and ebit_yr > 0:
+                row["ev_ebit"] = round(ev_yr / ebit_yr, 1)
+            if eps_yr and eps_yr > 0:
+                row["pe"] = round(price_yr / eps_yr, 1)
+            if oe and mc_yr > 0:
+                row["fcf_yield"] = round(oe / mc_yr * 100, 1)
+            historical_multiples[str(yr)] = row
 
     if hist_ev_fcf_multiples:
         median_ev_fcf = statistics.median(hist_ev_fcf_multiples)
@@ -431,6 +466,7 @@ def calculate(
         "tev": tev,
         "historical_fcf": historical_fcf,
         "historical_fcf_per_share": historical_fcf_ps,
+        "historical_multiples": historical_multiples,
         "fcf_breakdown": fcf_breakdown,
         "capex_pct_sales_median": round(capex_pct_median * 100, 2),
         "da_pct_sales_median": round(da_pct_sales_median, 2),

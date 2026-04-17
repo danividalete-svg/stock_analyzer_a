@@ -876,6 +876,21 @@ def fetch_tf_financials(
     if not extracted:
         return {}
 
+    # Extraer priceclose histórico por año FY desde dates[]
+    # Necesario para calcular market_cap, TEV y múltiplos de valoración históricos
+    price_close: dict[int, float | None] = {}
+    for entry in date_entries:
+        if entry.get('periodtypeid') == 1 and entry['calendaryear'] in annual_years:
+            yr = entry['calendaryear']
+            pc = entry.get('priceclose')
+            try:
+                price_close[yr] = round(float(pc), 4) if pc not in (None, '1.000000000', '1.0') else None
+            except (TypeError, ValueError):
+                price_close[yr] = None
+    # Solo guardar si hay al menos un precio real (no todos 1.0 = sin datos)
+    if any(v is not None for v in price_close.values()):
+        extracted['price_close'] = price_close
+
     # Calcular revenue CAGR desde extracted data
     rev = extracted.get('total_revenue') or extracted.get('revenue', {})
     rev_cagr: dict = {}

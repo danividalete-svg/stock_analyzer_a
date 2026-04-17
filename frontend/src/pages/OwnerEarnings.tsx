@@ -57,6 +57,7 @@ interface OeResult {
   da_pct_sales_median?: number
   historical_fcf: Record<string, number>
   historical_fcf_per_share: Record<string, number>
+  historical_multiples: Record<string, { price?: number; mc?: number; ev?: number; ev_fcf?: number; ev_ebitda?: number; ev_ebit?: number; pe?: number; fcf_yield?: number }>
   fcf_breakdown: Record<string, FcfBreakdownRow>
   forward_fcf: Record<string, FcfEntry>
   forward_net_debt: Record<string, number>
@@ -996,63 +997,115 @@ function DetailView({
 
       {/* ── 3. Múltiplos históricos ───────────────────────────────────── */}
       {activeTab === 'ratios' && (() => {
-        const histBrows = [...bdownYears].reverse()
+        const multYears = Object.keys(data.historical_multiples ?? {}).map(Number).sort((a, b) => a - b)
+        const hasMultiples = multYears.length > 0
+
+        // Mediana helpers
+        const med = (vals: number[]) => {
+          if (!vals.length) return null
+          const s = [...vals].sort((a, b) => a - b)
+          return s.length % 2 ? s[Math.floor(s.length / 2)] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2
+        }
+        const medEvFcf   = med(multYears.map(y => data.historical_multiples[y]?.ev_fcf).filter((v): v is number => v != null))
+        const medPe      = med(multYears.map(y => data.historical_multiples[y]?.pe).filter((v): v is number => v != null))
+        const medEvEb    = med(multYears.map(y => data.historical_multiples[y]?.ev_ebitda).filter((v): v is number => v != null))
+        const medEvEbit  = med(multYears.map(y => data.historical_multiples[y]?.ev_ebit).filter((v): v is number => v != null))
+        const medFcfYld  = med(multYears.map(y => data.historical_multiples[y]?.fcf_yield).filter((v): v is number => v != null))
+
         return (
-          <div>
-            <p className="text-xs font-semibold mb-2">3. Ratios de valoración históricos</p>
-            <Card className="glass overflow-clip">
-              <div className="overflow-x-auto">
-                <table className="w-full text-[0.7rem]">
-                  <thead>
-                    <tr className="border-b border-border/30">
-                      <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-44">(NTM fwd)</th>
-                      {histBrows.map(yr => (
-                        <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
-                      ))}
-                      <th className="px-2 py-2 text-center text-cyan-400/60 font-semibold text-[0.6rem]">Mediana</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/15">
-                    <tr className="hover:bg-white/2">
-                      <td className="px-3 py-1.5 text-muted-foreground/70">FCF ($M)</td>
-                      {histBrows.map(yr => {
-                        const fcf = data.historical_fcf?.[yr]
-                        return <td key={yr} className="px-2 py-1.5 text-center font-mono text-cyan-400/80">{fcf != null ? fmtM(fcf) : '—'}</td>
-                      })}
-                      <td className="px-2 py-1.5 text-center text-muted-foreground/40">—</td>
-                    </tr>
-                    <tr className="hover:bg-white/2">
-                      <td className="px-3 py-1.5 text-muted-foreground/70">FCF/share</td>
-                      {histBrows.map(yr => {
-                        const ps = data.historical_fcf_per_share?.[yr]
-                        return <td key={yr} className="px-2 py-1.5 text-center font-mono text-cyan-400/60">{ps != null ? `$${ps.toFixed(2)}` : '—'}</td>
-                      })}
-                      <td className="px-2 py-1.5 text-center text-muted-foreground/40">—</td>
-                    </tr>
-                    <tr className="hover:bg-white/2 border-t border-border/20">
-                      <td className="px-3 py-1.5 text-muted-foreground/60 text-[0.65rem]">EV/FCF objetivo</td>
-                      {histBrows.map(() => <td key={Math.random()} className="px-2 py-1.5 text-center text-muted-foreground/30 text-[0.6rem]">—</td>)}
-                      <td className="px-2 py-1.5 text-center font-semibold text-cyan-400">{data.median_ev_fcf != null ? `${data.median_ev_fcf.toFixed(1)}x` : '—'}</td>
-                    </tr>
-                    <tr className="hover:bg-white/2">
-                      <td className="px-3 py-1.5 text-muted-foreground/60 text-[0.65rem]">NTM P/E consenso</td>
-                      {histBrows.map(() => <td key={Math.random()} className="px-2 py-1.5 text-center text-muted-foreground/30 text-[0.6rem]">—</td>)}
-                      <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/70">{data.ntm_pe != null ? `${data.ntm_pe.toFixed(1)}x` : '—'}</td>
-                    </tr>
-                    <tr className="hover:bg-white/2">
-                      <td className="px-3 py-1.5 text-muted-foreground/60 text-[0.65rem]">NTM EV/EBITDA</td>
-                      {histBrows.map(() => <td key={Math.random()} className="px-2 py-1.5 text-center text-muted-foreground/30 text-[0.6rem]">—</td>)}
-                      <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/70">{data.ntm_ev_ebitda != null ? `${data.ntm_ev_ebitda.toFixed(1)}x` : '—'}</td>
-                    </tr>
-                    <tr className="hover:bg-white/2">
-                      <td className="px-3 py-1.5 text-muted-foreground/60 text-[0.65rem]">NTM FCF Yield</td>
-                      {histBrows.map(() => <td key={Math.random()} className="px-2 py-1.5 text-center text-muted-foreground/30 text-[0.6rem]">—</td>)}
-                      <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/70">{data.ntm_fcf_yield_pct != null ? `${data.ntm_fcf_yield_pct.toFixed(1)}%` : '—'}</td>
-                    </tr>
-                  </tbody>
-                </table>
+          <div className="space-y-4">
+            <p className="text-xs font-semibold">3. Ratios de valoración históricos</p>
+
+            {!hasMultiples && (
+              <div className="glass rounded-xl p-5 border border-border/20 text-center text-xs text-muted-foreground/50">
+                Sin datos de precios históricos — disponibles tras el próximo pipeline (TIKR price_close).
+                <div className="mt-1 text-[0.6rem]">Mediana NTM actual: EV/FCF {data.median_ev_fcf?.toFixed(1)}x · P/E {data.ntm_pe?.toFixed(1)}x · EV/EBITDA {data.ntm_ev_ebitda?.toFixed(1)}x · FCF Yield {data.ntm_fcf_yield_pct?.toFixed(1)}%</div>
               </div>
-            </Card>
+            )}
+
+            {hasMultiples && (
+              <Card className="glass overflow-clip">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[0.7rem]">
+                    <thead>
+                      <tr className="border-b border-border/30">
+                        <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-36">Ratio</th>
+                        {multYears.map(yr => (
+                          <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
+                        ))}
+                        <th className="px-2 py-2 text-center text-cyan-400/70 font-semibold text-[0.65rem] whitespace-nowrap">Mediana</th>
+                        <th className="px-2 py-2 text-center text-amber-400/60 font-semibold text-[0.65rem] whitespace-nowrap">NTM actual</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/15">
+                      {/* Precio cierre */}
+                      <tr className="hover:bg-white/2 bg-white/1">
+                        <td className="px-3 py-1.5 text-muted-foreground/50 text-[0.65rem]">Precio cierre</td>
+                        {multYears.map(yr => {
+                          const m = data.historical_multiples[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/50">{m?.price != null ? `$${m.price.toFixed(2)}` : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center text-muted-foreground/30">—</td>
+                        <td className="px-2 py-1.5 text-center font-mono text-amber-400/70">{data.current_price != null ? `$${data.current_price.toFixed(2)}` : '—'}</td>
+                      </tr>
+                      {/* EV/FCF */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70 font-medium">EV/FCF</td>
+                        {multYears.map(yr => {
+                          const v = data.historical_multiples[yr]?.ev_fcf
+                          const isHigh = v != null && medEvFcf != null && v > medEvFcf * 1.3
+                          const isLow  = v != null && medEvFcf != null && v < medEvFcf * 0.7
+                          return <td key={yr} className={cn('px-2 py-1.5 text-center font-mono', isHigh ? 'text-red-400/70' : isLow ? 'text-emerald-400/70' : 'text-cyan-400/80')}>{v != null ? `${v.toFixed(1)}x` : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-semibold text-cyan-400">{medEvFcf != null ? `${medEvFcf.toFixed(1)}x` : '—'}</td>
+                        <td className="px-2 py-1.5 text-center font-semibold text-amber-400/70">{data.median_ev_fcf != null ? `${data.median_ev_fcf.toFixed(1)}x` : '—'}</td>
+                      </tr>
+                      {/* P/E */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70">P/E</td>
+                        {multYears.map(yr => {
+                          const v = data.historical_multiples[yr]?.pe
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/70">{v != null ? `${v.toFixed(1)}x` : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/60">{medPe != null ? `${medPe.toFixed(1)}x` : '—'}</td>
+                        <td className="px-2 py-1.5 text-center font-semibold text-amber-400/70">{data.ntm_pe != null ? `${data.ntm_pe.toFixed(1)}x` : '—'}</td>
+                      </tr>
+                      {/* EV/EBITDA */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70">EV/EBITDA</td>
+                        {multYears.map(yr => {
+                          const v = data.historical_multiples[yr]?.ev_ebitda
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/70">{v != null ? `${v.toFixed(1)}x` : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/60">{medEvEb != null ? `${medEvEb.toFixed(1)}x` : '—'}</td>
+                        <td className="px-2 py-1.5 text-center font-semibold text-amber-400/70">{data.ntm_ev_ebitda != null ? `${data.ntm_ev_ebitda.toFixed(1)}x` : '—'}</td>
+                      </tr>
+                      {/* EV/EBIT */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70">EV/EBIT</td>
+                        {multYears.map(yr => {
+                          const v = data.historical_multiples[yr]?.ev_ebit
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/70">{v != null ? `${v.toFixed(1)}x` : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/60">{medEvEbit != null ? `${medEvEbit.toFixed(1)}x` : '—'}</td>
+                        <td className="px-2 py-1.5 text-center text-muted-foreground/30">—</td>
+                      </tr>
+                      {/* FCF Yield */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70">FCF Yield</td>
+                        {multYears.map(yr => {
+                          const v = data.historical_multiples[yr]?.fcf_yield
+                          const isHigh = v != null && medFcfYld != null && v > medFcfYld * 1.3
+                          return <td key={yr} className={cn('px-2 py-1.5 text-center font-mono', isHigh ? 'text-emerald-400/70' : 'text-muted-foreground/60')}>{v != null ? `${v.toFixed(1)}%` : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/60">{medFcfYld != null ? `${medFcfYld.toFixed(1)}%` : '—'}</td>
+                        <td className="px-2 py-1.5 text-center font-semibold text-amber-400/70">{data.ntm_fcf_yield_pct != null ? `${data.ntm_fcf_yield_pct.toFixed(1)}%` : '—'}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
           </div>
         )
       })()}
