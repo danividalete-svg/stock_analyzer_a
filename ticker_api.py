@@ -1247,16 +1247,10 @@ def mean_reversion():
 
 @app.route('/api/recurring-insiders')
 def recurring_insiders():
-    # Returns merged US + EU insider data.
-    # Use source DataFrames (not DF_INSIDERS which loses ticker via ignore_index concat)
     import json as _json
-    dfs = []
-    for src in [_df_ins_us, _df_ins_eu]:
-        if not src.empty:
-            dfs.append(src.reset_index() if src.index.name == 'ticker' else src)
-    if dfs:
-        combined = pd.concat(dfs, ignore_index=True)
-        records = _json.loads(combined.to_json(orient='records'))
+    if not DF_INSIDERS.empty:
+        df = DF_INSIDERS.reset_index() if DF_INSIDERS.index.name == 'ticker' else DF_INSIDERS
+        records = _json.loads(df.to_json(orient='records'))
         return jsonify({'data': records, 'count': len(records)})
     return jsonify({'data': [], 'count': 0})
 
