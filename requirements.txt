@@ -24,3 +24,4 @@ gunicorn==23.0.0
 # JWT verification for Supabase Auth
 PyJWT[crypto]>=2.8.0
 cryptography>=42.0.0
+# es256-support
