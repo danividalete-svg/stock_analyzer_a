@@ -1,6 +1,6 @@
 {
-  "scan_date": "2026-04-16",
-  "scan_time": "19:00",
+  "scan_date": "2026-04-17",
+  "scan_time": "01:48",
   "tickers": [
     "MSFT",
     "NKE",
@@ -9,10 +9,10 @@
     "BSX",
     "AMCR"
   ],
-  "count": 38,
-  "alta_count": 13,
-  "media_count": 10,
-  "new_alerts": 10,
+  "count": 40,
+  "alta_count": 10,
+  "media_count": 7,
+  "new_alerts": 1,
   "items": [
     {
       "id": "84d6f0cf-004d-3c03-a47c-25f6e2ac167d",
@@ -45,22 +45,12 @@
       "importance": "ALTA"
     },
     {
-      "id": "c214369b-b4be-3798-a435-4c0903ccca2b",
-      "ticker": "NKE",
-      "title": "Nike earnings rebound, brand positioning questioned by UBS",
-      "source": "Proactive",
-      "pub_date": "2026-04-15T16:08:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://www.proactiveinvestors.com/companies/news/1090623/nike-earnings-rebound-brand-positioning-questioned-by-ubs-1090623.html",
-      "importance": "ALTA"
-    },
-    {
       "id": "29168058-ce7d-3a25-82be-f6e4c5b14188",
       "ticker": "BSX",
       "title": "A Look At Boston Scientific (BSX) Valuation After The Penumbra Acquisition And Recent Shareholder Returns",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-15T23:04:57Z",
-      "time_ago": "hace 19h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/look-boston-scientific-bsx-valuation-230457264.html",
       "importance": "ALTA"
     },
@@ -70,7 +60,7 @@
       "title": "Amcor invests in Netherlands plant to enhance industrial film capabilities",
       "source": "Packaging Gateway",
       "pub_date": "2026-04-16T09:00:57Z",
-      "time_ago": "hace 9h",
+      "time_ago": "hace 16h",
       "url": "https://www.packaging-gateway.com/news/amcor-invests-netherlands-film-plant/",
       "importance": "ALTA"
     },
@@ -80,28 +70,8 @@
       "title": "Gear Up for UnitedHealth (UNH) Q1 Earnings: Wall Street Estimates for Key Metrics",
       "source": "Zacks",
       "pub_date": "2026-04-16T13:15:06Z",
-      "time_ago": "hace 5h",
+      "time_ago": "hace 12h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/gear-unitedhealth-unh-q1-earnings-131506934.html",
-      "importance": "ALTA"
-    },
-    {
-      "id": "24249c32-dbe1-3072-9985-29eda88660f2",
-      "ticker": "MSFT",
-      "title": "Stellantis Expands Microsoft AI Deal, Stock Remains Flat",
-      "source": "GuruFocus.com",
-      "pub_date": "2026-04-16T17:01:38Z",
-      "time_ago": "hace 1h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/stellantis-expands-microsoft-ai-deal-170138314.html",
-      "importance": "ALTA"
-    },
-    {
-      "id": "40ab851f-5a24-3f9f-af6f-0258a4e6d9b3",
-      "ticker": "MSFT",
-      "title": "DOCU Stock: Strong Growth Tailwinds but Risks Keep Outlook Balanced",
-      "source": "Zacks",
-      "pub_date": "2026-04-16T17:16:00Z",
-      "time_ago": "hace 1h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/docu-stock-strong-growth-tailwinds-171600094.html",
       "importance": "ALTA"
     },
     {
@@ -110,18 +80,18 @@
       "title": "UnitedHealth Q1 Earnings Preview: Can it Dodge MA Pressure for a Beat?",
       "source": "Zacks",
       "pub_date": "2026-04-16T17:25:00Z",
-      "time_ago": "hace 1h",
+      "time_ago": "hace 8h",
       "url": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-q1-earnings-preview-dodge-172500122.html",
       "importance": "ALTA"
     },
     {
-      "id": "40295731-49cd-37b5-8c64-19862e03e866",
+      "id": "321b5a02-14b5-397e-94e0-d85db5a45311",
       "ticker": "MSFT",
-      "title": "CFTC's Selig Credits AI Efficiency Amid Staffing Crunch",
-      "source": "Bankless",
-      "pub_date": "2026-04-16T18:00:04Z",
-      "time_ago": "hace 1h",
-      "url": "https://www.bankless.com/read/news/cftcs-selig-credits-ai-efficiency-amid-staffing-crunch",
+      "title": "Is Microsoft (MSFT) Quietly Turning Industrial Cloud Tie-Ups Like Stellantis Into Its Next Moat?",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-16T21:09:22Z",
+      "time_ago": "hace 4h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/microsoft-msft-quietly-turning-industrial-210922413.html",
       "importance": "ALTA"
     },
     {
@@ -129,7 +99,7 @@
       "ticker": "UNH",
       "title": "⏰ Earnings en 4 días — 21 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-16T19:00:49.162023+00:00",
+      "pub_date": "2026-04-17T01:48:46.344219+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
@@ -139,20 +109,10 @@
       "ticker": "BSX",
       "title": "⏰ Earnings en 5 días — 22 Apr",
       "source": "Earnings Calendar",
-      "pub_date": "2026-04-16T19:00:49.742335+00:00",
+      "pub_date": "2026-04-17T01:48:46.910812+00:00",
       "time_ago": "",
       "url": "",
       "importance": "ALTA"
-    },
-    {
-      "id": "7c1eb2c5-e85e-4bde-8d2c-f492853a3ed9",
-      "ticker": "MSFT",
-      "title": "Stock market today: S&P 500 closes above 7,000 for first time, Nasdaq hits record as stocks erase Iran war losses",
-      "source": "Yahoo Finance",
-      "pub_date": "2026-04-14T23:11:04Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/article/stock-market-today-sp-500-closes-above-7000-for-first-time-nasdaq-hits-record-as-stocks-erase-iran-war-losses-231104330.html",
-      "importance": "MEDIA"
     },
     {
       "id": "3d53f383-81c7-3738-820b-2b2764bf7305",
@@ -175,22 +135,12 @@
       "importance": "MEDIA"
     },
     {
-      "id": "6908397e-b7b7-3bb8-b15c-f1e3ec49eac3",
-      "ticker": "NKE",
-      "title": "Nike Insider Buying Highlights Confidence In Turnaround And Risk Reward Balance",
-      "source": "Simply Wall St.",
-      "pub_date": "2026-04-15T16:04:34Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/nike-insider-buying-highlights-confidence-160434904.html",
-      "importance": "MEDIA"
-    },
-    {
       "id": "b9a5da9b-7a15-3f75-b299-d627c09e49ba",
       "ticker": "VRSK",
       "title": "Lumen and Verisk Stocks Trade Up, What You Need To Know",
       "source": "StockStory",
       "pub_date": "2026-04-15T22:18:27Z",
-      "time_ago": "hace 20h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/lumen-verisk-stocks-trade-know-221827914.html",
       "importance": "MEDIA"
     },
@@ -200,7 +150,7 @@
       "title": "Is Nike’s dividend safe? Yield & payout ratio explained",
       "source": "TheStreet",
       "pub_date": "2026-04-16T14:51:00Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 10h",
       "url": "https://www.thestreet.com/investing/stocks/nike-dividend",
       "importance": "MEDIA"
     },
@@ -210,28 +160,8 @@
       "title": "Analysts Bullish on Boston Scientific (BSX) Amid Expectations for 30% YoY Growth in 2026",
       "source": "Insider Monkey",
       "pub_date": "2026-04-16T14:51:03Z",
-      "time_ago": "hace 4h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/analysts-bullish-boston-scientific-bsx-145103461.html",
-      "importance": "MEDIA"
-    },
-    {
-      "id": "4aae6067-77e1-36ca-b961-4693dab2dc51",
-      "ticker": "MSFT",
-      "title": "Microsoft Stock Up After Analysts Reset Expectations",
-      "source": "Investor's Business Daily",
-      "pub_date": "2026-04-16T16:25:57Z",
-      "time_ago": "hace 2h",
-      "url": "https://www.investors.com/news/technology/microsoft-stock-msft-analysts-reset-expectations/?src=A00220&yptr=yahoo",
-      "importance": "MEDIA"
-    },
-    {
-      "id": "2f6155d6-0661-3aad-beb0-97f8e47425ba",
-      "ticker": "MSFT",
-      "title": "1 Unprofitable Stock with Impressive Fundamentals and 2 We Find Risky",
-      "source": "StockStory",
-      "pub_date": "2026-04-16T16:50:27Z",
-      "time_ago": "hace 2h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/1-unprofitable-stock-impressive-fundamentals-165027251.html",
       "importance": "MEDIA"
     },
     {
@@ -240,19 +170,19 @@
       "title": "3 Dividend Aristocrat ETFs to Buy Before 2026 Markets Shift",
       "source": "24/7 Wall St.",
       "pub_date": "2026-04-16T18:01:19Z",
-      "time_ago": "hace 59min",
+      "time_ago": "hace 7h",
       "url": "https://247wallst.com/investing/2026/04/16/3-dividend-aristocrat-etfs-to-buy-before-2026-markets-shift/",
       "importance": "MEDIA"
     },
     {
-      "id": "a2b897ee-0528-3247-8f2b-b709bff16e82",
-      "ticker": "NKE",
-      "title": "Nike Insider Buying Signals Confidence",
-      "source": "GuruFocus.com",
-      "pub_date": "2026-04-15T16:20:17Z",
-      "time_ago": "hace 1d",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/nike-insider-buying-signals-confidence-162017445.html",
-      "importance": "BAJA"
+      "id": "4aae6067-77e1-36ca-b961-4693dab2dc51",
+      "ticker": "MSFT",
+      "title": "Microsoft Stock Up After Analysts Reset Expectations",
+      "source": "Investor's Business Daily",
+      "pub_date": "2026-04-16T21:02:37Z",
+      "time_ago": "hace 4h",
+      "url": "https://www.investors.com/news/technology/microsoft-stock-msft-analysts-reset-expectations/?src=A00220&yptr=yahoo",
+      "importance": "MEDIA"
     },
     {
       "id": "576e7080-dc5c-32e9-b1ee-7406c8bd5fe2",
@@ -265,22 +195,12 @@
       "importance": "BAJA"
     },
     {
-      "id": "dccf6e49-6d51-3d12-af5e-a9833089111b",
-      "ticker": "NKE",
-      "title": "Apple CEO Tim Cook Buys Nike Stock. His Last Purchase Didn’t Go So Well.",
-      "source": "Barrons.com",
-      "pub_date": "2026-04-15T17:45:00Z",
-      "time_ago": "hace 1d",
-      "url": "https://www.barrons.com/articles/apple-ceo-tim-cook-buys-nike-stock-55609a97?siteid=yhoof2&yptr=yahoo",
-      "importance": "BAJA"
-    },
-    {
       "id": "77abb2da-3acc-3c30-8daf-8707e40d9924",
       "ticker": "NKE",
       "title": "These Stocks Are Today’s Movers: Morgan Stanley, Bank of America, Tesla, Nvidia, Robinhood, Broadcom, Nike, and More",
       "source": "Barrons.com",
       "pub_date": "2026-04-15T20:21:00Z",
-      "time_ago": "hace 22h",
+      "time_ago": "hace 1d",
       "url": "https://www.barrons.com/articles/stock-movers-28f9870b?siteid=yhoof2&yptr=yahoo",
       "importance": "BAJA"
     },
@@ -290,7 +210,7 @@
       "title": "Boston Scientific (BSX) Outperforms Broader Market: What You Need to Know",
       "source": "Zacks",
       "pub_date": "2026-04-15T22:00:02Z",
-      "time_ago": "hace 21h",
+      "time_ago": "hace 1d",
       "url": "https://finance.yahoo.com/markets/stocks/articles/boston-scientific-bsx-outperforms-broader-220002392.html",
       "importance": "BAJA"
     },
@@ -300,7 +220,7 @@
       "title": "Why NIKE (NKE) Is Up 5.4% After Rare Insider Buying Cluster Near 52-Week Low",
       "source": "Simply Wall St.",
       "pub_date": "2026-04-16T02:10:49Z",
-      "time_ago": "hace 16h",
+      "time_ago": "hace 23h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/why-nike-nke-5-4-021049228.html",
       "importance": "BAJA"
     },
@@ -310,7 +230,7 @@
       "title": "Nike (NKE) Stock Is Up, What You Need To Know",
       "source": "StockStory",
       "pub_date": "2026-04-16T02:34:27Z",
-      "time_ago": "hace 16h",
+      "time_ago": "hace 23h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/nike-nke-stock-know-023427387.html",
       "importance": "BAJA"
     },
@@ -320,7 +240,7 @@
       "title": "Revisiting Stock Picks Burlington Stores, Boston Scientific, Pinterest",
       "source": "Barrons.com",
       "pub_date": "2026-04-16T02:58:00Z",
-      "time_ago": "hace 16h",
+      "time_ago": "hace 22h",
       "url": "https://www.barrons.com/articles/revisiting-stock-picks-burlington-stores-boston-scientific-pinterest-a84bef50?siteid=yhoof2&yptr=yahoo",
       "importance": "BAJA"
     },
@@ -330,7 +250,7 @@
       "title": "Visa, Mastercard settle merchant claims",
       "source": "Payments Dive",
       "pub_date": "2026-04-16T10:31:00Z",
-      "time_ago": "hace 8h",
+      "time_ago": "hace 15h",
       "url": "https://www.paymentsdive.com/news/visa-mastercard-settle-merchant-claims/817693/",
       "importance": "BAJA"
     },
@@ -340,18 +260,18 @@
       "title": "Boston Scientific plans $88.5M R&D expansion in Ireland",
       "source": "MedTech Dive",
       "pub_date": "2026-04-16T11:03:14Z",
-      "time_ago": "hace 7h",
+      "time_ago": "hace 14h",
       "url": "https://www.medtechdive.com/news/boston-scientific-plans-885m-rd-expansion-in-ireland/817695/",
       "importance": "BAJA"
     },
     {
-      "id": "6bfa4a48-5b60-4011-8dce-49e61d2153b2",
-      "ticker": "MSFT",
-      "title": "Nvidia is still an AI powerhouse as chip stocks rally in April",
-      "source": "Yahoo Finance Video",
-      "pub_date": "2026-04-16T14:30:00Z",
-      "time_ago": "hace 4h",
-      "url": "https://finance.yahoo.com/video/nvidia-is-still-an-ai-powerhouse-as-chip-stocks-rally-in-april-143000445.html",
+      "id": "2c66a82c-5a20-35ae-a8f4-57a316cfeefc",
+      "ticker": "NKE",
+      "title": "Apple CEO Tim Cook Just Bought Another 25,000 Shares of Nike Stock. Should You Load Up on NKE Too?",
+      "source": "Barchart",
+      "pub_date": "2026-04-16T13:56:34Z",
+      "time_ago": "hace 11h",
+      "url": "https://www.barchart.com/story/news/1346251/apple-ceo-tim-cook-just-bought-another-25-000-shares-of-nike-stock-should-you-load-up-on-nke-too",
       "importance": "BAJA"
     },
     {
@@ -360,28 +280,18 @@
       "title": "HSBC Reduces to Hold from Buy on NIKE, Inc. (NKE)",
       "source": "Insider Monkey",
       "pub_date": "2026-04-16T15:17:48Z",
-      "time_ago": "hace 3h",
+      "time_ago": "hace 10h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/hsbc-reduces-hold-buy-nike-151748950.html",
       "importance": "BAJA"
     },
     {
-      "id": "9bd4b0ca-2942-346e-989e-01d2f34bdd43",
-      "ticker": "MSFT",
-      "title": "Sandisk vs. Marvell: Which AI Infrastructure Stock Should You Buy?",
-      "source": "Zacks",
-      "pub_date": "2026-04-16T16:00:00Z",
-      "time_ago": "hace 3h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/sandisk-vs-marvell-ai-infrastructure-160000726.html",
-      "importance": "BAJA"
-    },
-    {
-      "id": "61b9f53b-c9b8-34d1-a444-88d7736fca35",
-      "ticker": "MSFT",
-      "title": "Jim Cramer Makes Big Claim About Microsoft (MSFT) & SpaceX IPO",
-      "source": "Insider Monkey",
-      "pub_date": "2026-04-16T16:48:41Z",
-      "time_ago": "hace 2h",
-      "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-makes-big-claim-164841695.html",
+      "id": "1f2ec9f8-0590-398d-8caa-42170135cfc0",
+      "ticker": "NKE",
+      "title": "CEO Eliott Hill Just Bought 24,000 Shares of Nike Stock. Should You?",
+      "source": "Barchart",
+      "pub_date": "2026-04-16T16:11:05Z",
+      "time_ago": "hace 9h",
+      "url": "https://www.barchart.com/story/news/1349718/ceo-eliott-hill-just-bought-24-000-shares-of-nike-stock-should-you",
       "importance": "BAJA"
     },
     {
@@ -390,8 +300,118 @@
       "title": "Intuitive Surgical Pre-Q1 Analysis: Buy, Hold or Sell the Stock Now?",
       "source": "Zacks",
       "pub_date": "2026-04-16T16:52:00Z",
-      "time_ago": "hace 2h",
+      "time_ago": "hace 8h",
       "url": "https://finance.yahoo.com/markets/stocks/articles/intuitive-surgical-pre-q1-analysis-165200402.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "ebd03da1-cd20-3883-a3dc-599dc29325ef",
+      "ticker": "MSFT",
+      "title": "The Biggest Roadblock Between the S&P and Another Record? Big Tech.",
+      "source": "Barrons.com",
+      "pub_date": "2026-04-16T18:51:07Z",
+      "time_ago": "hace 6h",
+      "url": "https://www.barrons.com/livecoverage/stock-market-news-today-041626/card/the-biggest-roadblock-between-the-s-p-and-another-record-big-tech--gzgSAjx7OOMn5wN04l2m?siteid=yhoof2&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "517fa181-312e-3909-8aec-88479edc090e",
+      "ticker": "MSFT",
+      "title": "Don't Panic Over Microsoft: These 2 Mega-Cap Stocks Are the Real Opportunity",
+      "source": "Motley Fool",
+      "pub_date": "2026-04-16T19:05:00Z",
+      "time_ago": "hace 6h",
+      "url": "https://www.fool.com/investing/2026/04/16/dont-panic-over-microsoft-these-2-mega-cap-stocks/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "7485f52e-53b2-3a1c-bf00-56b5791a5a36",
+      "ticker": "MSFT",
+      "title": "Stellantis Partners With Microsoft To Deploy Over 100 AI Tools",
+      "source": "GuruFocus.com",
+      "pub_date": "2026-04-16T19:10:32Z",
+      "time_ago": "hace 6h",
+      "url": "https://finance.yahoo.com/sectors/technology/articles/stellantis-partners-microsoft-deploy-over-191032461.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "ff2ecffd-55c3-316d-9e38-29d1bbc4cde9",
+      "ticker": "NKE",
+      "title": "2 Dow Jones Stocks with Exciting Potential and 1 Facing Headwinds",
+      "source": "StockStory",
+      "pub_date": "2026-04-16T19:30:27Z",
+      "time_ago": "hace 6h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/2-dow-jones-stocks-exciting-193027978.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "810edb9c-204e-3324-9b2b-d02a2a42462d",
+      "ticker": "MSFT",
+      "title": "America’s Next Great Business Oracle May Not Be American. Meet the Next Warren Buffett.",
+      "source": "Barrons.com",
+      "pub_date": "2026-04-16T19:33:00Z",
+      "time_ago": "hace 6h",
+      "url": "https://www.barrons.com/articles/warren-buffett-berkshire-hathaway-investing-stocks-next-1ffee794?siteid=yhoof2&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "37b8425c-6c90-4d75-9dee-4751beeb1105",
+      "ticker": "MSFT",
+      "title": "What the S&P 500 might be telling us",
+      "source": "Yahoo Finance Video",
+      "pub_date": "2026-04-16T19:53:58Z",
+      "time_ago": "hace 5h",
+      "url": "https://finance.yahoo.com/video/what-the-sp-500-might-be-telling-us-195358665.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "a0cd9467-8ff2-3e44-b1ec-ad3e7a70d9c6",
+      "ticker": "NKE",
+      "title": "Allbirds Is Going From Shoes to AI. Its Plan Is Only 99.6% Crazy.",
+      "source": "Barrons.com",
+      "pub_date": "2026-04-16T19:54:00Z",
+      "time_ago": "hace 5h",
+      "url": "https://www.barrons.com/articles/allbirds-newbird-ai-stock-price-6ccf1fce?siteid=yhoof2&yptr=yahoo",
+      "importance": "BAJA"
+    },
+    {
+      "id": "a5e110c9-1bc4-36ad-85cb-5938ca189788",
+      "ticker": "MSFT",
+      "title": "Generate Investment Management Trims Alaska Air Group Position",
+      "source": "Motley Fool",
+      "pub_date": "2026-04-16T20:28:26Z",
+      "time_ago": "hace 5h",
+      "url": "https://www.fool.com/coverage/filings/2026/04/16/generate-investment-management-trims-alaska-air-group-position/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "d4fae32f-80be-39bf-93ee-9d2e64aa219a",
+      "ticker": "UNH",
+      "title": "Is It Time To Reassess UnitedHealth Group (UNH) After This Year’s Sharp Share Price Slide",
+      "source": "Simply Wall St.",
+      "pub_date": "2026-04-16T21:07:34Z",
+      "time_ago": "hace 4h",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/time-reassess-unitedhealth-group-unh-210734123.html",
+      "importance": "BAJA"
+    },
+    {
+      "id": "48d42fd6-938c-389a-ac33-b2ca6fda2d8c",
+      "ticker": "MSFT",
+      "title": "Stock Market Today, April 16: Markets Nudge Upwards, Setting New Records",
+      "source": "Motley Fool",
+      "pub_date": "2026-04-16T21:30:35Z",
+      "time_ago": "hace 4h",
+      "url": "https://www.fool.com/coverage/stock-market-today/2026/04/16/stock-market-today-april-16-markets-nudge-upwards-setting-new-records/",
+      "importance": "BAJA"
+    },
+    {
+      "id": "e45ca336-dd95-3885-aab6-6238b0ad2fbd",
+      "ticker": "UNH",
+      "title": "3 Under-the-Radar Healthcare Stocks Worth Adding to Your Watchlist",
+      "source": "Motley Fool",
+      "pub_date": "2026-04-16T22:05:00Z",
+      "time_ago": "hace 3h",
+      "url": "https://www.fool.com/investing/2026/04/16/3-under-the-radar-healthcare-stocks-worth-adding-t/",
       "importance": "BAJA"
     }
   ]
