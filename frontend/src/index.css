@@ -74,7 +74,7 @@
   * { border-color: hsl(var(--border)); }
 
   html {
-    font-size: 17px;
+    font-size: 14px;
   }
 
   body {
@@ -101,13 +101,13 @@
 
 @media (min-width: 1100px) {
   html {
-    font-size: 19px;
+    font-size: 15px;
   }
 }
 
 @media (min-width: 1536px) {
   html {
-    font-size: 20px;
+    font-size: 15.5px;
   }
 }
 
