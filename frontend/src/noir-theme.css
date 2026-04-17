@@ -13,7 +13,7 @@
   --card-foreground:     0 0% 96%;
   --popover:             0 0% 7%;
   --popover-foreground:  0 0% 96%;
-  --primary:             142 72% 50%;     /* verde eléctrico — acento   */
+  --primary:             194 100% 50%;     /* verde eléctrico — acento   */
   --primary-foreground:  0 0% 0%;
   --secondary:           0 0% 9%;
   --secondary-foreground:0 0% 80%;
@@ -25,11 +25,11 @@
   --destructive-foreground: 0 0% 100%;
   --border:              0 0% 13%;        /* bordes muy sutiles          */
   --input:               0 0% 10%;
-  --ring:                142 72% 50%;
+  --ring:                194 100% 50%;
   --radius:              0.375rem;
 
-  /* Acento secundario: cyan para datos financieros */
-  --noir-cyan:   185 100% 50%;
+  /* Acento secundario */
+  --noir-cyan:   194 100% 50%;
   --noir-amber:  38 95% 55%;
   --noir-red:    0 80% 58%;
 }
@@ -99,49 +99,49 @@
   background: hsl(0 0% 18%) !important;
 }
 [data-theme="noir"] ::-webkit-scrollbar-thumb:hover {
-  background: hsl(142 72% 50% / 0.4) !important;
+  background: hsl(194 100% 50% / 0.4) !important;
 }
 
 /* ── Primary / accent colors redefinidos en clases Tailwind ─────── */
 /* Reemplazar el cyan de la app por verde eléctrico en noir          */
-[data-theme="noir"] .text-cyan-400 { color: hsl(142 72% 50%) !important; }
-[data-theme="noir"] .border-cyan-400\/20 { border-color: hsl(142 72% 50% / 0.2) !important; }
-[data-theme="noir"] .bg-cyan-500\/5  { background-color: hsl(142 72% 50% / 0.05) !important; }
-[data-theme="noir"] .bg-cyan-500\/20 { background-color: hsl(142 72% 50% / 0.2) !important; }
-[data-theme="noir"] .text-cyan-400\/80 { color: hsl(142 72% 50% / 0.8) !important; }
-[data-theme="noir"] .accent-cyan-400 { accent-color: hsl(142 72% 50%) !important; }
+[data-theme="noir"] .text-cyan-400 { color: hsl(194 100% 50%) !important; }
+[data-theme="noir"] .border-cyan-400\/20 { border-color: hsl(194 100% 50% / 0.2) !important; }
+[data-theme="noir"] .bg-cyan-500\/5  { background-color: hsl(194 100% 50% / 0.05) !important; }
+[data-theme="noir"] .bg-cyan-500\/20 { background-color: hsl(194 100% 50% / 0.2) !important; }
+[data-theme="noir"] .text-cyan-400\/80 { color: hsl(194 100% 50% / 0.8) !important; }
+[data-theme="noir"] .accent-cyan-400 { accent-color: hsl(194 100% 50%) !important; }
 
 /* Emerald → se queda verde, compatible */
 
 /* ── Texto de selección ───────────────────────────────────────────── */
 [data-theme="noir"] ::selection {
-  background: hsl(142 72% 50% / 0.25);
+  background: hsl(194 100% 50% / 0.25);
   color: #fff;
 }
 
 /* ── Focus ring verde ─────────────────────────────────────────────── */
 [data-theme="noir"] :focus-visible {
-  outline-color: hsl(142 72% 50% / 0.7);
-  box-shadow: 0 0 0 4px hsl(142 72% 50% / 0.12);
+  outline-color: hsl(194 100% 50% / 0.7);
+  box-shadow: 0 0 0 4px hsl(194 100% 50% / 0.12);
 }
 
 /* ── Nav link activo — verde en lugar de primary indigo ─────────── */
 [data-theme="noir"] .nav-link-active {
-  background: hsl(142 72% 50% / 0.1) !important;
+  background: hsl(194 100% 50% / 0.1) !important;
   color: hsl(142 72% 55%) !important;
 }
 [data-theme="noir"] .nav-link-active .nav-icon {
-  color: hsl(142 72% 50%) !important;
+  color: hsl(194 100% 50%) !important;
 }
 
 /* ── Sidebar logo ──────────────────────────────────────────────────── */
 [data-theme="noir"] .sidebar-logo-icon {
-  background: hsl(142 72% 50%) !important;
+  background: hsl(194 100% 50%) !important;
 }
 
-/* ── Gradient title → verde ──────────────────────────────────────── */
+/* ── Gradient title → cyan ───────────────────────────────────────── */
 [data-theme="noir"] .gradient-title {
-  background: linear-gradient(135deg, hsl(142 72% 55%) 0%, hsl(185 100% 50%) 100%) !important;
+  background: linear-gradient(135deg, hsl(194 100% 60%) 0%, hsl(210 100% 65%) 100%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
@@ -162,7 +162,7 @@
 
 /* ── Slider range accent ─────────────────────────────────────────── */
 [data-theme="noir"] input[type="range"] {
-  accent-color: hsl(142 72% 50%) !important;
+  accent-color: hsl(194 100% 50%) !important;
 }
 
 /* ── Signal badges — se adaptan a los tokens, sin cambio necesario   */
@@ -170,9 +170,9 @@
 /* ── Neon glow en el primary button ─────────────────────────────── */
 [data-theme="noir"] button.bg-cyan-500,
 [data-theme="noir"] button[class*="bg-primary"] {
-  background: hsl(142 72% 50%) !important;
+  background: hsl(194 100% 50%) !important;
   color: #000 !important;
-  box-shadow: 0 0 20px hsl(142 72% 50% / 0.35) !important;
+  box-shadow: 0 0 20px hsl(194 100% 50% / 0.35) !important;
 }
 
 /* ── OrangeCell (forward model) — queda naranja, buen contraste en negro */
