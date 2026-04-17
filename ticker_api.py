@@ -113,7 +113,7 @@ def _check_auth():
                          options={"verify_aud": False})
             verified = True
         except Exception as e:
-            _logger.warning("JWKS verify failed: %s | token_header: %s", e, token.split('.')[0] if '.' in token else '?')
+            print(f"[AUTH] JWKS verify failed: {e} | header: {token.split('.')[0] if '.' in token else '?'}", flush=True)
     if not verified and _SUPABASE_JWT_SECRET:
         try:
             pyjwt.decode(token, _SUPABASE_JWT_SECRET,
@@ -121,7 +121,7 @@ def _check_auth():
                          options={"verify_aud": False})
             verified = True
         except Exception as e:
-            _logger.warning("HS256 verify failed: %s", e)
+            print(f"[AUTH] HS256 verify failed: {e}", flush=True)
     if not verified:
         return jsonify({'error': 'Invalid token'}), 401
 
