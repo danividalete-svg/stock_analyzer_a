@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import api, { fetchOwnerEarningsBatch } from '../api/client'
 import Loading, { ErrorState } from '../components/Loading'
+import TickerLogo from '../components/TickerLogo'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -431,6 +432,7 @@ function DetailView({
         <div className="flex flex-wrap items-start gap-4 justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
+              <TickerLogo ticker={data.ticker} size="md" />
               <h2 className="text-2xl font-bold tracking-tight">{data.ticker}</h2>
               {data.company_name && <span className="text-sm text-muted-foreground truncate max-w-xs">{data.company_name}</span>}
               <SignalBadge signal={computed.signal} />
@@ -1050,7 +1052,12 @@ function BatchView({
           <TableBody>
             {filtered.map(row => (
               <TableRow key={row.ticker} onClick={() => onSelect(row)} className="cursor-pointer">
-                <TableCell className="font-bold tracking-wide">{row.ticker}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <TickerLogo ticker={row.ticker} size="sm" />
+                    <span className="font-bold tracking-wide">{row.ticker}</span>
+                  </div>
+                </TableCell>
                 <TableCell className="text-muted-foreground/60 max-w-[160px] truncate text-xs">
                   {row.company_name || '—'}
                 </TableCell>
