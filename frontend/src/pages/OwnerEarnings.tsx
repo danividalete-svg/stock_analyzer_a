@@ -241,7 +241,7 @@ interface FwdYearInput {
   rev_growth_pct: number
   ebit_margin_pct: number
   tax_rate_pct: number
-  capex_pct: number
+  capex_pct: number  // single median applied all years; user can override per-year
   wc_pct: number
   interest_m: number
 }
@@ -253,27 +253,37 @@ function _arrMedian(nums: number[]): number {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-// Inicializa los inputs del modelo propio desde los datos TIKR, de forma que
-// computeFwdFromModel() produzca exactamente el mismo FCF que el Consenso TIKR.
-// Estrategia: Revenue y EBIT margin de TIKR directos; CapEx de mediana histórica;
-// Tax se despeja algebraicamente para cuadrar el FCF: Tax = EBITDA − CapEx − Interest − FCF_TIKR.
+// Inicializa los inputs del modelo propio igual que la plantilla:
+//   - Revenue growth %: por año desde TIKR (estimaciones consenso)
+//   - EBIT margin %: por año desde TIKR
+//   - Tax rate %: MEDIANA HISTÓRICA (no derivación algebraica) — igual que plantilla celdas L17:P17
+//   - CapEx %: mediana histórica única aplicada todos los años — igual que plantilla celda L22
+//   - WC %: 0 por defecto — igual que plantilla celda L23
+//   - Interest $M: mediana histórica — igual que plantilla
+// El FCF calculado diferirá del TIKR non-GAAP — esto es correcto e intencional (igual que la plantilla).
 function initFwdInputs(data: OeResult, fwdYears: string[]): Record<string, FwdYearInput> {
   const sortedYrs = [...fwdYears].sort()
 
-  // Historical medians for fallbacks
+  // Historical data — últimos 5 años
   const brows = Object.entries(data.fcf_breakdown ?? {})
     .sort(([a], [b]) => a.localeCompare(b)).slice(-5).map(([, b]) => b).filter(Boolean)
+
+  // Mediana histórica interest
   const medInterest = _arrMedian(brows.filter(b => b.interest != null).map(b => b.interest as number)) || 0
+
+  // CapEx: mediana histórica única (= plantilla celda L22)
   const capexPct = data.capex_pct_sales_median || 5
 
-  // D&A % of revenue: from TIKR forward (EBITDA−EBIT)/Revenue
-  const daPctVals = sortedYrs.map(yr => {
-    const est = data.forward_estimates?.[yr]
-    if (est?.ebitda != null && est?.ebit != null && est?.revenue && est.revenue > 0)
-      return (est.ebitda - est.ebit) / est.revenue * 100
-    return null
-  }).filter((v): v is number => v != null)
-  const daPct = daPctVals.length > 0 ? _arrMedian(daPctVals) : (data.da_pct_sales_median ?? 5)
+  // Tax rate: mediana histórica |income_tax| / max(1, ebit - interest)
+  // = plantilla celdas L17:P17 por defecto ~ 24% para muchas empresas
+  const taxRates = brows
+    .filter(b => b.income_tax != null && b.ebit != null)
+    .map(b => {
+      const preTax = Math.max(1, (b.ebit as number) - (b.interest ?? 0))
+      return Math.abs(b.income_tax as number) / preTax * 100
+    })
+    .filter(r => r >= 0 && r <= 60)
+  const medTaxRate = taxRates.length > 0 ? Math.round(_arrMedian(taxRates) * 10) / 10 : 21
 
   // Last historical revenue for first-year growth calc
   const histRevs = brows.filter(b => b.revenue != null && (b.revenue as number) > 0).map(b => b.revenue as number)
@@ -283,51 +293,39 @@ function initFwdInputs(data: OeResult, fwdYears: string[]): Record<string, FwdYe
   for (let i = 0; i < sortedYrs.length; i++) {
     const yr = sortedYrs[i]
     const est = data.forward_estimates?.[yr] ?? {}
-    const tikrFcf = data.forward_fcf[yr]?.fcf ?? null
 
-    // Revenue growth from TIKR
+    // Revenue growth from TIKR consensus
     const curRev = est.revenue ?? null
     const prevRev = i === 0 ? lastHistRev : (data.forward_estimates?.[sortedYrs[i - 1]]?.revenue ?? null)
     const revGrowth = curRev && prevRev && prevRev > 0
       ? Math.round((curRev / prevRev - 1) * 1000) / 10
       : 10
 
-    // EBIT margin from TIKR
+    // EBIT margin from TIKR consensus
     const ebitMargin = est.ebit != null && curRev && curRev > 0
       ? Math.round(est.ebit / curRev * 1000) / 10
       : 20
 
-    // Derive implied tax rate to exactly match TIKR FCF
-    // FCF = EBITDA − CapEx − Interest − Tax  (WC=0 default)
-    // Tax = EBITDA − CapEx − Interest − FCF_TIKR
-    let taxRate = 21  // default
-    if (tikrFcf != null && curRev && curRev > 0) {
-      const ebit = curRev * ebitMargin / 100
-      const da = curRev * daPct / 100
-      const ebitda = ebit + da
-      const capex = curRev * capexPct / 100
-      const interest = medInterest
-      const impliedTax = ebitda - capex - interest - tikrFcf
-      const preTax = Math.max(1, ebit - interest)
-      taxRate = Math.max(0, Math.min(45, Math.round(impliedTax / preTax * 1000) / 10))
-    }
-
     result[yr] = {
       rev_growth_pct: revGrowth,
       ebit_margin_pct: ebitMargin,
-      tax_rate_pct: taxRate,
-      capex_pct: Math.round(capexPct * 10) / 10,
-      wc_pct: 0,
+      tax_rate_pct: medTaxRate,   // mediana histórica, igual para todos los años (= plantilla default)
+      capex_pct: Math.round(capexPct * 10) / 10,  // mediana única (= plantilla celda L22)
+      wc_pct: 0,                  // 0 por defecto (= plantilla celda L23)
       interest_m: Math.round(medInterest),
     }
   }
   return result
 }
 
+// computeFwdFromModel — sigue la lógica exacta de la plantilla:
+//   - D&A forward = prev_DA × (1 + rev_growth%)  [plantilla hoja IS fila 8: =K8*(1+L4)]
+//     NO un % fijo de ventas — crece proporcionalmente con el revenue
+//   - daLastHist: último D&A histórico ($M) como punto de partida de la cadena
 function computeFwdFromModel(
   data: OeResult,
   inputs: Record<string, FwdYearInput>,
-  daPctRev: number,
+  daLastHist: number,
 ): Record<string, FcfEntry> {
   const histYears = Object.keys(data.fcf_breakdown ?? {}).sort()
   const lastHist = histYears[histYears.length - 1]
@@ -335,12 +333,14 @@ function computeFwdFromModel(
   const fwdYears = Object.keys(inputs).sort()
   const result: Record<string, FcfEntry> = {}
   let prevRev = lastRev
+  let prevDA  = daLastHist   // D&A crece con revenue igual que en la plantilla
   for (const yr of fwdYears) {
     const inp = inputs[yr]
     const shares = (data.forward_shares?.[yr] ?? 1)
     const rev = prevRev * (1 + inp.rev_growth_pct / 100)
     const ebit = rev * inp.ebit_margin_pct / 100
-    const da = rev * daPctRev / 100
+    // D&A: prev_DA × (1 + rev_growth%) — fórmula plantilla hoja 1.IS fila 8
+    const da = prevDA * (1 + inp.rev_growth_pct / 100)
     const ebitda = ebit + da
     const capex = rev * inp.capex_pct / 100
     const deltaWc = -(rev - prevRev) * inp.wc_pct / 100
@@ -354,6 +354,7 @@ function computeFwdFromModel(
       projected: true,
     }
     prevRev = rev
+    prevDA  = da
   }
   return result
 }
@@ -381,32 +382,33 @@ function DetailView({
   const setFwdField = (yr: string, field: keyof FwdYearInput, val: number) =>
     setFwdInputs(prev => ({ ...prev, [yr]: { ...prev[yr], [field]: val } }))
 
-  // D&A% and EBIT/EBITDA fraction — needed for computeFwdFromModel
-  const { daPctRev, ebitFracOfEbitda } = useMemo(() => {
+  // daLastHist: último D&A histórico en $M — punto de partida para la cadena D&A×(1+g) de la plantilla
+  // ebitFracOfEbitda: para derivar EV/EBIT price target en recompute()
+  const { daLastHist, ebitFracOfEbitda } = useMemo(() => {
     const brows = Object.entries(data.fcf_breakdown ?? {})
-      .sort(([a], [b]) => a.localeCompare(b)).slice(-5).map(([, b]) => b).filter(Boolean)
-    const fwdDaVals = Object.values(data.forward_estimates ?? {})
-      .map(est => {
-        if (est?.ebitda != null && est?.ebit != null && est?.revenue && est.revenue > 0)
-          return (est.ebitda - est.ebit) / est.revenue * 100
-        return null
-      }).filter((v): v is number => v != null)
-    const daPct = fwdDaVals.length > 0
-      ? _arrMedian(fwdDaVals)
-      : data.da_pct_sales_median != null
-      ? data.da_pct_sales_median
-      : (_arrMedian(brows.filter(b => b.dna != null && b.revenue != null && (b.revenue as number) > 0)
-          .map(b => (b.dna as number) / (b.revenue as number) * 100)) || 12)
+      .sort(([a], [b]) => a.localeCompare(b)).map(([, b]) => b).filter(Boolean)
+    // Último D&A disponible (dna = EBITDA - EBIT en el breakdown)
+    const daVals = brows.filter(b => b.dna != null && (b.dna as number) > 0)
+    const lastDa = daVals.length > 0 ? (daVals[daVals.length - 1].dna as number) : 0
+    // Si no hay dna en el breakdown, estimar desde da_pct_sales_median × último revenue
+    const lastHistYear = Object.keys(data.fcf_breakdown ?? {}).sort().slice(-1)[0]
+    const lastRev = data.fcf_breakdown?.[lastHistYear]?.revenue ?? 0
+    const daFallback = lastRev > 0 && data.da_pct_sales_median
+      ? lastRev * data.da_pct_sales_median / 100
+      : 0
+    const daLast = lastDa > 0 ? lastDa : daFallback
+
+    const last5 = brows.slice(-5)
     const frac = _arrMedian(
-      brows.filter(b => b.ebitda && b.ebit && (b.ebitda as number) !== 0)
+      last5.filter(b => b.ebitda && b.ebit && (b.ebitda as number) !== 0)
         .map(b => (b.ebit as number) / (b.ebitda as number))
     ) || 0.6
-    return { daPctRev: daPct, ebitFracOfEbitda: frac }
-  }, [data.fcf_breakdown, data.da_pct_sales_median, data.forward_estimates])
+    return { daLastHist: daLast, ebitFracOfEbitda: frac }
+  }, [data.fcf_breakdown, data.da_pct_sales_median])
 
   // When in fwdMode, replace consensus FCF with locally-computed FCF
   const activeData = fwdMode
-    ? { ...data, forward_fcf: computeFwdFromModel(data, fwdInputs, daPctRev) }
+    ? { ...data, forward_fcf: computeFwdFromModel(data, fwdInputs, daLastHist) }
     : data
 
   // All price targets and buy price recomputed locally on every param change
@@ -737,7 +739,7 @@ function DetailView({
                   <tr className="bg-cyan-500/5 border-t border-cyan-500/20">
                     <td className="px-3 py-1.5 font-semibold text-cyan-400/80 whitespace-nowrap">FCF/sh (modelo)</td>
                     {fwdYears.map(yr => {
-                      const localFcf = computeFwdFromModel(data, fwdInputs, daPctRev)
+                      const localFcf = computeFwdFromModel(data, fwdInputs, daLastHist)
                       const fcfPs = localFcf[yr]?.fcf_per_share
                       const tikrPs = data.forward_fcf[yr]?.fcf_per_share
                       const diff = fcfPs != null && tikrPs != null ? ((fcfPs / tikrPs - 1) * 100) : null
