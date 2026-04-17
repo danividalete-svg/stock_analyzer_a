@@ -1,81 +1,81 @@
 {
-  "date": "2026-03-24",
-  "timestamp": "2026-03-24T08:30:47.533366",
+  "date": "2026-04-17",
+  "timestamp": "2026-04-17T07:37:45.620748",
   "narrative": null,
-  "macro_regime": "STRESS",
+  "macro_regime": "CALM",
   "top_sectors": [
     {
-      "industry": "Computer Hardware",
-      "sector": "Technology",
-      "avg_rs_percentile": 86.2,
-      "num_tickers": 2,
-      "label": "Top 10%"
-    },
-    {
-      "industry": "Banks - Regional",
-      "sector": "Financial Services",
-      "avg_rs_percentile": 74.9,
-      "num_tickers": 36,
-      "label": "Top 10%"
-    },
-    {
-      "industry": "Engineering & Construction",
+      "industry": "Specialty Industrial Machinery",
       "sector": "Industrials",
-      "avg_rs_percentile": 70.6,
-      "num_tickers": 5,
+      "avg_rs_percentile": 50.7,
+      "num_tickers": 7,
       "label": "Top 10%"
     },
     {
-      "industry": "Specialty Chemicals",
-      "sector": "Basic Materials",
-      "avg_rs_percentile": 66.6,
+      "industry": "Discount Stores",
+      "sector": "Consumer Defensive",
+      "avg_rs_percentile": 43.0,
       "num_tickers": 2,
       "label": "Top 10%"
     },
     {
-      "industry": "Oil & Gas E&P",
-      "sector": "Energy",
-      "avg_rs_percentile": 66.3,
-      "num_tickers": 6,
+      "industry": "Industrial Distribution",
+      "sector": "Industrials",
+      "avg_rs_percentile": 35.1,
+      "num_tickers": 2,
+      "label": "Top 10%"
+    },
+    {
+      "industry": "Financial Data & Stock Exchanges",
+      "sector": "Financial Services",
+      "avg_rs_percentile": 34.3,
+      "num_tickers": 10,
+      "label": "Top 25%"
+    },
+    {
+      "industry": "Railroads",
+      "sector": "Industrials",
+      "avg_rs_percentile": 33.0,
+      "num_tickers": 2,
       "label": "Top 25%"
     }
   ],
   "bottom_sectors": [
     {
-      "industry": "REIT - Mortgage",
-      "sector": "Real Estate",
-      "avg_rs_percentile": 11.0,
+      "industry": "Waste Management",
+      "sector": "Industrials",
+      "avg_rs_percentile": 7.0,
+      "num_tickers": 3,
+      "label": "Bottom 25%"
+    },
+    {
+      "industry": "Auto Parts",
+      "sector": "Consumer Cyclical",
+      "avg_rs_percentile": 6.9,
       "num_tickers": 2,
       "label": "Bottom 25%"
     },
     {
-      "industry": "Capital Markets",
+      "industry": "Insurance Brokers",
       "sector": "Financial Services",
-      "avg_rs_percentile": 10.8,
-      "num_tickers": 2,
-      "label": "Bottom 25%"
-    },
-    {
-      "industry": "REIT - Residential",
-      "sector": "Real Estate",
-      "avg_rs_percentile": 9.5,
-      "num_tickers": 7,
+      "avg_rs_percentile": 5.0,
+      "num_tickers": 4,
       "label": "Bottom 25%"
     },
     {
       "industry": "Information Technology Services",
       "sector": "Technology",
-      "avg_rs_percentile": 8.4,
-      "num_tickers": 4,
+      "avg_rs_percentile": 2.9,
+      "num_tickers": 3,
       "label": "Bottom 25%"
     },
     {
-      "industry": "Packaged Foods",
-      "sector": "Consumer Defensive",
-      "avg_rs_percentile": 1.4,
+      "industry": "Medical Devices",
+      "sector": "Healthcare",
+      "avg_rs_percentile": 0.0,
       "num_tickers": 2,
       "label": "Bottom 25%"
     }
   ],
-  "total_groups": 38
+  "total_groups": 22
 }

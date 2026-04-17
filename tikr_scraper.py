@@ -761,13 +761,16 @@ TF_ITEMS_OF_INTEREST = {
     10:    'gross_profit',         # Gross Profit
     4051:  'ebitda',               # EBITDA
     21:    'ebit',                 # Operating Income / EBIT
-    32:    'interest_expense',     # Net Interest Expense (after operating income)
-    11:    'interest_expense',     # Interest Expense alternative ID
+    32:    'interest_expense',     # Net Interest Expense (más común, tras EBIT en IS)
+    11:    'interest_expense',     # Interest Expense — ID alternativo
+    36:    'interest_expense',     # Interest on Debt — algunas plantillas tech/software
     14:    'income_tax_expense',   # Income Tax Expense (Benefit)
+    19:    'income_tax_expense',   # Income Tax — ID alternativo algunos templates
     15:    'net_income',           # Net Income
     142:   'eps_diluted',          # Diluted EPS Excl Extra Items
     2006:  'cash_from_operations', # Cash from Operations
     2023:  'wc_change',            # Changes in Working Capital (CF statement)
+    2046:  'wc_change',            # Working Capital Change — ID alternativo
     2021:  'capex',                # Capital Expenditure (negative)
     1096:  'cash',                 # Cash And Equivalents
     4173:  'total_debt',           # Total Debt
@@ -856,16 +859,37 @@ def fetch_tf_financials(
         if any(v is not None for v in series.values()):
             extracted[metric] = series
 
-    for section in data.get('financials', []):
-        if isinstance(section, list):
-            for item in section:
-                if isinstance(item, dict):
-                    _process_item(item)
-        elif isinstance(section, dict):
-            _process_item(section)
+    def _walk(node):
+        """Recorre recursivamente la estructura financials (puede ser lista o dict anidado)."""
+        if isinstance(node, list):
+            for child in node:
+                _walk(child)
+        elif isinstance(node, dict):
+            _process_item(node)
+            # TIKR anida subitems bajo distintas claves según la versión del template
+            for key in ('items', 'children', 'rows', 'subitems', 'data'):
+                if key in node:
+                    _walk(node[key])
+
+    _walk(data.get('financials', []))
 
     if not extracted:
         return {}
+
+    # Extraer priceclose histórico por año FY desde dates[]
+    # Necesario para calcular market_cap, TEV y múltiplos de valoración históricos
+    price_close: dict[int, float | None] = {}
+    for entry in date_entries:
+        if entry.get('periodtypeid') == 1 and entry['calendaryear'] in annual_years:
+            yr = entry['calendaryear']
+            pc = entry.get('priceclose')
+            try:
+                price_close[yr] = round(float(pc), 4) if pc not in (None, '1.000000000', '1.0') else None
+            except (TypeError, ValueError):
+                price_close[yr] = None
+    # Solo guardar si hay al menos un precio real (no todos 1.0 = sin datos)
+    if any(v is not None for v in price_close.values()):
+        extracted['price_close'] = price_close
 
     # Calcular revenue CAGR desde extracted data
     rev = extracted.get('total_revenue') or extracted.get('revenue', {})

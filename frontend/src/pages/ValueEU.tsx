@@ -1,10 +1,11 @@
 import StaleDataBanner from '../components/StaleDataBanner'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useDeferredValue } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchEUValueOpportunities, fetchMarketRegime, fetchThesis, fetchMacroRadar, fetchValueEUInsight, type ValueOpportunity } from '../api/client'
 import { usePersonalPortfolio } from '../context/PersonalPortfolioContext'
 import { useApi } from '../hooks/useApi'
 import { useTechnicalSummaryMap } from '../hooks/useTechnicalSummaryMap'
+import { useChartSignals } from '../hooks/useChartSignals'
 import type { TechnicalSummary } from '../api/client'
 import PageHeader from '../components/PageHeader'
 
@@ -23,6 +24,24 @@ function TechBiasCell({ t }: { t?: TechnicalSummary }) {
     </span>
   )
 }
+
+function EntryQualityBadge({ quality, confidence }: { quality?: string; confidence?: string }) {
+  if (!quality || quality === 'wait') return <span className="text-muted-foreground/30 text-xs">—</span>
+  const cfg: Record<string, { cls: string; label: string }> = {
+    ideal:      { cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', label: 'IDEAL' },
+    acceptable: { cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30',      label: 'OK' },
+    avoid:      { cls: 'bg-red-500/15 text-red-400 border-red-500/30',             label: 'EVITAR' },
+  }
+  const { cls, label } = cfg[quality] ?? { cls: 'bg-muted/20 text-muted-foreground border-border/20', label: quality }
+  const confSuffix = confidence === 'low' ? '?' : ''
+  return (
+    <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded border tracking-wide ${cls}`}
+      title={`Entrada: ${quality} · Confianza: ${confidence ?? '?'}`}>
+      {label}{confSuffix}
+    </span>
+  )
+}
+
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import Loading, { ErrorState } from '../components/Loading'
 import ScoreBar from '../components/ScoreBar'
@@ -57,6 +76,7 @@ export default function ValueEU() {
   const { data: insightRaw } = useApi(() => fetchValueEUInsight(), [])
   const techMap = useTechnicalSummaryMap()
   const cerebro = useCerebroSignals()
+  const chartSignals = useChartSignals()
   const [sortKey, setSortKey] = useState<SortKey>('value_score')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [expandedRow, setExpandedRow] = useState<ValueOpportunity | null>(null)
@@ -94,6 +114,10 @@ export default function ValueEU() {
   const currentThesisTicker = useRef<string | null>(null)
   // pagedRef must be declared before early returns (React Rules of Hooks)
   const pagedRef = useRef<ValueOpportunity[]>([])
+
+  // useDeferredValue: numeric filter inputs don't block UI during filtering
+  const deferredMinFcf = useDeferredValue(minFcf)
+  const deferredMinRr = useDeferredValue(minRr)
 
   useEffect(() => { setPage(1); setFocusedIdx(-1) }, [filterGrade, filterSector, filterMarket, minScore, minFcf, minRr, hideTraps, hideExits, onlyOwned])
 
@@ -143,8 +167,8 @@ export default function ValueEU() {
     if (filterSector !== 'ALL' && r.sector !== filterSector) return false
     if (filterMarket !== 'ALL' && r.market !== filterMarket) return false
     if (minScore !== '' && (r.value_score == null || r.value_score < Number(minScore))) return false
-    if (minFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(minFcf))) return false
-    if (minRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(minRr))) return false
+    if (deferredMinFcf !== '' && (r.fcf_yield_pct == null || r.fcf_yield_pct < Number(deferredMinFcf))) return false
+    if (deferredMinRr !== '' && (r.risk_reward_ratio == null || r.risk_reward_ratio < Number(deferredMinRr))) return false
     if (hideTraps && cerebro.trapMap[r.ticker]?.severity === 'HIGH') return false
     if (hideExits && (cerebro.exitMap[r.ticker] || r.cerebro_signal === 'EXIT')) return false
     if (onlyOwned && !isOwned(r.ticker)) return false
@@ -522,6 +546,10 @@ export default function ValueEU() {
                 Téc
                 <InfoTooltip text="Sesgo técnico detectado automáticamente: indicadores de tendencia, RSI, MACD, Bollinger y velas. ▲ Alcista · ▼ Bajista · — Neutro." align="right" />
               </TableHead>
+              <TableHead className={compact ? 'hidden' : 'hidden sm:table-cell'}>
+                Entry
+                <InfoTooltip text="Calidad de entrada según análisis de gráfico por IA (Groq Vision): IDEAL=en pivote/base, OK=extensión leve, EVITAR=extendido/distribución. '?' = baja confianza." align="right" />
+              </TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -616,6 +644,12 @@ export default function ValueEU() {
                     </TableCell>
                     <TableCell className={compact ? 'hidden' : 'hidden sm:table-cell'}>
                       <TechBiasCell t={techMap[d.ticker]} />
+                    </TableCell>
+                    <TableCell className={compact ? 'hidden' : 'hidden sm:table-cell'}>
+                      <EntryQualityBadge
+                        quality={chartSignals[d.ticker]?.entry_quality}
+                        confidence={chartSignals[d.ticker]?.confidence}
+                      />
                     </TableCell>
                     <TableCell>
                       <WatchlistButton ticker={d.ticker} company_name={d.company_name} sector={d.sector} current_price={d.current_price} value_score={d.value_score} conviction_grade={d.conviction_grade} analyst_upside_pct={d.analyst_upside_pct} fcf_yield_pct={d.fcf_yield_pct} />

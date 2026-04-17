@@ -1,0 +1,261 @@
+{
+  "timestamp": "2026-04-13T21:40:19.872525",
+  "date": "2026-04-13",
+  "intraday_update": true,
+  "regime": {
+    "name": "CALM",
+    "color": "#10b981",
+    "description": "Mercado en calma. Condiciones favorables para operar."
+  },
+  "composite_score": 4.0,
+  "composite_pct": 57.1,
+  "max_score": 28,
+  "signals": {
+    "yield_curve": {
+      "current": 69.4,
+      "percentile": 93.8,
+      "score": 0.5,
+      "interpretation": "Spread 2s10s: 69bps (normal)",
+      "label": "Curva Tipos (2s10s)",
+      "description": "87.5% recession accuracy since 1968. Inversion = -2"
+    },
+    "credit": {
+      "current": 0.7322,
+      "percentile": 89.5,
+      "score": 2,
+      "change_5d": 0.1,
+      "change_20d": 0.1,
+      "interpretation": "HYG/LQD ratio en p89 (spreads apretados)",
+      "label": "Cr\u00e9dito HY/IG",
+      "description": "HY spread >400bps = systemic stress. Ratio compression = risk-off"
+    },
+    "copper_gold": {
+      "current": 0.0138,
+      "percentile": 46.5,
+      "score": 0,
+      "change_5d": 5.6,
+      "change_20d": 11.2,
+      "interpretation": "Cobre/Oro en p47, subiendo (+5.6% 5d)",
+      "label": "Cobre/Oro (Dr. Copper)",
+      "description": "Falling = recession pessimism. Most underappreciated indicator"
+    },
+    "gold_spy": {
+      "current": 0.6345,
+      "percentile": 80.7,
+      "score": -1,
+      "change_5d": -2.2,
+      "change_20d": -9.1,
+      "interpretation": "Oro superando mercado vs SPY (p81)",
+      "label": "Oro vs Mercado",
+      "description": "Gold outperformance signals safe-haven rotation"
+    },
+    "oil": {
+      "current": 98.01,
+      "percentile": 96.4,
+      "score": -0.5,
+      "change_5d": -12.8,
+      "change_20d": -0.7,
+      "interpretation": "Petroleo $98.0 (precio elevado)",
+      "label": "Petr\u00f3leo (Geopol\u00edtico)",
+      "description": "Fastest commodity to price geopolitical conflicts. Spike = risk"
+    },
+    "defense": {
+      "current": 0.3393,
+      "percentile": 82.5,
+      "score": -1,
+      "change_5d": -0.7,
+      "change_20d": -2.2,
+      "interpretation": "Defensa (ITA) superando vs SPY (p83)",
+      "label": "Defensa vs Mercado",
+      "description": "ITA/XAR vs SPY. Outperformance precedes geopolitical escalations"
+    },
+    "dollar": {
+      "current": 98.4,
+      "percentile": 37.7,
+      "score": 1,
+      "change_5d": -1.58,
+      "change_20d": -1.95,
+      "interpretation": "DXY 98.4 (rango neutro)",
+      "label": "D\u00f3lar (DXY)",
+      "description": "Rising USD = EM stress, global risk-off. Spike = dollar squeeze"
+    },
+    "yen": {
+      "current": 159.35,
+      "percentile": 96.5,
+      "score": 1,
+      "change_5d": -0.27,
+      "change_20d": -0.14,
+      "interpretation": "USD/JPY 159.4 (yen debil (risk-on))",
+      "label": "Yen (Safe Haven)",
+      "description": "USDJPY falling = yen strengthening = risk-off / fear"
+    },
+    "breadth": {
+      "current": 686.1,
+      "ma50": 672.87,
+      "ma200": 661.39,
+      "pct_from_200": 3.7,
+      "pct_from_50": 2.0,
+      "score": 1,
+      "change_20d": 3.9,
+      "interpretation": "SPY +3.7% vs MA200 (por encima MA200)",
+      "label": "Amplitud Mercado",
+      "description": "SPY vs 200d MA + momentum. Proxy for broad market health"
+    },
+    "skew": {
+      "current": 156.93,
+      "percentile": 96.4,
+      "score": -2,
+      "change_5d": 6.3,
+      "interpretation": "SKEW 157 (crash insurance extremo)",
+      "label": "SKEW Index (Tail Risk)",
+      "description": "CBOE SKEW: when VIX is calm but SKEW >130 = institutions buying deep OTM puts. Retail never checks this."
+    },
+    "vvix": {
+      "current": 102.63,
+      "percentile": 61.5,
+      "score": -0.5,
+      "change_5d": -9.6,
+      "interpretation": "VVIX 102.6 (p61, precauci\u00f3n)",
+      "label": "VVIX (Vol of Vol)",
+      "description": "Volatility of VIX. Rising VVIX while VIX is moderate = smart money buying vol insurance. Precedes VIX spikes."
+    },
+    "regional_banks": {
+      "current": 0.1011,
+      "percentile": 92.4,
+      "score": 1,
+      "change_5d": 0.0,
+      "change_20d": 6.5,
+      "interpretation": "KRE/SPY superando (p92, +6.5% 20d)",
+      "label": "Bancos Regionales (KRE)",
+      "description": "KRE vs SPY. Regional banks lead credit stress. SVB was -40% before collapse. Underperformance = systemic risk brewing."
+    },
+    "small_cap": {
+      "current": 0.3863,
+      "percentile": 98.2,
+      "score": 1.5,
+      "change_5d": 0.9,
+      "change_20d": 3.7,
+      "interpretation": "IWM/SPY superando (risk-on) (p98)",
+      "label": "Small Cap vs Large (IWM)",
+      "description": "IWM/SPY ratio. Small caps access credit differently. Divergence = liquidity concentrating = late cycle signal."
+    },
+    "real_yields": {
+      "current": 1.2828,
+      "percentile": 78.5,
+      "score": 1,
+      "change_5d": 0.4,
+      "change_20d": -0.1,
+      "interpretation": "TIP/TLT en p79 (yields reales bajando (favorable))",
+      "label": "Yields Reales (TIP/TLT)",
+      "description": "TIP vs TLT proxy for real yield direction. Rising real yields crush growth stocks. Perfect 2022 crash signal."
+    }
+  },
+  "errors": [],
+  "ai_narrative": "El r\u00e9gimen actual es de estr\u00e9s, con volatilidad alta y spreads de cr\u00e9dito apretados. El petr\u00f3leo y el VVIX muestran signos de tensi\u00f3n. El principal riesgo es un shock geopol\u00edtico. Recomiendo una posici\u00f3n defensiva, reduciendo exposici\u00f3n a riesgo.",
+  "historical_analogs": [
+    {
+      "id": "ukraine_war_2022",
+      "name": "Guerra Ucrania",
+      "date": "Feb 2022",
+      "duration_days": 20,
+      "similarity": 81.6,
+      "outcome": {
+        "spy_30d": -8,
+        "spy_90d": -15,
+        "spy_180d": -20,
+        "description": "Inicio del mercado bajista 2022. SPY -20% en 6 meses."
+      },
+      "key_difference": "Geopol\u00edtica + inflaci\u00f3n estructural. No fue shock temporal \u2014 dio paso al ciclo bajista completo.",
+      "closest_signals": [
+        "regional_banks",
+        "oil",
+        "real_yields"
+      ],
+      "diverging_signals": [
+        "credit",
+        "small_cap"
+      ]
+    },
+    {
+      "id": "bear_market_2022",
+      "name": "Mercado Bajista 2022",
+      "date": "Ene-Dic 2022",
+      "duration_days": 280,
+      "similarity": 71.1,
+      "outcome": {
+        "spy_30d": -8,
+        "spy_90d": -18,
+        "spy_180d": -22,
+        "description": "SPY -22% en el a\u00f1o. NASDAQ -33%. Peor a\u00f1o desde 2008."
+      },
+      "key_difference": "Impulsado por yields reales al alza. Las growth stocks sufrieron m\u00e1s.",
+      "closest_signals": [
+        "copper_gold",
+        "defense",
+        "regional_banks"
+      ],
+      "diverging_signals": [
+        "real_yields",
+        "credit"
+      ]
+    },
+    {
+      "id": "china_slowdown_2015",
+      "name": "Desaceleraci\u00f3n China",
+      "date": "Ago 2015",
+      "duration_days": 45,
+      "similarity": 63.9,
+      "outcome": {
+        "spy_30d": -11,
+        "spy_90d": -5,
+        "spy_180d": 8,
+        "description": "Correcci\u00f3n -14%. Recuperaci\u00f3n completa en 6 meses."
+      },
+      "key_difference": "Cobre/Oro muy bajo = preocupaci\u00f3n recesi\u00f3n global. Correcci\u00f3n sin crisis bancaria.",
+      "closest_signals": [
+        "regional_banks",
+        "vix",
+        "copper_gold"
+      ],
+      "diverging_signals": [
+        "small_cap",
+        "oil"
+      ]
+    }
+  ],
+  "systemic_risks": [
+    {
+      "id": "geopolitical",
+      "name": "Escalada Geopol\u00edtica",
+      "severity": "HIGH",
+      "color": "#ef4444",
+      "description": "Defensa (ITA) en p86 + petr\u00f3leo +36% (20d). Institucionales rotando a sectores de guerra.",
+      "implication": "Reducir c\u00edclicos. Energ\u00eda y defensa como cobertura parcial."
+    },
+    {
+      "id": "vol_regime",
+      "name": "Cambio de R\u00e9gimen de Volatilidad",
+      "severity": "HIGH",
+      "color": "#f97316",
+      "description": "VVIX p93 + SKEW 142 \u2014 institucionales comprando seguro tail risk masivamente.",
+      "implication": "Reducir apalancamiento. Puts como cobertura eficiente vs caro en vol alta."
+    }
+  ],
+  "signal_order": [
+    "vix",
+    "yield_curve",
+    "credit",
+    "copper_gold",
+    "gold_spy",
+    "oil",
+    "defense",
+    "dollar",
+    "yen",
+    "breadth",
+    "skew",
+    "vvix",
+    "regional_banks",
+    "small_cap",
+    "real_yields"
+  ]
+}

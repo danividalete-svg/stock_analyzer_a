@@ -287,6 +287,12 @@ def get_european_market_for_ticker(ticker: str) -> str:
         '.AS': 'AEX25',
         '.SW': 'SMI20',
         '.MI': 'FTSEMIB',
+        '.CO': 'OMXCPH',   # Nasdaq Copenhagen (Dinamarca)
+        '.ST': 'OMXSTO',   # Nasdaq Stockholm (Suecia)
+        '.HE': 'OMXHEL',   # Nasdaq Helsinki (Finlandia)
+        '.OL': 'OSEBX',    # Oslo Børs (Noruega)
+        '.HK': 'HKEX',     # Hong Kong Stock Exchange
+        '.SS': 'SSE',       # Shanghai Stock Exchange
     }
     for suffix, market in suffix_map.items():
         if ticker.endswith(suffix):

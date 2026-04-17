@@ -23,6 +23,8 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 OUTPUT_FILE = DOCS / "global_value_opportunities.csv"
 RATE_DELAY = 0.8  # seconds between yfinance calls
 
+from curated_tickers_global import CURATED_UNIVERSES
+
 # US-listed equivalents (NYSE/NASDAQ or OTC) for native tickers
 ADR_MAP = {
     # Hong Kong
@@ -493,24 +495,26 @@ Respond ONLY with valid JSON, no extra text:
     return result
 
 
-def run_scanner(markets: list = None):
+def run_scanner(markets: list = None, use_curated: bool = False):
     """Run the global market scanner for the specified markets."""
+    universe = CURATED_UNIVERSES if use_curated else UNIVERSES
     if markets is None:
-        markets = list(UNIVERSES.keys())
+        markets = list(universe.keys())
 
     DOCS.mkdir(exist_ok=True)
     all_results = []
 
-    total_tickers = sum(len(UNIVERSES[m]) for m in markets)
+    total_tickers = sum(len(universe[m]) for m in markets)
     processed = 0
 
     print("\n🌍 GLOBAL MARKET SCANNER")
     print("=" * 70)
+    print(f"Universo: {'curado' if use_curated else 'amplio'}")
     print(f"Markets: {', '.join(markets)}")
     print(f"Total tickers: {total_tickers}")
 
     for market in markets:
-        tickers = UNIVERSES[market]
+        tickers = universe[market]
         cape_info = MARKET_CAPE[market]
         discount = (cape_info["hist_avg"] - cape_info["cape"]) / cape_info["hist_avg"] * 100
         print(f"\n{cape_info['flag']} {market} — CAPE {cape_info['cape']:.1f} "
@@ -584,5 +588,7 @@ if __name__ == "__main__":
                         choices=list(UNIVERSES.keys()),
                         default=None,
                         help="Markets to scan (default: all)")
+    parser.add_argument("--curated", action="store_true",
+                        help="Use curated universe from curated_tickers_global.py (quality-filtered)")
     args = parser.parse_args()
-    run_scanner(markets=args.markets)
+    run_scanner(markets=args.markets, use_curated=args.curated)

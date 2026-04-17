@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 let _openModalCount = 0
 import { X, TrendingUp, AlertTriangle, Copy, Check, ExternalLink, Shield, Award } from 'lucide-react'
@@ -204,18 +205,18 @@ export default function ThesisModal({ row, thesisText, onClose, currency = '$' }
   const earn   = row.days_to_earnings
   const price  = row.current_price
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md animate-fade-in"
+        className="fixed inset-0 z-[500] bg-black/70 backdrop-blur-md animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal */}
       <div
-        className="fixed z-50 bottom-0 left-0 right-0 sm:inset-0 sm:flex sm:items-center sm:justify-center sm:p-4"
+        className="fixed z-[500] bottom-0 left-0 right-0 sm:inset-0 sm:flex sm:items-center sm:justify-center sm:p-4"
         role="dialog"
         aria-modal="true"
       >
@@ -407,6 +408,7 @@ export default function ThesisModal({ row, thesisText, onClose, currency = '$' }
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   )
 }

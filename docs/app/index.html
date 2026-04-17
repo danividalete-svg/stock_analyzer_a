@@ -20,21 +20,18 @@
       } catch(e) { document.documentElement.classList.add('dark') }
     </script>
 
-    <!-- Inter — variable font for crisp rendering at all weights -->
+    <!-- Oxanium (sans) + Share Tech Mono (mono) — futurista tech, legible, estilo Matrix -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/stock_analyzer_a/app/assets/index-EXw_dd_6.js"></script>
-    <link rel="stylesheet" crossorigin href="/stock_analyzer_a/app/assets/index-OxvP2FCM.css">
-  </head>
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="/stock_analyzer_a/app/assets/index-lVMSzJX5.js"></script>
+    <link rel="modulepreload" crossorigin href="/stock_analyzer_a/app/assets/recharts-C77wItry.js">
+    <link rel="modulepreload" crossorigin href="/stock_analyzer_a/app/assets/remotion-DFOdWJtu.js">
+    <link rel="modulepreload" crossorigin href="/stock_analyzer_a/app/assets/supabase-DTqiiTOY.js">
+    <link rel="modulepreload" crossorigin href="/stock_analyzer_a/app/assets/motion-C8goWUy8.js">
+    <link rel="stylesheet" crossorigin href="/stock_analyzer_a/app/assets/index-BsXfXRG1.css">
+  <script id="vite-plugin-pwa:register-sw" src="/stock_analyzer_a/app/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {})
-        })
-      }
-    </script>
   </body>
 </html>

@@ -309,9 +309,10 @@ def calculate_conviction_score(row) -> dict:
     # ─── 11. "Fallen Angel" bonus ───────────────────────────────────────────────
     # Empresa de calidad que ha caído mucho sin motivo fundamental = oportunidad
     # Principio Lynch: comprar empresas sólidas en caídas de mercado, no de negocio
-    max_score += 12
     proximity = _sf(row.get('proximity_to_52w_high'))  # negativo, ej: -32.3
     fundamentals_intact = (roe is not None and roe >= 15) and (fcf is not None and fcf >= 3)
+    if proximity is not None:
+        max_score += 12
     if proximity is not None and proximity <= -20:
         if fundamentals_intact:
             if proximity <= -35:
@@ -469,11 +470,17 @@ def main():
             total += us_result
 
     if not args.us_only:
-        # European VALUE
+        # European VALUE — use fresh curated output (fallback to filtered if missing)
+        eu_input = (
+            'docs/european_value_opportunities.csv'
+            if Path('docs/european_value_opportunities.csv').exists()
+            else 'docs/european_value_opportunities_filtered.csv'
+        )
+        # EU: use grade D to keep all curated tickers with grades (table displays A/B/C/D)
         eu_result = filter_by_conviction(
-            'docs/european_value_opportunities_filtered.csv',
+            eu_input,
             output_path='docs/european_value_conviction.csv',
-            min_grade=args.min_grade
+            min_grade='D'
         )
         if eu_result:
             total += eu_result

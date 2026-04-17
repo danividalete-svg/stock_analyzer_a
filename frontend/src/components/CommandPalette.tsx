@@ -77,7 +77,7 @@ export default function CommandPalette({ open, onClose }: Props) {
       {/* Palette */}
       <div className="fixed inset-x-0 top-[15vh] z-[201] mx-auto w-full max-w-lg px-4">
         <Command
-          className="cmd-palette glass rounded-2xl border border-border/80 shadow-2xl overflow-hidden"
+          className="cmd-palette glass rounded-2xl border border-border/80 shadow-2xl overflow-clip"
           shouldFilter={false}
         >
           {/* Search input */}

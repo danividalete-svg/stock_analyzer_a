@@ -1,43 +1,43 @@
 {
-  "date": "2026-03-24",
-  "timestamp": "2026-03-24T08:30:47.357895",
+  "date": "2026-04-17",
+  "timestamp": "2026-04-17T07:37:45.476298",
   "narrative": null,
-  "macro_regime": "STRESS",
+  "macro_regime": "CALM",
   "picks_count": 8,
   "top_picks": [
     {
-      "ticker": "EXE",
-      "sector": "Energy",
-      "value_score": 69.72,
-      "analyst_upside_pct": 21.5,
-      "conviction_grade": null
-    },
-    {
-      "ticker": "EXEL",
-      "sector": "Healthcare",
-      "value_score": 67.91999999999999,
-      "analyst_upside_pct": 13.1,
-      "conviction_grade": null
-    },
-    {
-      "ticker": "BMY",
-      "sector": "Healthcare",
-      "value_score": 67.0,
-      "analyst_upside_pct": 10.0,
-      "conviction_grade": null
-    },
-    {
-      "ticker": "AVGO",
+      "ticker": "BR",
       "sector": "Technology",
-      "value_score": 66.4,
-      "analyst_upside_pct": 46.4,
+      "value_score": 66.2,
+      "analyst_upside_pct": 51.4,
       "conviction_grade": null
     },
     {
-      "ticker": "AON",
+      "ticker": "JKHY",
+      "sector": "Technology",
+      "value_score": 65.18,
+      "analyst_upside_pct": 29.8,
+      "conviction_grade": null
+    },
+    {
+      "ticker": "V",
       "sector": "Financial Services",
-      "value_score": 66.38,
-      "analyst_upside_pct": 21.9,
+      "value_score": 63.6,
+      "analyst_upside_pct": 24.9,
+      "conviction_grade": null
+    },
+    {
+      "ticker": "MA",
+      "sector": "Financial Services",
+      "value_score": 62.6,
+      "analyst_upside_pct": 26.3,
+      "conviction_grade": null
+    },
+    {
+      "ticker": "EXPN.L",
+      "sector": "Industrials",
+      "value_score": 62.22,
+      "analyst_upside_pct": 44.9,
       "conviction_grade": null
     }
   ]

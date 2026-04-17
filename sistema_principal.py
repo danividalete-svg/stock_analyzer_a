@@ -2438,7 +2438,6 @@ class InsiderTradingSystem:
             scraper_paths = [
                 "insiders/openinsider_scraper.py",
                 "openinsider_scraper.py",
-                "paste-3.txt"
             ]
             
             scraper_found = None
@@ -2452,21 +2451,21 @@ class InsiderTradingSystem:
                 return False
             
             print(f"✅ Ejecutando: {scraper_found}")
-            
-            if scraper_found.endswith('.txt'):
-                with open(scraper_found, 'r') as f:
-                    exec(f.read())
-            else:
-                result = subprocess.run(
-                    [sys.executable, scraper_found],
-                    capture_output=True,
-                    text=True,
-                    timeout=180
-                )
-                
-                if result.returncode != 0:
-                    print(f"❌ Error ejecutando scraper: {result.stderr}")
-                    return False
+
+            if not scraper_found.endswith(".py"):
+                print(f"❌ Formato de scraper no permitido: {scraper_found}")
+                return False
+
+            result = subprocess.run(
+                [sys.executable, scraper_found],
+                capture_output=True,
+                text=True,
+                timeout=180
+            )
+
+            if result.returncode != 0:
+                print(f"❌ Error ejecutando scraper: {result.stderr}")
+                return False
             
             if os.path.exists(self.csv_path):
                 df = pd.read_csv(self.csv_path)
@@ -3402,14 +3401,14 @@ def test_components():
     # 1. Verificar archivos necesarios
     print("\n📁 Verificando archivos:")
     files_to_check = [
-        ("Scraper", ["insiders/openinsider_scraper.py", "openinsider_scraper.py", "paste-3.txt"]),
-        ("Plot Utils", ["alerts/plot_utils.py", "paste-2.txt"]),
+        ("Scraper", ["insiders/openinsider_scraper.py", "openinsider_scraper.py"]),
+        ("Plot Utils", ["alerts/plot_utils.py"]),
         ("Config", ["config.py"]),
         ("Telegram Utils", ["alerts/telegram_utils.py"]),
         ("Templates HTML", ["templates/html_generator.py"]),
         ("Templates GitHub", ["templates/github_pages_templates.py"]),
         ("Market Breadth", ["market_breadth_analyzer.py"]),
-        ("Enhanced Opportunities", ["paste.txt"])  # NUEVO
+        ("Enhanced Opportunities", ["super_score_integrator.py"])
     ]
     
     for name, paths in files_to_check:

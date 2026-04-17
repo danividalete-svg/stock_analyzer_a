@@ -6,16 +6,66 @@ on:
     - cron: '23 5 * * 1-5'
   workflow_dispatch:  # Manual trigger
 
+# ══════════════════════════════════════════════════════════════════════════════
+#  ARQUITECTURA DE JOBS
+#  ┌─────────────────┐     ┌──────────────────┐     ┌────────────┐
+#  │  core-scoring   │────▶│    scanners       │────▶│   deploy   │
+#  │  ~15 min        │     │  ~45 min          │     │  ~1 min    │
+#  │  CRITICAL path  │     │  opcional, always │     │  always    │
+#  └─────────────────┘     └──────────────────┘     └────────────┘
+#
+#  Beneficio: si core falla, re-ejecutas solo ese job (~15 min),
+#  scanners y deploy se encolan solos. No re-ejecutas 2 horas.
+#  Cada job hace su propio git commit/push al terminar.
+# ══════════════════════════════════════════════════════════════════════════════
+
 jobs:
-  full-pipeline:
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 1 — Core scoring  (CRITICAL — si falla, re-ejecutar solo este job)
+  # ════════════════════════════════════════════════════════════════════════════
+  core-scoring:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Heartbeat: escribe pipeline_status.json via GitHub API al inicio ──
+      # Esto garantiza que el banner muestre "corrió hoy" aunque el push final falle
+      - name: Pipeline Heartbeat (API push)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -c "
+          import json, os
+          from datetime import datetime, timezone
+          now = datetime.now(timezone.utc)
+          status = {
+            'last_run': now.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'run_date': now.strftime('%Y-%m-%d'),
+            'status': 'running',
+            'run_id': os.environ.get('GITHUB_RUN_ID', ''),
+          }
+          with open('docs/pipeline_status.json', 'w') as f:
+            json.dump(status, f, indent=2)
+          "
+          REPO="${{ github.repository }}"
+          SHA=$(gh api "repos/${REPO}/contents/docs/pipeline_status.json" --jq '.sha' 2>/dev/null || echo "")
+          CONTENT=$(base64 -w 0 docs/pipeline_status.json)
+          DATE=$(date +%Y-%m-%d)
+          if [ -n "$SHA" ]; then
+            gh api "repos/${REPO}/contents/docs/pipeline_status.json" \
+              --method PUT \
+              -f message="chore: pipeline heartbeat ${DATE}" \
+              -f content="${CONTENT}" \
+              -f sha="${SHA}" \
+              --silent && echo "Heartbeat pushed via API" || echo "Heartbeat push failed (non-critical)"
+          fi
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -30,29 +80,27 @@ jobs:
           pip install plotly matplotlib seaborn scikit-learn scipy openpyxl
           pip install groq
 
-      # ============================================================================
-      # CRITICAL STEPS (Must succeed)
-      # ============================================================================
-
-      - name: Run Market Regime Detector [CRITICAL]
+      # ── CRITICAL: estos dos deben pasar o el job falla ─────────────────────
+      - name: Market Regime Detector
         continue-on-error: true
         run: python3 market_regime_detector.py || echo "Market in correction — pipeline continues"
 
-      - name: Sector Rotation Scan [pre-integration]
+      - name: Sector Rotation Scan
         continue-on-error: true
         run: python3 sector_rotation_detector.py || echo "Sector rotation failed"
 
-      - name: Fundamental Scoring [CRITICAL - before integrator]
+      - name: Fundamental Scoring [CRITICAL]
         run: python3 fundamental_scorer.py --curated
 
       - name: Run Super Score Integration [CRITICAL]
         run: python3 super_score_integrator.py
 
-      - name: AI Quality Filter [CRITICAL]
+      # ── Enriquecimiento opcional (no bloquean el job) ──────────────────────
+      - name: AI Quality Filter
         continue-on-error: true
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python3 ai_quality_filter.py || echo "AI quality filter failed — pipeline continues"
+        run: python3 ai_quality_filter.py || echo "AI quality filter failed"
 
       - name: European Insider Scanner
         continue-on-error: true
@@ -60,13 +108,13 @@ jobs:
 
       - name: European Value Scanner
         continue-on-error: true
-        run: python3 european_value_scanner.py || echo "European scanner failed"
+        run: python3 european_value_scanner.py --curated || echo "European scanner failed"
 
       - name: Global Market Scanner (BR/KR/JP/HK)
         continue-on-error: true
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python3 global_market_scanner.py || echo "Global market scanner failed"
+        run: python3 global_market_scanner.py --curated || echo "Global market scanner failed"
 
       - name: Macro Radar (Early Warning System)
         continue-on-error: true
@@ -90,7 +138,8 @@ jobs:
         continue-on-error: true
         run: python3 conviction_filter.py || echo "Conviction filter failed"
 
-      - name: Generate Investment Theses [CRITICAL]
+      - name: Generate Investment Theses
+        continue-on-error: true
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python3 thesis_generator.py 50 --ai || echo "Thesis generation failed"
@@ -101,17 +150,93 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python3 generate_insights.py || echo "AI insights generation failed"
 
-      # super_dashboard.html retired — React app at /app/ is the frontend
-      # - name: Generate Super Dashboard [CRITICAL]
-      #   run: python3 super_dashboard_generator.py
-
       - name: Portfolio Tracker (record signals + update performance)
         continue-on-error: true
         run: python3 portfolio_tracker.py --all
 
-      - name: Technical Signal Analyzer (portfolio + value opportunities)
+      - name: Owner Earnings Batch (pre-compute for GitHub Pages)
+        continue-on-error: true
+        run: python3 owner_earnings.py || echo "Owner earnings batch failed"
+
+      - name: Technical Signal Analyzer
         continue-on-error: true
         run: python3 technical_signal_analyzer.py || echo "Technical signal analyzer failed"
+
+      - name: Technical Filter (Stage 2 MA + ATR + Volume)
+        continue-on-error: true
+        run: python3 technical_filter.py || echo "Technical filter failed"
+
+      - name: Pattern Detector (VCP + TA-Lib candlesticks)
+        continue-on-error: true
+        run: pip install TA-Lib 2>/dev/null || true; python3 pattern_detector.py || echo "Pattern detector failed"
+
+      - name: Chart Analyzer (Groq Vision — Llama 4)
+        continue-on-error: true
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: pip install mplfinance 2>/dev/null || true; python3 chart_analyzer.py --batch || echo "Chart analyzer failed"
+
+      # ── Commit core outputs para que scanners los lea en su checkout ────────
+      - name: Commit Core Outputs
+        if: always()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions Bot"
+
+          git add docs/*.json docs/*.csv || true
+          git add docs/portfolio_tracker/ docs/theses.json || true
+          git add data/ || true
+          # Excluir app/ y status files (status va por GitHub API)
+          git reset HEAD -- docs/app/ 2>/dev/null || true
+          git reset HEAD -- docs/pipeline_status.json docs/pipeline_health.json 2>/dev/null || true
+
+          SCAN_DATE=$(date +%Y-%m-%d)
+          git diff --cached --quiet && echo "No core changes to commit" || \
+            git commit -m "chore(core): scoring + AI outputs - ${SCAN_DATE}"
+
+          push_with_retry() {
+            for i in 1 2 3; do
+              git fetch origin main
+              git stash --include-untracked 2>/dev/null || true
+              git rebase origin/main && git push && echo "Push OK (attempt $i)" && return 0
+              git rebase --abort 2>/dev/null || true
+              echo "Attempt $i failed, retrying..."
+              sleep $((i * 5))
+            done
+            echo "All push attempts failed — data committed locally but not pushed"
+            return 1
+          }
+          push_with_retry || true
+
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 2 — Scanners opcionales + alertas + commit
+  # Corre siempre (if: always). El checkout recibe los outputs de core-scoring.
+  # ════════════════════════════════════════════════════════════════════════════
+  scanners:
+    needs: core-scoring
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository (includes core-scoring outputs)
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy yfinance requests beautifulsoup4 lxml
+          pip install plotly matplotlib seaborn scikit-learn scipy openpyxl
+          pip install groq
 
       - name: Check Price Alerts (send emails via Resend)
         continue-on-error: true
@@ -121,19 +246,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python3 check_alerts.py || echo "Alert checker failed"
 
-      # ============================================================================
-      # OPTIONAL STEPS (Can fail without breaking pipeline)
-      # ============================================================================
-
       - name: Recurring Insiders
         continue-on-error: true
         run: python3 analyze_recurring_insiders.py || echo "Recurring insiders failed"
 
       - name: Backtest Engine
         continue-on-error: true
-        run: |
-          python3 backtest_engine.py || echo "Backtest engine failed"
-          # backtest_dashboard_generator.py retired — HTML dashboard no longer needed
+        run: python3 backtest_engine.py || echo "Backtest engine failed"
 
       - name: Position Sizing
         continue-on-error: true
@@ -169,9 +288,7 @@ jobs:
 
       - name: Options Flow Detector
         continue-on-error: true
-        run: |
-          python3 options_flow_detector.py || echo "Options flow detector failed"
-          # HTML dashboard generator retired
+        run: python3 options_flow_detector.py || echo "Options flow detector failed"
 
       - name: Send Telegram Alerts
         continue-on-error: true
@@ -204,12 +321,7 @@ jobs:
         continue-on-error: true
         run: python3 dividend_trap_scanner.py || echo "Dividend trap scanner failed"
 
-      # index.html is static — no longer overwritten by pipeline
-
-      # ============================================================================
-      # CSV HISTORICAL ARCHIVE (Always runs)
-      # ============================================================================
-
+      # ── Archive + status ───────────────────────────────────────────────────
       - name: Archive daily CSV snapshot
         if: always()
         run: |
@@ -217,7 +329,6 @@ jobs:
           ARCHIVE_DIR="docs/history/${SCAN_DATE}"
           mkdir -p "${ARCHIVE_DIR}"
 
-          # Archive key CSVs
           for f in \
             docs/value_opportunities.csv \
             docs/european_value_opportunities.csv \
@@ -247,11 +358,16 @@ jobs:
             docs/cerebro_quality_decay.json \
             docs/cerebro_sector_rv.json \
             docs/cerebro_daily_plan.json \
+            docs/cerebro_earnings_revisions.json \
+            docs/cerebro_regime_transition.json \
+            docs/cerebro_thesis_drift.json \
+            docs/cerebro_correlation_breakdown.json \
+            docs/cerebro_competitor_displacement.json \
+            docs/cerebro_options_quality.json \
             docs/cerebro_ticker_signals.csv; do
             [ -f "$f" ] && cp "$f" "${ARCHIVE_DIR}/" && echo "Archived: $f"
           done
 
-          # Prune archive: keep only last 45 days
           python3 -c "
           import os, shutil
           from datetime import datetime, timedelta
@@ -264,7 +380,6 @@ jobs:
                   print(f'Pruned old snapshot: {d}')
           " || echo "Prune step skipped"
 
-          # Regenerate history index.json
           python3 -c "
           import os, json
           from datetime import datetime
@@ -283,10 +398,6 @@ jobs:
           print(f'History index: {len(snapshots)} snapshots')
           " || echo "History index failed"
 
-      # ============================================================================
-      # COMMIT & PUSH (Always runs)
-      # ============================================================================
-
       - name: Write Pipeline Status + Health Report
         if: always()
         run: |
@@ -298,7 +409,6 @@ jobs:
           NOW_STR = NOW_UTC.strftime('%Y-%m-%dT%H:%M:%SZ')
           TODAY   = NOW_UTC.strftime('%Y-%m-%d')
 
-          # ── pipeline_status.json ─────────────────────────────────────────────
           status = {
             'last_run': NOW_STR,
             'run_date': TODAY,
@@ -308,8 +418,6 @@ jobs:
           with open('docs/pipeline_status.json', 'w') as f:
               json.dump(status, f, indent=2)
 
-          # ── pipeline_health.json — per-module freshness ──────────────────────
-          # Maps module_name → (primary_file, date_key_in_json)
           MODULES = {
             'value_us':       ('docs/value_opportunities.csv',                  None),
             'value_eu':       ('docs/european_value_opportunities.csv',          None),
@@ -333,7 +441,6 @@ jobs:
               if not os.path.exists(path):
                   modules[name] = {'status': 'missing', 'date': None}
                   continue
-              # Try to read date from file content
               file_date = None
               if path.endswith('.json') and date_key:
                   try:
@@ -345,7 +452,6 @@ jobs:
                   except Exception:
                       pass
               if not file_date:
-                  # Fall back to file mtime
                   from datetime import datetime as dt
                   file_date = dt.fromtimestamp(os.path.getmtime(path)).strftime('%Y-%m-%d')
               days_ago = (NOW_UTC.date() - date(*(int(x) for x in file_date.split('-')))).days
@@ -363,34 +469,58 @@ jobs:
           with open('docs/pipeline_health.json', 'w') as f:
               json.dump(health, f, indent=2)
 
-          print(f'Pipeline status: {NOW_STR}')
           print(f'Pipeline health: {ok_count}/{len(MODULES)} modules fresh today')
           for n, m in modules.items():
-              icon = '✓' if m['status'] == 'ok' else ('!' if m['status'] == 'stale' else '✗')
+              icon = 'ok' if m['status'] == 'ok' else ('!' if m['status'] == 'stale' else 'x')
               print(f'  [{icon}] {n}: {m[\"status\"]} ({m[\"date\"]})')
           "
 
-      - name: Commit and Push All Results
+      # ── Push status files via GitHub API (immune a fallos de git push) ────
+      # Estos dos archivos son los que controlan el banner de la app.
+      # El push via API nunca falla por conflictos de git con sesiones de dev.
+      - name: Push Status Files via GitHub API
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          DATE=$(date +%Y-%m-%d)
+          for FILE in docs/pipeline_status.json docs/pipeline_health.json; do
+            [ -f "$FILE" ] || continue
+            SHA=$(gh api "repos/${REPO}/contents/${FILE}" --jq '.sha' 2>/dev/null || echo "")
+            [ -z "$SHA" ] && echo "Cannot find SHA for $FILE, skipping" && continue
+            CONTENT=$(base64 -w 0 "$FILE")
+            gh api "repos/${REPO}/contents/${FILE}" \
+              --method PUT \
+              -f message="chore: pipeline status ${DATE}" \
+              -f content="${CONTENT}" \
+              -f sha="${SHA}" \
+              --silent \
+              && echo "API push OK: $FILE" \
+              || echo "API push failed for $FILE (non-critical)"
+          done
+
+      - name: Commit and Push Scanner Outputs
         if: always()
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Actions Bot"
 
-          # Add data outputs explicitly — NEVER add docs/app/ (React build)
-          # to avoid conflicts with frontend code pushes during pipeline runs
           git add docs/*.json docs/*.csv || true
           git add docs/history/ docs/portfolio_tracker/ docs/theses.json || true
           git add data/ || true
-          git reset HEAD -- docs/app/ 2>/dev/null || true  # belt-and-suspenders: unstage app/ if accidentally staged
+          # Excluir app/ y status files (estos van por GitHub API, no por git push)
+          git reset HEAD -- docs/app/ 2>/dev/null || true
+          git reset HEAD -- docs/pipeline_status.json docs/pipeline_health.json 2>/dev/null || true
 
           SCAN_DATE=$(date +%Y-%m-%d)
-          git diff --cached --quiet && echo "No changes to commit" || \
-            git commit -m "chore: Daily full pipeline - ${SCAN_DATE}" -m "Automated via GitHub Actions"
+          git diff --cached --quiet && echo "No scanner changes to commit" || \
+            git commit -m "chore(scanners): daily scanner outputs - ${SCAN_DATE}"
 
-          # Push with retry: fetch + rebase before each attempt
           push_with_retry() {
             for i in 1 2 3; do
               git fetch origin main
+              git stash --include-untracked 2>/dev/null || true
               git rebase origin/main && git push && echo "Push OK (attempt $i)" && return 0
               git rebase --abort 2>/dev/null || true
               echo "Attempt $i failed, retrying..."
@@ -401,11 +531,18 @@ jobs:
           }
           push_with_retry || true
 
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 3 — GitHub Pages deploy (siempre, tras los dos jobs anteriores)
+  # ════════════════════════════════════════════════════════════════════════════
+  deploy:
+    needs: [core-scoring, scanners]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Trigger GitHub Pages Deployment
-        if: always()
-        run: |
-          echo "Triggering Pages deployment..."
-          gh workflow run pages-deploy.yml
+        run: gh workflow run pages-deploy.yml --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

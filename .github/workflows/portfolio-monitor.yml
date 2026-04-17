@@ -48,7 +48,7 @@ jobs:
 
       - name: Trigger GitHub Pages Deployment
         if: always()
-        run: gh workflow run pages-deploy.yml || echo "Pages deploy trigger failed"
+        run: gh workflow run pages-deploy.yml --repo ${{ github.repository }} || echo "Pages deploy trigger failed"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

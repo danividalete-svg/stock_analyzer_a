@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { fetchMeanReversion } from '../api/client'
 import StaleDataBanner from '../components/StaleDataBanner'
+import PaginationBar from '../components/PaginationBar'
 import AiNarrativeCard from '../components/AiNarrativeCard'
 import TickerLogo from '../components/TickerLogo'
 import OwnedBadge from '../components/OwnedBadge'
@@ -50,6 +51,8 @@ function qualMatch(q: string, match: string) {
   return (q || '').toUpperCase().includes(match)
 }
 
+const MR_PAGE_SIZE = 30
+
 export default function MeanReversion() {
   const { data, loading, error } = useApi(() => fetchMeanReversion(), [])
   const { positions: myPositions } = usePersonalPortfolio()
@@ -59,6 +62,7 @@ export default function MeanReversion() {
   const [filterQuality, setFilterQuality] = useState<string>('EXCELENTE')
   const [compact, setCompact] = useState(false)
   const [focusedIdx, setFocusedIdx] = useState(-1)
+  const [page, setPage] = useState(1)
   const pagedRef = useRef<MRItem[]>([])
 
   useEffect(() => {
@@ -117,11 +121,17 @@ export default function MeanReversion() {
     const bv = (b[sortKey] as number) ?? 0
     return sortDir === 'asc' ? (av < bv ? -1 : 1) : (av > bv ? -1 : 1)
   })
-  pagedRef.current = sorted
+
+  const totalPages = Math.ceil(sorted.length / MR_PAGE_SIZE)
+  const safePage = Math.min(page, Math.max(1, totalPages))
+  const paged = sorted.slice((safePage - 1) * MR_PAGE_SIZE, safePage * MR_PAGE_SIZE)
+  pagedRef.current = paged
 
   const onSort = (key: string) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortKey(key); setSortDir('desc') }
+    setPage(1)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const thCls = (key: string) =>
@@ -286,7 +296,7 @@ export default function MeanReversion() {
             </button>
           )
         })}
-        <span className="ml-auto text-[0.65rem] text-muted-foreground">{sorted.length} señales</span>
+        <span className="ml-auto text-[0.65rem] text-muted-foreground">{filtered.length} señales</span>
       </div>
 
       {/* My positions in oversold zone */}
@@ -344,7 +354,7 @@ export default function MeanReversion() {
 
       {/* Mobile cards */}
       <div className="sm:hidden space-y-2 mb-2">
-        {sorted.map((d, i) => (
+        {paged.map((d, i) => (
           <div
             key={d.ticker}
             data-row-idx={i}
@@ -389,7 +399,7 @@ export default function MeanReversion() {
             )}
           </div>
         ))}
-        {sorted.length === 0 && (
+        {filtered.length === 0 && (
           <EmptyState
             icon="🔄"
             title="Sin señales de mean reversion"
@@ -415,7 +425,7 @@ export default function MeanReversion() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sorted.map((d, i) => (
+              {paged.map((d, i) => (
                 <React.Fragment key={d.ticker + i}>
                   <TableRow
                     data-row-idx={i}
@@ -519,14 +529,14 @@ export default function MeanReversion() {
               ))}
             </TableBody>
           </Table>
-          {sorted.length === 0 && (
+          {filtered.length === 0 && (
             <EmptyState
               icon="🔄"
               title="Sin señales de mean reversion"
               subtitle="Aparecen cuando acciones de calidad caen >8% desde máximos con RSI<32"
             />
           )}
-          {sorted.length > 0 && (
+          {filtered.length > 0 && (
             <div className="px-4 py-2 border-t border-border/20 flex items-center gap-3 text-[0.6rem] text-muted-foreground/50">
               <span>j/k or ↑↓ navegar</span>
               <span>Enter expandir</span>
@@ -534,6 +544,13 @@ export default function MeanReversion() {
             </div>
           )}
         </Card>
+        {totalPages > 1 && (
+          <PaginationBar
+            page={safePage}
+            totalPages={totalPages}
+            onPage={p => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+          />
+        )}
       </div>
     </>
   )

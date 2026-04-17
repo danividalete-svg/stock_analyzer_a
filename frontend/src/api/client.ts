@@ -19,13 +19,13 @@ supabase.auth.onAuthStateChange((_event, session) => {
   }
 })
 
-const api = axios.create({
+export const apiClient = axios.create({
   baseURL: API_BASE,
   timeout: 60000,
 })
 
 // Attach Supabase JWT to every request; refresh proactively if expiring soon
-api.interceptors.request.use(async (config) => {
+apiClient.interceptors.request.use(async (config) => {
   // Refresh token if it expires in less than 2 minutes
   if (_cachedToken && _tokenExpiresAt && Date.now() > _tokenExpiresAt - 120_000) {
     try {
@@ -199,11 +199,20 @@ export interface MarketRegime {
   eu: Record<string, unknown>
 }
 
-export const fetchValueOpportunities = () =>
-  api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/value-opportunities')
+export const fetchValueOpportunities = async (): Promise<{
+  data: { data: ValueOpportunity[]; count: number; source: string }
+}> => {
+  for (const filename of ['value_opportunities_filtered.csv', 'value_opportunities.csv']) {
+    try {
+      const data = await fetchValueCsv(filename)
+      if (data.data.length > 0) return { data }
+    } catch { /* try next */ }
+  }
+  const res = await apiClient.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/value-opportunities')
+  return { data: res.data }
+}
 
-export const fetchEUValueOpportunities = () =>
-  api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/eu-value-opportunities')
+const STATIC_DATA_BASE = (import.meta.env.VITE_CSV_BASE as string | undefined) || 'https://tantancansado.github.io/stock_analyzer_a'
 
 // Simple quoted-CSV parser (handles commas inside "..." fields)
 function parseCsvRows(text: string): Record<string, string>[] {
@@ -230,42 +239,96 @@ function parseCsvRows(text: string): Record<string, string>[] {
   })
 }
 
-const GLOBAL_NUMERIC = new Set([
+const VALUE_NUMERIC = new Set([
   'current_price','value_score','conviction_score','conviction_positives','conviction_red_flags',
-  'market_cape','target_price_analyst','analyst_upside_pct','analyst_count',
-  'fcf_yield_pct','risk_reward_ratio','dividend_yield_pct','roe_pct',
-  'pe_forward','pe_trailing','profit_margin_pct','revenue_growth_pct','pct_from_52w_high',
+  'target_price_analyst','target_price_analyst_high','target_price_analyst_low','analyst_upside_pct',
+  'analyst_count','fcf_yield_pct','risk_reward_ratio','dividend_yield_pct','days_to_earnings',
+  'entry_price','stop_loss','target_price','proximity_to_52w_high','piotroski_score',
+  'ebit_ev_yield','roic_greenblatt','peg_ratio','roe_pct','profit_margin_pct',
+  'revenue_growth_pct','pe_forward','pe_trailing','market_cap','payout_ratio_pct',
+  'dividend_rate','five_yr_avg_dividend_yield_pct','shares_change_pct','interest_coverage',
+  'analyst_revision_momentum','fundamental_score','earnings_quality_score','growth_acceleration_score',
+  'relative_strength_score','financial_health_score','catalyst_timing_score','rs_line_score',
+  'rs_line_percentile','eps_growth_yoy','eps_accel_quarters','rev_growth_yoy','rev_accel_quarters',
+  'fifty_two_week_high','trend_template_score','target_price_dcf','target_price_dcf_upside_pct',
+  'target_price_pe','target_price_pe_upside_pct','fcf_per_share','short_percent_float',
+  'short_ratio','market_cape','pct_from_52w_high',
 ])
+
+const VALUE_BOOLEAN = new Set([
+  'buyback_active','earnings_warning','earnings_catalyst','trend_template_pass',
+  'eps_accelerating','rev_accelerating','rs_line_at_new_high','short_squeeze_potential',
+])
+
+function parseValueRows(text: string): ValueOpportunity[] {
+  return parseCsvRows(text).map(row => {
+    const obj: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(row)) {
+      if (VALUE_NUMERIC.has(k)) {
+        const n = v === '' ? null : Number(v)
+        obj[k] = (n !== null && Number.isNaN(n)) ? null : n
+      } else if (VALUE_BOOLEAN.has(k)) {
+        obj[k] = v.toLowerCase() === 'true'
+      } else {
+        obj[k] = v === '' ? undefined : v
+      }
+    }
+    return obj as unknown as ValueOpportunity
+  })
+}
+
+async function fetchValueCsv(filename: string): Promise<{ data: ValueOpportunity[]; count: number; source: string }> {
+  const res = await fetch(`${STATIC_DATA_BASE}/${filename}`, { cache: 'no-store' })
+  if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`)
+  const data = parseValueRows(await res.text())
+  return { data, count: data.length, source: 'github-pages' }
+}
+
+export const fetchEUValueOpportunities = async (): Promise<{
+  data: { data: ValueOpportunity[]; count: number; source: string }
+}> => {
+  // Try conviction file first (has grades for all curated EU tickers), then raw scanner output
+  for (const filename of ['european_value_conviction.csv', 'european_value_opportunities.csv']) {
+    try {
+      const data = await fetchValueCsv(filename)
+      if (data.data.length > 0) return { data }
+    } catch { /* try next */ }
+  }
+  const res = await apiClient.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/eu-value-opportunities')
+  return { data: res.data }
+}
 
 export const fetchGlobalValueOpportunities = async (): Promise<{
   data: { data: ValueOpportunity[]; count: number; source: string }
 }> => {
-  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
-  if (csvBase) {
-    // Production: read CSV directly from GitHub Pages (always up-to-date)
-    const url = `${csvBase}/global_value_opportunities.csv`
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`)
-    const text = await res.text()
-    const rawRows = parseCsvRows(text)
-    const data = rawRows.map(row => {
-      const obj: Record<string, unknown> = {}
-      for (const [k, v] of Object.entries(row)) {
-        if (GLOBAL_NUMERIC.has(k)) { const n = v === '' ? null : Number(v); obj[k] = (n !== null && isNaN(n)) ? null : n }
-        else if (k === 'buyback_active') obj[k] = v.toLowerCase() === 'true'
-        else obj[k] = v === '' ? undefined : v
-      }
-      return obj as unknown as ValueOpportunity
-    })
-    return { data: { data, count: data.length, source: 'github-pages' } }
+  try {
+    const data = await fetchValueCsv('global_value_opportunities.csv')
+    return { data }
+  } catch {
+    const res = await apiClient.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/global-value')
+    return { data: res.data }
   }
-  // Development: Railway API reads local docs/ folder
-  const res = await api.get<{ data: ValueOpportunity[]; count: number; source: string }>('/api/global-value')
-  return { data: res.data }
 }
 
-export const fetchMomentumOpportunities = () =>
-  api.get<{ data: MomentumOpportunity[]; count: number; source: string }>('/api/momentum-opportunities')
+export const fetchMomentumOpportunities = async (): Promise<{
+  data: { data: MomentumOpportunity[]; count: number; source: string }
+}> => {
+  for (const filename of ['momentum_opportunities_filtered.csv', 'momentum_opportunities.csv']) {
+    try {
+      const res = await fetch(`${STATIC_DATA_BASE}/${filename}`, { cache: 'no-store' })
+      if (res.ok) {
+        const text = await res.text()
+        const rows = parseCsvRows(text)
+        if (rows.length > 0) {
+          const data = rows.map(r => ({ ...r } as unknown as MomentumOpportunity))
+          return { data: { data, count: data.length, source: 'github-pages' } }
+        }
+      }
+    } catch { /* try next */ }
+  }
+  const res = await apiClient.get<{ data: MomentumOpportunity[]; count: number; source: string }>('/api/momentum-opportunities')
+  return { data: res.data }
+}
 
 export interface PortfolioNewsItem {
   id: string
@@ -294,26 +357,26 @@ export const fetchPortfolioNews = async (): Promise<{ data: PortfolioNewsData }>
   const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
   const base = csvBase || ''
   try {
-    const res = await fetch(`${base}/docs/portfolio_news.json`, { cache: 'no-store' })
+    const res = await fetch(`${base}/portfolio_news.json`, { cache: 'no-store' })
     if (res.ok) return { data: await res.json() as PortfolioNewsData }
   } catch { /* fall through to API */ }
-  return api.get<PortfolioNewsData>('/api/portfolio-news')
+  return apiClient.get<PortfolioNewsData>('/api/portfolio-news')
 }
 
 export const fetchSectorRotation = () =>
-  api.get<SectorRotationData>('/api/sector-rotation')
+  apiClient.get<SectorRotationData>('/api/sector-rotation')
 
 export const fetchOptionsFlow = () =>
-  api.get('/api/options-flow')
+  apiClient.get('/api/options-flow')
 
 export const fetchUnusualFlow = async () => {
   const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
   if (csvBase) {
     const url = `${csvBase}/unusual_flow.json`
-    const res = await api.get(url, { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] })
+    const res = await apiClient.get(url, { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] })
     return { data: res.data }
   }
-  return api.get('/api/unusual-flow')
+  return apiClient.get('/api/unusual-flow')
 }
 
 export const fetchMeanReversion = async () => {
@@ -322,18 +385,30 @@ export const fetchMeanReversion = async () => {
     // Production: read JSON directly from GitHub Pages (always up-to-date)
     // GitHub Pages serves .json as text/plain — force JSON parsing
     const url = `${csvBase}/mean_reversion_opportunities.json`
-    const res = await api.get(url, { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] })
+    const res = await apiClient.get(url, { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] })
     return { data: res.data }
   }
   // Development: use local API
-  return api.get('/api/mean-reversion')
+  return apiClient.get('/api/mean-reversion')
+}
+
+export const fetchOwnerEarningsBatch = async (targetReturn = 15) => {
+  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
+  if (csvBase) {
+    // Production: pre-computed JSON from GitHub Pages (fast, always fresh)
+    const url = `${csvBase}/owner_earnings_batch.json`
+    const res = await apiClient.get(url, { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] })
+    return { data: res.data }
+  }
+  // Development: compute on-demand via Railway API
+  return apiClient.get(`/api/owner-earnings-batch?target_return=${targetReturn / 100}`)
 }
 
 export const fetchRecurringInsiders = () =>
-  api.get<{ data: InsiderData[]; count: number; source: string }>('/api/recurring-insiders')
+  apiClient.get<{ data: InsiderData[]; count: number; source: string }>('/api/recurring-insiders')
 
 export const fetchPortfolioTracker = () =>
-  api.get<PortfolioSummary>('/api/portfolio-tracker')
+  apiClient.get<PortfolioSummary>('/api/portfolio-tracker')
 
 export interface CalibrationBucket {
   range: string
@@ -365,7 +440,7 @@ export interface CalibrationData {
   generated_at: string
 }
 export const fetchCalibration = () =>
-  api.get<CalibrationData>('/api/portfolio-tracker/calibration')
+  apiClient.get<CalibrationData>('/api/portfolio-tracker/calibration')
 
 export interface BreadthData {
   total: number
@@ -375,7 +450,7 @@ export interface BreadthData {
   earnings_warnings?: number
 }
 export const fetchMarketBreadth = () =>
-  api.get<{ us: BreadthData; eu: BreadthData }>('/api/market-breadth')
+  apiClient.get<{ us: BreadthData; eu: BreadthData }>('/api/market-breadth')
 
 // ── Cerebro AI agent ─────────────────────────────────────────────────────────
 export interface CerebroTier {
@@ -452,11 +527,11 @@ export interface EntrySignal {
   days_to_earnings: number | null
 }
 
-export const fetchCerebroInsights    = () => api.get<CerebroInsights>('/api/cerebro/insights')
-export const fetchCerebroConvergence = () => api.get<{ generated_at: string; total_convergences: number; triple_or_more: number; convergences: CerebroSignal[] }>('/api/cerebro/convergence')
-export const fetchCerebroAlerts      = () => api.get<{ generated_at: string; total: number; high_count: number; alerts: CerebroAlert[] }>('/api/cerebro/alerts')
-export const fetchCerebroCalibration = () => api.get<CerebroCalibration>('/api/cerebro/calibration')
-export const fetchCerebroEntrySignals = () => api.get<{ generated_at: string; total: number; strong_buy: number; buy: number; monitor: number; wait: number; narrative: string | null; signals: EntrySignal[] }>('/api/cerebro/entry-signals')
+export const fetchCerebroInsights    = () => apiClient.get<CerebroInsights>('/api/cerebro/insights')
+export const fetchCerebroConvergence = () => apiClient.get<{ generated_at: string; total_convergences: number; triple_or_more: number; convergences: CerebroSignal[] }>('/api/cerebro/convergence')
+export const fetchCerebroAlerts      = () => apiClient.get<{ generated_at: string; total: number; high_count: number; alerts: CerebroAlert[] }>('/api/cerebro/alerts')
+export const fetchCerebroCalibration = () => apiClient.get<CerebroCalibration>('/api/cerebro/calibration')
+export const fetchCerebroEntrySignals = () => apiClient.get<{ generated_at: string; total: number; strong_buy: number; buy: number; monitor: number; wait: number; narrative: string | null; signals: EntrySignal[] }>('/api/cerebro/entry-signals')
 
 export interface ExitSignal {
   ticker: string
@@ -466,7 +541,7 @@ export interface ExitSignal {
   signal_date: string | null
   reasons: string[]
 }
-export const fetchCerebroExitSignals = () => api.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; exits: ExitSignal[] }>('/api/cerebro/exit-signals')
+export const fetchCerebroExitSignals = () => apiClient.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; exits: ExitSignal[] }>('/api/cerebro/exit-signals')
 
 export interface ValueTrap {
   ticker: string
@@ -479,7 +554,7 @@ export interface ValueTrap {
   fcf_yield_pct: number | null
   fundamental_score: number | null
 }
-export const fetchCerebroValueTraps = () => api.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; traps: ValueTrap[] }>('/api/cerebro/value-traps')
+export const fetchCerebroValueTraps = () => apiClient.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; traps: ValueTrap[] }>('/api/cerebro/value-traps')
 
 export interface SmartMoneySignal {
   ticker: string
@@ -493,7 +568,7 @@ export interface SmartMoneySignal {
   convergence_score: number
   in_value: boolean
 }
-export const fetchCerebroSmartMoney = () => api.get<{ generated_at: string; total: number; narrative: string | null; signals: SmartMoneySignal[] }>('/api/cerebro/smart-money')
+export const fetchCerebroSmartMoney = () => apiClient.get<{ generated_at: string; total: number; narrative: string | null; signals: SmartMoneySignal[] }>('/api/cerebro/smart-money')
 
 export interface InsiderCluster {
   sector: string
@@ -504,7 +579,7 @@ export interface InsiderCluster {
   cluster_score: number
   signal: 'STRONG' | 'MODERATE'
 }
-export const fetchCerebroInsiderClusters = () => api.get<{ generated_at: string; total: number; narrative: string | null; clusters: InsiderCluster[] }>('/api/cerebro/insider-clusters')
+export const fetchCerebroInsiderClusters = () => apiClient.get<{ generated_at: string; total: number; narrative: string | null; clusters: InsiderCluster[] }>('/api/cerebro/insider-clusters')
 
 export interface DividendSafety {
   ticker: string
@@ -518,7 +593,7 @@ export interface DividendSafety {
   risk_flags: string[]
   value_score: number
 }
-export const fetchCerebroDividendSafety = () => api.get<{ generated_at: string; total: number; at_risk: number; narrative: string | null; dividends: DividendSafety[] }>('/api/cerebro/dividend-safety')
+export const fetchCerebroDividendSafety = () => apiClient.get<{ generated_at: string; total: number; at_risk: number; narrative: string | null; dividends: DividendSafety[] }>('/api/cerebro/dividend-safety')
 
 export interface PiotroskiCandidate {
   ticker: string
@@ -530,7 +605,7 @@ export interface PiotroskiCandidate {
   signal: 'STRONG' | 'NEUTRAL' | 'WEAK'
   value_score: number
 }
-export const fetchCerebroPiotroski = () => api.get<{ generated_at: string; total: number; improving: number; narrative: string | null; candidates: PiotroskiCandidate[] }>('/api/cerebro/piotroski')
+export const fetchCerebroPiotroski = () => apiClient.get<{ generated_at: string; total: number; improving: number; narrative: string | null; candidates: PiotroskiCandidate[] }>('/api/cerebro/piotroski')
 
 export interface StressRisk {
   type: string
@@ -538,7 +613,7 @@ export interface StressRisk {
   message: string
   detail: Record<string, unknown>
 }
-export const fetchCerebroStressTest = () => api.get<{ generated_at: string; total_positions: number; risks: StressRisk[]; narrative: string | null; sector_breakdown: Array<{ sector: string; count: number; pct: number }>; region_breakdown: Record<string, number> }>('/api/cerebro/stress-test')
+export const fetchCerebroStressTest = () => apiClient.get<{ generated_at: string; total_positions: number; risks: StressRisk[]; narrative: string | null; sector_breakdown: Array<{ sector: string; count: number; pct: number }>; region_breakdown: Record<string, number> }>('/api/cerebro/stress-test')
 
 export interface CerebroBriefing {
   generated_at: string
@@ -556,7 +631,7 @@ export interface CerebroBriefing {
     smart_money: [string, number][]
   }
 }
-export const fetchCerebroBriefing = () => api.get<CerebroBriefing>('/api/cerebro/briefing')
+export const fetchCerebroBriefing = () => apiClient.get<CerebroBriefing>('/api/cerebro/briefing')
 
 export interface ShortSqueezeSetup {
   ticker: string
@@ -571,7 +646,7 @@ export interface ShortSqueezeSetup {
   hf_present: boolean
   flags: string[]
 }
-export const fetchCerebroShortSqueeze = () => api.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; setups: ShortSqueezeSetup[] }>('/api/cerebro/short-squeeze')
+export const fetchCerebroShortSqueeze = () => apiClient.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; setups: ShortSqueezeSetup[] }>('/api/cerebro/short-squeeze')
 
 export interface QualityDecay {
   ticker: string
@@ -588,7 +663,7 @@ export interface QualityDecay {
   fcf_curr: number | null
   flags: string[]
 }
-export const fetchCerebroQualityDecay = () => api.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; decays: QualityDecay[] }>('/api/cerebro/quality-decay')
+export const fetchCerebroQualityDecay = () => apiClient.get<{ generated_at: string; total: number; high_count: number; narrative: string | null; decays: QualityDecay[] }>('/api/cerebro/quality-decay')
 
 export interface SectorStandout {
   ticker: string
@@ -611,7 +686,7 @@ export interface SectorSummary {
   rerate_potential: boolean
   tickers: string[]
 }
-export const fetchCerebroSectorRV = () => api.get<{ generated_at: string; total: number; rerate_sectors: number; narrative: string | null; standouts: SectorStandout[]; sector_summary: SectorSummary[] }>('/api/cerebro/sector-rv')
+export const fetchCerebroSectorRV = () => apiClient.get<{ generated_at: string; total: number; rerate_sectors: number; narrative: string | null; standouts: SectorStandout[]; sector_summary: SectorSummary[] }>('/api/cerebro/sector-rv')
 
 // ── Cerebro Daily Action Plan ─────────────────────────────────────────────────
 export interface MacroPlay {
@@ -681,7 +756,7 @@ export interface DailyPlan {
 }
 
 export async function fetchCerebroDailyPlan() {
-  return api.get<DailyPlan>('/api/cerebro/daily-plan')
+  return apiClient.get<DailyPlan>('/api/cerebro/daily-plan')
 }
 
 export interface LivePrice {
@@ -700,20 +775,20 @@ export interface LivePricesData {
 }
 
 export async function fetchLivePrices() {
-  return api.get<LivePricesData>('/api/live-prices')
+  return apiClient.get<LivePricesData>('/api/live-prices')
 }
 
 export const fetchMarketRegime = () =>
-  api.get<MarketRegime>('/api/market-regime')
+  apiClient.get<MarketRegime>('/api/market-regime')
 
 export const fetchMacroRadar = () =>
-  api.get('/api/macro-radar')
+  apiClient.get('/api/macro-radar')
 
 export const fetchMacroCountries = () =>
-  api.get('/api/macro-countries')
+  apiClient.get('/api/macro-countries')
 
 export const fetchMacroRadarHistory = () =>
-  api.get<{ history: Array<{ date: string; composite_score: number; composite_pct: number; regime: string; regime_color: string }> }>('/api/macro-radar/history')
+  apiClient.get<{ history: Array<{ date: string; composite_score: number; composite_pct: number; regime: string; regime_color: string }> }>('/api/macro-radar/history')
 
 export interface PipelineStatus {
   last_run: string    // ISO UTC e.g. "2026-04-03T07:45:00Z"
@@ -740,7 +815,7 @@ const _csvBase = () => (import.meta.env.VITE_CSV_BASE as string | undefined) || 
 
 export const fetchPipelineStatus = async (): Promise<PipelineStatus | null> => {
   try {
-    const res = await fetch(`${_csvBase()}/docs/pipeline_status.json`, { cache: 'no-store' })
+    const res = await fetch(`${_csvBase()}/pipeline_status.json`, { cache: 'no-store' })
     if (!res.ok) return null
     return await res.json() as PipelineStatus
   } catch {
@@ -750,7 +825,7 @@ export const fetchPipelineStatus = async (): Promise<PipelineStatus | null> => {
 
 export const fetchPipelineHealth = async (): Promise<PipelineHealth | null> => {
   try {
-    const res = await fetch(`${_csvBase()}/docs/pipeline_health.json`, { cache: 'no-store' })
+    const res = await fetch(`${_csvBase()}/pipeline_health.json`, { cache: 'no-store' })
     if (!res.ok) return null
     return await res.json() as PipelineHealth
   } catch {
@@ -759,19 +834,19 @@ export const fetchPipelineHealth = async (): Promise<PipelineHealth | null> => {
 }
 
 export const fetchDailyBriefing = () =>
-  api.get<{ narrative: string | null; date: string | null; macro_regime?: string; picks_count?: number; top_picks?: unknown[] }>('/api/daily-briefing')
+  apiClient.get<{ narrative: string | null; date: string | null; macro_regime?: string; picks_count?: number; top_picks?: unknown[] }>('/api/daily-briefing')
 
 export const fetchInsidersInsight = () =>
-  api.get<{ narrative: string | null; date: string | null; total_tickers?: number }>('/api/insiders-insight')
+  apiClient.get<{ narrative: string | null; date: string | null; total_tickers?: number }>('/api/insiders-insight')
 
 export const fetchValueEUInsight = () =>
-  api.get<{ narrative: string | null; date: string | null; macro_regime?: string; picks_count?: number }>('/api/value-eu-insight')
+  apiClient.get<{ narrative: string | null; date: string | null; macro_regime?: string; picks_count?: number }>('/api/value-eu-insight')
 
 export const fetchPortfolioInsight = () =>
-  api.get<{ narrative: string | null; date: string | null; total_signals?: number; win_rate_7d?: number }>('/api/portfolio-insight')
+  apiClient.get<{ narrative: string | null; date: string | null; total_signals?: number; win_rate_7d?: number }>('/api/portfolio-insight')
 
 export const analyzeTickerAI = (ticker: string) =>
-  api.get<{ ticker: string; narrative: string | null; date?: string; error?: string }>(`/api/analyze-ai/${ticker}`)
+  apiClient.get<{ ticker: string; narrative: string | null; date?: string; error?: string }>(`/api/analyze-ai/${ticker}`)
 
 export interface EarningsEntry {
   ticker: string
@@ -787,7 +862,7 @@ export interface EarningsEntry {
 }
 
 export const fetchEarningsCalendar = () =>
-  api.get<{ earnings: EarningsEntry[]; total: number; as_of: string }>('/api/earnings-calendar')
+  apiClient.get<{ earnings: EarningsEntry[]; total: number; as_of: string }>('/api/earnings-calendar')
 
 export interface EconEvent {
   date: string
@@ -798,7 +873,7 @@ export interface EconEvent {
 }
 
 export const fetchEconomicCalendar = () =>
-  api.get<{ events: EconEvent[]; total: number }>('/api/economic-calendar')
+  apiClient.get<{ events: EconEvent[]; total: number }>('/api/economic-calendar')
 
 export interface CatalystEvent {
   id: string
@@ -845,7 +920,7 @@ export interface CatalystData {
 }
 
 export const fetchCatalysts = () =>
-  api.get<CatalystData>('/api/catalysts')
+  apiClient.get<CatalystData>('/api/catalysts')
 
 export interface DividendTrapEntry {
   ticker: string
@@ -872,7 +947,7 @@ export interface DividendTrapsData {
 }
 
 export const fetchDividendTraps = () =>
-  api.get<DividendTrapsData>('/api/dividend-traps')
+  apiClient.get<DividendTrapsData>('/api/dividend-traps')
 
 export interface DividendCalendarEvent {
   ticker: string
@@ -901,7 +976,7 @@ export interface DividendCalendarData {
 }
 
 export const fetchDividendCalendar = () =>
-  api.get<DividendCalendarData>('/api/dividend-calendar')
+  apiClient.get<DividendCalendarData>('/api/dividend-calendar')
 
 export interface CorrelationData {
   tickers: string[]
@@ -911,13 +986,31 @@ export interface CorrelationData {
 }
 
 export const fetchCorrelationMatrix = () =>
-  api.get<CorrelationData>('/api/correlation-matrix')
+  apiClient.get<CorrelationData>('/api/correlation-matrix')
 
-export const fetchThesis = (ticker: string) =>
-  api.get<{ ticker: string; thesis: string | null }>(`/api/theses/${ticker}`)
+// Theses are served as a static JSON from GitHub Pages (always fresh from pipeline)
+let _thesesCache: Record<string, unknown> | null = null
+let _thesesCachePromise: Promise<Record<string, unknown>> | null = null
+
+const _loadTheses = (): Promise<Record<string, unknown>> => {
+  if (_thesesCache) return Promise.resolve(_thesesCache)
+  if (_thesesCachePromise) return _thesesCachePromise
+  const csvBase = (import.meta.env.VITE_CSV_BASE as string | undefined) || ''
+  _thesesCachePromise = fetch(`${csvBase}/theses.json`, { cache: 'default' })
+    .then(r => r.ok ? r.json() : {})
+    .then(data => { _thesesCache = data; _thesesCachePromise = null; return data })
+    .catch(() => { _thesesCachePromise = null; return {} })
+  return _thesesCachePromise
+}
+
+export const fetchThesis = async (ticker: string): Promise<{ data: { ticker: string; thesis: unknown } }> => {
+  const data = await _loadTheses()
+  const thesis = data[`${ticker}__value`] ?? data[`${ticker}__momentum`] ?? data[ticker] ?? null
+  return { data: { ticker, thesis } }
+}
 
 export const analyzeTicker = (ticker: string) =>
-  api.get(`/api/analyze/${ticker}`)
+  apiClient.get(`/api/analyze/${ticker}`)
 
 export interface SearchResult {
   ticker: string
@@ -926,7 +1019,7 @@ export interface SearchResult {
 }
 
 export const searchTickers = (q: string) =>
-  api.get<{ results: SearchResult[] }>(`/api/search?q=${encodeURIComponent(q)}`)
+  apiClient.get<{ results: SearchResult[] }>(`/api/search?q=${encodeURIComponent(q)}`)
 
 // CSV filenames by dataset key
 const CSV_FILES: Record<string, string> = {
@@ -1001,13 +1094,13 @@ export const fetchTickerSectorMap = async (): Promise<Record<string, string>> =>
 
 export interface ScoreHistoryPoint { date: string; score: number; grade: string | null }
 export const fetchScoreHistory = (ticker: string) =>
-  api.get<{ ticker: string; history: ScoreHistoryPoint[]; points: number }>(`/api/score-history/${ticker}`)
+  apiClient.get<{ ticker: string; history: ScoreHistoryPoint[]; points: number }>(`/api/score-history/${ticker}`)
 
 export interface PricePoint { date: string; close: number }
 export const fetchPriceHistory = (ticker: string) =>
-  api.get<{ ticker: string; prices: PricePoint[] }>(`/api/price-history/${ticker}`)
+  apiClient.get<{ ticker: string; prices: PricePoint[] }>(`/api/price-history/${ticker}`)
 
-export default api
+export default apiClient
 
 export interface TechnicalSignal {
   ticker: string
@@ -1045,7 +1138,7 @@ export const fetchTechnicalSignals = async (): Promise<{ signals: TechnicalSigna
 
   // Development: use local API endpoint
   if (!csvBase) {
-    const res = await api.get<{ signals: TechnicalSignal[]; summary: TechnicalSummary[] }>('/api/technical-signals')
+    const res = await apiClient.get<{ signals: TechnicalSignal[]; summary: TechnicalSummary[] }>('/api/technical-signals')
     return res.data
   }
 
@@ -1076,10 +1169,45 @@ export const fetchTechnicalSignals = async (): Promise<{ signals: TechnicalSigna
   return { signals, summary }
 }
 
+export interface ChartSignal {
+  ticker: string
+  entry_quality: 'ideal' | 'acceptable' | 'wait' | 'avoid'
+  trend_direction: 'uptrend' | 'downtrend' | 'sideways'
+  above_200ma: boolean
+  above_150ma: boolean
+  base_forming: boolean
+  base_type: string
+  base_weeks: number | null
+  volume_dryup_visible: boolean
+  volume_breakout: boolean
+  extended_from_base: boolean
+  distribution_signs: boolean
+  risk_level: 'low' | 'medium' | 'high'
+  confidence: 'high' | 'medium' | 'low'
+  entry_rationale: string | null
+  notes: string | null
+  analyzed_at: string
+  model: string
+  error?: string
+}
+
+export const fetchChartSignals = async (): Promise<Record<string, ChartSignal>> => {
+  const csvBase = import.meta.env.VITE_CSV_BASE as string | undefined
+  if (csvBase) {
+    const res = await apiClient.get<{ signals: Record<string, ChartSignal> }>(
+      `${csvBase}/chart_signals.json`,
+      { transformResponse: [(d) => typeof d === 'string' ? JSON.parse(d) : d] }
+    )
+    return res.data?.signals ?? {}
+  }
+  const res = await apiClient.get<{ signals: Record<string, ChartSignal> }>('/api/chart-signals')
+  return res.data?.signals ?? {}
+}
+
 export async function fetchPortfolioPrices(tickers: string[]): Promise<Record<string, number>> {
   if (!tickers.length) return {}
   try {
-    const res = await api.post<{ prices: Record<string, number> }>('/api/portfolio-prices', { tickers })
+    const res = await apiClient.post<{ prices: Record<string, number> }>('/api/portfolio-prices', { tickers })
     return res.data.prices ?? {}
   } catch {
     return {}

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useDeferredValue } from 'react'
 import { fetchEarningsCalendar } from '../api/client'
 import type { EarningsEntry } from '../api/client'
 import { useApi } from '../hooks/useApi'
@@ -62,6 +62,7 @@ export default function EarningsCalendar() {
   const { data, loading, error } = useApi(() => fetchEarningsCalendar(), [])
   const [filter, setFilter] = useState<FilterMode>('all')
   const [search, setSearch] = useState('')
+  const deferredSearch = useDeferredValue(search)
   const { positions: myPositions } = usePersonalPortfolio()
 
   const myTickers = useMemo(() => new Set(myPositions.map(p => p.ticker.toUpperCase())), [myPositions])
@@ -72,12 +73,12 @@ export default function EarningsCalendar() {
     if (filter === 'warning')   rows = rows.filter(r => r.earnings_warning)
     if (filter === 'catalyst')  rows = rows.filter(r => r.earnings_catalyst)
     if (filter === 'portfolio') rows = rows.filter(r => myTickers.has(r.ticker.toUpperCase()))
-    if (search.trim()) {
-      const q = search.trim().toUpperCase()
+    if (deferredSearch.trim()) {
+      const q = deferredSearch.trim().toUpperCase()
       rows = rows.filter(r => r.ticker.includes(q) || r.company.toUpperCase().includes(q) || r.sector.toUpperCase().includes(q))
     }
     return rows
-  }, [data, filter, search, myTickers])
+  }, [data, filter, deferredSearch, myTickers])
 
   const grouped = useMemo(() => groupByDate(filtered), [filtered])
   const sortedDates = Object.keys(grouped).sort()

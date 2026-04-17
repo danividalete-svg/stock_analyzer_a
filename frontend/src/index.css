@@ -1,11 +1,12 @@
 @import "tailwindcss";
+@import "./noir-theme.css";
 
 /* ═══════════════════════════════════════════════════════════════════
    FONTS
 ════════════════════════════════════════════════════════════════════ */
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-sans: 'Oxanium', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Share Tech Mono', 'JetBrains Mono', 'IBM Plex Mono', monospace;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -72,13 +73,21 @@
 @layer base {
   * { border-color: hsl(var(--border)); }
 
+  html {
+    font-size: 14px;
+  }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: var(--font-sans);
-    font-feature-settings: 'cv11', 'ss01';
+    font-feature-settings: normal;
+    font-kerning: normal;
+    text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Oxanium es condensada — un toque de tracking mejora legibilidad */
+    letter-spacing: 0.01em;
   }
 
   /* Scrollbar */
@@ -88,6 +97,18 @@
   ::-webkit-scrollbar-thumb:hover { background: hsl(239 60% 60% / 0.6); }
   .dark ::-webkit-scrollbar-thumb { background: hsl(239 30% 25%); }
   .dark ::-webkit-scrollbar-thumb:hover { background: hsl(239 84% 67% / 0.5); }
+}
+
+@media (min-width: 1100px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1536px) {
+  html {
+    font-size: 15.5px;
+  }
 }
 
 
@@ -259,6 +280,7 @@ button:active:not(:disabled) { transform: scale(0.97); }
   top: -440px; left: -340px;
   animation: floatOrb 16s ease-in-out infinite;
 }
+
 /* Emerald/teal — warmth in bottom-right */
 .orb-2 {
   width: 720px; height: 720px;
@@ -336,16 +358,24 @@ button:active:not(:disabled) { transform: scale(0.97); }
 .nav-icon {
   color: var(--nav-color, hsl(var(--muted-foreground)));
   opacity: 0.55;
-  transition: opacity 0.15s, color 0.15s;
+  transition: opacity 0.18s ease, color 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex; align-items: center; justify-content: center;
   width: 18px; flex-shrink: 0;
 }
 .nav-link:hover .nav-icon,
 .nav-link-active .nav-icon { opacity: 1; }
+.nav-link:hover .nav-icon { transform: translateX(1px); }
 
 .nav-link-active {
   position: relative;
   color: var(--nav-color, hsl(var(--primary)));
+}
+.nav-label {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-link:hover .nav-label,
+.nav-link-active .nav-label {
+  transform: translateX(1px);
 }
 .nav-link-active::before {
   content: '';
@@ -372,6 +402,29 @@ button:active:not(:disabled) { transform: scale(0.97); }
 @keyframes pulseDot {
   0%, 100% { opacity: 1; box-shadow: 0 0 8px hsl(160 84% 39% / 0.6); }
   50%       { opacity: 0.5; box-shadow: 0 0 4px hsl(160 84% 39% / 0.3); }
+}
+
+.topbar-action {
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.topbar-action:hover {
+  transform: translateY(-1px);
+}
+
+.page-tab {
+  isolation: isolate;
+}
+
+.page-tab-indicator {
+  box-shadow:
+    inset 0 0 0 1px hsl(var(--primary) / 0.18),
+    0 8px 18px hsl(var(--primary) / 0.10);
 }
 
 

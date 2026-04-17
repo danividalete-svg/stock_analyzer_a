@@ -26,6 +26,7 @@ import ast
 
 from fundamental_scorer import FundamentalScorer
 from market_configs import get_all_european_symbols, get_european_market_for_ticker
+from curated_tickers_eu import SCORED_EU_TICKERS as CURATED_EU_TICKERS
 
 # Rate limit delay between yfinance API calls
 YFINANCE_RATE_DELAY = 0.3
@@ -106,24 +107,34 @@ def detect_european_market_regime() -> dict:
         return {'regime': 'UNKNOWN', 'recommendation': 'CAUTION'}
 
 
-def score_european_tickers(max_tickers: int = None) -> pd.DataFrame:
+def score_european_tickers(max_tickers: int = None, use_curated: bool = False) -> pd.DataFrame:
     """
-    Escanea y puntua todos los tickers europeos usando fundamental_scorer
+    Escanea y puntua tickers europeos usando fundamental_scorer
 
     Args:
         max_tickers: Limitar el numero de tickers (para testing)
+        use_curated: Si True, usa el universo curado de curated_tickers_eu.py
+                     (~58 empresas de calidad) en lugar del universo amplio (~200 tickers)
 
     Returns:
         DataFrame con scores fundamentales
     """
-    symbols = get_all_european_symbols()
+    if use_curated:
+        symbols = list(CURATED_EU_TICKERS)
+        universe_label = f"curado ({len(symbols)} empresas de alta calidad)"
+        markets_label = "EU + Nórdicos (.CO/.ST/.HE) + HK/China"
+    else:
+        symbols = get_all_european_symbols()
+        universe_label = f"amplio ({len(symbols)} tickers)"
+        markets_label = "DAX40, FTSE100, CAC40, IBEX35, AEX25, SMI20, FTSE MIB"
+
     if max_tickers:
         symbols = symbols[:max_tickers]
 
     print(f"\nEUROPEAN FUNDAMENTAL SCORING")
     print("=" * 70)
-    print(f"Universo: {len(symbols)} tickers europeos")
-    print(f"Mercados: DAX40, FTSE100, CAC40, IBEX35, AEX25, SMI20, FTSE MIB")
+    print(f"Universo: {universe_label}")
+    print(f"Mercados: {markets_label}")
 
     scorer = FundamentalScorer()
     results = []
@@ -371,13 +382,16 @@ def calculate_european_value_scores(df: pd.DataFrame, market_regime: dict) -> pd
     return qualified
 
 
-def run_european_scanner(max_tickers: int = None, skip_scoring: bool = False):
+def run_european_scanner(max_tickers: int = None, skip_scoring: bool = False,
+                         use_curated: bool = False):
     """
     Pipeline completo del scanner europeo
 
     Args:
         max_tickers: Limitar tickers (para testing)
         skip_scoring: Usar scores existentes de european_fundamental_scores.csv
+        use_curated: Usar universo curado de curated_tickers_eu.py (~58 empresas)
+                     en lugar del universo amplio (~200 tickers de índices)
     """
     print("\n" + "=" * 70)
     print("EUROPEAN VALUE SCANNER")
@@ -404,7 +418,7 @@ def run_european_scanner(max_tickers: int = None, skip_scoring: bool = False):
         print(f"Cargando scores existentes de {scores_path}")
         df = pd.read_csv(scores_path)
     else:
-        df = score_european_tickers(max_tickers=max_tickers)
+        df = score_european_tickers(max_tickers=max_tickers, use_curated=use_curated)
 
     if df.empty:
         print("No hay datos para procesar")
@@ -438,6 +452,9 @@ if __name__ == '__main__':
     parser.add_argument('--max', type=int, help='Max tickers to scan (for testing)')
     parser.add_argument('--skip-scoring', action='store_true',
                         help='Skip fundamental scoring, use existing CSV')
+    parser.add_argument('--curated', action='store_true',
+                        help='Use curated EU universe (~58 quality companies) instead of broad index (~200 tickers)')
     args = parser.parse_args()
 
-    run_european_scanner(max_tickers=args.max, skip_scoring=args.skip_scoring)
+    run_european_scanner(max_tickers=args.max, skip_scoring=args.skip_scoring,
+                         use_curated=args.curated)
