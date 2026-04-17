@@ -1,0 +1,187 @@
+/* ═══════════════════════════════════════════════════════════════════
+   NOIR THEME — Negro puro, tipografía bold, colores de acento vivos
+   Inspirado en: Apple/Stripe/Linear + la estética de la imagen poker
+
+   Activar: <html data-theme="noir">
+════════════════════════════════════════════════════════════════════ */
+
+/* ── Color tokens ────────────────────────────────────────────────── */
+[data-theme="noir"] {
+  --background:          0 0% 0%;         /* #000 — negro absoluto     */
+  --foreground:          0 0% 96%;        /* casi blanco                */
+  --card:                0 0% 5%;         /* #0d0d0d — elevación 1      */
+  --card-foreground:     0 0% 96%;
+  --popover:             0 0% 7%;
+  --popover-foreground:  0 0% 96%;
+  --primary:             142 72% 50%;     /* verde eléctrico — acento   */
+  --primary-foreground:  0 0% 0%;
+  --secondary:           0 0% 9%;
+  --secondary-foreground:0 0% 80%;
+  --muted:               0 0% 9%;
+  --muted-foreground:    0 0% 45%;        /* gris medio — texto secundario */
+  --accent:              0 0% 12%;
+  --accent-foreground:   0 0% 96%;
+  --destructive:         0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border:              0 0% 13%;        /* bordes muy sutiles          */
+  --input:               0 0% 10%;
+  --ring:                142 72% 50%;
+  --radius:              0.375rem;
+
+  /* Acento secundario: cyan para datos financieros */
+  --noir-cyan:   185 100% 50%;
+  --noir-amber:  38 95% 55%;
+  --noir-red:    0 80% 58%;
+}
+
+/* ── Forzar dark class (los tokens usan .dark para el resto del app) */
+[data-theme="noir"] {
+  color-scheme: dark;
+}
+
+/* ── Ocultar orbs y aurora — el negro puro no los necesita ──────── */
+[data-theme="noir"] .bg-orbs,
+[data-theme="noir"] .aurora-line {
+  display: none !important;
+}
+
+/* ── Fondo del body — negro puro ─────────────────────────────────── */
+[data-theme="noir"] body,
+[data-theme="noir"] {
+  background-color: #000 !important;
+}
+
+/* ── Glass → cards sólidas con borde fino (sin blur, sin transparencia) */
+[data-theme="noir"] .glass {
+  background: hsl(0 0% 5%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid hsl(0 0% 13%) !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease !important;
+}
+
+[data-theme="noir"] .glass:not(:has(table)):hover {
+  transform: none !important;
+  border-color: hsl(0 0% 20%) !important;
+  box-shadow: none !important;
+}
+
+/* Quitar pseudo-elementos de glass (iridescent border + spotlight) */
+[data-theme="noir"] .glass::before,
+[data-theme="noir"] .glass::after {
+  display: none !important;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────── */
+[data-theme="noir"] aside {
+  background: hsl(0 0% 3%) !important;
+  border-right-color: hsl(0 0% 10%) !important;
+  backdrop-filter: none !important;
+}
+
+/* ── TopBar ───────────────────────────────────────────────────────── */
+[data-theme="noir"] header {
+  background: rgba(0, 0, 0, 0.92) !important;
+  border-bottom-color: hsl(0 0% 12%) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* ── Sticky table headers ─────────────────────────────────────────── */
+[data-theme="noir"] .glass table thead th {
+  background: hsl(0 0% 5%) !important;
+  border-bottom-color: hsl(0 0% 13%) !important;
+  backdrop-filter: none !important;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────── */
+[data-theme="noir"] ::-webkit-scrollbar-thumb {
+  background: hsl(0 0% 18%) !important;
+}
+[data-theme="noir"] ::-webkit-scrollbar-thumb:hover {
+  background: hsl(142 72% 50% / 0.4) !important;
+}
+
+/* ── Primary / accent colors redefinidos en clases Tailwind ─────── */
+/* Reemplazar el cyan de la app por verde eléctrico en noir          */
+[data-theme="noir"] .text-cyan-400 { color: hsl(142 72% 50%) !important; }
+[data-theme="noir"] .border-cyan-400\/20 { border-color: hsl(142 72% 50% / 0.2) !important; }
+[data-theme="noir"] .bg-cyan-500\/5  { background-color: hsl(142 72% 50% / 0.05) !important; }
+[data-theme="noir"] .bg-cyan-500\/20 { background-color: hsl(142 72% 50% / 0.2) !important; }
+[data-theme="noir"] .text-cyan-400\/80 { color: hsl(142 72% 50% / 0.8) !important; }
+[data-theme="noir"] .accent-cyan-400 { accent-color: hsl(142 72% 50%) !important; }
+
+/* Emerald → se queda verde, compatible */
+
+/* ── Texto de selección ───────────────────────────────────────────── */
+[data-theme="noir"] ::selection {
+  background: hsl(142 72% 50% / 0.25);
+  color: #fff;
+}
+
+/* ── Focus ring verde ─────────────────────────────────────────────── */
+[data-theme="noir"] :focus-visible {
+  outline-color: hsl(142 72% 50% / 0.7);
+  box-shadow: 0 0 0 4px hsl(142 72% 50% / 0.12);
+}
+
+/* ── Nav link activo — verde en lugar de primary indigo ─────────── */
+[data-theme="noir"] .nav-link-active {
+  background: hsl(142 72% 50% / 0.1) !important;
+  color: hsl(142 72% 55%) !important;
+}
+[data-theme="noir"] .nav-link-active .nav-icon {
+  color: hsl(142 72% 50%) !important;
+}
+
+/* ── Sidebar logo ──────────────────────────────────────────────────── */
+[data-theme="noir"] .sidebar-logo-icon {
+  background: hsl(142 72% 50%) !important;
+}
+
+/* ── Gradient title → verde ──────────────────────────────────────── */
+[data-theme="noir"] .gradient-title {
+  background: linear-gradient(135deg, hsl(142 72% 55%) 0%, hsl(185 100% 50%) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* ── Cards y botones — bordes más visibles en hover ──────────────── */
+[data-theme="noir"] [class*="border-white/8"],
+[data-theme="noir"] [class*="border-white\/8"] {
+  border-color: hsl(0 0% 13%) !important;
+}
+
+/* ── Input fields ─────────────────────────────────────────────────── */
+[data-theme="noir"] input[type="text"],
+[data-theme="noir"] input[type="search"],
+[data-theme="noir"] .bg-white\/4 {
+  background: hsl(0 0% 8%) !important;
+  border-color: hsl(0 0% 15%) !important;
+}
+
+/* ── Slider range accent ─────────────────────────────────────────── */
+[data-theme="noir"] input[type="range"] {
+  accent-color: hsl(142 72% 50%) !important;
+}
+
+/* ── Signal badges — se adaptan a los tokens, sin cambio necesario   */
+
+/* ── Neon glow en el primary button ─────────────────────────────── */
+[data-theme="noir"] button.bg-cyan-500,
+[data-theme="noir"] button[class*="bg-primary"] {
+  background: hsl(142 72% 50%) !important;
+  color: #000 !important;
+  box-shadow: 0 0 20px hsl(142 72% 50% / 0.35) !important;
+}
+
+/* ── OrangeCell (forward model) — queda naranja, buen contraste en negro */
+
+/* ── Transition suave al activar/desactivar ──────────────────────── */
+[data-theme="noir"] *,
+[data-theme="noir"] *::before,
+[data-theme="noir"] *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
