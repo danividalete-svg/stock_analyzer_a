@@ -1,15 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, RefreshCw, TrendingUp, TrendingDown, Wallet, AlertTriangle, X, Loader2, BookOpen, Send, Trash2, ChevronDown, ChevronUp, Zap, Brain, Pencil, Check } from 'lucide-react'
 import { nlPositionStatus } from '@/lib/nl'
-import axios from 'axios'
 import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/api/client'
 import { useAuth } from '@/context/AuthContext'
 import TickerLogo from '../components/TickerLogo'
 import PriceChart from '../components/PriceChart'
 import { useCerebroSignals, type CerebroMaps } from '../hooks/useCerebroSignals'
 import { usePortfolioConfluence, type ConfluenceSignals } from '../hooks/usePortfolioConfluence'
-
-const API_BASE = import.meta.env.VITE_API_URL || ''
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -385,10 +383,7 @@ function OptionsPanel({ result, sym }: { result: PositionResult; sym: string }) 
         thesis:     result.analysis ?? '',
         key_risk:   result.key_risk ?? '',
       })
-      const base = import.meta.env.VITE_API_URL || ''
-      const res = await fetch(`${base}/api/options-chain/${result.ticker}?${params}`)
-      const json = await res.json()
-      if (!res.ok) { setErr(json.error || 'Error'); setLoading(false); return }
+      const { data: json } = await apiClient.get(`/api/options-chain/${result.ticker}?${params}`)
       setData(json)
     } catch (e) {
       setErr('Error de red')
@@ -972,7 +967,7 @@ export default function PersonalPortfolio() {
     if (!positions.length) return
     setAnalyzing(true); setError('')
     try {
-      const resp = await axios.post(`${API_BASE}/api/analyze-personal-portfolio`, { positions })
+      const resp = await apiClient.post('/api/analyze-personal-portfolio', { positions })
       setResult(resp.data)
       setAnalyzed(true)
     } catch {
