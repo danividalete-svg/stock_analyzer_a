@@ -58,6 +58,9 @@ interface OeResult {
   historical_fcf: Record<string, number>
   historical_fcf_per_share: Record<string, number>
   historical_multiples: Record<string, { price?: number; mc?: number; ev?: number; ev_fcf?: number; ev_ebitda?: number; ev_ebit?: number; pe?: number; fcf_yield?: number }>
+  historical_bs: Record<string, { total_debt?: number; cash?: number; net_debt?: number; total_equity?: number; shares?: number; eps?: number; buybacks?: number; roe_pct?: number }>
+  historical_roic: Record<string, { roic_pct?: number; nopat?: number; ic?: number; ebit?: number; net_debt?: number; equity?: number }>
+  red_flags: Array<{ code: string; severity: 'high' | 'medium' | 'low'; msg: string }>
   fcf_breakdown: Record<string, FcfBreakdownRow>
   forward_fcf: Record<string, FcfEntry>
   forward_net_debt: Record<string, number>
@@ -378,7 +381,7 @@ function DetailView({
   const [returnT,  setReturnT]  = useState(data.target_return_pct)
   const [apiPending, setApiPending] = useState(false)
   const [fwdMode, setFwdMode] = useState(false)
-  const [activeTab, setActiveTab] = useState<'is' | 'fcf' | 'ratios' | 'valoracion' | 'detalle'>('is')
+  const [activeTab, setActiveTab] = useState<'is' | 'fcf' | 'ratios' | 'valoracion' | 'detalle' | 'bs' | 'roic' | 'redflags'>('is')
   const [fwdInputs, setFwdInputs] = useState<Record<string, FwdYearInput>>(() =>
     initFwdInputs(data, Object.keys(data.forward_fcf ?? {}).sort())
   )
@@ -775,6 +778,9 @@ function DetailView({
           { id: 'ratios',     label: '3. Ratios',      show: true },
           { id: 'valoracion', label: '4. Valoración',  show: true },
           { id: 'detalle',    label: '5. Detalle FCF', show: bdownYears.length > 0 },
+          { id: 'bs',         label: '6. Balance',     show: true },
+          { id: 'roic',       label: '7. ROIC',        show: true },
+          { id: 'redflags',   label: '8. Red Flags',   show: true },
         ] as const).filter(t => t.show).map(tab => (
           <button
             key={tab.id}
@@ -875,6 +881,20 @@ function DetailView({
                       return (
                         <td key={yr} className="px-2 py-1.5 text-center font-mono">
                           {b?.net_income != null ? <>{fmtM(b.net_income)}{b.net_margin != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/40">{b.net_margin.toFixed(0)}%</span>}{yoy != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/30">{yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%</span>}</> : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {/* EPS Diluido */}
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 whitespace-nowrap pl-6">EPS diluido</td>
+                    {[...bdownYears].reverse().map((yr, i, arr) => {
+                      const bs = data.historical_bs?.[yr]
+                      const prevBs = arr[i-1] ? data.historical_bs?.[arr[i-1]] : null
+                      const yoy = bs?.eps && prevBs?.eps ? (bs.eps / prevBs.eps - 1) * 100 : null
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/60">
+                          {bs?.eps != null ? <>${bs.eps.toFixed(2)}{yoy != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/30">{yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%</span>}</> : <span className="text-muted-foreground/25">—</span>}
                         </td>
                       )
                     })}
@@ -1239,6 +1259,263 @@ function DetailView({
             </Table>
           </Card>
       </div>}
+
+      {/* ── 6. Balance Sheet histórico ───────────────────────────────── */}
+      {activeTab === 'bs' && (() => {
+        const bsYears = Object.keys(data.historical_bs ?? {}).map(Number).sort((a, b) => a - b)
+        const hasBS = bsYears.length > 0
+
+        function cagr(old: number | undefined, newV: number | undefined, n: number): number | null {
+          if (!old || !newV || old <= 0 || n <= 0) return null
+          return (Math.pow(newV / old, 1 / n) - 1) * 100
+        }
+        const nYears = bsYears.length > 1 ? bsYears.length - 1 : 1
+        const firstBs = hasBS ? data.historical_bs[bsYears[0]] : null
+        const lastBs  = hasBS ? data.historical_bs[bsYears[bsYears.length - 1]] : null
+
+        return (
+          <div className="space-y-4">
+            <p className="text-xs font-semibold">6. Balance Sheet</p>
+            {!hasBS && (
+              <div className="glass rounded-xl p-5 border border-border/20 text-center text-xs text-muted-foreground/50">
+                Sin datos de balance — disponibles tras el próximo pipeline.
+              </div>
+            )}
+            {hasBS && (
+              <Card className="glass overflow-clip">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[0.7rem]">
+                    <thead>
+                      <tr className="border-b border-border/30">
+                        <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-44">(millones / por acción)</th>
+                        {bsYears.map(yr => (
+                          <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
+                        ))}
+                        <th className="px-2 py-2 text-center text-cyan-400/60 font-semibold text-[0.65rem]">CAGR</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/15">
+                      {/* Deuda total */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Deuda total ($M)</td>
+                        {bsYears.map(yr => {
+                          const b = data.historical_bs[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.total_debt != null ? fmtM(b.total_debt) : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-mono text-muted-foreground/40">—</td>
+                      </tr>
+                      {/* Caja */}
+                      <tr className="hover:bg-white/2 bg-white/1">
+                        <td className="px-3 py-1.5 text-muted-foreground/50 pl-6 whitespace-nowrap">Caja ($M)</td>
+                        {bsYears.map(yr => {
+                          const b = data.historical_bs[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-emerald-400/60">{b?.cash != null ? fmtM(b.cash) : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-mono text-muted-foreground/40">—</td>
+                      </tr>
+                      {/* Deuda neta */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap font-medium">Deuda neta ($M)</td>
+                        {bsYears.map(yr => {
+                          const b = data.historical_bs[yr]
+                          const nd = b?.net_debt
+                          return <td key={yr} className={cn('px-2 py-1.5 text-center font-mono font-semibold', nd != null && nd > 0 ? 'text-red-400/70' : 'text-emerald-400/70')}>{nd != null ? fmtM(nd) : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-mono text-muted-foreground/40">—</td>
+                      </tr>
+                      {/* Equity */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Equity ($M)</td>
+                        {bsYears.map(yr => {
+                          const b = data.historical_bs[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-sky-400/70">{b?.total_equity != null ? fmtM(b.total_equity) : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-mono text-muted-foreground/40">—</td>
+                      </tr>
+                      {/* Acciones */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Acciones diluidas (M)</td>
+                        {bsYears.map(yr => {
+                          const b = data.historical_bs[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/60">{b?.shares != null ? b.shares.toFixed(1) : '—'}</td>
+                        })}
+                        <td className={cn('px-2 py-1.5 text-center font-mono', (() => { const c = cagr(firstBs?.shares, lastBs?.shares, nYears); return c == null ? 'text-muted-foreground/40' : c > 1 ? 'text-red-400/70' : c < -1 ? 'text-emerald-400/70' : 'text-muted-foreground/60' })())}>
+                          {(() => { const c = cagr(firstBs?.shares, lastBs?.shares, nYears); return c != null ? `${c > 0 ? '+' : ''}${c.toFixed(1)}%` : '—' })()}
+                        </td>
+                      </tr>
+                      {/* EPS */}
+                      <tr className="hover:bg-white/2 bg-white/1">
+                        <td className="px-3 py-1.5 text-muted-foreground/50 pl-6 whitespace-nowrap">EPS diluido</td>
+                        {bsYears.map(yr => {
+                          const b = data.historical_bs[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/60">{b?.eps != null ? `$${b.eps.toFixed(2)}` : '—'}</td>
+                        })}
+                        <td className={cn('px-2 py-1.5 text-center font-mono', (() => { const c = cagr(firstBs?.eps, lastBs?.eps, nYears); return c == null ? 'text-muted-foreground/40' : c >= 0 ? 'text-emerald-400/70' : 'text-red-400/70' })())}>
+                          {(() => { const c = cagr(firstBs?.eps, lastBs?.eps, nYears); return c != null ? `${c > 0 ? '+' : ''}${c.toFixed(1)}%` : '—' })()}
+                        </td>
+                      </tr>
+                      {/* Recompra */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Recompras ($M)</td>
+                        {bsYears.map(yr => {
+                          const b = data.historical_bs[yr]
+                          const bb = b?.buybacks
+                          return <td key={yr} className={cn('px-2 py-1.5 text-center font-mono', bb != null && bb < 0 ? 'text-emerald-400/70' : 'text-muted-foreground/50')}>{bb != null ? fmtM(Math.abs(bb)) : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-mono text-muted-foreground/40">—</td>
+                      </tr>
+                      {/* ROE */}
+                      <tr className="hover:bg-white/2 border-t border-border/20">
+                        <td className="px-3 py-1.5 font-semibold text-muted-foreground/80 whitespace-nowrap">ROE %</td>
+                        {bsYears.map(yr => {
+                          const b = data.historical_bs[yr]
+                          const roe = b?.roe_pct
+                          return <td key={yr} className={cn('px-2 py-1.5 text-center font-mono font-semibold', roe == null ? 'text-muted-foreground/30' : roe < 0 ? 'text-red-400' : roe < 8 ? 'text-amber-400/70' : 'text-emerald-400/80')}>{roe != null ? `${roe.toFixed(1)}%` : '—'}</td>
+                        })}
+                        <td className="px-2 py-1.5 text-center font-mono text-muted-foreground/40">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* ── 7. ROIC histórico ────────────────────────────────────────── */}
+      {activeTab === 'roic' && (() => {
+        const roicYears = Object.keys(data.historical_roic ?? {}).map(Number).sort((a, b) => a - b)
+        const hasRoic = roicYears.length > 0
+
+        return (
+          <div className="space-y-4">
+            <p className="text-xs font-semibold">7. ROIC — Return on Invested Capital</p>
+            <p className="text-[0.65rem] text-muted-foreground/60">
+              ROIC = NOPAT / Capital Invertido · NOPAT = EBIT × (1 − tasa impositiva) · CI = Equity + Deuda Neta (promedio inicio/fin)
+            </p>
+            {!hasRoic && (
+              <div className="glass rounded-xl p-5 border border-border/20 text-center text-xs text-muted-foreground/50">
+                Sin datos de ROIC — requiere datos EBIT + balance disponibles.
+              </div>
+            )}
+            {hasRoic && (
+              <Card className="glass overflow-clip">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[0.7rem]">
+                    <thead>
+                      <tr className="border-b border-border/30">
+                        <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-44">(millones)</th>
+                        {roicYears.map(yr => (
+                          <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/15">
+                      {/* EBIT */}
+                      <tr className="hover:bg-white/2 bg-white/1">
+                        <td className="px-3 py-1.5 text-muted-foreground/50 whitespace-nowrap">EBIT ($M)</td>
+                        {roicYears.map(yr => {
+                          const r = data.historical_roic[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/60">{r?.ebit != null ? fmtM(r.ebit) : '—'}</td>
+                        })}
+                      </tr>
+                      {/* NOPAT */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">NOPAT ($M)</td>
+                        {roicYears.map(yr => {
+                          const r = data.historical_roic[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{r?.nopat != null ? fmtM(r.nopat) : '—'}</td>
+                        })}
+                      </tr>
+                      {/* Equity */}
+                      <tr className="hover:bg-white/2 bg-white/1">
+                        <td className="px-3 py-1.5 text-muted-foreground/50 pl-6 whitespace-nowrap">Equity ($M)</td>
+                        {roicYears.map(yr => {
+                          const r = data.historical_roic[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-sky-400/60">{r?.equity != null ? fmtM(r.equity) : '—'}</td>
+                        })}
+                      </tr>
+                      {/* Net Debt */}
+                      <tr className="hover:bg-white/2 bg-white/1">
+                        <td className="px-3 py-1.5 text-muted-foreground/50 pl-6 whitespace-nowrap">Deuda Neta ($M)</td>
+                        {roicYears.map(yr => {
+                          const r = data.historical_roic[yr]
+                          const nd = r?.net_debt
+                          return <td key={yr} className={cn('px-2 py-1.5 text-center font-mono', nd != null && nd > 0 ? 'text-red-400/50' : 'text-emerald-400/50')}>{nd != null ? fmtM(nd) : '—'}</td>
+                        })}
+                      </tr>
+                      {/* Capital Invertido */}
+                      <tr className="hover:bg-white/2">
+                        <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Capital Invertido ($M)</td>
+                        {roicYears.map(yr => {
+                          const r = data.historical_roic[yr]
+                          return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/60">{r?.ic != null ? fmtM(r.ic) : '—'}</td>
+                        })}
+                      </tr>
+                      {/* ROIC */}
+                      <tr className="hover:bg-white/2 border-t border-border/20">
+                        <td className="px-3 py-1.5 font-semibold text-muted-foreground/80 whitespace-nowrap">ROIC %</td>
+                        {roicYears.map(yr => {
+                          const r = data.historical_roic[yr]
+                          const roic = r?.roic_pct
+                          return <td key={yr} className={cn('px-2 py-1.5 text-center font-mono font-bold', roic == null ? 'text-muted-foreground/30' : roic < 0 ? 'text-red-400' : roic < 8 ? 'text-amber-400' : roic >= 15 ? 'text-emerald-400' : 'text-cyan-400')}>{roic != null ? `${roic.toFixed(1)}%` : '—'}</td>
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* ── 8. Red Flags ────────────────────────────────────────────── */}
+      {activeTab === 'redflags' && (() => {
+        const flags = data.red_flags ?? []
+        const SEV_COLORS: Record<string, string> = {
+          high:   'bg-red-500/15 text-red-400 border-red-500/30',
+          medium: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+          low:    'bg-sky-500/15 text-sky-400 border-sky-500/30',
+        }
+        const SEV_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 }
+        const sorted = [...flags].sort((a, b) => (SEV_ORDER[a.severity] ?? 9) - (SEV_ORDER[b.severity] ?? 9))
+
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <p className="text-xs font-semibold">8. Red Flags</p>
+              {flags.length === 0
+                ? <span className="text-[0.65rem] text-emerald-400/70 border border-emerald-500/20 rounded px-2 py-0.5">Sin alertas — datos TIKR</span>
+                : <span className="text-[0.65rem] text-muted-foreground/50">{flags.filter(f => f.severity === 'high').length} high · {flags.filter(f => f.severity === 'medium').length} medium · {flags.filter(f => f.severity === 'low').length} low</span>
+              }
+            </div>
+            {flags.length === 0 && (
+              <div className="glass rounded-xl p-6 border border-emerald-500/15 text-center">
+                <p className="text-emerald-400/80 text-sm font-semibold">Sin alertas de calidad detectadas</p>
+                <p className="text-xs text-muted-foreground/50 mt-1">Todos los checks superados con los datos TIKR disponibles.</p>
+              </div>
+            )}
+            {sorted.length > 0 && (
+              <div className="space-y-2">
+                {sorted.map((f, i) => (
+                  <div key={i} className={cn('rounded-lg border px-4 py-3 flex items-start gap-3', SEV_COLORS[f.severity])}>
+                    <span className={cn('mt-0.5 shrink-0 text-[0.6rem] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border', SEV_COLORS[f.severity])}>
+                      {f.severity}
+                    </span>
+                    <div>
+                      <p className="text-[0.72rem] font-semibold leading-tight">{f.code.replaceAll('_', ' ')}</p>
+                      <p className="text-[0.7rem] mt-0.5 opacity-80">{f.msg}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-[0.6rem] text-muted-foreground/35">Checks basados exclusivamente en datos reales de TIKR Pro. Sin estimaciones.</p>
+          </div>
+        )
+      })()}
     </div>
   )
 }

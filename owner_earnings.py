@@ -458,6 +458,153 @@ def calculate(
         upside_pct = round((buy_price / current_price - 1) * 100, 1)
         safety_margin_pct = round((1 - current_price / buy_price) * 100, 1)
 
+    # ── Balance Sheet histórico ───────────────────────────────────────────────
+    historical_bs: dict[str, dict] = {}
+    for yr in years:
+        debt  = _metric(metrics, "total_debt", yr)
+        cash  = _metric(metrics, "cash", yr)
+        eq    = _metric(metrics, "total_equity", yr)
+        sh    = _metric(metrics, "shares_diluted", yr)
+        eps   = _metric(metrics, "eps_diluted", yr)
+        bb    = _metric(metrics, "buybacks", yr)
+        roe   = _metric(metrics, "roe_pct", yr)
+        row: dict = {}
+        if debt is not None:    row["total_debt"]   = round(debt, 0)
+        if cash is not None:    row["cash"]         = round(cash, 0)
+        if debt is not None and cash is not None:
+            row["net_debt"]     = round(debt - cash, 0)
+        if eq is not None:      row["total_equity"] = round(eq, 0)
+        if sh is not None:      row["shares"]       = round(sh, 4)
+        if eps is not None:     row["eps"]          = round(eps, 2)
+        if bb is not None:      row["buybacks"]     = round(bb, 0)   # negativo = recompra
+        if roe is not None:     row["roe_pct"]      = round(roe * 100, 1) if abs(roe) < 10 else round(roe, 1)
+        if row:
+            historical_bs[str(yr)] = row
+
+    # ── ROIC histórico ────────────────────────────────────────────────────────
+    # ROIC = NOPAT / Capital Invertido
+    # NOPAT = EBIT × (1 − tax_rate)  — solo con datos TIKR reales
+    # Capital Invertido = Equity + Net Debt  — balance sheet
+    # Tax rate: |income_tax| / max(1, EBIT − interest)  (media últimos años)
+    historical_roic: dict[str, dict] = {}
+    # Calcular tax rate media histórica
+    tax_rates_roic = []
+    for yr in years:
+        ebit_r = _metric(metrics, "ebit", yr)
+        tax_r  = _metric(metrics, "income_tax_expense", yr)
+        int_r  = _metric(metrics, "interest_expense", yr)
+        if ebit_r and tax_r is not None and ebit_r > 0:
+            pre_tax = max(1.0, ebit_r - abs(int_r or 0))
+            tr = abs(tax_r) / pre_tax
+            if 0 < tr < 0.65:
+                tax_rates_roic.append(tr)
+    med_tax_roic = statistics.median(tax_rates_roic) if tax_rates_roic else 0.21
+
+    prev_eq = prev_nd = None
+    for yr in sorted(years):
+        ebit_r = _metric(metrics, "ebit", yr)
+        eq_r   = _metric(metrics, "total_equity", yr)
+        debt_r = _metric(metrics, "total_debt", yr)
+        cash_r = _metric(metrics, "cash", yr)
+        if ebit_r is None or eq_r is None or debt_r is None or cash_r is None:
+            prev_eq, prev_nd = eq_r, (debt_r - cash_r) if debt_r is not None and cash_r is not None else None
+            continue
+        nd_r = debt_r - cash_r
+        # Capital invertido = promedio inicio/fin del año (más preciso)
+        ic = eq_r + nd_r
+        ic_avg = ((prev_eq or eq_r) + eq_r) / 2 + ((prev_nd or nd_r) + nd_r) / 2 if prev_eq is not None else ic
+        if ic_avg > 0:
+            nopat = ebit_r * (1 - med_tax_roic)
+            roic = round(nopat / ic_avg * 100, 1)
+            historical_roic[str(yr)] = {
+                "roic_pct":  roic,
+                "nopat":     round(nopat, 0),
+                "ic":        round(ic_avg, 0),
+                "ebit":      round(ebit_r, 0),
+                "net_debt":  round(nd_r, 0),
+                "equity":    round(eq_r, 0),
+            }
+        prev_eq, prev_nd = eq_r, nd_r
+
+    # ── Red Flags ─────────────────────────────────────────────────────────────
+    # Solo señales basadas en datos TIKR reales — sin inventar
+    red_flags: list[dict] = []
+
+    # 1. Deterioro FCF — FCF cayendo 2 años consecutivos
+    fcf_years = sorted(historical_fcf.keys(), reverse=True)
+    if len(fcf_years) >= 3:
+        fcf_vals = [historical_fcf[y] for y in fcf_years[:3]]
+        if fcf_vals[0] < fcf_vals[1] < fcf_vals[2]:
+            red_flags.append({"code": "FCF_DECLINING", "severity": "high",
+                "msg": f"FCF cayendo 3 años consecutivos: {fcf_years[2]}→{fcf_years[1]}→{fcf_years[0]}"})
+        elif fcf_vals[0] < fcf_vals[1]:
+            red_flags.append({"code": "FCF_DECLINING_1Y", "severity": "medium",
+                "msg": f"FCF cayó en el último año ({fcf_years[1]}→{fcf_years[0]})"})
+
+    # 2. Deuda neta / EBITDA > 4x (apalancamiento excesivo)
+    last_yr = years[0] if years else None
+    if last_yr:
+        nd_last   = _metric(metrics, "net_debt_ebitda", last_yr)
+        if nd_last is not None and nd_last > 4:
+            red_flags.append({"code": "HIGH_LEVERAGE", "severity": "high",
+                "msg": f"Deuda Neta/EBITDA = {nd_last:.1f}x — apalancamiento elevado"})
+        elif nd_last is not None and nd_last > 3:
+            red_flags.append({"code": "MODERATE_LEVERAGE", "severity": "medium",
+                "msg": f"Deuda Neta/EBITDA = {nd_last:.1f}x — apalancamiento moderado"})
+
+    # 3. ROE negativo o deteriorándose
+    roe_last = _metric(metrics, "roe_pct", last_yr) if last_yr else None
+    if roe_last is not None:
+        roe_pct_val = roe_last * 100 if abs(roe_last) < 10 else roe_last
+        if roe_pct_val < 0:
+            red_flags.append({"code": "NEGATIVE_ROE", "severity": "high",
+                "msg": f"ROE negativo: {roe_pct_val:.1f}%"})
+        elif roe_pct_val < 8:
+            red_flags.append({"code": "LOW_ROE", "severity": "medium",
+                "msg": f"ROE bajo: {roe_pct_val:.1f}% (umbral calidad: 8%)"})
+
+    # 4. ROIC < coste capital (estimado 8%)
+    if historical_roic:
+        last_roic_yr = sorted(historical_roic.keys())[-1]
+        roic_last = historical_roic[last_roic_yr].get("roic_pct")
+        if roic_last is not None and roic_last < 8:
+            red_flags.append({"code": "LOW_ROIC", "severity": "high" if roic_last < 0 else "medium",
+                "msg": f"ROIC {roic_last:.1f}% < coste capital estimado 8%"})
+
+    # 5. Dilución de acciones (shares creciendo > 2% anual)
+    sh_old = _metric(metrics, "shares_diluted", years[-1]) if len(years) >= 3 else None
+    sh_new = _metric(metrics, "shares_diluted", years[0]) if years else None
+    if sh_old and sh_new and sh_old > 0 and len(years) >= 3:
+        dil_cagr = (sh_new / sh_old) ** (1 / max(1, len(years) - 1)) - 1
+        if dil_cagr > 0.02:
+            red_flags.append({"code": "DILUTION", "severity": "medium",
+                "msg": f"Dilución de acciones: +{dil_cagr*100:.1f}% anual ({years[-1]}→{years[0]})"})
+
+    # 6. Conversión FCF/EBITDA < 40% últimos 2 años
+    low_conv_years = []
+    for yr in years[:3]:
+        b = fcf_breakdown.get(yr, {})
+        fcf_b = b.get("owner_earnings") or b.get("template_fcf")
+        ebitda_b = b.get("ebitda")
+        if fcf_b is not None and ebitda_b and ebitda_b > 0:
+            conv = fcf_b / ebitda_b
+            if conv < 0.40:
+                low_conv_years.append(yr)
+    if len(low_conv_years) >= 2:
+        red_flags.append({"code": "LOW_FCF_CONVERSION", "severity": "medium",
+            "msg": f"Conversión FCF/EBITDA < 40% en {len(low_conv_years)} de los últimos 3 años"})
+
+    # 7. CapEx / Ventas > 15% (negocio muy intensivo en capital)
+    if capex_pct_median > 0.15:
+        red_flags.append({"code": "HIGH_CAPEX", "severity": "low",
+            "msg": f"CapEx/Ventas mediana = {capex_pct_median*100:.1f}% — negocio intensivo en capital"})
+
+    # 8. Sin cobertura de analistas (precio compra muy incierto)
+    n_analysts = _fv(ae_raw.get("forward", {}).get(str(years[0] + 1) if years else "", {}).get("n_analysts"))
+    if n_analysts is not None and n_analysts < 3:
+        red_flags.append({"code": "LOW_COVERAGE", "severity": "low",
+            "msg": f"Cobertura de analistas baja: {int(n_analysts)} analistas"})
+
     return {
         "ticker": ticker.upper(),
         "company_name": td.get("company_name", ""),
@@ -467,6 +614,9 @@ def calculate(
         "historical_fcf": historical_fcf,
         "historical_fcf_per_share": historical_fcf_ps,
         "historical_multiples": historical_multiples,
+        "historical_bs": historical_bs,
+        "historical_roic": historical_roic,
+        "red_flags": red_flags,
         "fcf_breakdown": fcf_breakdown,
         "capex_pct_sales_median": round(capex_pct_median * 100, 2),
         "da_pct_sales_median": round(da_pct_sales_median, 2),
