@@ -377,6 +377,7 @@ function DetailView({
   const [returnT,  setReturnT]  = useState(data.target_return_pct)
   const [apiPending, setApiPending] = useState(false)
   const [fwdMode, setFwdMode] = useState(false)
+  const [activeTab, setActiveTab] = useState<'is' | 'fcf' | 'ratios' | 'valoracion' | 'detalle'>('is')
   const [fwdInputs, setFwdInputs] = useState<Record<string, FwdYearInput>>(() =>
     initFwdInputs(data, Object.keys(data.forward_fcf ?? {}).sort())
   )
@@ -765,68 +766,361 @@ function DetailView({
         )}
       </div>
 
-      {/* Price targets — directly after inputs so edits are immediately visible */}
-      <div>
-        <p className="text-xs font-semibold mb-1.5">Objetivos de precio por año</p>
-        <p className="text-[0.65rem] text-muted-foreground mb-2">
-          Precio compra = objetivo_{data.exit_year}E ÷ (1+{returnT}%)^n · CAGR = retorno anual comprando hoy
-        </p>
-        <Card className="glass">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent border-border/40">
-                <TableHead>Año</TableHead>
-                <TableHead className="text-right text-muted-foreground/70">FCF/sh</TableHead>
-                <TableHead className="text-right">EV/FCF</TableHead>
-                <TableHead className="text-right text-muted-foreground/70">P/E</TableHead>
-                <TableHead className="text-right text-muted-foreground/70">EV/EBITDA</TableHead>
-                <TableHead className="text-right text-muted-foreground/70">EV/EBIT</TableHead>
-                <TableHead className="text-right font-semibold">Promedio</TableHead>
-                <TableHead className="text-right text-emerald-400/80">CAGR</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {fwdYears.map((yr, i) => {
-                const fwd  = activeData.forward_fcf[yr]
-                const pt   = computed.priceTargets[yr]
-                if (!fwd || !pt) return null
-                const isExit = String(data.exit_year) === yr
-                const isProj = fwd.projected === true
-                const yearsN = i + 1
-                const avgP   = pt.average
-                const cagr   = avgP && data.current_price && data.current_price > 0
-                  ? (Math.pow(avgP / data.current_price, 1 / yearsN) - 1) * 100
-                  : null
-                return (
-                  <TableRow key={yr} className={cn(isExit && 'bg-cyan-500/5', isProj && 'opacity-75')}>
-                    <TableCell className="font-medium">
-                      {yr}E
-                      {isExit && <span className="ml-1 text-[0.6rem] text-cyan-400/70">←</span>}
-                      {isProj && <span className="ml-1 text-[0.5rem] text-amber-400/60 font-normal">~</span>}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground/60">{fmt(fwd.fcf_per_share, '$')}</TableCell>
-                    <TableCell className="text-right">{fmt(pt.ev_fcf, '$')}</TableCell>
-                    <TableCell className="text-right text-muted-foreground/60">{fmt(pt.per, '$')}</TableCell>
-                    <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebitda, '$')}</TableCell>
-                    <TableCell className="text-right text-muted-foreground/60">{fmt(pt.ev_ebit, '$')}</TableCell>
-                    <TableCell className={cn('text-right font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(avgP, '$')}</TableCell>
-                    <TableCell className={cn('text-right font-semibold text-sm', cagr == null ? 'text-muted-foreground' : cagr >= returnT ? 'text-emerald-400' : cagr >= 0 ? 'text-amber-400' : 'text-red-400')}>
-                      {cagr != null ? `${cagr > 0 ? '+' : ''}${cagr.toFixed(1)}%` : '—'}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-              {fwdYears.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sin estimaciones forward</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Card>
-      </div>
+      {/* ── Tabs: IS · FCF · Ratios · Valoración · Detalle ─────────────── */}
+      {histYears.length > 0 && (
+        <div>
+          {/* Tab bar */}
+          <div className="flex gap-0 border-b border-border/30 mb-4 overflow-x-auto">
+            {([
+              { id: 'is',         label: '1. IS' },
+              { id: 'fcf',        label: '2. FCF' },
+              { id: 'ratios',     label: '3. Ratios' },
+              { id: 'valoracion', label: '4. Valoración' },
+              { id: 'detalle',    label: '5. Detalle FCF' },
+            ] as const).map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  'px-4 py-2 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors',
+                  activeTab === tab.id
+                    ? 'border-cyan-400 text-cyan-400'
+                    : 'border-transparent text-muted-foreground/50 hover:text-muted-foreground hover:border-border/60'
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 1. Income Statement histórico ─────────────────────────────── */}
+      {histYears.length > 0 && activeTab === 'is' && (
+        <div>
+          <p className="text-xs font-semibold mb-2">1. Income Statement</p>
+          <Card className="glass overflow-clip">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.7rem]">
+                <thead>
+                  <tr className="border-b border-border/30">
+                    <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-44">(millones)</th>
+                    {[...histYears].reverse().map(yr => (
+                      <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/15">
+                  {/* Revenue */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap font-medium">Revenue</td>
+                    {[...histYears].reverse().map((yr, i, arr) => {
+                      const b = data.fcf_breakdown?.[yr]
+                      const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
+                      const yoy = b?.revenue && prev?.revenue ? (b.revenue / prev.revenue - 1) * 100 : null
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center font-mono">
+                          {b?.revenue != null ? <>{fmtM(b.revenue)}{yoy != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/40">{yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%</span>}</> : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {/* EBITDA */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">EBITDA</td>
+                    {[...histYears].reverse().map((yr, i, arr) => {
+                      const b = data.fcf_breakdown?.[yr]
+                      const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
+                      const yoy = b?.ebitda && prev?.ebitda ? (b.ebitda / prev.ebitda - 1) * 100 : null
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center font-mono">
+                          {b?.ebitda != null ? <>{fmtM(b.ebitda)}{b.ebitda_margin != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/40">{b.ebitda_margin.toFixed(0)}%</span>}{yoy != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/30">{yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%</span>}</> : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {/* D&A */}
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 whitespace-nowrap pl-6">D&A</td>
+                    {[...histYears].reverse().map(yr => {
+                      const b = data.fcf_breakdown?.[yr]
+                      return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/50">{b?.dna != null ? fmtM(b.dna) : <span className="text-muted-foreground/25">—</span>}</td>
+                    })}
+                  </tr>
+                  {/* EBIT */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">EBIT</td>
+                    {[...histYears].reverse().map((yr, i, arr) => {
+                      const b = data.fcf_breakdown?.[yr]
+                      const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
+                      const yoy = b?.ebit && prev?.ebit ? (b.ebit / prev.ebit - 1) * 100 : null
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center font-mono">
+                          {b?.ebit != null ? <>{fmtM(b.ebit)}{b.ebit_margin != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/40">{b.ebit_margin.toFixed(0)}%</span>}{yoy != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/30">{yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%</span>}</> : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  {/* Interest */}
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 whitespace-nowrap pl-6">Intereses</td>
+                    {[...histYears].reverse().map(yr => {
+                      const b = data.fcf_breakdown?.[yr]
+                      return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.interest != null ? fmtM(b.interest) : <span className="text-muted-foreground/25">—</span>}</td>
+                    })}
+                  </tr>
+                  {/* Net Income */}
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70 whitespace-nowrap">Beneficio Neto</td>
+                    {[...histYears].reverse().map((yr, i, arr) => {
+                      const b = data.fcf_breakdown?.[yr]
+                      const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
+                      const yoy = b?.net_income && prev?.net_income ? (b.net_income / prev.net_income - 1) * 100 : null
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center font-mono">
+                          {b?.net_income != null ? <>{fmtM(b.net_income)}{b.net_margin != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/40">{b.net_margin.toFixed(0)}%</span>}{yoy != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/30">{yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%</span>}</> : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* ── 2. FCF Statement histórico ────────────────────────────────── */}
+      {histYears.length > 0 && activeTab === 'fcf' && (
+        <div>
+          <p className="text-xs font-semibold mb-2">2. Cash Flow — FCF = EBITDA − CapEx<sub>m</sub> − Interés − Impuestos + ΔCT</p>
+          <Card className="glass overflow-clip">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[0.7rem]">
+                <thead>
+                  <tr className="border-b border-border/30">
+                    <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-44">(millones)</th>
+                    {[...histYears].reverse().map(yr => (
+                      <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/15">
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/70">EBITDA</td>
+                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono">{b?.ebitda != null ? fmtM(b.ebitda) : '—'}</td> })}
+                  </tr>
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">− CapEx mant.</td>
+                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.capex_maint != null ? fmtM(b.capex_maint) : '—'}</td> })}
+                  </tr>
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">− Intereses</td>
+                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.interest != null ? fmtM(b.interest) : '—'}</td> })}
+                  </tr>
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">− Impuestos</td>
+                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-amber-400/70">{b?.income_tax != null ? fmtM(b.income_tax) : '—'}</td> })}
+                  </tr>
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">+ ΔCap. Trabajo</td>
+                    {[...histYears].reverse().map(yr => { const b = data.fcf_breakdown?.[yr]; return <td key={yr} className="px-2 py-1.5 text-center font-mono text-sky-400/70">{b?.delta_wc != null ? fmtM(b.delta_wc) : '—'}</td> })}
+                  </tr>
+                  <tr className="hover:bg-white/2 border-t border-border/30">
+                    <td className="px-3 py-1.5 font-semibold text-cyan-400">FCF</td>
+                    {[...histYears].reverse().map((yr, i, arr) => {
+                      const b = data.fcf_breakdown?.[yr]
+                      const prev = arr[i-1] ? data.fcf_breakdown?.[arr[i-1]] : null
+                      const fcf = b?.owner_earnings ?? b?.template_fcf
+                      const prevFcf = prev?.owner_earnings ?? prev?.template_fcf
+                      const yoy = fcf && prevFcf ? (fcf / prevFcf - 1) * 100 : null
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center font-mono font-semibold text-cyan-400">
+                          {fcf != null ? <>{fmtM(fcf)}{yoy != null && <span className="ml-1 text-[0.55rem] text-muted-foreground/40 font-normal">{yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%</span>}</> : '—'}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">FCF Margin %</td>
+                    {[...histYears].reverse().map(yr => {
+                      const b = data.fcf_breakdown?.[yr]
+                      const fcf = b?.owner_earnings ?? b?.template_fcf
+                      const margin = fcf && b?.revenue ? fcf / b.revenue * 100 : null
+                      return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/60">{margin != null ? `${margin.toFixed(1)}%` : '—'}</td>
+                    })}
+                  </tr>
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">FCF/share</td>
+                    {[...histYears].reverse().map(yr => {
+                      const fcfPs = data.historical_fcf_per_share?.[yr]
+                      return <td key={yr} className="px-2 py-1.5 text-center font-mono text-cyan-400/70">{fcfPs != null ? `$${fcfPs.toFixed(2)}` : '—'}</td>
+                    })}
+                  </tr>
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">CapEx/Ventas</td>
+                    {[...histYears].reverse().map(yr => {
+                      const b = data.fcf_breakdown?.[yr]
+                      const ratio = b?.capex_maint && b?.revenue ? Math.abs(b.capex_maint) / b.revenue * 100 : null
+                      return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/50">{ratio != null ? `${ratio.toFixed(1)}%` : '—'}</td>
+                    })}
+                  </tr>
+                  <tr className="hover:bg-white/2 bg-white/1">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6">Conversión EBITDA→FCF</td>
+                    {[...histYears].reverse().map(yr => {
+                      const b = data.fcf_breakdown?.[yr]
+                      const fcf = b?.owner_earnings ?? b?.template_fcf
+                      const conv = fcf && b?.ebitda ? fcf / b.ebitda * 100 : null
+                      return <td key={yr} className="px-2 py-1.5 text-center font-mono text-muted-foreground/50">{conv != null ? `${conv.toFixed(0)}%` : '—'}</td>
+                    })}
+                  </tr>
+                  <tr className="hover:bg-white/2">
+                    <td className="px-3 py-1.5 text-muted-foreground/50 pl-6 text-[0.6rem]">Fuente</td>
+                    {[...histYears].reverse().map(yr => {
+                      const b = data.fcf_breakdown?.[yr]
+                      return (
+                        <td key={yr} className="px-2 py-1.5 text-center">
+                          <span className={cn('text-[0.55rem] px-1 py-0.5 rounded font-medium',
+                            b?.source === 'tikr_est'  ? 'bg-emerald-500/10 text-emerald-400' :
+                            b?.source === 'cfo_based' ? 'bg-sky-500/10 text-sky-400' :
+                            b?.source === 'template'  ? 'bg-amber-500/10 text-amber-400' :
+                                                        'bg-muted/20 text-muted-foreground'
+                          )}>
+                            {b?.source === 'tikr_est' ? 'TIKR' : b?.source === 'cfo_based' ? 'CFO' : b?.source === 'template' ? 'Tmpl' : b?.source ?? '—'}
+                          </span>
+                        </td>
+                      )
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* ── 3. Múltiplos históricos ───────────────────────────────────── */}
+      {histYears.length > 0 && activeTab === 'ratios' && (() => {
+        // Compute median EV/FCF from historical data (need shares + net debt from forward)
+        const histBrows = [...histYears].reverse()
+        // Check if we have enough data to show multiples
+        const hasMultiples = histBrows.some(yr => data.historical_fcf?.[yr] != null)
+        if (!hasMultiples) return null
+        return (
+          <div>
+            <p className="text-xs font-semibold mb-2">3. Ratios de valoración históricos</p>
+            <Card className="glass overflow-clip">
+              <div className="overflow-x-auto">
+                <table className="w-full text-[0.7rem]">
+                  <thead>
+                    <tr className="border-b border-border/30">
+                      <th className="text-left px-3 py-2 text-muted-foreground/50 font-semibold uppercase tracking-wider w-44">(NTM fwd)</th>
+                      {histBrows.map(yr => (
+                        <th key={yr} className="px-2 py-2 text-center text-muted-foreground/60 font-semibold">{yr}</th>
+                      ))}
+                      <th className="px-2 py-2 text-center text-cyan-400/60 font-semibold text-[0.6rem]">Mediana</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/15">
+                    <tr className="hover:bg-white/2">
+                      <td className="px-3 py-1.5 text-muted-foreground/70">FCF ($M)</td>
+                      {histBrows.map(yr => {
+                        const fcf = data.historical_fcf?.[yr]
+                        return <td key={yr} className="px-2 py-1.5 text-center font-mono text-cyan-400/80">{fcf != null ? fmtM(fcf) : '—'}</td>
+                      })}
+                      <td className="px-2 py-1.5 text-center text-muted-foreground/40">—</td>
+                    </tr>
+                    <tr className="hover:bg-white/2">
+                      <td className="px-3 py-1.5 text-muted-foreground/70">FCF/share</td>
+                      {histBrows.map(yr => {
+                        const ps = data.historical_fcf_per_share?.[yr]
+                        return <td key={yr} className="px-2 py-1.5 text-center font-mono text-cyan-400/60">{ps != null ? `$${ps.toFixed(2)}` : '—'}</td>
+                      })}
+                      <td className="px-2 py-1.5 text-center text-muted-foreground/40">—</td>
+                    </tr>
+                    <tr className="hover:bg-white/2 border-t border-border/20">
+                      <td className="px-3 py-1.5 text-muted-foreground/60 text-[0.65rem]">EV/FCF objetivo</td>
+                      {histBrows.map(() => <td key={Math.random()} className="px-2 py-1.5 text-center text-muted-foreground/30 text-[0.6rem]">—</td>)}
+                      <td className="px-2 py-1.5 text-center font-semibold text-cyan-400">{data.median_ev_fcf != null ? `${data.median_ev_fcf.toFixed(1)}x` : '—'}</td>
+                    </tr>
+                    <tr className="hover:bg-white/2">
+                      <td className="px-3 py-1.5 text-muted-foreground/60 text-[0.65rem]">NTM P/E consenso</td>
+                      {histBrows.map(() => <td key={Math.random()} className="px-2 py-1.5 text-center text-muted-foreground/30 text-[0.6rem]">—</td>)}
+                      <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/70">{data.ntm_pe != null ? `${data.ntm_pe.toFixed(1)}x` : '—'}</td>
+                    </tr>
+                    <tr className="hover:bg-white/2">
+                      <td className="px-3 py-1.5 text-muted-foreground/60 text-[0.65rem]">NTM EV/EBITDA</td>
+                      {histBrows.map(() => <td key={Math.random()} className="px-2 py-1.5 text-center text-muted-foreground/30 text-[0.6rem]">—</td>)}
+                      <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/70">{data.ntm_ev_ebitda != null ? `${data.ntm_ev_ebitda.toFixed(1)}x` : '—'}</td>
+                    </tr>
+                    <tr className="hover:bg-white/2">
+                      <td className="px-3 py-1.5 text-muted-foreground/60 text-[0.65rem]">NTM FCF Yield</td>
+                      {histBrows.map(() => <td key={Math.random()} className="px-2 py-1.5 text-center text-muted-foreground/30 text-[0.6rem]">—</td>)}
+                      <td className="px-2 py-1.5 text-center font-semibold text-muted-foreground/70">{data.ntm_fcf_yield_pct != null ? `${data.ntm_fcf_yield_pct.toFixed(1)}%` : '—'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        )
+      })()}
+
+      {/* ── 4. Precio objetivo por múltiplo ──────────────────────────── */}
+      {activeTab === 'valoracion' && Object.keys(computed.priceTargets).length > 0 && (
+        <div>
+          <p className="text-xs font-semibold mb-2">4. Precio objetivo por múltiplo</p>
+          <Card className="glass overflow-clip">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-border/30">
+                  <TableHead className="w-28">Año</TableHead>
+                  <TableHead className="text-right text-cyan-400/70">EV/FCF <span className="text-muted-foreground/40 font-normal text-[0.6rem]">({evFcfT}x)</span></TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">PER <span className="text-muted-foreground/40 font-normal text-[0.6rem]">({perT}x)</span></TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">EV/EBITDA <span className="text-muted-foreground/40 font-normal text-[0.6rem]">({evEbT}x)</span></TableHead>
+                  <TableHead className="text-right text-muted-foreground/70">EV/EBIT <span className="text-muted-foreground/40 font-normal text-[0.6rem]">({evEbitT}x)</span></TableHead>
+                  <TableHead className="text-right font-semibold">Promedio</TableHead>
+                  <TableHead className="text-right text-muted-foreground/60">CAGR</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fwdYears.map(yr => {
+                  const pt = computed.priceTargets[yr]
+                  if (!pt) return null
+                  const avgP = pt.average
+                  const isExit = Number(yr) === data.exit_year
+                  const cagr = avgP && data.current_price && data.years_to_exit
+                    ? (Math.pow(avgP / data.current_price, 1 / (Number(yr) - new Date().getFullYear())) - 1) * 100
+                    : null
+                  return (
+                    <TableRow key={yr} className={cn(isExit && 'bg-cyan-500/5')}>
+                      <TableCell className="font-medium">
+                        {yr}E {isExit && <span className="ml-1 text-[0.6rem] text-cyan-400/70">← salida</span>}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-cyan-400">{fmt(pt.ev_fcf, '$')}</TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground/70">{fmt(pt.per, '$')}</TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground/70">{fmt(pt.ev_ebitda, '$')}</TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground/70">{fmt(pt.ev_ebit, '$')}</TableCell>
+                      <TableCell className={cn('text-right font-semibold', isExit ? 'text-cyan-400' : '')}>{fmt(avgP, '$')}</TableCell>
+                      <TableCell className={cn('text-right font-semibold', cagr == null ? 'text-muted-foreground' : cagr >= returnT ? 'text-emerald-400' : cagr >= 0 ? 'text-amber-400' : 'text-red-400')}>
+                        {cagr != null ? `${cagr > 0 ? '+' : ''}${cagr.toFixed(1)}%` : '—'}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </Card>
+          <p className="text-[0.6rem] text-muted-foreground/40 mt-1">
+            Precio de compra para {returnT}% anual: <span className="text-cyan-400/70 font-semibold">{fmt(computed.buyPrice, '$')}</span>
+            {computed.upsidePct != null && <span className={cn('ml-2', upsideColor(computed.upsidePct))}>{computed.upsidePct > 0 ? '+' : ''}{computed.upsidePct.toFixed(1)}% vs actual</span>}
+          </p>
+        </div>
+      )}
 
       {/* FCF Breakdown — template style */}
-      <div>
-        <p className="text-xs font-semibold mb-1.5">Desglose FCF histórico — fórmula plantilla</p>
+      {activeTab === 'detalle' && <div>
+        <p className="text-xs font-semibold mb-1.5">5. Desglose FCF detallado — fórmula plantilla</p>
           <p className="text-[0.65rem] text-muted-foreground mb-2">
             FCF = EBITDA − CapEx<sub>mant</sub> − Interés − Impuestos + ΔCT
             <span className="ml-2 opacity-50">· TIKR = dato real de TIKR Pro · CFO = CFO − CapEx<sub>mant</sub> · —  = no disponible en TIKR</span>
@@ -900,7 +1194,7 @@ function DetailView({
               </TableBody>
             </Table>
           </Card>
-      </div>
+      </div>}
     </div>
   )
 }
