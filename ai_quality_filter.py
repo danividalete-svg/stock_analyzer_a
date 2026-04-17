@@ -9,6 +9,7 @@ import numpy as np
 from pathlib import Path
 import json
 import os
+import ast
 from groq import Groq
 
 # Groq API (free tier) - must be set in environment
@@ -469,24 +470,32 @@ def extract_fundamentals(row):
     debt_to_equity = None
     profit_margin = None
 
+    def _parse_details(raw):
+        if not isinstance(raw, str):
+            return raw if isinstance(raw, dict) else {}
+        raw = raw.strip()
+        if not raw:
+            return {}
+        try:
+            parsed = ast.literal_eval(raw)
+            return parsed if isinstance(parsed, dict) else {}
+        except (ValueError, SyntaxError):
+            try:
+                parsed = json.loads(raw)
+                return parsed if isinstance(parsed, dict) else {}
+            except json.JSONDecodeError:
+                return {}
+
     # Extract from health_details
     health_details = row.get('health_details', '{}')
-    if isinstance(health_details, str):
-        try:
-            hd = eval(health_details)
-            roe = hd.get('roe_pct')
-            debt_to_equity = hd.get('debt_to_equity')
-        except:
-            pass
+    hd = _parse_details(health_details)
+    roe = hd.get('roe_pct')
+    debt_to_equity = hd.get('debt_to_equity')
 
     # Extract from earnings_details
     earnings_details = row.get('earnings_details', '{}')
-    if isinstance(earnings_details, str):
-        try:
-            ed = eval(earnings_details)
-            profit_margin = ed.get('profit_margin_pct')
-        except:
-            pass
+    ed = _parse_details(earnings_details)
+    profit_margin = ed.get('profit_margin_pct')
 
     return roe, profit_margin, debt_to_equity
 

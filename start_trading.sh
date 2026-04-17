@@ -16,9 +16,11 @@
 set -e
 cd "$(dirname "$0")"
 
-# Credenciales Telegram (editar aquí o exportar en ~/.zshrc)
-export TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-7662243037:AAExBqSLxv0QuLRxTYZR_JpxgGbKIpVhZFQ}"
-export TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-3165866}"
+# Credenciales Telegram: deben venir del entorno
+if [[ -z "${TELEGRAM_BOT_TOKEN:-}" || -z "${TELEGRAM_CHAT_ID:-}" ]]; then
+    echo "⚠️  TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID no configurados."
+    echo "   El script seguira, pero las alertas de Telegram pueden no funcionar."
+fi
 
 # Activar virtualenv si existe
 if [ -f ".venv/bin/activate" ]; then
@@ -42,7 +44,7 @@ if [[ "$1" == "--status" ]]; then
     python3 bounce_trader.py --status
 elif [[ "$1" == "--agent" ]]; then
     shift  # eliminar --agent del arglist
-    python3 trading_agent.py --loop "$@"
+    python3 financial_agent.py "$@"
 else
     python3 bounce_trader.py --loop "$@"
 fi

@@ -309,9 +309,10 @@ def calculate_conviction_score(row) -> dict:
     # ─── 11. "Fallen Angel" bonus ───────────────────────────────────────────────
     # Empresa de calidad que ha caído mucho sin motivo fundamental = oportunidad
     # Principio Lynch: comprar empresas sólidas en caídas de mercado, no de negocio
-    max_score += 12
     proximity = _sf(row.get('proximity_to_52w_high'))  # negativo, ej: -32.3
     fundamentals_intact = (roe is not None and roe >= 15) and (fcf is not None and fcf >= 3)
+    if proximity is not None:
+        max_score += 12
     if proximity is not None and proximity <= -20:
         if fundamentals_intact:
             if proximity <= -35:

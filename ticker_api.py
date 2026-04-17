@@ -38,7 +38,6 @@ from flask_limiter.util import get_remote_address
 import pandas as pd
 import json
 import jwt as pyjwt
-from jwt import PyJWKClient
 import time
 import re
 import os
@@ -46,46 +45,60 @@ import logging
 from pathlib import Path
 from datetime import datetime
 
+from ticker_api_config import load_runtime_config
+from ticker_api_data import build_dataset_summary, load_csv_file, load_json_file, load_static_datasets
+
 _logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
+_RUNTIME = load_runtime_config()
+_IS_PRODUCTION = _RUNTIME.is_production
+_DEFAULT_HOURLY_LIMIT = _RUNTIME.default_hourly_limit
+_DEFAULT_DAILY_LIMIT = _RUNTIME.default_daily_limit
+_RATE_LIMIT_STORAGE_URI = _RUNTIME.rate_limit_storage_uri
+_AUTH_BYPASS_ENABLED = _RUNTIME.auth_bypass_enabled
+_REQUIRE_SUPABASE_AUTH = _RUNTIME.require_supabase_auth
+_PUBLIC_PATHS = set(_RUNTIME.public_paths)
+
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
-    default_limits=["500 per day", "100 per hour"],
-    storage_uri="memory://"
+    default_limits=[f"{_DEFAULT_DAILY_LIMIT} per day", f"{_DEFAULT_HOURLY_LIMIT} per hour"],
+    storage_uri=_RATE_LIMIT_STORAGE_URI,
 )
 
-import os as _os
-_CORS_ORIGINS = ["https://tantancansado.github.io"]
-if _os.environ.get('FLASK_ENV') != 'production' or _os.environ.get('RAILWAY_ENVIRONMENT') is None:
-    _CORS_ORIGINS += [
-        "http://localhost:5173",
-        "http://localhost:4173",
-        "http://127.0.0.1:5173",
-    ]
+_CORS_ORIGINS = _RUNTIME.cors_origins
 CORS(app, origins=_CORS_ORIGINS)
+
+if _RATE_LIMIT_STORAGE_URI == "memory://" and _IS_PRODUCTION:
+    _logger.warning(
+        "RATE_LIMIT_STORAGE_URI usa memory:// en produccion; con multiples workers los limites no seran consistentes."
+    )
+if _AUTH_BYPASS_ENABLED:
+    _logger.warning("AUTH_BYPASS activo; la API permitira acceso sin JWT.")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # JWT AUTH (Supabase — JWKS, works with ECC P-256 and legacy HS256)
 # ─────────────────────────────────────────────────────────────────────────────
 
-SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
-_jwks_client = (
-    PyJWKClient(f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json", cache_jwk_set=True)
-    if SUPABASE_URL else None
-)
+SUPABASE_URL = _RUNTIME.supabase_url
+_jwks_client = _RUNTIME.jwks_client
 
 @app.before_request
 def _check_auth():
     """Verify Supabase JWT via JWKS (supports ECC P-256 and HS256).
-    Falls back to open access when SUPABASE_URL is not set (local dev).
+    Local bypass requires AUTH_BYPASS=true; production fails closed by default.
     """
+    if request.path in _PUBLIC_PATHS or request.method == "OPTIONS":
+        return
+    if _AUTH_BYPASS_ENABLED:
+        return
     if not _jwks_client:
-        return  # Auth not configured — allow all (local dev mode)
-    if request.path in ('/', '/api/health') or request.method == 'OPTIONS':
-        return  # Public endpoints
+        if _REQUIRE_SUPABASE_AUTH:
+            _logger.error("Auth requerida pero SUPABASE_URL no esta configurada.")
+            return jsonify({'error': 'Auth misconfigured'}), 503
+        return
     token = request.headers.get('Authorization', '').replace('Bearer ', '').strip()
     if not token:
         return jsonify({'error': 'Unauthorized'}), 401
@@ -101,53 +114,31 @@ def _check_auth():
 # CARGA DE CACHE AL ARRANCAR
 # ─────────────────────────────────────────────────────────────────────────────
 
-DOCS = Path('docs')
-
-
 def _load_csv(path, index_col='ticker'):
-    """Carga un CSV indexado por ticker, silenciosamente si no existe."""
-    try:
-        df = pd.read_csv(path)
-        if index_col and index_col in df.columns:
-            df[index_col] = df[index_col].str.upper().str.strip()
-            return df.set_index(index_col)
-        return df  # CSV sin columna ticker (ej. industry_group_rankings): devolver sin index
-    except Exception:
-        pass
-    return pd.DataFrame()
+    return load_csv_file(path, index_col=index_col, logger=_logger)
 
 
 def _load_json(path):
-    try:
-        with open(path) as f:
-            return json.load(f)
-    except Exception:
-        return {}
+    return load_json_file(path, logger=_logger)
 
 
-# CSVs del pipeline diario
-DF_5D        = _load_csv(DOCS / 'super_opportunities_5d_complete_with_earnings.csv')
-DF_ML        = _load_csv(DOCS / 'ml_scores.csv')
-DF_FUND_US   = _load_csv(DOCS / 'fundamental_scores.csv')
-DF_FUND_EU   = _load_csv(DOCS / 'european_fundamental_scores.csv')
-DF_FUND      = pd.concat([DF_FUND_US, DF_FUND_EU]) if not DF_FUND_EU.empty else DF_FUND_US
-DF_SCORES    = _load_csv(DOCS / 'super_scores_ultimate.csv')
-_df_ins_us   = _load_csv(DOCS / 'recurring_insiders.csv')
-_df_ins_eu   = _load_csv(DOCS / 'eu_recurring_insiders.csv')
-# Add market column to US insiders if not present
-if not _df_ins_us.empty and 'market' not in _df_ins_us.columns:
-    _df_ins_us['market'] = 'US'
-# Merge US + EU into one DataFrame
-DF_INSIDERS  = pd.concat([_df_ins_us, _df_ins_eu], ignore_index=True) if not _df_ins_eu.empty else _df_ins_us
-DF_REVERSION  = _load_csv(DOCS / 'mean_reversion_opportunities.csv')
-DF_OPTIONS    = _load_csv(DOCS / 'options_flow.csv')
-DF_PRICES     = _load_csv(DOCS / 'super_opportunities_with_prices.csv')
-DF_POSITIONS  = _load_csv(DOCS / 'position_sizing.csv')
-DF_INDUSTRIES = _load_csv(DOCS / 'industry_group_rankings.csv')
-TICKER_CACHE  = _load_json(DOCS / 'ticker_data_cache.json')
+_DATASETS = load_static_datasets(logger=_logger)
+DOCS = _DATASETS.docs
+DF_5D = _DATASETS.df_5d
+DF_ML = _DATASETS.df_ml
+DF_FUND_US = _DATASETS.df_fund_us
+DF_FUND_EU = _DATASETS.df_fund_eu
+DF_FUND = _DATASETS.df_fund
+DF_SCORES = _DATASETS.df_scores
+DF_INSIDERS = _DATASETS.df_insiders
+DF_REVERSION = _DATASETS.df_reversion
+DF_OPTIONS = _DATASETS.df_options
+DF_PRICES = _DATASETS.df_prices
+DF_POSITIONS = _DATASETS.df_positions
+DF_INDUSTRIES = _DATASETS.df_industries
+TICKER_CACHE = _DATASETS.ticker_cache
 
-print(f"✅ Cache cargado: {len(DF_5D)} tickers 5D | {len(DF_ML)} ML | {len(DF_FUND)} fund (US:{len(DF_FUND_US)}+EU:{len(DF_FUND_EU)}) | {len(TICKER_CACHE)} ticker_cache")
-print(f"   Insiders: {len(DF_INSIDERS)} | Mean Rev: {len(DF_REVERSION)} | Options: {len(DF_OPTIONS)}")
+print(build_dataset_summary(_DATASETS))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
