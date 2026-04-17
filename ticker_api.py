@@ -78,6 +78,11 @@ if _RATE_LIMIT_STORAGE_URI == "memory://" and _IS_PRODUCTION:
 if _AUTH_BYPASS_ENABLED:
     _logger.warning("AUTH_BYPASS activo; la API permitira acceso sin JWT.")
 
+_logger.warning(
+    "CONFIG: is_production=%s | supabase_url=%s | jwks_client=%s | require_auth=%s",
+    _IS_PRODUCTION, bool(_RUNTIME.supabase_url), _RUNTIME.jwks_client is not None, _REQUIRE_SUPABASE_AUTH
+)
+
 # ─────────────────────────────────────────────────────────────────────────────
 # JWT AUTH (Supabase — JWKS, works with ECC P-256 and legacy HS256)
 # ─────────────────────────────────────────────────────────────────────────────
